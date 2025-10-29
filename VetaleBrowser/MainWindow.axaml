@@ -2,8 +2,106 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="VetaleBrowser.MainWindow"
-        Title="VetaleBrowser">
-    Welcome to Avalonia!
-</Window>
+        Title="Vetale Browser"
+        WindowStartupLocation="CenterScreen"
+        SystemDecorations="BorderOnly"
+
+        CanResize="True"
+        MinWidth="480"
+        MinHeight="320"
+        Padding="8"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="40"
+        UseLayoutRounding="True">
+
+    <!-- Resources: gradients adapted from your snippet -->
+    <Window.Resources>
+        <!-- Футуристичний сірий градієнт -->
+        <LinearGradientBrush x:Key="GrayGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#FFE0E0E0" Offset="0"/>
+            <GradientStop Color="#FFD0D0D0" Offset="0.3"/>
+            <GradientStop Color="#FFC5C5C5" Offset="0.7"/>
+            <GradientStop Color="#FFC0C0C0" Offset="1"/>
+        </LinearGradientBrush>
+
+        <!-- Футуристичний фіолетовий градієнт -->
+        <LinearGradientBrush x:Key="PurpleGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#FFA020F0" Offset="0"/>
+            <GradientStop Color="#FF9A1CE8" Offset="0.3"/>
+            <GradientStop Color="#FF8E15DC" Offset="0.7"/>
+            <GradientStop Color="#FF8612D0" Offset="1"/>
+        </LinearGradientBrush>
+    </Window.Resources>
+
+    <Window.Styles>
+        <!-- Glass style (colors taken from provided WPF snippet) -->
+        <Style Selector="Border.glass-panel">
+            <!-- Visual background only; no border or shadow -->
+            <Setter Property="Background" Value="{StaticResource GrayGradient}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BoxShadow" Value="none"/>
+        </Style>
+
+        <!-- Toolbar buttons etc. (kept minimal) -->
+        <Style Selector="Button.window-control">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#303030"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <!-- Slightly smaller & tighter controls like modern browsers -->
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.window-control:pointerover">
+            <Setter Property="Background" Value="#40FFFFFF"/>
+        </Style>
+        <Style Selector="Button.window-control.close:pointerover">
+            <Setter Property="Background" Value="#E81123"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,*">
+        <!-- Top row: glass style from your snippet, includes window controls on the right -->
+        <!-- Top row: compact professional tab/title bar (48px) -->
+        <!-- Top/title area: use Grid instead of Border so no Border element exists -->
+        <Grid Grid.Row="0" Margin="0" Height="40" Background="Transparent"
+              PointerPressed="TopBar_PointerPressed" DoubleTapped="TopBar_DoubleTapped"
+              IsHitTestVisible="True">
+            <Grid ColumnDefinitions="*,Auto">
+                <!-- Visual layer (non-interactive) sits behind interactive content -->
+                <Border Background="{StaticResource GrayGradient}" IsHitTestVisible="False" CornerRadius="0"/>
+                <!-- left area (tabs can be added later) -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0">
+                    <TextBlock Text="" />
+                </StackPanel>
+
+                <!-- window controls on the right -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Classes="window-control" Content="─" Click="MinimizeWindow" ToolTip.Tip="Minimize"/>
+                    <Button Classes="window-control" Content="□" Click="MaximizeWindow" ToolTip.Tip="Maximize"/>
+                    <Button Classes="window-control close" Content="✕" Click="CloseWindow" ToolTip.Tip="Close"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <!-- Middle row: use Grid (no Border) -->
+        <Grid Grid.Row="1" Background="{StaticResource PurpleGradient}" Height="36">
+            <!-- intentionally empty - pure color bar -->
+        </Grid>
+
+        <!-- Bottom row: WebView container -->
+        <Grid Grid.Row="2" Background="#FFFFFF" x:Name="WebViewContainer">
+            <TextBlock Text="Ініціалізація WebView..." 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center" 
+                       Foreground="#A0A0A0" 
+                       FontSize="16"/>
+        </Grid>
+     </Grid>
+ </Window>
