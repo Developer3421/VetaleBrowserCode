@@ -1,0 +1,149 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:VetaleBrowser.VetaleBrowser.UI.Еlements">
+    <Design.PreviewWith>
+        <StackPanel Spacing="5" Margin="20">
+            <controls:Tab Title="Active Tab" IsActive="True" Width="200" />
+            <controls:Tab Title="Inactive Tab" IsActive="False" Width="200" />
+            <controls:Tab Title="Very Long Tab Title Example" IsActive="False" Width="200" />
+        </StackPanel>
+    </Design.PreviewWith>
+
+    <Style Selector="controls|Tab">
+        <Setter Property="Height" Value="38" />
+        <Setter Property="MinWidth" Value="100" />
+        <Setter Property="MaxWidth" Value="240" />
+        <Setter Property="Margin" Value="0,0,0,0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border x:Name="PART_Border"
+                        CornerRadius="8,8,0,0"
+                        Padding="12,0,8,0"
+                        ClipToBounds="False">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                            <GradientStop Color="#F5F3FF" Offset="0" />
+                            <GradientStop Color="#EDE9FE" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <!-- Favicon/Icon -->
+                        <Border Grid.Column="0"
+                                Width="16"
+                                Height="16"
+                                Margin="0,0,8,0"
+                                CornerRadius="3"
+                                Background="#A78BFA">
+                            <TextBlock Text="🌐"
+                                       FontSize="10"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+
+                        <!-- Title -->
+                        <TextBlock Grid.Column="1"
+                                   x:Name="PART_Title"
+                                   Text="{TemplateBinding Title}"
+                                   FontSize="12"
+                                   FontWeight="Normal"
+                                   Foreground="#1F1B24"
+                                   VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"
+                                   Margin="0,0,8,0" />
+
+                        <!-- Close Button -->
+                        <Button Grid.Column="2"
+                                x:Name="PART_CloseButton"
+                                Width="20"
+                                Height="20"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                CornerRadius="4"
+                                VerticalAlignment="Center"
+                                IsVisible="{TemplateBinding IsCloseButtonVisible}">
+                            <Path Width="10"
+                                  Height="10"
+                                  Stretch="Uniform"
+                                  Fill="#6B7280"
+                                  Data="M6.4 5L11 .4 10.6 0 6 4.6 1.4 0 1 .4 5.6 5 1 9.6l.4.4L6 5.4l4.6 4.6.4-.4L6.4 5z" />
+                        </Button>
+                    </Grid>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Inactive Tab State (Default) -->
+    <Style Selector="controls|Tab:not(:active)">
+        <Setter Property="Opacity" Value="0.7" />
+    </Style>
+
+    <Style Selector="controls|Tab:not(:active) /template/ Border#PART_Border">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#F3F4F6" Offset="0" />
+                <GradientStop Color="#E5E7EB" Offset="1" />
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+
+    <!-- Active Tab State -->
+    <Style Selector="controls|Tab:active">
+        <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="controls|Tab:active /template/ Border#PART_Border">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#F5F3FF" Offset="0" />
+                <GradientStop Color="#EDE9FE" Offset="1" />
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="BorderThickness" Value="1,1,1,0" />
+        <Setter Property="BorderBrush" Value="#C4B5FD" />
+    </Style>
+
+    <Style Selector="controls|Tab:active /template/ TextBlock#PART_Title">
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="#4C1D95" />
+    </Style>
+
+    <!-- Hover Effects -->
+    <Style Selector="controls|Tab:pointerover /template/ Border#PART_Border">
+        <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="controls|Tab:not(:active):pointerover /template/ Border#PART_Border">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FAF9FF" Offset="0" />
+                <GradientStop Color="#F3F1FF" Offset="1" />
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+
+    <!-- Close Button Hover -->
+    <Style Selector="controls|Tab /template/ Button#PART_CloseButton:pointerover">
+        <Setter Property="Background" Value="#DDD6FE" />
+    </Style>
+
+    <Style Selector="controls|Tab /template/ Button#PART_CloseButton:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#DDD6FE" />
+    </Style>
+
+    <Style Selector="controls|Tab /template/ Button#PART_CloseButton:pointerover Path">
+        <Setter Property="Fill" Value="#4C1D95" />
+    </Style>
+
+    <!-- Close Button Press -->
+    <Style Selector="controls|Tab /template/ Button#PART_CloseButton:pressed">
+        <Setter Property="Background" Value="#C4B5FD" />
+    </Style>
+
+    <Style Selector="controls|Tab /template/ Button#PART_CloseButton:pressed Path">
+        <Setter Property="Fill" Value="#3B0764" />
+    </Style>
+</Styles>

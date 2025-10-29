@@ -1,0 +1,21 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!-- Window Control Icons -->
+    <StreamGeometry x:Key="MinButtonIcon">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/MinButton.png</StreamGeometry>
+    <StreamGeometry x:Key="MaxButtonIcon">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/MaxButton.png</StreamGeometry>
+    <StreamGeometry x:Key="CloseButtonIcon">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/CloseButton.png</StreamGeometry>
+    
+    <!-- Navigation Icons -->
+    <StreamGeometry x:Key="BackButtonIcon">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/Backbutton.png</StreamGeometry>
+    <StreamGeometry x:Key="ForwardButtonIcon">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/ForwardButton.png</StreamGeometry>
+    
+    <!-- Bitmap Images for use in Image controls -->
+    <Bitmap x:Key="MinButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/MinButton.png</Bitmap>
+    <Bitmap x:Key="MaxButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/MaxButton.png</Bitmap>
+    <Bitmap x:Key="CloseButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/CloseButton.png</Bitmap>
+    <Bitmap x:Key="BackButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/Backbutton.png</Bitmap>
+    <Bitmap x:Key="ForwardButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/ForwardButton.png</Bitmap>
+    
+</ResourceDictionary>
+

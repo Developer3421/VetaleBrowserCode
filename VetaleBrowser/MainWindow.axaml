@@ -2,12 +2,16 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:controls="using:VetaleBrowser.VetaleBrowser.UI.Еlements"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="VetaleBrowser.MainWindow"
         Title="Vetale Browser"
         WindowStartupLocation="CenterScreen"
         SystemDecorations="BorderOnly"
-
+        Background="#FF8B4513"
+        BorderThickness="0.5"
+        BorderBrush="#22000000"
+        
         CanResize="True"
         MinWidth="480"
         MinHeight="320"
@@ -37,6 +41,8 @@
     </Window.Resources>
 
     <Window.Styles>
+        <StyleInclude Source="avares://VetaleBrowser/VetaleBrowser.UI/Еlements/Tab.axaml"/>
+        
         <!-- Glass style (colors taken from provided WPF snippet) -->
         <Style Selector="Border.glass-panel">
             <!-- Visual background only; no border or shadow -->
@@ -60,32 +66,45 @@
         <Style Selector="Button.window-control:pointerover">
             <Setter Property="Background" Value="#40FFFFFF"/>
         </Style>
+
+        <!-- Default style for the Close button: white background so a red PNG icon is visible -->
+        <Style Selector="Button.window-control.close">
+            <Setter Property="Background" Value="#FFFFFFFF"/>
+            <Setter Property="Foreground" Value="#FF000000"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <!-- Hover style for Close button: subtle red tint (keeps icon visible) -->
         <Style Selector="Button.window-control.close:pointerover">
-            <Setter Property="Background" Value="#E81123"/>
-            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Background" Value="#FFFFEBE8"/>
+            <Setter Property="Foreground" Value="#FF000000"/>
         </Style>
     </Window.Styles>
 
     <Grid RowDefinitions="Auto,Auto,*">
-        <!-- Top row: glass style from your snippet, includes window controls on the right -->
-        <!-- Top row: compact professional tab/title bar (48px) -->
-        <!-- Top/title area: use Grid instead of Border so no Border element exists -->
-        <Grid Grid.Row="0" Margin="0" Height="40" Background="Transparent"
-              PointerPressed="TopBar_PointerPressed" DoubleTapped="TopBar_DoubleTapped"
-              IsHitTestVisible="True">
+        <!-- Top row: tab bar with window controls -->
+        <Grid Grid.Row="0" Margin="0" Height="42" 
+              Background="{StaticResource GrayGradient}"
+              PointerPressed="TopBar_PointerPressed" DoubleTapped="TopBar_DoubleTapped">
             <Grid ColumnDefinitions="*,Auto">
-                <!-- Visual layer (non-interactive) sits behind interactive content -->
-                <Border Background="{StaticResource GrayGradient}" IsHitTestVisible="False" CornerRadius="0"/>
-                <!-- left area (tabs can be added later) -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0">
-                    <TextBlock Text="" />
+                <!-- left area - tabs -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Top" Margin="8,4,0,0">
+                    <Border BorderBrush="Red" BorderThickness="2" Background="White">
+                        <controls:Tab Title="Vetale Browser" IsActive="True" Width="200" />
+                    </Border>
                 </StackPanel>
 
                 <!-- window controls on the right -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Classes="window-control" Content="─" Click="MinimizeWindow" ToolTip.Tip="Minimize"/>
-                    <Button Classes="window-control" Content="□" Click="MaximizeWindow" ToolTip.Tip="Maximize"/>
-                    <Button Classes="window-control close" Content="✕" Click="CloseWindow" ToolTip.Tip="Close"/>
+                    <Button Classes="window-control" Click="MinimizeWindow" ToolTip.Tip="Minimize" Padding="0">
+                        <Image Source="{DynamicResource MinButtonImage}" Stretch="Uniform"/>
+                    </Button>
+                    <Button Classes="window-control" Click="MaximizeWindow" ToolTip.Tip="Maximize" Padding="0">
+                        <Image Source="{DynamicResource MaxButtonImage}" Stretch="Uniform"/>
+                    </Button>
+                    <Button Classes="window-control close" Click="CloseWindow" ToolTip.Tip="Close" Padding="0" BorderThickness="0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                        <Image Source="{DynamicResource CloseButtonImage}" Stretch="UniformToFill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0"/>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Grid>

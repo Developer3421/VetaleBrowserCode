@@ -33,7 +33,11 @@
       <Folder Include="VetaleBrowser.UI\Pages\" />
       <Folder Include="VetaleBrowser.UI\TranslationsDictionaries\" />
       <Folder Include="VetaleBrowser.UI\Windows\" />
-      <Folder Include="VetaleBrowser.UI\Еlements\" />
       <Folder Include="VetaleBrowser.WebEngine\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <AvaloniaResource Include="VetaleBrowser.UI\Sources\Icons\*.png" />
+      <AvaloniaResource Include="VetaleBrowser.UI\Еlements\*.axaml" />
     </ItemGroup>
 </Project>
