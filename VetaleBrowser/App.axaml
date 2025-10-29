@@ -15,5 +15,6 @@
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://VetaleBrowser/VetaleBrowser.UI/Еlements/Tab.axaml"/>
+        <StyleInclude Source="avares://VetaleBrowser/VetaleBrowser.UI/Еlements/NavigationBar.axaml"/>
     </Application.Styles>
 </Application>

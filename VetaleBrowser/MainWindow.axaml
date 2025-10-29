@@ -89,9 +89,7 @@
             <Grid ColumnDefinitions="*,Auto">
                 <!-- left area - tabs -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Top" Margin="8,4,0,0">
-                    <Border BorderBrush="Red" BorderThickness="2" Background="White">
-                        <controls:Tab Title="Vetale Browser" IsActive="True" Width="200" />
-                    </Border>
+                    <controls:Tab Title="Vetale Browser" IsActive="True" Width="200" />
                 </StackPanel>
 
                 <!-- window controls on the right -->
@@ -109,9 +107,9 @@
             </Grid>
         </Grid>
 
-        <!-- Middle row: use Grid (no Border) -->
+        <!-- Middle row: Navigation Bar -->
         <Grid Grid.Row="1" Background="{StaticResource PurpleGradient}" Height="36">
-            <!-- intentionally empty - pure color bar -->
+            <controls:NavigationBar x:Name="NavigationBar" />
         </Grid>
 
         <!-- Bottom row: WebView container -->

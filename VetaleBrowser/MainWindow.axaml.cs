@@ -6,6 +6,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using VetaleBrowser.VetaleBrowser.UI.Scripts;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
+using VetaleBrowser.VetaleBrowser.UI.Еlements;
 using WebViewControl;
 
 namespace VetaleBrowser;
@@ -60,7 +61,21 @@ public partial class MainWindow : Window
                 // Initialize WebViewManager with the control
                 _webViewManager.Initialize(webView);
                 
-                System.Diagnostics.Debug.WriteLine("MainWindow: WebViewManager initialized, navigating to Google");
+                System.Diagnostics.Debug.WriteLine("MainWindow: WebViewManager initialized");
+                
+                // Initialize NavigationBar with WebViewManager
+                var navigationBar = this.FindControl<NavigationBar>("NavigationBar");
+                if (navigationBar != null)
+                {
+                    navigationBar.Initialize(_webViewManager);
+                    
+                    // Subscribe only to events that need external handling
+                    navigationBar.BookmarkRequested += OnBookmarkRequested;
+                    navigationBar.ToolsRequested += OnToolsRequested;
+                    navigationBar.SettingsRequested += OnSettingsRequested;
+                    
+                    System.Diagnostics.Debug.WriteLine("MainWindow: NavigationBar initialized");
+                }
                 
                 // Navigate to a default page
                 await _webViewManager.NavigateAsync("https://www.google.com");
@@ -134,5 +149,23 @@ public partial class MainWindow : Window
             _windowManager.TryBeginMoveDrag(e);
         }
     }
-}
 
+    // Event handlers for functionality that needs to be handled externally
+    private void OnBookmarkRequested(object? sender, EventArgs e)
+    {
+        // TODO: Implement bookmark functionality
+        System.Diagnostics.Debug.WriteLine("MainWindow: Bookmark button clicked");
+    }
+
+    private void OnToolsRequested(object? sender, EventArgs e)
+    {
+        // TODO: Implement tools menu
+        System.Diagnostics.Debug.WriteLine("MainWindow: Tools button clicked");
+    }
+
+    private void OnSettingsRequested(object? sender, EventArgs e)
+    {
+        // TODO: Implement settings window
+        System.Diagnostics.Debug.WriteLine("MainWindow: Settings button clicked");
+    }
+}
