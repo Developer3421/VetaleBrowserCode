@@ -39,5 +39,7 @@
     <ItemGroup>
       <AvaloniaResource Include="VetaleBrowser.UI\Sources\Icons\*.png" />
       <AvaloniaResource Include="VetaleBrowser.UI\Еlements\*.axaml" />
+      <!-- Include single SettingsButton.png which sits in Sources/ (not Icons/) -->
+      <AvaloniaResource Include="VetaleBrowser.UI\Sources\SettingsButton.png" />
     </ItemGroup>
 </Project>

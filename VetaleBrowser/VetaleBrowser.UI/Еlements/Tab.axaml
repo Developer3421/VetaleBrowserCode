@@ -28,9 +28,37 @@
                         </LinearGradientBrush>
                     </Border.Background>
 
-                    <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+                        <!-- Mute Button (left of favicon) -->
+                        <Button Grid.Column="0"
+                                x:Name="PART_MuteButton"
+                                Width="20"
+                                Height="20"
+                                Margin="0,0,6,0"
+                                Padding="0"
+                                Background="#FFA726"
+                                BorderThickness="0"
+                                CornerRadius="4"
+                                ToolTip.Tip="Вимкнути звук">
+                            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                <!-- Speaker shape -->
+                                <Path Data="M2,6 L6,6 L10,2 L10,18 L6,14 L2,14 Z"
+                                      Fill="#FFFFFF"
+                                      Stretch="Uniform"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                                <!-- Slash -->
+                                <Path Data="M3,3 L11,15"
+                                      Stroke="#FFFFFF"
+                                      StrokeThickness="1.6"
+                                      StrokeLineCap="Round"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                            </Grid>
+                        </Button>
+
                         <!-- Favicon/Icon -->
-                        <Border Grid.Column="0"
+                        <Border Grid.Column="1"
                                 Width="16"
                                 Height="16"
                                 Margin="0,0,8,0"
@@ -43,7 +71,7 @@
                         </Border>
 
                         <!-- Title -->
-                        <TextBlock Grid.Column="1"
+                        <TextBlock Grid.Column="2"
                                    x:Name="PART_Title"
                                    Text="{TemplateBinding Title}"
                                    FontSize="12"
@@ -54,7 +82,7 @@
                                    Margin="0,0,8,0" />
 
                         <!-- Close Button -->
-                        <Button Grid.Column="2"
+                        <Button Grid.Column="3"
                                 x:Name="PART_CloseButton"
                                 Width="20"
                                 Height="20"
@@ -64,11 +92,12 @@
                                 CornerRadius="4"
                                 VerticalAlignment="Center"
                                 IsVisible="{TemplateBinding IsCloseButtonVisible}">
-                            <Path Width="10"
-                                  Height="10"
-                                  Stretch="Uniform"
-                                  Fill="#6B7280"
-                                  Data="M6.4 5L11 .4 10.6 0 6 4.6 1.4 0 1 .4 5.6 5 1 9.6l.4.4L6 5.4l4.6 4.6.4-.4L6.4 5z" />
+                            <Image Source="{DynamicResource CloseTabButtonImage}"
+                                   Width="14"
+                                   Height="14"
+                                   Stretch="UniformToFill"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch" />
                         </Button>
                     </Grid>
                 </Border>
@@ -130,12 +159,8 @@
         <Setter Property="Background" Value="#DDD6FE" />
     </Style>
 
-    <Style Selector="controls|Tab /template/ Button#PART_CloseButton:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="#DDD6FE" />
-    </Style>
-
-    <Style Selector="controls|Tab /template/ Button#PART_CloseButton:pointerover Path">
-        <Setter Property="Fill" Value="#4C1D95" />
+    <Style Selector="controls|Tab /template/ Button#PART_CloseButton:pointerover /template/ Image">
+        <Setter Property="Opacity" Value="0.9" />
     </Style>
 
     <!-- Close Button Press -->
@@ -143,7 +168,17 @@
         <Setter Property="Background" Value="#C4B5FD" />
     </Style>
 
-    <Style Selector="controls|Tab /template/ Button#PART_CloseButton:pressed Path">
-        <Setter Property="Fill" Value="#3B0764" />
+    <Style Selector="controls|Tab /template/ Button#PART_CloseButton:pressed /template/ Image">
+        <Setter Property="Opacity" Value="0.8" />
+    </Style>
+
+    <!-- Mute Button Hover -->
+    <Style Selector="controls|Tab /template/ Button#PART_MuteButton:pointerover">
+        <Setter Property="Background" Value="#FF9800" />
+    </Style>
+
+    <!-- Mute Button Press -->
+    <Style Selector="controls|Tab /template/ Button#PART_MuteButton:pressed">
+        <Setter Property="Background" Value="#FB8C00" />
     </Style>
 </Styles>

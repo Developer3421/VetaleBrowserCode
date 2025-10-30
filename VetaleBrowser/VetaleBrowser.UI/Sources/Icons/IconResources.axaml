@@ -16,6 +16,13 @@
     <Bitmap x:Key="CloseButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/CloseButton.png</Bitmap>
     <Bitmap x:Key="BackButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/Backbutton.png</Bitmap>
     <Bitmap x:Key="ForwardButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/ForwardButton.png</Bitmap>
+    <Bitmap x:Key="AddTabImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/AddTab.png</Bitmap>
+    <Bitmap x:Key="InstrumensButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/InstrumensButton.png</Bitmap>
+    <Bitmap x:Key="CloseTabButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/CloseTabButton.png</Bitmap>
     
+    <!-- Additional button images provided -->
+    <Bitmap x:Key="HomeButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/HomeButton.png</Bitmap>
+    <Bitmap x:Key="ReloadTabButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/ReloadTabButton.png</Bitmap>
+    <Bitmap x:Key="SettingsButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/SettingsButton.png</Bitmap>
+    <Bitmap x:Key="AddBookmarkButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/AddBookmarkButton.png</Bitmap>
 </ResourceDictionary>
-

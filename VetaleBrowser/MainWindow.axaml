@@ -67,16 +67,16 @@
             <Setter Property="Background" Value="#40FFFFFF"/>
         </Style>
 
-        <!-- Default style for the Close button: white background so a red PNG icon is visible -->
+        <!-- Default style for the Close button: remove opaque white background so icon isn't boxed -->
         <Style Selector="Button.window-control.close">
-            <Setter Property="Background" Value="#FFFFFFFF"/>
+            <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="#FF000000"/>
             <Setter Property="BorderThickness" Value="0"/>
         </Style>
 
-        <!-- Hover style for Close button: subtle red tint (keeps icon visible) -->
+        <!-- Hover style for Close button: subtle translucent red tint (no hard white) -->
         <Style Selector="Button.window-control.close:pointerover">
-            <Setter Property="Background" Value="#FFFFEBE8"/>
+            <Setter Property="Background" Value="#40FF5C5C"/>
             <Setter Property="Foreground" Value="#FF000000"/>
         </Style>
     </Window.Styles>
@@ -89,6 +89,11 @@
             <Grid ColumnDefinitions="*,Auto">
                 <!-- left area - tabs -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Top" Margin="8,4,0,0">
+                    <!-- Add Tab Button (left of tabs) -->
+                    <Button x:Name="PART_AddTabButton" Width="32" Height="32" Margin="0,0,8,0" Background="Transparent" Padding="0" BorderThickness="0" ToolTip.Tip="Нова вкладка">
+                        <Image Source="{DynamicResource AddTabImage}" Stretch="UniformToFill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0"/>
+                    </Button>
+
                     <controls:Tab Title="Vetale Browser" IsActive="True" Width="200" />
                 </StackPanel>
 
