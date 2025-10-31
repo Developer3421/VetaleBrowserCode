@@ -94,7 +94,7 @@
                         <Image Source="{DynamicResource AddTabImage}" Stretch="UniformToFill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0"/>
                     </Button>
 
-                    <controls:Tab Title="Vetale Browser" IsActive="True" Width="200" />
+                    <controls:Tab x:Name="ActiveTab" Title="Vetale Browser" IsActive="True" Width="200" />
                 </StackPanel>
 
                 <!-- window controls on the right -->

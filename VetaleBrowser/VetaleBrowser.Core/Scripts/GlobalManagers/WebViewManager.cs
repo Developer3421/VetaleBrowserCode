@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using System.Diagnostics;
+
 using WebViewControl;
 
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers
@@ -15,6 +16,12 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers
         private bool _isInitialized;
 
         public bool IsInitialized => _isInitialized;
+
+        /// <summary>
+        /// Fired when a navigation to a new URL is requested via NavigateAsync.
+        /// Carries the target URL string.
+        /// </summary>
+        public event EventHandler<string>? Navigated;
 
         /// <summary>
         /// Initialize the manager with an existing WebView control instance.
@@ -46,6 +53,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers
                 {
                     Debug.WriteLine($"WebViewManager: Navigating to {url}");
                     _webView.Address = url;
+                    Navigated?.Invoke(this, url);
                 }
                 catch (Exception ex)
                 {

@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Media;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Еlements;
 
@@ -17,6 +18,10 @@ public class Tab : TemplatedControl
 
     public static readonly StyledProperty<bool> IsCloseButtonVisibleProperty =
         AvaloniaProperty.Register<Tab, bool>(nameof(IsCloseButtonVisible), true);
+
+    // Added: Favicon image source to be shown in the template
+    public static readonly StyledProperty<IImage?> FaviconSourceProperty =
+        AvaloniaProperty.Register<Tab, IImage?>(nameof(FaviconSource));
 
     static Tab()
     {
@@ -48,5 +53,12 @@ public class Tab : TemplatedControl
     {
         get => GetValue(IsCloseButtonVisibleProperty);
         set => SetValue(IsCloseButtonVisibleProperty, value);
+    }
+
+    // Added: property wrapper for favicon image
+    public IImage? FaviconSource
+    {
+        get => GetValue(FaviconSourceProperty);
+        set => SetValue(FaviconSourceProperty, value);
     }
 }

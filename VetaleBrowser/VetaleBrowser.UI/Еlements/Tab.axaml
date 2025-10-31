@@ -59,15 +59,25 @@
 
                         <!-- Favicon/Icon -->
                         <Border Grid.Column="1"
-                                Width="16"
-                                Height="16"
+                                Width="24"
+                                Height="24"
                                 Margin="0,0,8,0"
                                 CornerRadius="3"
                                 Background="#A78BFA">
-                            <TextBlock Text="🌐"
-                                       FontSize="10"
+                            <Grid>
+                                <!-- Fallback globe emoji -->
+                                <TextBlock Text="🌐"
+                                           FontSize="14"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                                <!-- Actual favicon image (renders over fallback when available) -->
+                                <Image Source="{TemplateBinding FaviconSource}"
+                                       Width="24"
+                                       Height="24"
+                                       Stretch="Uniform"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center" />
+                            </Grid>
                         </Border>
 
                         <!-- Title -->

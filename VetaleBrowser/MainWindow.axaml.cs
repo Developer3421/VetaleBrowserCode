@@ -4,10 +4,14 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.VisualTree;
 using VetaleBrowser.VetaleBrowser.UI.Scripts;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
 using VetaleBrowser.VetaleBrowser.UI.Еlements;
+using VetaleBrowser.VetaleBrowser.UI.Services;
 using WebViewControl;
+using Avalonia.Threading;
+using Avalonia;
 
 namespace VetaleBrowser;
 
@@ -15,6 +19,11 @@ public partial class MainWindow : Window
 {
     private readonly WindowManager _windowManager;
     private readonly WebViewManager _webViewManager;
+    private readonly IFaviconService _faviconService = new FaviconService();
+
+    // Polling support for robust favicon updates
+    private readonly DispatcherTimer _faviconPollTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
+    private string? _lastFaviconUrl;
 
     public WebViewManager WebView => _webViewManager;
 
@@ -27,6 +36,25 @@ public partial class MainWindow : Window
         // Initialize after the window is loaded
         this.Loaded += OnWindowLoaded;
         this.Closed += OnWindowClosed;
+
+        // Timer to check for URL changes periodically (covers redirects and edge cases)
+        _faviconPollTimer.Tick += async (_, _) =>
+        {
+            try
+            {
+                var url = _webViewManager.GetCurrentUrl();
+                if (string.IsNullOrWhiteSpace(url)) return;
+                if (!string.Equals(url, _lastFaviconUrl, StringComparison.Ordinal))
+                {
+                    _lastFaviconUrl = url;
+                    await UpdateFaviconAsync(url);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Favicon poll error: {ex.Message}");
+            }
+        };
     }
 
     private void InitializeComponent()
@@ -61,6 +89,16 @@ public partial class MainWindow : Window
                 // Initialize WebViewManager with the control
                 _webViewManager.Initialize(webView);
                 
+                // Subscribe to navigation initiated via manager
+                _webViewManager.Navigated += async (_, url) =>
+                {
+                    _lastFaviconUrl = url; // track latest
+                    await UpdateFaviconAsync(url);
+                };
+
+                // Also subscribe to WebView property changes to capture in-page navigations, redirects, etc.
+                webView.PropertyChanged += WebView_OnPropertyChanged;
+                
                 System.Diagnostics.Debug.WriteLine("MainWindow: WebViewManager initialized");
                 
                 // Initialize NavigationBar with WebViewManager
@@ -76,6 +114,9 @@ public partial class MainWindow : Window
                     
                     System.Diagnostics.Debug.WriteLine("MainWindow: NavigationBar initialized");
                 }
+                
+                // Start favicon polling
+                _faviconPollTimer.Start();
                 
                 // Navigate to a default page
                 await _webViewManager.NavigateAsync("https://www.google.com");
@@ -104,15 +145,101 @@ public partial class MainWindow : Window
                     VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
                     Foreground = Avalonia.Media.Brushes.Red,
                     FontSize = 14,
-                    Margin = new Avalonia.Thickness(20)
+                    Margin = new Thickness(20)
                 });
             }
+        }
+    }
+
+    // React to WebView property changes (e.g., Address changes when user clicks links)
+    private async void WebView_OnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        try
+        {
+            if (sender is WebView vw && e.Property?.Name != null)
+            {
+                var prop = e.Property.Name;
+                if (prop == "Address")
+                {
+                    var url = _webViewManager.GetCurrentUrl();
+                    _lastFaviconUrl = url; // keep poll baseline in sync
+                    // Update address bar text
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        var nav = this.FindControl<NavigationBar>("NavigationBar");
+                        if (nav != null)
+                        {
+                            nav.Url = url ?? string.Empty;
+                            // Also reflect back/forward state if available
+                            nav.CanGoBack = vw.CanGoBack;
+                            nav.CanGoForward = vw.CanGoForward;
+                        }
+                    });
+
+                    // Update favicon for new address
+                    await UpdateFaviconAsync(url);
+                }
+                else if (prop == "CanGoBack" || prop == "CanGoForward")
+                {
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        var nav = this.FindControl<NavigationBar>("NavigationBar");
+                        if (nav != null)
+                        {
+                            nav.CanGoBack = (prop == "CanGoBack") ? vw.CanGoBack : nav.CanGoBack;
+                            nav.CanGoForward = (prop == "CanGoForward") ? vw.CanGoForward : nav.CanGoForward;
+                        }
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] WebView_OnPropertyChanged error: {ex.Message}");
+        }
+    }
+
+    private async Task UpdateFaviconAsync(string? address)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(address)) return;
+            if (!Uri.TryCreate(address, UriKind.Absolute, out var uri)) return;
+
+            // Determine scale for better icon size
+            var visualRoot = this.GetVisualRoot();
+            double scale = 1.0;
+            if (visualRoot is TopLevel top)
+            {
+                scale = top.RenderScaling;
+            }
+
+            var size = scale >= 1.5 ? 48 : 32;
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] UpdateFavicon: url={uri} size={size} scale={scale:0.00}");
+
+            var image = await _faviconService.GetFaviconAsync(uri, size);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var tab = this.FindControl<Tab>("ActiveTab");
+                if (tab != null)
+                {
+                    tab.FaviconSource = image; // can be null, template keeps default bg
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Favicon applied: hasImage={(image != null)}");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            // ignore favicon failures
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] UpdateFavicon error: {ex.Message}");
         }
     }
 
     private void OnWindowClosed(object? sender, EventArgs e)
     {
         _webViewManager.Dispose();
+        if (_faviconService is IDisposable d) d.Dispose();
+        _faviconPollTimer.Stop();
     }
 
     public async Task NavigateToAsync(string url)
