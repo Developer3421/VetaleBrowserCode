@@ -23,12 +23,56 @@ public class Tab : TemplatedControl
     public static readonly StyledProperty<IImage?> FaviconSourceProperty =
         AvaloniaProperty.Register<Tab, IImage?>(nameof(FaviconSource));
 
+    // Events for interaction
+    public event System.EventHandler? Clicked;
+    public event System.EventHandler? CloseRequested;
+
+    private Border? _border;
+    private Button? _closeButton;
+
     static Tab()
     {
         IsActiveProperty.Changed.AddClassHandler<Tab>((tab, _) =>
         {
             tab.PseudoClasses.Set(":active", tab.IsActive);
         });
+    }
+
+    protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+    {
+        base.OnApplyTemplate(e);
+
+        if (_border != null)
+        {
+            _border.PointerPressed -= OnBorderPointerPressed;
+        }
+        if (_closeButton != null)
+        {
+            _closeButton.Click -= OnCloseButtonClick;
+        }
+
+        _border = e.NameScope.Find<Border>("PART_Border");
+        _closeButton = e.NameScope.Find<Button>("PART_CloseButton");
+
+        if (_border != null)
+        {
+            _border.PointerPressed += OnBorderPointerPressed;
+        }
+        if (_closeButton != null)
+        {
+            _closeButton.Click += OnCloseButtonClick;
+        }
+    }
+
+    private void OnBorderPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        Clicked?.Invoke(this, System.EventArgs.Empty);
+    }
+
+    private void OnCloseButtonClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        CloseRequested?.Invoke(this, System.EventArgs.Empty);
+        e.Handled = true;
     }
 
     public string Title

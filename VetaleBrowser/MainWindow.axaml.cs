@@ -12,62 +12,60 @@ using VetaleBrowser.VetaleBrowser.UI.Services;
 using WebViewControl;
 using Avalonia.Threading;
 using Avalonia;
+using VetaleBrowser.VetaleBrowser.Core.Scripts.Models;
+using System.Linq;
 
 namespace VetaleBrowser;
 
 public partial class MainWindow : Window
 {
     private readonly WindowManager _windowManager;
-    private readonly WebViewManager _webViewManager;
     private readonly IFaviconService _faviconService = new FaviconService();
 
-    // Hold a reference to the hosted WebView control for convenience
-    private WebView? _webViewControl;
+    private readonly TabsManager _tabs = new();
+
+    private StackPanel? _tabsHost;
+    private Button? _addTabButton;
+
+    // Keep track of which worker's WebView we're listening to
+    private TabWorker? _subscribedWorker;
 
     // Polling support for robust favicon and title updates
     private readonly DispatcherTimer _faviconPollTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private string? _lastFaviconUrl;
     private string? _lastPageTitle;
 
-    // Track whether we've already applied extended engine features (WebView2 settings)
-    private bool _engineFeaturesEnabled;
-
-    public WebViewManager WebView => _webViewManager;
-
     public MainWindow()
     {
         InitializeComponent();
         _windowManager = new WindowManager(this);
-        _webViewManager = new WebViewManager();
 
         // Initialize after the window is loaded
         this.Loaded += OnWindowLoaded;
         this.Closed += OnWindowClosed;
+
+        _tabs.TabActivated += OnTabActivated;
+        _tabs.TabClosed += OnTabClosed;
+        // Removed TabCreated subscription to avoid duplicate Tab controls
+        // _tabs.TabCreated += OnTabCreated;
 
         // Timer to check for URL/title changes periodically (covers redirects and edge cases)
         _faviconPollTimer.Tick += async (_, _) =>
         {
             try
             {
-                // Try to enable engine features once the native engine is ready
-                if (!_engineFeaturesEnabled && _webViewControl != null)
+                var active = _tabs.Active;
+                if (active != null)
                 {
-                    _engineFeaturesEnabled = TryEnableEngineFeatures(_webViewControl);
-                }
+                    var url = active.Manager.GetCurrentUrl();
+                    if (!string.IsNullOrWhiteSpace(url) && !string.Equals(url, _lastFaviconUrl, StringComparison.Ordinal))
+                    {
+                        _lastFaviconUrl = url;
+                        await UpdateFaviconAsync(url);
+                        await UpdateTabTitleAsync(null, url);
+                    }
 
-                var url = _webViewManager.GetCurrentUrl();
-                if (!string.IsNullOrWhiteSpace(url) && !string.Equals(url, _lastFaviconUrl, StringComparison.Ordinal))
-                {
-                    _lastFaviconUrl = url;
-                    await UpdateFaviconAsync(url);
-                    // Update the tab title based on URL while page title is not yet available
-                    await UpdateTabTitleAsync(null, url);
-                }
-
-                // Additionally, check for title updates if possible
-                if (_webViewControl != null)
-                {
-                    var currentTitle = TryGetWebViewTitle(_webViewControl);
+                    var currentTitle = TryGetWebViewTitle(active.WebView);
                     if (!string.IsNullOrWhiteSpace(currentTitle) && !string.Equals(currentTitle, _lastPageTitle, StringComparison.Ordinal))
                     {
                         _lastPageTitle = currentTitle;
@@ -85,101 +83,254 @@ public partial class MainWindow : Window
     private void InitializeComponent()
     {
         AvaloniaXamlLoader.Load(this);
+        _tabsHost = this.FindControl<StackPanel>("TabsHost");
+        _addTabButton = this.FindControl<Button>("PART_AddTabButton");
+        if (_addTabButton != null)
+            _addTabButton.Click += (_, __) => CreateNewTab("https://www.google.com");
     }
 
     private async void OnWindowLoaded(object? sender, RoutedEventArgs e)
     {
         System.Diagnostics.Debug.WriteLine("MainWindow: OnWindowLoaded called");
-        
+
         try
         {
-            // Get the container from XAML
-            var container = this.FindControl<Grid>("WebViewContainer");
-            
-            if (container != null)
+            // Ensure there's at least one tab
+            if (_tabs.Active == null)
             {
-                System.Diagnostics.Debug.WriteLine("MainWindow: Found WebViewContainer");
-                
-                // Create WebView from WebViewControl package
-                var webView = new WebView();
-                webView.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
-                webView.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch;
-                
-                // Clear container and add WebView
-                container.Children.Clear();
-                container.Children.Add(webView);
-
-                // Cache instance for later polling
-                _webViewControl = webView;
-                
-                System.Diagnostics.Debug.WriteLine("MainWindow: WebView added to container");
-                
-                // Initialize WebViewManager with the control
-                _webViewManager.Initialize(webView);
-                
-                // Attempt to enable engine features as soon as possible
-                _engineFeaturesEnabled = TryEnableEngineFeatures(webView);
-                
-                // Subscribe to navigation initiated via manager
-                _webViewManager.Navigated += async (_, url) =>
-                {
-                    _lastFaviconUrl = url; // track latest
-                    await UpdateFaviconAsync(url);
-                    await UpdateTabTitleAsync(null, url); // provisional title from URL/domain
-                };
-
-                // Also subscribe to WebView property changes to capture in-page navigations, redirects, etc.
-                webView.PropertyChanged += WebView_OnPropertyChanged;
-                
-                System.Diagnostics.Debug.WriteLine("MainWindow: WebViewManager initialized");
-                
-                // Initialize NavigationBar with WebViewManager
-                var navigationBar = this.FindControl<NavigationBar>("NavigationBar");
-                if (navigationBar != null)
-                {
-                    navigationBar.Initialize(_webViewManager);
-                    
-                    // Subscribe only to events that need external handling
-                    navigationBar.BookmarkRequested += OnBookmarkRequested;
-                    navigationBar.ToolsRequested += OnToolsRequested;
-                    navigationBar.SettingsRequested += OnSettingsRequested;
-                    
-                    System.Diagnostics.Debug.WriteLine("MainWindow: NavigationBar initialized");
-                }
-                
-                // Start favicon/title polling
-                _faviconPollTimer.Start();
-                
-                // Navigate to a default page
-                await _webViewManager.NavigateAsync("https://www.google.com");
-                
-                System.Diagnostics.Debug.WriteLine("MainWindow: Navigation command sent");
+                CreateNewTab("https://www.google.com");
             }
-            else
+
+            // Initialize NavigationBar with the active tab's manager
+            var navigationBar = this.FindControl<NavigationBar>("NavigationBar");
+            if (navigationBar != null && _tabs.Active != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainWindow: WebViewContainer NOT found!");
+                navigationBar.Initialize(_tabs.Active.Manager);
+
+                // Subscribe only to events that need external handling
+                navigationBar.BookmarkRequested += OnBookmarkRequested;
+                navigationBar.ToolsRequested += OnToolsRequested;
+                navigationBar.SettingsRequested += OnSettingsRequested;
+
+                System.Diagnostics.Debug.WriteLine("MainWindow: NavigationBar initialized");
+            }
+
+            // Start favicon/title polling
+            _faviconPollTimer.Start();
+
+            // Navigate default handled per tab creation
+            await Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainWindow: Error initializing: {ex}");
+            ShowErrorInWebViewContainer($"Помилка ініціалізації: {ex.Message}");
+        }
+    }
+
+    private void ShowErrorInWebViewContainer(string message)
+    {
+        var container = this.FindControl<Grid>("WebViewContainer");
+        if (container != null)
+        {
+            container.Children.Clear();
+            container.Children.Add(new TextBlock
+            {
+                Text = message,
+                TextWrapping = Avalonia.Media.TextWrapping.Wrap,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                Foreground = Avalonia.Media.Brushes.Red,
+                FontSize = 14,
+                Margin = new Thickness(20)
+            });
+        }
+    }
+
+    private void CreateNewTab(string? initialUrl = null)
+    {
+        var worker = _tabs.Create(initialUrl);
+        AddTabControlForWorker(worker);
+        ActivateWorker(worker);
+    }
+
+    private void AddTabControlForWorker(TabWorker worker)
+    {
+        if (_tabsHost == null) return;
+
+        var tab = new Tab
+        {
+            Title = "New Tab",
+            IsActive = worker.IsActive,
+            IsCloseButtonVisible = true,
+            Width = 200
+        };
+
+        tab.Clicked += (_, __) => ActivateWorker(worker);
+        tab.CloseRequested += (_, __) =>
+        {
+            // Remove the specific Tab control that was clicked, then close its worker
+            if (_tabsHost != null)
+            {
+                _tabsHost.Children.Remove(tab);
+            }
+            _tabs.Close(worker);
+        };
+
+        _tabsHost.Children.Add(tab);
+    }
+
+    private int GetChildIndexForWorker(TabWorker worker)
+    {
+        // Children[0] is the AddTab button; tabs start from index 1
+        var workerIndex = _tabs.Workers.ToList().IndexOf(worker);
+        return workerIndex < 0 ? -1 : workerIndex + 1;
+    }
+
+    private void ActivateWorker(TabWorker worker)
+    {
+        _tabs.Activate(worker);
+
+        // Update UI: swap WebView into container, update tab headers, rebind NavigationBar
+        var container = this.FindControl<Grid>("WebViewContainer");
+        if (container != null)
+        {
+            container.Children.Clear();
+            container.Children.Add(worker.WebView);
+        }
+
+        // Update tabs active state and titles
+        if (_tabsHost != null)
+        {
+            for (int widx = 0; widx < _tabs.Workers.Count; widx++)
+            {
+                var childIdx = widx + 1; // account for add button
+                if (childIdx >= 0 && childIdx < _tabsHost.Children.Count && _tabsHost.Children[childIdx] is Tab t)
+                {
+                    var w = _tabs.Workers[widx];
+                    t.IsActive = w == worker;
+                    var interim = ComputeTitle(w.Title, w.Address);
+                    t.Title = interim;
+                }
+            }
+        }
+
+        // Bind navigation bar to active manager
+        var navigationBar = this.FindControl<NavigationBar>("NavigationBar");
+        if (navigationBar != null)
+        {
+            navigationBar.Initialize(worker.Manager);
+            navigationBar.Url = worker.Address ?? string.Empty;
+            navigationBar.CanGoBack = worker.WebView.CanGoBack;
+            navigationBar.CanGoForward = worker.WebView.CanGoForward;
+        }
+
+        WireActiveWebViewPropertyChanged(worker);
+
+        _lastFaviconUrl = worker.Address;
+        _lastPageTitle = worker.Title;
+    }
+
+    private void WireActiveWebViewPropertyChanged(TabWorker worker)
+    {
+        if (_subscribedWorker != null)
+        {
+            try { _subscribedWorker.WebView.PropertyChanged -= WebView_OnPropertyChanged; } catch { }
+        }
+        _subscribedWorker = worker;
+        _subscribedWorker.WebView.PropertyChanged += WebView_OnPropertyChanged;
+    }
+
+    // React to WebView property changes (e.g., Address changes, CanGoBack/Forward, Title)
+    private async void WebView_OnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        try
+        {
+            if (_tabs.Active == null) return;
+            var vw = _tabs.Active.WebView;
+            if (!ReferenceEquals(sender, vw)) return; // only react to active
+
+            var prop = e.Property?.Name;
+            if (prop == "Address")
+            {
+                var url = _tabs.Active.Manager.GetCurrentUrl();
+                _lastFaviconUrl = url; // keep poll baseline in sync
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    var nav = this.FindControl<NavigationBar>("NavigationBar");
+                    if (nav != null)
+                    {
+                        nav.Url = url ?? string.Empty;
+                        nav.CanGoBack = vw.CanGoBack;
+                        nav.CanGoForward = vw.CanGoForward;
+                    }
+                });
+
+                await UpdateFaviconAsync(url);
+                await UpdateTabTitleAsync(null, url);
+            }
+            else if (prop == "CanGoBack" || prop == "CanGoForward")
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    var nav = this.FindControl<NavigationBar>("NavigationBar");
+                    if (nav != null)
+                    {
+                        nav.CanGoBack = vw.CanGoBack;
+                        nav.CanGoForward = vw.CanGoForward;
+                    }
+                });
+            }
+            else if (prop == "Title")
+            {
+                string? pageTitle = null;
+                try { pageTitle = vw.GetType().GetProperty("Title")?.GetValue(vw) as string; } catch { }
+                _lastPageTitle = pageTitle ?? _lastPageTitle;
+                await UpdateTabTitleAsync(pageTitle, vw.Address);
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainWindow: Error initializing WebView: {ex}");
-            
-            // Show error in UI
-            var container = this.FindControl<Grid>("WebViewContainer");
-            if (container != null)
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] WebView_OnPropertyChanged error: {ex.Message}");
+        }
+    }
+
+    private void OnTabCreated(object? sender, TabWorker e)
+    {
+        // No-op: UI for tabs is created explicitly in CreateNewTab to avoid duplicates
+    }
+
+    private void CloseWorker(TabWorker worker)
+    {
+        // Remove corresponding Tab control by index mapping (legacy path)
+        if (_tabsHost != null)
+        {
+            var childIdx = GetChildIndexForWorker(worker);
+            if (childIdx >= 0 && childIdx < _tabsHost.Children.Count)
             {
-                container.Children.Clear();
-                container.Children.Add(new TextBlock
-                {
-                    Text = $"Помилка ініціалізації WebView:\n{ex.Message}\n\nПереконайтесь що WebView2 Runtime встановлено.",
-                    TextWrapping = Avalonia.Media.TextWrapping.Wrap,
-                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
-                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
-                    Foreground = Avalonia.Media.Brushes.Red,
-                    FontSize = 14,
-                    Margin = new Thickness(20)
-                });
+                _tabsHost.Children.RemoveAt(childIdx);
             }
+        }
+
+        _tabs.Close(worker);
+    }
+
+    private void OnTabActivated(object? sender, TabWorker e)
+    {
+        // Sync UI states when manager reports activation (already handled by ActivateWorker)
+    }
+
+    private void OnTabClosed(object? sender, TabWorker e)
+    {
+        // If the closed tab was active, Activate() in TabsManager already switched to another
+        if (_tabs.Active != null)
+        {
+            ActivateWorker(_tabs.Active);
+        }
+        else
+        {
+            // Ensure at least one tab exists
+            CreateNewTab("https://www.google.com");
         }
     }
 
@@ -195,179 +346,6 @@ public partial class MainWindow : Window
         catch
         {
             return null;
-        }
-    }
-
-    // Attempt to enable extended features on the underlying engine (WebView2/Chromium) via reflection
-    // Returns true if features were applied (or already applied), false if engine isn't ready yet
-    private bool TryEnableEngineFeatures(WebView vw)
-    {
-        try
-        {
-            object? core = FindCoreWebView2(vw);
-            if (core == null)
-            {
-                return false; // engine not ready yet
-            }
-
-            var coreType = core.GetType();
-            var settingsProp = coreType.GetProperty("Settings");
-            var settings = settingsProp?.GetValue(core);
-            if (settings == null)
-            {
-                return false;
-            }
-
-            var st = settings.GetType();
-            void SetBool(string name, bool value)
-            {
-                try
-                {
-                    var p = st.GetProperty(name);
-                    if (p != null && p.CanWrite && p.PropertyType == typeof(bool))
-                    {
-                        p.SetValue(settings, value);
-                    }
-                }
-                catch { /* ignore individual setting errors */ }
-            }
-
-            // Enable as much functionality as possible
-            SetBool("AreDefaultContextMenusEnabled", true);
-            SetBool("AreDevToolsEnabled", true);
-            SetBool("AreBrowserAcceleratorKeysEnabled", true);
-            SetBool("AreDefaultScriptDialogsEnabled", true);
-            SetBool("IsScriptEnabled", true);
-            SetBool("IsWebMessageEnabled", true);
-            SetBool("IsStatusBarEnabled", true);
-            SetBool("IsGeneralAutofillEnabled", true);
-            SetBool("IsPasswordAutosaveEnabled", true);
-            SetBool("IsZoomControlEnabled", true);
-            SetBool("IsPinchZoomEnabled", true);
-            SetBool("IsSwipeNavigationEnabled", true);
-            SetBool("IsBuiltInErrorPageEnabled", true);
-
-            // DevTools are enabled above; we don't auto-open the window to avoid intrusiveness.
-
-            System.Diagnostics.Debug.WriteLine("[MainWindow] Engine features enabled on CoreWebView2.");
-            return true;
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[MainWindow] TryEnableEngineFeatures error: {ex.Message}");
-            return false;
-        }
-    }
-
-    // Heuristic search for CoreWebView2 instance inside wrapper objects
-    private static object? FindCoreWebView2(object? obj, int depth = 0)
-    {
-        if (obj == null || depth > 3) return null;
-        var t = obj.GetType();
-
-        if (t.Name.Contains("CoreWebView2", StringComparison.Ordinal))
-            return obj;
-
-        var direct = t.GetProperty("CoreWebView2")?.GetValue(obj);
-        if (direct != null) return direct;
-
-        // Common nesting property names
-        foreach (var name in new[] { "WebView2", "WebView", "Browser", "Native", "Core", "Renderer", "Engine" })
-        {
-            try
-            {
-                var p = t.GetProperty(name);
-                if (p != null)
-                {
-                    var inner = p.GetValue(obj);
-                    var found = FindCoreWebView2(inner, depth + 1);
-                    if (found != null) return found;
-                }
-            }
-            catch { }
-        }
-
-        // As a last resort, scan instance properties (public and non-public)
-        try
-        {
-            var props = t.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            foreach (var p in props)
-            {
-                try
-                {
-                    var val = p.GetValue(obj);
-                    var found = FindCoreWebView2(val, depth + 1);
-                    if (found != null) return found;
-                }
-                catch { }
-            }
-        }
-        catch { }
-
-        return null;
-    }
-
-    // React to WebView property changes (e.g., Address changes when user clicks links)
-    private async void WebView_OnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
-    {
-        try
-        {
-            if (sender is WebView vw && e.Property?.Name != null)
-            {
-                var prop = e.Property.Name;
-                if (prop == "Address")
-                {
-                    var url = _webViewManager.GetCurrentUrl();
-                    _lastFaviconUrl = url; // keep poll baseline in sync
-                    // Update address bar text
-                    await Dispatcher.UIThread.InvokeAsync(() =>
-                    {
-                        var nav = this.FindControl<NavigationBar>("NavigationBar");
-                        if (nav != null)
-                        {
-                            nav.Url = url ?? string.Empty;
-                            // Also reflect back/forward state if available
-                            nav.CanGoBack = vw.CanGoBack;
-                            nav.CanGoForward = vw.CanGoForward;
-                        }
-                    });
-
-                    // Update favicon for new address
-                    await UpdateFaviconAsync(url);
-
-                    // Update tab text from URL while title is not ready
-                    await UpdateTabTitleAsync(null, url);
-                }
-                else if (prop == "CanGoBack" || prop == "CanGoForward")
-                {
-                    await Dispatcher.UIThread.InvokeAsync(() =>
-                    {
-                        var nav = this.FindControl<NavigationBar>("NavigationBar");
-                        if (nav != null)
-                        {
-                            nav.CanGoBack = (prop == "CanGoBack") ? vw.CanGoBack : nav.CanGoBack;
-                            nav.CanGoForward = (prop == "CanGoForward") ? vw.CanGoForward : nav.CanGoForward;
-                        }
-                    });
-                }
-                else if (prop == "Title")
-                {
-                    // Prefer the document title when available
-                    string? pageTitle = null;
-                    try
-                    {
-                        pageTitle = vw.GetType().GetProperty("Title")?.GetValue(vw) as string;
-                    }
-                    catch { /* ignore reflection issues */ }
-
-                    _lastPageTitle = pageTitle ?? _lastPageTitle;
-                    await UpdateTabTitleAsync(pageTitle, vw.Address);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[MainWindow] WebView_OnPropertyChanged error: {ex.Message}");
         }
     }
 
@@ -392,11 +370,15 @@ public partial class MainWindow : Window
             var image = await _faviconService.GetFaviconAsync(uri, size);
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                var tab = this.FindControl<Tab>("ActiveTab");
-                if (tab != null)
+                if (_tabsHost != null && _tabs.Active != null)
                 {
-                    tab.FaviconSource = image; // can be null, template keeps default bg
-                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Favicon applied: hasImage={(image != null)}");
+                    var idx = _tabs.Workers.ToList().IndexOf(_tabs.Active);
+                    var childIdx = idx + 1; // account for add button
+                    if (idx >= 0 && childIdx < _tabsHost.Children.Count && _tabsHost.Children[childIdx] is Tab tab)
+                    {
+                        tab.FaviconSource = image;
+                        System.Diagnostics.Debug.WriteLine($"[MainWindow] Favicon applied: hasImage={(image != null)}");
+                    }
                 }
             });
         }
@@ -415,10 +397,14 @@ public partial class MainWindow : Window
             var friendly = ComputeTitle(pageTitle, url);
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                var tab = this.FindControl<Tab>("ActiveTab");
-                if (tab != null)
+                if (_tabsHost != null && _tabs.Active != null)
                 {
-                    tab.Title = friendly;
+                    var idx = _tabs.Workers.ToList().IndexOf(_tabs.Active);
+                    var childIdx = idx + 1; // account for add button
+                    if (idx >= 0 && childIdx < _tabsHost.Children.Count && _tabsHost.Children[childIdx] is Tab tab)
+                    {
+                        tab.Title = friendly;
+                    }
                 }
             });
         }
@@ -450,15 +436,17 @@ public partial class MainWindow : Window
 
     private void OnWindowClosed(object? sender, EventArgs e)
     {
-        _webViewManager.Dispose();
+        if (_subscribedWorker != null)
+        {
+            try { _subscribedWorker.WebView.PropertyChanged -= WebView_OnPropertyChanged; } catch { }
+            _subscribedWorker = null;
+        }
+
+        _tabs.Dispose();
         if (_faviconService is IDisposable d) d.Dispose();
         _faviconPollTimer.Stop();
     }
 
-    public async Task NavigateToAsync(string url)
-    {
-        await _webViewManager.NavigateAsync(url);
-    }
 
     private void MinimizeWindow(object? sender, RoutedEventArgs e)
     {

@@ -18,13 +18,11 @@
             <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3590-prerelease" />
         <PackageReference Include="WebViewControl-Avalonia" Version="3.120.9" />
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="VetaleBrowser.AI\" />
-      <Folder Include="VetaleBrowser.Core\Scripts\Models\" />
       <Folder Include="VetaleBrowser.Core\Scripts\Services\" />
       <Folder Include="VetaleBrowser.Database\" />
       <Folder Include="VetaleBrowser.DevTools\" />

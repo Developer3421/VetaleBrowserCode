@@ -88,13 +88,11 @@
               PointerPressed="TopBar_PointerPressed" DoubleTapped="TopBar_DoubleTapped">
             <Grid ColumnDefinitions="*,Auto">
                 <!-- left area - tabs -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Top" Margin="8,4,0,0">
+                <StackPanel x:Name="TabsHost" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Top" Margin="8,4,0,0" Spacing="4">
                     <!-- Add Tab Button (left of tabs) -->
                     <Button x:Name="PART_AddTabButton" Width="32" Height="32" Margin="0,0,8,0" Background="Transparent" Padding="0" BorderThickness="0" ToolTip.Tip="Нова вкладка">
                         <Image Source="{DynamicResource AddTabImage}" Stretch="UniformToFill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0"/>
                     </Button>
-
-                    <controls:Tab x:Name="ActiveTab" Title="Vetale Browser" IsActive="True" Width="200" />
                 </StackPanel>
 
                 <!-- window controls on the right -->
