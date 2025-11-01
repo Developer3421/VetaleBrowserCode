@@ -28,9 +28,16 @@ public partial class MainWindow : Window
 
     private StackPanel? _tabsHost;
     private Button? _addTabButton;
+    private Grid? _webViewContainer;
+    private Grid? _navigationBarRow;
+    private Grid? _tabBarRow;
 
     // Keep track of which worker's WebView we're listening to
     private TabWorker? _subscribedWorker;
+
+    // Fullscreen state
+    private bool _isFullscreen;
+    private WindowState _preFullscreenWindowState;
 
     // Polling support for robust favicon and title updates
     private readonly DispatcherTimer _faviconPollTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
@@ -45,6 +52,7 @@ public partial class MainWindow : Window
         // Initialize after the window is loaded
         this.Loaded += OnWindowLoaded;
         this.Closed += OnWindowClosed;
+        this.KeyDown += OnWindowKeyDown;
 
         _tabs.TabActivated += OnTabActivated;
         _tabs.TabClosed += OnTabClosed;
@@ -87,6 +95,12 @@ public partial class MainWindow : Window
         AvaloniaXamlLoader.Load(this);
         _tabsHost = this.FindControl<StackPanel>("TabsHost");
         _addTabButton = this.FindControl<Button>("PART_AddTabButton");
+        _webViewContainer = this.FindControl<Grid>("WebViewContainer");
+        
+        // Get the rows for fullscreen toggling - use correct names from XAML
+        _tabBarRow = this.FindControl<Grid>("TabBarRow");
+        _navigationBarRow = this.FindControl<Grid>("NavigationBarRow");
+        
         if (_addTabButton != null)
             _addTabButton.Click += (_, __) => CreateNewTab("https://www.google.com");
     }
@@ -165,6 +179,7 @@ public partial class MainWindow : Window
             Title = "New Tab",
             IsActive = worker.IsActive,
             IsCloseButtonVisible = true,
+            IsMuted = worker.IsMuted,
             Width = 200
         };
 
@@ -177,6 +192,25 @@ public partial class MainWindow : Window
                 _tabsHost.Children.Remove(tab);
             }
             _tabs.Close(worker);
+        };
+        tab.MuteToggled += (_, __) =>
+        {
+            // Toggle global mute: if any tab toggles, apply to all workers
+            var newMuted = !worker.IsMuted;
+            _tabs.SetGlobalMute(newMuted);
+
+            // Sync all tab headers
+            if (_tabsHost != null)
+            {
+                for (int widx = 0; widx < _tabs.Workers.Count; widx++)
+                {
+                    var childIdx2 = widx + 1;
+                    if (childIdx2 >= 0 && childIdx2 < _tabsHost.Children.Count && _tabsHost.Children[childIdx2] is Tab t2)
+                    {
+                        t2.IsMuted = _tabs.Workers[widx].IsMuted;
+                    }
+                }
+            }
         };
 
         _tabsHost.Children.Add(tab);
@@ -213,6 +247,8 @@ public partial class MainWindow : Window
                     t.IsActive = w == worker;
                     var interim = ComputeTitle(w.Title, w.Address);
                     t.Title = interim;
+                    // Sync mute state from worker to tab UI
+                    t.IsMuted = w.IsMuted;
                 }
             }
         }
@@ -237,10 +273,16 @@ public partial class MainWindow : Window
     {
         if (_subscribedWorker != null)
         {
-            try { _subscribedWorker.WebView.PropertyChanged -= WebView_OnPropertyChanged; } catch { }
+            try 
+            { 
+                _subscribedWorker.WebView.PropertyChanged -= WebView_OnPropertyChanged;
+                _subscribedWorker.FullscreenChanged -= OnWorkerFullscreenChanged;
+            } 
+            catch { }
         }
         _subscribedWorker = worker;
         _subscribedWorker.WebView.PropertyChanged += WebView_OnPropertyChanged;
+        _subscribedWorker.FullscreenChanged += OnWorkerFullscreenChanged;
     }
 
     // React to WebView property changes (e.g., Address changes, CanGoBack/Forward, Title)
@@ -294,6 +336,20 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[MainWindow] WebView_OnPropertyChanged error: {ex.Message}");
+        }
+    }
+
+    // Handle fullscreen requests from web content (e.g., YouTube videos)
+    private void OnWorkerFullscreenChanged(object? sender, bool isFullscreen)
+    {
+        System.Diagnostics.Debug.WriteLine($"[MainWindow] Worker fullscreen changed: {isFullscreen}");
+        if (isFullscreen)
+        {
+            EnterFullscreen();
+        }
+        else
+        {
+            ExitFullscreen();
         }
     }
 
@@ -533,5 +589,80 @@ public partial class MainWindow : Window
         {
             System.Diagnostics.Debug.WriteLine($"MainWindow: Failed to open SettingsWindow: {ex}");
         }
+    }
+
+    private void OnWindowKeyDown(object? sender, KeyEventArgs e)
+    {
+        // F11 toggles fullscreen
+        if (e.Key == Key.F11)
+        {
+            ToggleFullscreen();
+            e.Handled = true;
+        }
+        // ESC exits fullscreen
+        else if (e.Key == Key.Escape && _isFullscreen)
+        {
+            ExitFullscreen();
+            e.Handled = true;
+        }
+    }
+
+    public void EnterFullscreen()
+    {
+        if (_isFullscreen) return;
+
+        System.Diagnostics.Debug.WriteLine("[MainWindow] Entering fullscreen");
+        _isFullscreen = true;
+        _preFullscreenWindowState = WindowState;
+
+        // Hide UI elements
+        if (_tabBarRow != null) _tabBarRow.IsVisible = false;
+        if (_navigationBarRow != null) _navigationBarRow.IsVisible = false;
+
+        // Make WebView container span all rows and bring to front
+        if (_webViewContainer != null)
+        {
+            Grid.SetRow(_webViewContainer, 0);       // move to first row
+            Grid.SetRowSpan(_webViewContainer, 3);   // span all rows
+            _webViewContainer.ZIndex = 1000;         // bring to front
+            _webViewContainer.Margin = new Thickness(0); // remove margins
+        }
+
+        // Maximize window and hide decorations
+        WindowState = WindowState.FullScreen;
+        SystemDecorations = SystemDecorations.None;
+    }
+
+    public void ExitFullscreen()
+    {
+        if (!_isFullscreen) return;
+
+        System.Diagnostics.Debug.WriteLine("[MainWindow] Exiting fullscreen");
+        _isFullscreen = false;
+
+        // Restore WebView container to normal row
+        if (_webViewContainer != null)
+        {
+            Grid.SetRow(_webViewContainer, 2);       // back to content row
+            Grid.SetRowSpan(_webViewContainer, 1);   // single row
+            _webViewContainer.ZIndex = 0;            // normal z-index
+            _webViewContainer.Margin = new Thickness(0); // reset margins
+        }
+
+        // Show UI elements
+        if (_tabBarRow != null) _tabBarRow.IsVisible = true;
+        if (_navigationBarRow != null) _navigationBarRow.IsVisible = true;
+
+        // Restore window state and decorations
+        SystemDecorations = SystemDecorations.BorderOnly;
+        WindowState = _preFullscreenWindowState;
+    }
+
+    public void ToggleFullscreen()
+    {
+        if (_isFullscreen)
+            ExitFullscreen();
+        else
+            EnterFullscreen();
     }
 }

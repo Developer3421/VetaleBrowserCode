@@ -19,6 +19,9 @@ public class Tab : TemplatedControl
     public static readonly StyledProperty<bool> IsCloseButtonVisibleProperty =
         AvaloniaProperty.Register<Tab, bool>(nameof(IsCloseButtonVisible), true);
 
+    public static readonly StyledProperty<bool> IsMutedProperty =
+        AvaloniaProperty.Register<Tab, bool>(nameof(IsMuted), false);
+
     // Added: Favicon image source to be shown in the template
     public static readonly StyledProperty<IImage?> FaviconSourceProperty =
         AvaloniaProperty.Register<Tab, IImage?>(nameof(FaviconSource));
@@ -26,9 +29,11 @@ public class Tab : TemplatedControl
     // Events for interaction
     public event System.EventHandler? Clicked;
     public event System.EventHandler? CloseRequested;
+    public event System.EventHandler? MuteToggled;
 
     private Border? _border;
     private Button? _closeButton;
+    private Button? _muteButton;
 
     static Tab()
     {
@@ -50,9 +55,14 @@ public class Tab : TemplatedControl
         {
             _closeButton.Click -= OnCloseButtonClick;
         }
+        if (_muteButton != null)
+        {
+            _muteButton.Click -= OnMuteButtonClick;
+        }
 
         _border = e.NameScope.Find<Border>("PART_Border");
         _closeButton = e.NameScope.Find<Button>("PART_CloseButton");
+        _muteButton = e.NameScope.Find<Button>("PART_MuteButton");
 
         if (_border != null)
         {
@@ -61,6 +71,10 @@ public class Tab : TemplatedControl
         if (_closeButton != null)
         {
             _closeButton.Click += OnCloseButtonClick;
+        }
+        if (_muteButton != null)
+        {
+            _muteButton.Click += OnMuteButtonClick;
         }
     }
 
@@ -72,6 +86,12 @@ public class Tab : TemplatedControl
     private void OnCloseButtonClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         CloseRequested?.Invoke(this, System.EventArgs.Empty);
+        e.Handled = true;
+    }
+
+    private void OnMuteButtonClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        MuteToggled?.Invoke(this, System.EventArgs.Empty);
         e.Handled = true;
     }
 
@@ -97,6 +117,12 @@ public class Tab : TemplatedControl
     {
         get => GetValue(IsCloseButtonVisibleProperty);
         set => SetValue(IsCloseButtonVisibleProperty, value);
+    }
+
+    public bool IsMuted
+    {
+        get => GetValue(IsMutedProperty);
+        set => SetValue(IsMutedProperty, value);
     }
 
     // Added: property wrapper for favicon image

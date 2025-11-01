@@ -81,9 +81,9 @@
         </Style>
     </Window.Styles>
 
-    <Grid RowDefinitions="Auto,Auto,*">
+    <Grid x:Name="PART_MainGrid" RowDefinitions="Auto,Auto,*">
         <!-- Top row: tab bar with window controls -->
-        <Grid Grid.Row="0" Margin="0" Height="42" 
+        <Grid x:Name="TabBarRow" Grid.Row="0" Margin="0" Height="42" 
               Background="{StaticResource GrayGradient}"
               PointerPressed="TopBar_PointerPressed" DoubleTapped="TopBar_DoubleTapped">
             <Grid ColumnDefinitions="*,Auto">
@@ -111,7 +111,7 @@
         </Grid>
 
         <!-- Middle row: Navigation Bar -->
-        <Grid Grid.Row="1" Background="{StaticResource PurpleGradient}" Height="36">
+        <Grid x:Name="NavigationBarRow" Grid.Row="1" Background="{StaticResource PurpleGradient}" Height="36">
             <controls:NavigationBar x:Name="NavigationBar" />
         </Grid>
 

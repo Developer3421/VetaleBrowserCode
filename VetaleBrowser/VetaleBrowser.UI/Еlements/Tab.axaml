@@ -36,22 +36,26 @@
                                 Height="20"
                                 Margin="0,0,6,0"
                                 Padding="0"
-                                Background="#FFA726"
+                                Background="Transparent"
                                 BorderThickness="0"
                                 CornerRadius="4"
-                                ToolTip.Tip="Вимкнути звук">
+                                ToolTip.Tip="Перемкнути звук">
                             <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                                <!-- Speaker shape -->
-                                <Path Data="M2,6 L6,6 L10,2 L10,18 L6,14 L2,14 Z"
-                                      Fill="#FFFFFF"
+                                <!-- Speaker icon - gray when unmuted, white when muted -->
+                                <Path Data="M2,6 L6,6 L10,2 L10,18 L6,14 L2,14 Z M12,6 C13,7 13,11 12,12"
                                       Stretch="Uniform"
                                       HorizontalAlignment="Center"
-                                      VerticalAlignment="Center"/>
-                                <!-- Slash -->
-                                <Path Data="M3,3 L11,15"
+                                      VerticalAlignment="Center"
+                                      Margin="2"
+                                      x:Name="PART_SpeakerIcon"/>
+                                
+                                <!-- Slash when muted -->
+                                <Path Data="M3,3 L13,15"
                                       Stroke="#FFFFFF"
-                                      StrokeThickness="1.6"
+                                      StrokeThickness="1.8"
                                       StrokeLineCap="Round"
+                                      IsVisible="{TemplateBinding IsMuted}"
+                                      x:Name="PART_MuteSlash"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center"/>
                             </Grid>
@@ -184,11 +188,33 @@
 
     <!-- Mute Button Hover -->
     <Style Selector="controls|Tab /template/ Button#PART_MuteButton:pointerover">
-        <Setter Property="Background" Value="#FF9800" />
+        <Setter Property="Background" Value="#E0E0E0" />
     </Style>
 
     <!-- Mute Button Press -->
     <Style Selector="controls|Tab /template/ Button#PART_MuteButton:pressed">
+        <Setter Property="Background" Value="#D0D0D0" />
+    </Style>
+
+    <!-- Mute Button - Muted State Background -->
+    <Style Selector="controls|Tab[IsMuted=true] /template/ Button#PART_MuteButton">
+        <Setter Property="Background" Value="#FFA726" />
+    </Style>
+
+    <Style Selector="controls|Tab[IsMuted=true] /template/ Button#PART_MuteButton:pointerover">
+        <Setter Property="Background" Value="#FF9800" />
+    </Style>
+
+    <Style Selector="controls|Tab[IsMuted=true] /template/ Button#PART_MuteButton:pressed">
         <Setter Property="Background" Value="#FB8C00" />
+    </Style>
+
+    <!-- Mute Button Icon Colors -->
+    <Style Selector="controls|Tab[IsMuted=false] /template/ Path#PART_SpeakerIcon">
+        <Setter Property="Fill" Value="#666666" />
+    </Style>
+
+    <Style Selector="controls|Tab[IsMuted=true] /template/ Path#PART_SpeakerIcon">
+        <Setter Property="Fill" Value="#FFFFFF" />
     </Style>
 </Styles>

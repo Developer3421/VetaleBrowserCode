@@ -94,6 +94,18 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers
             }
         }
 
+        /// <summary>
+        /// Apply a global mute state to all existing TabWorkers. This approximates process-level mute
+        /// in environments where the CEF host-level API is not exposed by the wrapper.
+        /// </summary>
+        public void SetGlobalMute(bool muted)
+        {
+            foreach (var w in _workers.ToArray())
+            {
+                try { w.IsMuted = muted; } catch { /* ignore */ }
+            }
+        }
+
         public void Dispose()
         {
             foreach (var w in _workers.ToArray())
