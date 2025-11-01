@@ -86,7 +86,7 @@
         </Grid>
 
         <!-- Content area -->
-        <Grid Grid.Row="1" Background="#FFFFFF">
+        <Grid Grid.Row="1" x:Name="ContentArea" Background="#FFFFFF">
             <pages:ToolsMainPage/>
         </Grid>
     </Grid>

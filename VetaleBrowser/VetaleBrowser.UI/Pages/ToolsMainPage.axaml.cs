@@ -16,6 +16,9 @@ public partial class ToolsMainPage : UserControl
     private readonly IFaviconService? _faviconService;
     private StackPanel? _toolsListPanel;
 
+    public event EventHandler<ToolNavigationEventArgs>? NavigateInWebView;
+    public event EventHandler<string>? NavigateInMainTab;
+
     public ToolsMainPage()
     {
         InitializeComponent();
@@ -40,7 +43,7 @@ public partial class ToolsMainPage : UserControl
             {
                 Name = "Vetale AI Chat",
                 Description = "Чат з штучним інтелектом Vetale",
-                IconUrl = null, // Внутрішній інструмент, іконка буде емоджі
+                IconUrl = null,
                 IconEmoji = "🤖",
                 Action = () => OpenVetaleAIChat()
             },
@@ -49,21 +52,32 @@ public partial class ToolsMainPage : UserControl
                 Name = "DuckDuckGo AI Chat",
                 Description = "Безкоштовний AI чат від DuckDuckGo",
                 IconUrl = "https://duckduckgo.com",
-                Action = () => OpenExternalTool("https://duckduckgo.com/aichat")
+                NavigateUrl = "https://duckduckgo.com/aichat",
+                Action = () => OpenInWebView("DuckDuckGo AI Chat", "https://duckduckgo.com/aichat")
             },
             new ToolItem
             {
                 Name = "Microsoft Copilot",
                 Description = "AI асистент від Microsoft",
                 IconUrl = "https://copilot.microsoft.com",
-                Action = () => OpenExternalTool("https://copilot.microsoft.com")
+                NavigateUrl = "https://copilot.microsoft.com",
+                Action = () => OpenInWebView("Microsoft Copilot", "https://copilot.microsoft.com")
             },
             new ToolItem
             {
                 Name = "Google Gemini",
                 Description = "AI від Google",
                 IconUrl = "https://gemini.google.com",
-                Action = () => OpenExternalTool("https://gemini.google.com")
+                NavigateUrl = "https://gemini.google.com",
+                Action = () => OpenInWebView("Google Gemini", "https://gemini.google.com")
+            },
+            new ToolItem
+            {
+                Name = "Replika AI",
+                Description = "AI компаньйон для спілкування",
+                IconUrl = "https://replika.com",
+                NavigateUrl = "https://replika.com",
+                Action = () => OpenInWebView("Replika AI", "https://replika.com")
             },
             new ToolItem
             {
@@ -98,7 +112,7 @@ public partial class ToolsMainPage : UserControl
 
         var grid = new Grid
         {
-            ColumnDefinitions = new ColumnDefinitions("Auto,*")
+            ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto")
         };
 
         // Icon
@@ -139,11 +153,12 @@ public partial class ToolsMainPage : UserControl
         Grid.SetColumn(iconPanel, 0);
         grid.Children.Add(iconPanel);
 
-        // Text content
+        // Text content (clickable area)
         var textPanel = new StackPanel
         {
             VerticalAlignment = VerticalAlignment.Center,
-            Spacing = 4
+            Spacing = 4,
+            Cursor = new Cursor(StandardCursorType.Hand)
         };
 
         var nameText = new TextBlock
@@ -164,19 +179,41 @@ public partial class ToolsMainPage : UserControl
         textPanel.Children.Add(nameText);
         textPanel.Children.Add(descText);
 
-        Grid.SetColumn(textPanel, 1);
-        grid.Children.Add(textPanel);
-
-        border.Child = grid;
-
-        // Click handler
-        border.PointerPressed += (s, e) =>
+        // Click handler for text area (opens in WebView)
+        textPanel.PointerPressed += (s, e) =>
         {
-            if (e.GetCurrentPoint(border).Properties.IsLeftButtonPressed)
+            if (e.GetCurrentPoint(textPanel).Properties.IsLeftButtonPressed)
             {
                 tool.Action?.Invoke();
             }
         };
+
+        Grid.SetColumn(textPanel, 1);
+        grid.Children.Add(textPanel);
+
+        // Navigation button (opens in main tab) - only for external tools
+        if (!string.IsNullOrEmpty(tool.NavigateUrl))
+        {
+            var navButton = new Button
+            {
+                Classes = { "nav-button" },
+                Content = "→ Перейти в браузері",
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(10, 0, 0, 0)
+            };
+
+            navButton.Click += (s, e) =>
+            {
+                NavigateInMainTab?.Invoke(this, tool.NavigateUrl);
+                e.Handled = true; // Prevent border click
+            };
+
+            Grid.SetColumn(navButton, 2);
+            grid.Children.Add(navButton);
+        }
+
+        border.Child = grid;
+
 
         return border;
     }
@@ -218,10 +255,10 @@ public partial class ToolsMainPage : UserControl
         // TODO: Implement History opening
     }
 
-    private void OpenExternalTool(string url)
+    private void OpenInWebView(string toolName, string url)
     {
-        System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Opening external tool: {url}");
-        // TODO: Open URL in new tab in main browser window
+        System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Opening in WebView: {toolName} - {url}");
+        NavigateInWebView?.Invoke(this, new ToolNavigationEventArgs(toolName, url));
     }
 
     private class ToolItem
@@ -230,7 +267,20 @@ public partial class ToolsMainPage : UserControl
         public string Description { get; set; } = string.Empty;
         public string? IconUrl { get; set; }
         public string? IconEmoji { get; set; }
+        public string? NavigateUrl { get; set; }
         public Action? Action { get; set; }
+    }
+}
+
+public class ToolNavigationEventArgs : EventArgs
+{
+    public string ToolName { get; }
+    public string Url { get; }
+
+    public ToolNavigationEventArgs(string toolName, string url)
+    {
+        ToolName = toolName;
+        Url = url;
     }
 }
 

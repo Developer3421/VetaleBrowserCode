@@ -1,0 +1,72 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.ToolsWebViewPage">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header with back button and title -->
+        <Border Grid.Row="0" 
+                Background="#F8F8F8" 
+                BorderBrush="#E0E0E0" 
+                BorderThickness="0,0,0,1"
+                Padding="15,10">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <!-- Back button -->
+                <Button Grid.Column="0" 
+                        x:Name="BackButton"
+                        Click="OnBackClick"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Padding="8"
+                        Cursor="Hand"
+                        ToolTip.Tip="Назад до списку">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="←" FontSize="18" FontWeight="Bold"/>
+                        <TextBlock Text="Назад" FontSize="14" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Tool name -->
+                <TextBlock Grid.Column="1"
+                           x:Name="ToolNameText"
+                           Text="Інструмент"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"
+                           Foreground="#303030"/>
+
+                <!-- Refresh button -->
+                <Button Grid.Column="2"
+                        x:Name="RefreshButton"
+                        Click="OnRefreshClick"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Padding="8"
+                        Cursor="Hand"
+                        ToolTip.Tip="Оновити">
+                    <TextBlock Text="🔄" FontSize="16"/>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- WebView Container -->
+        <Grid Grid.Row="1" 
+              x:Name="WebViewContainer"
+              Background="#FFFFFF">
+            <TextBlock Text="Завантаження..."
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Foreground="#808080"
+                       FontSize="16"/>
+        </Grid>
+    </Grid>
+</UserControl>
+

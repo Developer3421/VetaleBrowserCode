@@ -13,11 +13,23 @@
             <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Padding" Value="15,12"/>
             <Setter Property="Margin" Value="0,0,0,12"/>
-            <Setter Property="Cursor" Value="Hand"/>
         </Style>
         <Style Selector="Border.tool-item:pointerover">
             <Setter Property="Background" Value="#F0F0F0"/>
             <Setter Property="BorderBrush" Value="#9A1CE8"/>
+        </Style>
+        <Style Selector="Button.nav-button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="#9A1CE8"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="#9A1CE8"/>
+        </Style>
+        <Style Selector="Button.nav-button:pointerover">
+            <Setter Property="Background" Value="#9A1CE8"/>
+            <Setter Property="Foreground" Value="White"/>
         </Style>
     </UserControl.Styles>
 
