@@ -21,9 +21,13 @@ public partial class MainWindow : Window
     private readonly WebViewManager _webViewManager;
     private readonly IFaviconService _faviconService = new FaviconService();
 
-    // Polling support for robust favicon updates
+    // Hold a reference to the hosted WebView control for convenience
+    private WebView? _webViewControl;
+
+    // Polling support for robust favicon and title updates
     private readonly DispatcherTimer _faviconPollTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private string? _lastFaviconUrl;
+    private string? _lastPageTitle;
 
     public WebViewManager WebView => _webViewManager;
 
@@ -37,22 +41,34 @@ public partial class MainWindow : Window
         this.Loaded += OnWindowLoaded;
         this.Closed += OnWindowClosed;
 
-        // Timer to check for URL changes periodically (covers redirects and edge cases)
+        // Timer to check for URL/title changes periodically (covers redirects and edge cases)
         _faviconPollTimer.Tick += async (_, _) =>
         {
             try
             {
                 var url = _webViewManager.GetCurrentUrl();
-                if (string.IsNullOrWhiteSpace(url)) return;
-                if (!string.Equals(url, _lastFaviconUrl, StringComparison.Ordinal))
+                if (!string.IsNullOrWhiteSpace(url) && !string.Equals(url, _lastFaviconUrl, StringComparison.Ordinal))
                 {
                     _lastFaviconUrl = url;
                     await UpdateFaviconAsync(url);
+                    // Update the tab title based on URL while page title is not yet available
+                    await UpdateTabTitleAsync(null, url);
+                }
+
+                // Additionally, check for title updates if possible
+                if (_webViewControl != null)
+                {
+                    var currentTitle = TryGetWebViewTitle(_webViewControl);
+                    if (!string.IsNullOrWhiteSpace(currentTitle) && !string.Equals(currentTitle, _lastPageTitle, StringComparison.Ordinal))
+                    {
+                        _lastPageTitle = currentTitle;
+                        await UpdateTabTitleAsync(currentTitle, url);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[MainWindow] Favicon poll error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Poll tick error: {ex.Message}");
             }
         };
     }
@@ -83,6 +99,9 @@ public partial class MainWindow : Window
                 // Clear container and add WebView
                 container.Children.Clear();
                 container.Children.Add(webView);
+
+                // Cache instance for later polling
+                _webViewControl = webView;
                 
                 System.Diagnostics.Debug.WriteLine("MainWindow: WebView added to container");
                 
@@ -94,6 +113,7 @@ public partial class MainWindow : Window
                 {
                     _lastFaviconUrl = url; // track latest
                     await UpdateFaviconAsync(url);
+                    await UpdateTabTitleAsync(null, url); // provisional title from URL/domain
                 };
 
                 // Also subscribe to WebView property changes to capture in-page navigations, redirects, etc.
@@ -115,7 +135,7 @@ public partial class MainWindow : Window
                     System.Diagnostics.Debug.WriteLine("MainWindow: NavigationBar initialized");
                 }
                 
-                // Start favicon polling
+                // Start favicon/title polling
                 _faviconPollTimer.Start();
                 
                 // Navigate to a default page
@@ -151,6 +171,21 @@ public partial class MainWindow : Window
         }
     }
 
+    // Try to read the document title from the WebView via reflection (supports various wrappers)
+    private static string? TryGetWebViewTitle(WebView vw)
+    {
+        try
+        {
+            var t = vw.GetType();
+            var prop = t.GetProperty("Title") ?? t.GetProperty("DocumentTitle");
+            return prop?.GetValue(vw) as string;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     // React to WebView property changes (e.g., Address changes when user clicks links)
     private async void WebView_OnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
@@ -178,6 +213,9 @@ public partial class MainWindow : Window
 
                     // Update favicon for new address
                     await UpdateFaviconAsync(url);
+
+                    // Update tab text from URL while title is not ready
+                    await UpdateTabTitleAsync(null, url);
                 }
                 else if (prop == "CanGoBack" || prop == "CanGoForward")
                 {
@@ -190,6 +228,19 @@ public partial class MainWindow : Window
                             nav.CanGoForward = (prop == "CanGoForward") ? vw.CanGoForward : nav.CanGoForward;
                         }
                     });
+                }
+                else if (prop == "Title")
+                {
+                    // Prefer the document title when available
+                    string? pageTitle = null;
+                    try
+                    {
+                        pageTitle = vw.GetType().GetProperty("Title")?.GetValue(vw) as string;
+                    }
+                    catch { /* ignore reflection issues */ }
+
+                    _lastPageTitle = pageTitle ?? _lastPageTitle;
+                    await UpdateTabTitleAsync(pageTitle, vw.Address);
                 }
             }
         }
@@ -233,6 +284,47 @@ public partial class MainWindow : Window
             // ignore favicon failures
             System.Diagnostics.Debug.WriteLine($"[MainWindow] UpdateFavicon error: {ex.Message}");
         }
+    }
+
+    // Compute and apply a friendly tab title from the page title or URL
+    private async Task UpdateTabTitleAsync(string? pageTitle, string? url)
+    {
+        try
+        {
+            var friendly = ComputeTitle(pageTitle, url);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var tab = this.FindControl<Tab>("ActiveTab");
+                if (tab != null)
+                {
+                    tab.Title = friendly;
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] UpdateTabTitle error: {ex.Message}");
+        }
+    }
+
+    private static string ComputeTitle(string? pageTitle, string? url)
+    {
+        // Use document title if provided
+        if (!string.IsNullOrWhiteSpace(pageTitle))
+        {
+            return pageTitle.Trim();
+        }
+
+        // Fallback to host if we have a URL
+        if (!string.IsNullOrWhiteSpace(url) && Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        {
+            var host = uri.Host;
+            if (host.StartsWith("www.", StringComparison.OrdinalIgnoreCase))
+                host = host.Substring(4);
+            return host;
+        }
+
+        return "New Tab";
     }
 
     private void OnWindowClosed(object? sender, EventArgs e)
