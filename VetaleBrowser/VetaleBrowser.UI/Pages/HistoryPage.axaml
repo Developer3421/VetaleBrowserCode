@@ -1,0 +1,167 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.HistoryPage">
+
+    <UserControl.Styles>
+        <Style Selector="Border.history-item">
+            <Setter Property="Background" Value="#F8F8F8"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+        <Style Selector="Border.history-item:pointerover">
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="BorderBrush" Value="#9A1CE8"/>
+        </Style>
+        <Style Selector="Button.action-button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.action-button:pointerover">
+            <Setter Property="Background" Value="#E0E0E0"/>
+        </Style>
+        <Style Selector="Border.session-header">
+            <Setter Property="Background" Value="#9A1CE8"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="Margin" Value="0,20,0,10"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="30,30,30,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" 
+                       Text="Історія вкладок" 
+                       FontSize="28" 
+                       FontWeight="Bold" 
+                       Foreground="#303030"/>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                <Button Name="PART_ClearHistoryButton"
+                        Content="🗑️ Очистити"
+                        Background="#E74C3C"
+                        Foreground="White"
+                        FontSize="14"
+                        Padding="15,10"
+                        BorderThickness="0"
+                        CornerRadius="4"
+                        Click="ClearHistory_Click">
+                    <Button.Styles>
+                        <Style Selector="Button:pointerover">
+                            <Setter Property="Background" Value="#C0392B"/>
+                        </Style>
+                    </Button.Styles>
+                </Button>
+
+                <Button Name="PART_RefreshButton"
+                        Content="🔄 Оновити"
+                        Background="#9A1CE8"
+                        Foreground="White"
+                        FontSize="14"
+                        Padding="15,10"
+                        BorderThickness="0"
+                        CornerRadius="4"
+                        Click="Refresh_Click">
+                    <Button.Styles>
+                        <Style Selector="Button:pointerover">
+                            <Setter Property="Background" Value="#8612D0"/>
+                        </Style>
+                    </Button.Styles>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Statistics -->
+        <Border Grid.Row="1" 
+                Margin="30,0,30,20"
+                Background="#F0F0F0"
+                BorderBrush="#E0E0E0"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Всього сесій" 
+                               FontSize="12" 
+                               Foreground="#606060"/>
+                    <TextBlock Name="PART_TotalSessionsText" 
+                               Text="0" 
+                               FontSize="20" 
+                               FontWeight="Bold" 
+                               Foreground="#9A1CE8"
+                               Margin="0,5,0,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="Всього вкладок" 
+                               FontSize="12" 
+                               Foreground="#606060"/>
+                    <TextBlock Name="PART_TotalTabsText" 
+                               Text="0" 
+                               FontSize="20" 
+                               FontWeight="Bold" 
+                               Foreground="#9A1CE8"
+                               Margin="0,5,0,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Розмір БД" 
+                               FontSize="12" 
+                               Foreground="#606060"/>
+                    <TextBlock Name="PART_DatabaseSizeText" 
+                               Text="0 MB" 
+                               FontSize="20" 
+                               FontWeight="Bold" 
+                               Foreground="#9A1CE8"
+                               Margin="0,5,0,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="3">
+                    <TextBlock Text="Використання" 
+                               FontSize="12" 
+                               Foreground="#606060"/>
+                    <TextBlock Name="PART_UsagePercentText" 
+                               Text="0%" 
+                               FontSize="20" 
+                               FontWeight="Bold" 
+                               Foreground="#9A1CE8"
+                               Margin="0,5,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- History List -->
+        <ScrollViewer Grid.Row="2" Margin="30,0,30,30">
+            <StackPanel Name="PART_HistoryStackPanel">
+                <!-- Sessions and tabs will be added here dynamically -->
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
+

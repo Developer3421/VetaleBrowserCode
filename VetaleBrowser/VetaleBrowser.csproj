@@ -18,19 +18,17 @@
             <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
+        <PackageReference Include="LiteDB" Version="6.0.0-prerelease.73" />
         <PackageReference Include="WebViewControl-Avalonia" Version="3.120.9" />
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="VetaleBrowser.AI\" />
       <Folder Include="VetaleBrowser.Core\Scripts\Services\" />
-      <Folder Include="VetaleBrowser.Database\" />
       <Folder Include="VetaleBrowser.DevTools\" />
       <Folder Include="VetaleBrowser.JavaScript\" />
       <Folder Include="VetaleBrowser.Search\" />
-      <Folder Include="VetaleBrowser.UI\Pages\" />
       <Folder Include="VetaleBrowser.UI\TranslationsDictionaries\" />
-      <Folder Include="VetaleBrowser.UI\Windows\" />
       <Folder Include="VetaleBrowser.WebEngine\" />
     </ItemGroup>
 

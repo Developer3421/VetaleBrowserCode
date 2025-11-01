@@ -1,0 +1,192 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:VetaleBrowser.VetaleBrowser.Database.Models;assembly=VetaleBrowser"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.BookmarksPage">
+
+    <UserControl.Styles>
+        <Style Selector="Border.bookmark-item">
+            <Setter Property="Background" Value="#F8F8F8"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+        <Style Selector="Border.bookmark-item:pointerover">
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="BorderBrush" Value="#9A1CE8"/>
+        </Style>
+        <Style Selector="Button.action-button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.action-button:pointerover">
+            <Setter Property="Background" Value="#E0E0E0"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="30,30,30,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" 
+                       Text="Закладки" 
+                       FontSize="28" 
+                       FontWeight="Bold" 
+                       Foreground="#303030"/>
+
+            <Button Grid.Column="1"
+                    Name="PART_AddBookmarkButton"
+                    Content="+ Додати закладку"
+                    Background="#9A1CE8"
+                    Foreground="White"
+                    FontSize="14"
+                    Padding="15,10"
+                    BorderThickness="0"
+                    CornerRadius="4"
+                    Click="AddBookmark_Click">
+                <Button.Styles>
+                    <Style Selector="Button:pointerover">
+                        <Setter Property="Background" Value="#8612D0"/>
+                    </Style>
+                </Button.Styles>
+            </Button>
+        </Grid>
+
+        <!-- Folder Tabs -->
+        <StackPanel Grid.Row="1" 
+                    Orientation="Horizontal" 
+                    Margin="30,0,30,20">
+            <Button Name="PART_AllFoldersButton"
+                    Content="Усі"
+                    Tag=""
+                    Padding="15,8"
+                    Margin="0,0,10,0"
+                    Background="#9A1CE8"
+                    Foreground="White"
+                    BorderThickness="0"
+                    CornerRadius="4"
+                    Click="FolderFilter_Click"/>
+            <Button Content="Закладки"
+                    Tag="Закладки"
+                    Padding="15,8"
+                    Margin="0,0,10,0"
+                    Background="#E0E0E0"
+                    Foreground="#333333"
+                    BorderThickness="0"
+                    CornerRadius="4"
+                    Click="FolderFilter_Click"/>
+            <Button Content="Робота"
+                    Tag="Робота"
+                    Padding="15,8"
+                    Margin="0,0,10,0"
+                    Background="#E0E0E0"
+                    Foreground="#333333"
+                    BorderThickness="0"
+                    CornerRadius="4"
+                    Click="FolderFilter_Click"/>
+            <Button Content="Особисті"
+                    Tag="Особисті"
+                    Padding="15,8"
+                    Margin="0,0,10,0"
+                    Background="#E0E0E0"
+                    Foreground="#333333"
+                    BorderThickness="0"
+                    CornerRadius="4"
+                    Click="FolderFilter_Click"/>
+            <Button Content="Новини"
+                    Tag="Новини"
+                    Padding="15,8"
+                    Background="#E0E0E0"
+                    Foreground="#333333"
+                    BorderThickness="0"
+                    CornerRadius="4"
+                    Click="FolderFilter_Click"/>
+        </StackPanel>
+
+        <!-- Bookmarks List -->
+        <ScrollViewer Grid.Row="2" Margin="30,0,30,30">
+            <ItemsControl Name="PART_BookmarksItemsControl">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="models:Bookmark">
+                        <Border Classes="bookmark-item">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Favicon -->
+                                <Border Grid.Column="0" 
+                                        Width="32" 
+                                        Height="32" 
+                                        Background="#9A1CE8"
+                                        CornerRadius="4"
+                                        Margin="0,0,15,0">
+                                    <TextBlock Text="⭐" 
+                                               FontSize="18" 
+                                               Foreground="White"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+
+                                <!-- Info -->
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Title}" 
+                                               FontSize="14" 
+                                               FontWeight="SemiBold"
+                                               Foreground="#202020"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding Url}" 
+                                               FontSize="12" 
+                                               Foreground="#606060"
+                                               TextTrimming="CharacterEllipsis"
+                                               Margin="0,4,0,0"/>
+                                    <TextBlock Text="{Binding Folder}" 
+                                               FontSize="11" 
+                                               Foreground="#9A1CE8"
+                                               Margin="0,4,0,0"/>
+                                </StackPanel>
+
+                                <!-- Actions -->
+                                <StackPanel Grid.Column="2" 
+                                            Orientation="Horizontal"
+                                            VerticalAlignment="Center">
+                                    <Button Classes="action-button"
+                                            Content="🌐"
+                                            FontSize="18"
+                                            ToolTip.Tip="Відкрити"
+                                            Tag="{Binding}"
+                                            Click="OpenBookmark_Click"/>
+                                    <Button Classes="action-button"
+                                            Content="🗑️"
+                                            FontSize="18"
+                                            ToolTip.Tip="Видалити"
+                                            Tag="{Binding}"
+                                            Click="DeleteBookmark_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
+

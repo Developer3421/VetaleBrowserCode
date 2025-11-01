@@ -1,0 +1,144 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="450"
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.AddBookmarkPage">
+
+    <UserControl.Styles>
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="#F8F8F8"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="#F8F8F8"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+
+        <Style Selector="Button.action-button">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Button.cancel-button">
+            <Setter Property="Background" Value="#E0E0E0"/>
+            <Setter Property="Foreground" Value="#333333"/>
+        </Style>
+        <Style Selector="Button.cancel-button:pointerover">
+            <Setter Property="Background" Value="#D0D0D0"/>
+        </Style>
+
+        <Style Selector="Button.save-button">
+            <Setter Property="Background" Value="#9A1CE8"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.save-button:pointerover">
+            <Setter Property="Background" Value="#8612D0"/>
+        </Style>
+        <Style Selector="Button.save-button:pressed">
+            <Setter Property="Background" Value="#7510B8"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Margin="40,30" MaxWidth="500">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="15"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="15"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="15"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" HorizontalAlignment="Center" Spacing="8">
+            <TextBlock Text="⭐" FontSize="32" HorizontalAlignment="Center"/>
+            <TextBlock Text="Додати в закладки" 
+                       FontSize="20" 
+                       FontWeight="SemiBold" 
+                       Foreground="#303030"
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- Name Label -->
+        <TextBlock Grid.Row="2" 
+                   Text="Назва:" 
+                   FontSize="13" 
+                   FontWeight="SemiBold" 
+                   Margin="0,0,0,6"/>
+
+        <!-- Name TextBox -->
+        <TextBox Grid.Row="3" 
+                 Name="PART_NameTextBox"
+                 Watermark="Введіть назву закладки"/>
+
+        <!-- URL Label -->
+        <TextBlock Grid.Row="5" 
+                   Text="URL:" 
+                   FontSize="13" 
+                   FontWeight="SemiBold" 
+                   Margin="0,0,0,6"/>
+
+        <!-- URL TextBox -->
+        <TextBox Grid.Row="6" 
+                 Name="PART_UrlTextBox"
+                 Watermark="https://example.com"
+                 IsReadOnly="True"/>
+
+        <!-- Folder Label -->
+        <TextBlock Grid.Row="8" 
+                   Text="Папка:" 
+                   FontSize="13" 
+                   FontWeight="SemiBold" 
+                   Margin="0,0,0,6"/>
+
+        <!-- Folder ComboBox -->
+        <ComboBox Grid.Row="9" 
+                  Name="PART_FolderComboBox"
+                  SelectedIndex="0"
+                  HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="Закладки"/>
+            <ComboBoxItem Content="Робота"/>
+            <ComboBoxItem Content="Особисті"/>
+            <ComboBoxItem Content="Новини"/>
+        </ComboBox>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="11" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right" 
+                    Spacing="10"
+                    Margin="0,15,0,0">
+            <Button Name="PART_CancelButton"
+                    Content="Скасувати" 
+                    Width="110"
+                    Classes="action-button cancel-button"
+                    Click="CancelButton_Click"/>
+
+            <Button Name="PART_SaveButton"
+                    Content="Зберегти" 
+                    Width="110"
+                    Classes="action-button save-button"
+                    Click="SaveButton_Click"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
+

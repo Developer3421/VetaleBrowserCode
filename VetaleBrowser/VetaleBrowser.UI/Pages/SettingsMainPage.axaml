@@ -1,0 +1,57 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.SettingsMainPage">
+
+    <UserControl.Styles>
+        <Style Selector="Button.settings-button">
+            <Setter Property="Background" Value="#F5F5F5"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="20,15"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+        <Style Selector="Button.settings-button:pointerover">
+            <Setter Property="Background" Value="#E8E8E8"/>
+            <Setter Property="BorderBrush" Value="#9A1CE8"/>
+        </Style>
+        <Style Selector="Button.settings-button:pressed">
+            <Setter Property="Background" Value="#D0D0D0"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Margin="30" MaxWidth="600">
+        <StackPanel Spacing="0">
+            <TextBlock Text="Settings" FontSize="28" FontWeight="Bold" Foreground="#303030" Margin="0,0,0,30"/>
+            
+            <Button Classes="settings-button" Click="OnLanguageClick">
+                <StackPanel Orientation="Vertical" Spacing="5">
+                    <TextBlock Text="Language" FontSize="16" FontWeight="SemiBold" Foreground="#202020"/>
+                    <TextBlock Text="Choose your preferred language" FontSize="12" Foreground="#606060"/>
+                </StackPanel>
+            </Button>
+
+            <Button Classes="settings-button" Click="OnAppearanceClick">
+                <StackPanel Orientation="Vertical" Spacing="5">
+                    <TextBlock Text="Appearance" FontSize="16" FontWeight="SemiBold" Foreground="#202020"/>
+                    <TextBlock Text="Customize the look and feel" FontSize="12" Foreground="#606060"/>
+                </StackPanel>
+            </Button>
+
+            <Button Classes="settings-button" Click="OnSearchEngineClick">
+                <StackPanel Orientation="Vertical" Spacing="5">
+                    <TextBlock Text="Search Engine" FontSize="16" FontWeight="SemiBold" Foreground="#202020"/>
+                    <TextBlock Text="Select your default search engine" FontSize="12" Foreground="#606060"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>
+

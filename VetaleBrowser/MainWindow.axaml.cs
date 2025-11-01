@@ -14,6 +14,8 @@ using Avalonia.Threading;
 using Avalonia;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.Models;
 using System.Linq;
+using VetaleBrowser.VetaleBrowser.UI.Pages;
+using VetaleBrowser.VetaleBrowser.UI.Windows; // added for SettingsWindow and ToolsWindow
 
 namespace VetaleBrowser;
 
@@ -481,19 +483,55 @@ public partial class MainWindow : Window
     // Event handlers for functionality that needs to be handled externally
     private void OnBookmarkRequested(object? sender, EventArgs e)
     {
-        // TODO: Implement bookmark functionality
-        System.Diagnostics.Debug.WriteLine("MainWindow: Bookmark button clicked");
+        try
+        {
+            if (_tabs.Active == null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainWindow: No active tab to bookmark");
+                return;
+            }
+
+            // Отримуємо поточний URL та заголовок
+            var currentUrl = _tabs.Active.Manager.GetCurrentUrl() ?? string.Empty;
+            var currentTitle = _tabs.Active.Title ?? TryGetWebViewTitle(_tabs.Active.WebView) ?? "Без назви";
+
+            System.Diagnostics.Debug.WriteLine($"MainWindow: Opening bookmarks window with URL: {currentUrl}, Title: {currentTitle}");
+
+            // Відкриваємо вікно закладок з формою додавання
+            var bookmarksWindow = new BookmarksWindow(currentUrl, currentTitle);
+            bookmarksWindow.Show();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainWindow: Error opening bookmarks window: {ex}");
+        }
     }
 
     private void OnToolsRequested(object? sender, EventArgs e)
     {
-        // TODO: Implement tools menu
-        System.Diagnostics.Debug.WriteLine("MainWindow: Tools button clicked");
+        // Open tools window styled like the main window
+        try
+        {
+            var tools = new ToolsWindow();
+            tools.Show();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainWindow: Failed to open ToolsWindow: {ex}");
+        }
     }
 
     private void OnSettingsRequested(object? sender, EventArgs e)
     {
-        // TODO: Implement settings window
-        System.Diagnostics.Debug.WriteLine("MainWindow: Settings button clicked");
+        // Open settings window styled like the main window
+        try
+        {
+            var settings = new SettingsWindow();
+            settings.Show();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainWindow: Failed to open SettingsWindow: {ex}");
+        }
     }
 }
