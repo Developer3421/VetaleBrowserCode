@@ -29,6 +29,9 @@ public partial class MainWindow : Window
     private string? _lastFaviconUrl;
     private string? _lastPageTitle;
 
+    // Track whether we've already applied extended engine features (WebView2 settings)
+    private bool _engineFeaturesEnabled;
+
     public WebViewManager WebView => _webViewManager;
 
     public MainWindow()
@@ -46,6 +49,12 @@ public partial class MainWindow : Window
         {
             try
             {
+                // Try to enable engine features once the native engine is ready
+                if (!_engineFeaturesEnabled && _webViewControl != null)
+                {
+                    _engineFeaturesEnabled = TryEnableEngineFeatures(_webViewControl);
+                }
+
                 var url = _webViewManager.GetCurrentUrl();
                 if (!string.IsNullOrWhiteSpace(url) && !string.Equals(url, _lastFaviconUrl, StringComparison.Ordinal))
                 {
@@ -107,6 +116,9 @@ public partial class MainWindow : Window
                 
                 // Initialize WebViewManager with the control
                 _webViewManager.Initialize(webView);
+                
+                // Attempt to enable engine features as soon as possible
+                _engineFeaturesEnabled = TryEnableEngineFeatures(webView);
                 
                 // Subscribe to navigation initiated via manager
                 _webViewManager.Navigated += async (_, url) =>
@@ -184,6 +196,115 @@ public partial class MainWindow : Window
         {
             return null;
         }
+    }
+
+    // Attempt to enable extended features on the underlying engine (WebView2/Chromium) via reflection
+    // Returns true if features were applied (or already applied), false if engine isn't ready yet
+    private bool TryEnableEngineFeatures(WebView vw)
+    {
+        try
+        {
+            object? core = FindCoreWebView2(vw);
+            if (core == null)
+            {
+                return false; // engine not ready yet
+            }
+
+            var coreType = core.GetType();
+            var settingsProp = coreType.GetProperty("Settings");
+            var settings = settingsProp?.GetValue(core);
+            if (settings == null)
+            {
+                return false;
+            }
+
+            var st = settings.GetType();
+            void SetBool(string name, bool value)
+            {
+                try
+                {
+                    var p = st.GetProperty(name);
+                    if (p != null && p.CanWrite && p.PropertyType == typeof(bool))
+                    {
+                        p.SetValue(settings, value);
+                    }
+                }
+                catch { /* ignore individual setting errors */ }
+            }
+
+            // Enable as much functionality as possible
+            SetBool("AreDefaultContextMenusEnabled", true);
+            SetBool("AreDevToolsEnabled", true);
+            SetBool("AreBrowserAcceleratorKeysEnabled", true);
+            SetBool("AreDefaultScriptDialogsEnabled", true);
+            SetBool("IsScriptEnabled", true);
+            SetBool("IsWebMessageEnabled", true);
+            SetBool("IsStatusBarEnabled", true);
+            SetBool("IsGeneralAutofillEnabled", true);
+            SetBool("IsPasswordAutosaveEnabled", true);
+            SetBool("IsZoomControlEnabled", true);
+            SetBool("IsPinchZoomEnabled", true);
+            SetBool("IsSwipeNavigationEnabled", true);
+            SetBool("IsBuiltInErrorPageEnabled", true);
+
+            // DevTools are enabled above; we don't auto-open the window to avoid intrusiveness.
+
+            System.Diagnostics.Debug.WriteLine("[MainWindow] Engine features enabled on CoreWebView2.");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] TryEnableEngineFeatures error: {ex.Message}");
+            return false;
+        }
+    }
+
+    // Heuristic search for CoreWebView2 instance inside wrapper objects
+    private static object? FindCoreWebView2(object? obj, int depth = 0)
+    {
+        if (obj == null || depth > 3) return null;
+        var t = obj.GetType();
+
+        if (t.Name.Contains("CoreWebView2", StringComparison.Ordinal))
+            return obj;
+
+        var direct = t.GetProperty("CoreWebView2")?.GetValue(obj);
+        if (direct != null) return direct;
+
+        // Common nesting property names
+        foreach (var name in new[] { "WebView2", "WebView", "Browser", "Native", "Core", "Renderer", "Engine" })
+        {
+            try
+            {
+                var p = t.GetProperty(name);
+                if (p != null)
+                {
+                    var inner = p.GetValue(obj);
+                    var found = FindCoreWebView2(inner, depth + 1);
+                    if (found != null) return found;
+                }
+            }
+            catch { }
+        }
+
+        // As a last resort, scan instance properties (public and non-public)
+        try
+        {
+            var props = t.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            foreach (var p in props)
+            {
+                try
+                {
+                    var val = p.GetValue(obj);
+                    var found = FindCoreWebView2(val, depth + 1);
+                    if (found != null) return found;
+                }
+                catch { }
+            }
+        }
+        catch { }
+
+        return null;
     }
 
     // React to WebView property changes (e.g., Address changes when user clicks links)
