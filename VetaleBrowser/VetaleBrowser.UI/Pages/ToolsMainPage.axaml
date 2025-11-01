@@ -1,0 +1,54 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.ToolsMainPage">
+
+    <UserControl.Styles>
+        <Style Selector="Border.tool-item">
+            <Setter Property="Background" Value="#F8F8F8"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="15,12"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Border.tool-item:pointerover">
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="BorderBrush" Value="#9A1CE8"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="30,30,30,20">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="🛠️" 
+                           FontSize="32" 
+                           VerticalAlignment="Center"/>
+                <TextBlock Text="Інструменти" 
+                           FontSize="28" 
+                           FontWeight="Bold" 
+                           Foreground="#303030"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Tools List -->
+        <ScrollViewer Grid.Row="1" 
+                      Padding="30,0,30,30"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="ToolsListPanel" Spacing="0">
+                <!-- Tools will be added here programmatically -->
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
+
