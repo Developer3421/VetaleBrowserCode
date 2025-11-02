@@ -9,6 +9,18 @@
         <ApplicationIcon>DefaultTabItem.ico</ApplicationIcon>
     </PropertyGroup>
 
+    <!-- Release configuration: single-file, no PDB -->
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <PublishSingleFile>true</PublishSingleFile>
+        <SelfContained>true</SelfContained>
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+        <DebugType>none</DebugType>
+        <DebugSymbols>false</DebugSymbols>
+   
+        <PublishTrimmed>false</PublishTrimmed>
+        <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="Avalonia" Version="11.3.8" />
         <PackageReference Include="Avalonia.Desktop" Version="11.3.8"/>
