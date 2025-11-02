@@ -665,4 +665,29 @@ public partial class MainWindow : Window
         else
             EnterFullscreen();
     }
+
+    public void NavigateUrlInActiveTab(string url, bool openInNewTabIfNone = true)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return;
+
+        try
+        {
+            if (_tabs.Active != null)
+            {
+                _tabs.Active.Navigate(url);
+            }
+            else if (openInNewTabIfNone)
+            {
+                CreateNewTab(url);
+            }
+            else
+            {
+                // No active tab and not allowed to create new one; do nothing
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainWindow: Failed to navigate active tab: {ex}");
+        }
+    }
 }

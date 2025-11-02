@@ -92,9 +92,26 @@ public partial class ToolsWindow : Window
             mainWindow.Show();
         }
 
-        // TODO: Navigate to URL in active tab
-        // This requires access to MainWindow's navigation methods
+        // If minimized, restore first
+        if (mainWindow.WindowState == WindowState.Minimized)
+        {
+            mainWindow.WindowState = WindowState.Normal;
+        }
+
+        // Navigate to URL in active tab (or create one if none)
+        try
+        {
+            mainWindow.NavigateUrlInActiveTab(url, openInNewTabIfNone: true);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ToolsWindow] Failed to navigate main window: {ex}");
+        }
+
+        // Bring main window to foreground
         mainWindow.Activate();
+        mainWindow.Topmost = true;
+        mainWindow.Topmost = false;
     }
 
     private void OnWebViewBackRequested(object? sender, EventArgs e)
@@ -136,4 +153,3 @@ public partial class ToolsWindow : Window
         wnd.Show();
     }
 }
-

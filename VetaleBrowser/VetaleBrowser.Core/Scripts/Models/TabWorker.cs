@@ -3,6 +3,11 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using WebViewControl;
 using Avalonia.Threading;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using VetaleBrowser.VetaleBrowser.Core.Services.Windows;
+using VetaleBrowser.VetaleBrowser.Core.Services;
 
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 {
@@ -20,10 +25,17 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         private string? _address;
         private bool _isActive;
         private bool _isMuted;
+        
+        // Track OS process IDs associated with this tab's rendering/audible activity (best-effort, OS-level, non-CEF-specific)
+        private readonly HashSet<int> _relatedPids = new();
+        private readonly DispatcherTimer _pidRefreshTimer = new() { Interval = TimeSpan.FromSeconds(2) };
 
         // Fullscreen poller to catch content-initiated fullscreen when events aren't exposed
         private readonly DispatcherTimer _fullscreenPollTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
         private bool _lastFullscreenState;
+
+        // New: subprocess launched per tab (system-level process)
+        private readonly TabSubprocessService _subprocess;
 
         public string? Title
         {
@@ -63,6 +75,13 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
         public TabWorker()
         {
+            // Start dedicated subprocess for this tab (created via the OS) and track its PID
+            _subprocess = new TabSubprocessService(Id);
+            if (_subprocess.ProcessId.HasValue)
+            {
+                _relatedPids.Add(_subprocess.ProcessId.Value);
+            }
+
             WebView = new WebView
             {
                 HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
@@ -78,12 +97,18 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             // Observe WebView property changes to keep state up-to-date
             WebView.PropertyChanged += WebViewOnPropertyChanged;
 
+            // Initialize subprocess title
+            TryUpdateSubprocessTitle();
+
             // Try to hook fullscreen events via reflection
             TryHookFullscreenEvents();
 
             // Start polling for fullscreen changes as a robust fallback
             _fullscreenPollTimer.Tick += (_, __) => PollFullscreenAsync();
             _fullscreenPollTimer.Start();
+
+            // Periodically refresh related PIDs shortly after navigation/content changes
+            _pidRefreshTimer.Tick += (_, __) => RefreshRelatedProcessesBestEffort();
         }
 
         private void WebViewOnPropertyChanged(object? sender, Avalonia.AvaloniaPropertyChangedEventArgs e)
@@ -98,6 +123,12 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 // Re-inject fullscreen listener on new pages
                 InjectFullscreenListener();
 
+                // Kick a short PID refresh burst after navigation
+                SchedulePidRefreshBurst();
+
+                // Update subprocess title on navigation
+                TryUpdateSubprocessTitle();
+
                 // Re-apply mute state on navigation to ensure it persists across page loads
                 if (IsMuted)
                 {
@@ -109,7 +140,12 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 try
                 {
                     var t = WebView.GetType().GetProperty("Title")?.GetValue(WebView) as string;
-                    if (!string.IsNullOrWhiteSpace(t)) Title = t;
+                    if (!string.IsNullOrWhiteSpace(t))
+                    {
+                        // Prefix with Tab: requested
+                        Title = $"Tab: {t}";
+                        TryUpdateSubprocessTitle();
+                    }
                 }
                 catch
                 {
@@ -142,6 +178,58 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     System.Diagnostics.Debug.WriteLine($"[TabWorker] Failed to read fullscreen property: {ex.Message}");
                 }
             }
+        }
+
+        private void SchedulePidRefreshBurst()
+        {
+            try
+            {
+                // Run a few quick refresh cycles to catch newly spawned render processes after navigation
+                int remaining = 3;
+                _pidRefreshTimer.Tag = remaining; // store state via Tag-like pattern using extension below
+                _pidRefreshTimer.Stop();
+                _pidRefreshTimer.Tick -= PidRefreshTick;
+                _pidRefreshTimer.Tick += PidRefreshTick;
+                _pidRefreshTimer.Start();
+            }
+            catch { }
+        }
+
+        private void PidRefreshTick(object? sender, EventArgs e)
+        {
+            RefreshRelatedProcessesBestEffort();
+            if (_pidRefreshTimer.Tag is int left)
+            {
+                left--;
+                if (left <= 0)
+                {
+                    _pidRefreshTimer.Stop();
+                    _pidRefreshTimer.Tick -= PidRefreshTick;
+                    _pidRefreshTimer.Tag = null;
+                }
+                else
+                {
+                    _pidRefreshTimer.Tag = left;
+                }
+            }
+        }
+
+        private void RefreshRelatedProcessesBestEffort()
+        {
+            try
+            {
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
+
+                // Claim new child PIDs not yet assigned to other tabs
+                var newOnes = TabProcessTracker.ClaimNewChildPids();
+                if (newOnes.Count == 0) return;
+
+                foreach (var pid in newOnes)
+                {
+                    _relatedPids.Add(pid);
+                }
+            }
+            catch { }
         }
 
         private async void PollFullscreenAsync()
@@ -312,7 +400,31 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         {
             try
             {
-                // First, try to mute at the browser host level (affects entire process/browser instance)
+                bool appliedAtSystemLevel = false;
+
+                // Try to mute per related OS process using Windows audio sessions (system level)
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && _relatedPids.Count > 0)
+                {
+                    foreach (var pid in _relatedPids)
+                    {
+                        try
+                        {
+                            if (WindowsAudioSessionService.TrySetProcessMute(pid, _isMuted))
+                            {
+                                appliedAtSystemLevel = true;
+                            }
+                        }
+                        catch { }
+                    }
+                }
+
+                if (appliedAtSystemLevel)
+                {
+                    Debug.WriteLine($"[TabWorker] Audio {( _isMuted ? "muted" : "unmuted" )} at system level for PIDs: {string.Join(",", _relatedPids)}");
+                    return;
+                }
+
+                // Fallbacks: try internal host/WebView properties (if available)
                 var t = WebView.GetType();
                 var browserHostProp = t.GetProperty("BrowserHost") 
                     ?? t.GetProperty("Host")
@@ -324,7 +436,6 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     if (TrySetAudioMutedOnHost(browserHost, _isMuted)) return;
                 }
 
-                // Try reflection for IsAudioMuted property on WebView itself
                 var prop = t.GetProperty("IsAudioMuted") 
                            ?? t.GetProperty("AudioMuted")
                            ?? t.GetProperty("IsAudioMuted", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -335,14 +446,12 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     return;
                 }
 
-                // Access underlying CEF browser and mute via Host
                 var cefBrowser = t.GetProperty("Browser")?.GetValue(WebView)
                               ?? t.GetProperty("CefBrowser")?.GetValue(WebView)
                               ?? t.GetMethod("GetBrowser")?.Invoke(WebView, Array.Empty<object>())
                               ?? t.GetField("Browser", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(WebView);
                 if (cefBrowser != null)
                 {
-                    // Host as property or GetHost method
                     var host = cefBrowser.GetType().GetProperty("Host")?.GetValue(cefBrowser)
                               ?? cefBrowser.GetType().GetMethod("GetHost")?.Invoke(cefBrowser, Array.Empty<object>());
                     if (TrySetAudioMutedOnHost(host, _isMuted)) return;
@@ -411,6 +520,39 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             return false;
         }
 
+        private void TryUpdateSubprocessTitle()
+        {
+            try
+            {
+                string siteTitle = null;
+                try
+                {
+                    siteTitle = WebView.GetType().GetProperty("Title")?.GetValue(WebView) as string;
+                }
+                catch { }
+
+                if (string.IsNullOrWhiteSpace(siteTitle))
+                {
+                    // Fallback to host from Address
+                    var addr = WebView.Address;
+                    if (!string.IsNullOrWhiteSpace(addr) && Uri.TryCreate(addr, UriKind.Absolute, out var uri))
+                    {
+                        siteTitle = uri.Host;
+                        if (siteTitle.StartsWith("www.", StringComparison.OrdinalIgnoreCase))
+                            siteTitle = siteTitle.Substring(4);
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(siteTitle))
+                {
+                    siteTitle = "New Tab";
+                }
+
+                _subprocess.UpdateTitle($"Tab: {siteTitle}");
+            }
+            catch { }
+        }
+
         public void Dispose()
         {
             try
@@ -419,6 +561,13 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 Manager.Dispose();
                 WebView.Dispose();
                 _fullscreenPollTimer.Stop();
+                _pidRefreshTimer.Stop();
+                
+                // Release claimed PIDs so other tabs or future workers can reuse if processes persist
+                TabProcessTracker.ReleasePids(_relatedPids);
+
+                // Stop subprocess
+                _subprocess.Dispose();
             }
             catch
             {

@@ -1,6 +1,9 @@
 ﻿using Avalonia;
 using System;
 using WebViewControl;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 
 namespace VetaleBrowser;
 
@@ -12,11 +15,38 @@ class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        // Subprocess mode: spawned per tab to satisfy OS-level process-per-tab requirement
+        if (args is { Length: > 0 } && args.Contains("--tab-helper"))
+        {
+            RunTabHelper(args);
+            return;
+        }
+
         // Ensure GPU rendering and related Chromium features are enabled for CEF (CefGlue) before any WebView is created.
         ConfigureWebEngines();
 
         BuildAvaloniaApp()
-            .StartWithClassicDesktopLifetime(args);
+            .StartWithClassicDesktopLifetime(args ?? Array.Empty<string>());
+    }
+
+    private static void RunTabHelper(string[] args)
+    {
+        // Expect format: --tab-helper <guid>
+        // We don't need to use the Guid value here; the existence of this process is what matters.
+        var sw = Stopwatch.StartNew();
+        while (true)
+        {
+            try
+            {
+                Thread.Sleep(1000);
+                // Optional max lifetime safety
+                if (sw.Elapsed > TimeSpan.FromHours(24)) break;
+            }
+            catch
+            {
+                break;
+            }
+        }
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
