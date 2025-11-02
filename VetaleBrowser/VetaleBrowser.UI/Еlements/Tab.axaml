@@ -39,7 +39,7 @@
                                 Background="Transparent"
                                 BorderThickness="0"
                                 CornerRadius="4"
-                                ToolTip.Tip="Перемкнути звук">
+                                ToolTip.Tip="{DynamicResource Tab.Mute.Toggle}">
                             <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                                 <!-- Speaker icon - gray when unmuted, white when muted -->
                                 <Path Data="M2,6 L6,6 L10,2 L10,18 L6,14 L2,14 Z M12,6 C13,7 13,11 12,12"

@@ -85,23 +85,29 @@ class Program
             try { System.IO.Directory.CreateDirectory(diskCacheDir); } catch { }
 
             // Define Chromium/CEF switches focused on GPU and performance.
+            // Also provide a modern Chrome-like User-Agent so search engines treat us as a full browser.
+            var userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 VetaleBrowser/1.0";
             var switches = new (string key, string? value)[]
             {
                 ("enable-gpu", null),
                 ("ignore-gpu-blocklist", null),
-          
                 ("enable-gpu-rasterization", null),
                 ("enable-zero-copy", null),
                 ("enable-native-gpu-memory-buffers", null),
                 ("enable-accelerated-video-decode", null),
                 ("enable-accelerated-video-encode", null),
                 ("enable-media-foundation-widevine", null),
-        
                 ("use-angle", "d3d11"),
                 ("user-data-dir", userDataDir),
                 ("disk-cache-dir", diskCacheDir),
                 ("enable-features", "CanvasOopRasterization,UseSkiaRenderer,PlatformHEVCDecoderSupport,SharedArrayBuffer,AllowContentInitiatedDataUrlNavigations"),
-                ("disable-features", "CalculateNativeWinOcclusion")
+                ("disable-features", "CalculateNativeWinOcclusion"),
+                ("user-agent", userAgent),
+                // Try to avoid external protocol handlers and keep handling inside the engine where possible
+                ("disable-external-protocol-handler", null),
+                ("disable-default-apps", null),
+                ("disable-features", "DisableExternalProtocolDialog"),
+                ("disable-pdf-extension", null)
             };
 
 #if DEBUG

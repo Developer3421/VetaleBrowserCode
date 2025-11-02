@@ -43,7 +43,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Services
             if (!string.Equals(pageUri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(pageUri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
             {
-                Debug.WriteLine($"[FaviconService] Skip non-http(s) scheme: {pageUri}");
+                Trace.WriteLine($"[FaviconService] Skip non-http(s) scheme: {pageUri}");
                 return null;
             }
 
@@ -53,7 +53,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Services
 
             if (_memCache.TryGetValue(key, out var bytesFromMem))
             {
-                Debug.WriteLine($"[FaviconService] HIT MemoryCache host={host} size={size}");
+                Trace.WriteLine($"[FaviconService] HIT MemoryCache host={host} size={size}");
                 return BytesToBitmapSafe(bytesFromMem);
             }
 
@@ -63,12 +63,12 @@ namespace VetaleBrowser.VetaleBrowser.UI.Services
                 {
                     var bytesDisk = await File.ReadAllBytesAsync(diskPath, ct).ConfigureAwait(false);
                     _memCache[key] = bytesDisk;
-                    Debug.WriteLine($"[FaviconService] HIT DiskCache host={host} size={size} path={diskPath}");
+                    Trace.WriteLine($"[FaviconService] HIT DiskCache host={host} size={size} path={diskPath}");
                     return BytesToBitmapSafe(bytesDisk);
                 }
                 catch (Exception ioEx)
                 {
-                    Debug.WriteLine($"[FaviconService] DiskCache read failed: {ioEx.Message}");
+                    Trace.WriteLine($"[FaviconService] DiskCache read failed: {ioEx.Message}");
                 }
             }
 
@@ -76,40 +76,40 @@ namespace VetaleBrowser.VetaleBrowser.UI.Services
 
             // Try favicon.im, then Google S2, then DuckDuckGo, then direct /favicon.ico
             var imUrl = string.Format(_endpointTemplate, host, size);
-            Debug.WriteLine($"[FaviconService] TRY favicon.im -> {imUrl}");
+            Trace.WriteLine($"[FaviconService] TRY favicon.im -> {imUrl}");
             bytes = await TryDownloadAsync(imUrl, ct).ConfigureAwait(false);
             if (bytes != null)
             {
-                Debug.WriteLine($"[FaviconService] OK favicon.im host={host} size={size} bytes={bytes.Length}");
+                Trace.WriteLine($"[FaviconService] OK favicon.im host={host} size={size} bytes={bytes.Length}");
             }
             else
             {
                 var s2Url = $"https://www.google.com/s2/favicons?sz={size}&domain={host}";
-                Debug.WriteLine($"[FaviconService] TRY Google S2 -> {s2Url}");
+                Trace.WriteLine($"[FaviconService] TRY Google S2 -> {s2Url}");
                 bytes = await TryDownloadAsync(s2Url, ct).ConfigureAwait(false);
                 if (bytes != null)
                 {
-                    Debug.WriteLine($"[FaviconService] OK Google S2 host={host} size={size} bytes={bytes.Length}");
+                    Trace.WriteLine($"[FaviconService] OK Google S2 host={host} size={size} bytes={bytes.Length}");
                 }
                 else
                 {
                     var ddgUrl = $"https://icons.duckduckgo.com/ip3/{host}.ico";
-                    Debug.WriteLine($"[FaviconService] TRY DuckDuckGo -> {ddgUrl}");
+                    Trace.WriteLine($"[FaviconService] TRY DuckDuckGo -> {ddgUrl}");
                     bytes = await TryDownloadAsync(ddgUrl, ct).ConfigureAwait(false);
                     if (bytes != null)
                     {
-                        Debug.WriteLine($"[FaviconService] OK DuckDuckGo host={host} size={size} bytes={bytes.Length}");
+                        Trace.WriteLine($"[FaviconService] OK DuckDuckGo host={host} size={size} bytes={bytes.Length}");
                     }
                     else
                     {
                         // Final fallback: try direct /favicon.ico on the site
                         var scheme = string.Equals(pageUri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ? "https" : "http";
                         var directUrl = $"{scheme}://{host}/favicon.ico";
-                        Debug.WriteLine($"[FaviconService] TRY direct favicon -> {directUrl}");
+                        Trace.WriteLine($"[FaviconService] TRY direct favicon -> {directUrl}");
                         bytes = await TryDownloadAsync(directUrl, ct).ConfigureAwait(false);
                         if (bytes != null)
                         {
-                            Debug.WriteLine($"[FaviconService] OK direct favicon host={host} bytes={bytes.Length}");
+                            Trace.WriteLine($"[FaviconService] OK direct favicon host={host} bytes={bytes.Length}");
                         }
                     }
                 }
@@ -117,18 +117,18 @@ namespace VetaleBrowser.VetaleBrowser.UI.Services
 
             if (bytes == null || bytes.Length == 0)
             {
-                Debug.WriteLine($"[FaviconService] FAIL all providers host={host} size={size}");
+                Trace.WriteLine($"[FaviconService] FAIL all providers host={host} size={size}");
                 return null;
             }
 
             try
             {
                 await File.WriteAllBytesAsync(diskPath, bytes, ct).ConfigureAwait(false);
-                Debug.WriteLine($"[FaviconService] Cache write OK path={diskPath} bytes={bytes.Length}");
+                Trace.WriteLine($"[FaviconService] Cache write OK path={diskPath} bytes={bytes.Length}");
             }
             catch (Exception ioEx)
             {
-                Debug.WriteLine($"[FaviconService] Cache write FAILED path={diskPath} err={ioEx.Message}");
+                Trace.WriteLine($"[FaviconService] Cache write FAILED path={diskPath} err={ioEx.Message}");
             }
 
             _memCache[key] = bytes;
@@ -146,7 +146,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[FaviconService] Image decode failed: {ex.Message}");
+                Trace.WriteLine($"[FaviconService] Image decode failed: {ex.Message}");
                 return null;
             }
         }
@@ -158,7 +158,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Services
                 using var resp = await _http.GetAsync(url, ct).ConfigureAwait(false);
                 if (!resp.IsSuccessStatusCode)
                 {
-                    Debug.WriteLine($"[FaviconService] HTTP {resp.StatusCode} for {url}");
+                    Trace.WriteLine($"[FaviconService] HTTP {resp.StatusCode} for {url}");
                     return null;
                 }
                 var bytes = await resp.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false);
@@ -166,7 +166,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[FaviconService] HTTP error for {url}: {ex.Message}");
+                Trace.WriteLine($"[FaviconService] HTTP error for {url}: {ex.Message}");
                 return null;
             }
         }

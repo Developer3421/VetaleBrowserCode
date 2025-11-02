@@ -68,7 +68,7 @@ public class NavigationBar : TemplatedControl
     public void Initialize(WebViewManager webViewManager)
     {
         _webViewManager = webViewManager ?? throw new ArgumentNullException(nameof(webViewManager));
-        System.Diagnostics.Debug.WriteLine("NavigationBar: Initialized with WebViewManager");
+        System.Diagnostics.Trace.WriteLine("NavigationBar: Initialized with WebViewManager");
     }
 
     /// <summary>
@@ -77,7 +77,7 @@ public class NavigationBar : TemplatedControl
     public void SetSettingsService(ISettingsService settingsService)
     {
         _settingsService = settingsService;
-        System.Diagnostics.Debug.WriteLine("NavigationBar: Settings service set");
+        System.Diagnostics.Trace.WriteLine("NavigationBar: Settings service set");
     }
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -136,19 +136,19 @@ public class NavigationBar : TemplatedControl
     private void OnBackButtonClick(object? sender, RoutedEventArgs e)
     {
         _webViewManager?.GoBack();
-        System.Diagnostics.Debug.WriteLine("NavigationBar: Back button clicked");
+        System.Diagnostics.Trace.WriteLine("NavigationBar: Back button clicked");
     }
 
     private void OnForwardButtonClick(object? sender, RoutedEventArgs e)
     {
         _webViewManager?.GoForward();
-        System.Diagnostics.Debug.WriteLine("NavigationBar: Forward button clicked");
+        System.Diagnostics.Trace.WriteLine("NavigationBar: Forward button clicked");
     }
 
     private void OnReloadButtonClick(object? sender, RoutedEventArgs e)
     {
         _webViewManager?.Reload();
-        System.Diagnostics.Debug.WriteLine("NavigationBar: Reload button clicked");
+        System.Diagnostics.Trace.WriteLine("NavigationBar: Reload button clicked");
     }
 
     private async void OnHomeButtonClick(object? sender, RoutedEventArgs e)
@@ -157,26 +157,26 @@ public class NavigationBar : TemplatedControl
         {
             var home = await GetSearchHomePageAsync();
             await _webViewManager.NavigateAsync(home);
-            System.Diagnostics.Debug.WriteLine("NavigationBar: Home button clicked");
+            System.Diagnostics.Trace.WriteLine("NavigationBar: Home button clicked");
         }
     }
 
     private void OnBookmarkButtonClick(object? sender, RoutedEventArgs e)
     {
         BookmarkRequested?.Invoke(this, EventArgs.Empty);
-        System.Diagnostics.Debug.WriteLine("NavigationBar: Bookmark button clicked");
+        System.Diagnostics.Trace.WriteLine("NavigationBar: Bookmark button clicked");
     }
 
     private void OnToolsButtonClick(object? sender, RoutedEventArgs e)
     {
         ToolsRequested?.Invoke(this, EventArgs.Empty);
-        System.Diagnostics.Debug.WriteLine("NavigationBar: Tools button clicked");
+        System.Diagnostics.Trace.WriteLine("NavigationBar: Tools button clicked");
     }
 
     private void OnSettingsButtonClick(object? sender, RoutedEventArgs e)
     {
         SettingsRequested?.Invoke(this, EventArgs.Empty);
-        System.Diagnostics.Debug.WriteLine("NavigationBar: Settings button clicked");
+        System.Diagnostics.Trace.WriteLine("NavigationBar: Settings button clicked");
     }
 
     private async void OnAddressBarKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
@@ -204,7 +204,7 @@ public class NavigationBar : TemplatedControl
             }
 
             await _webViewManager.NavigateAsync(url);
-            System.Diagnostics.Debug.WriteLine($"NavigationBar: Navigate to {url}");
+            System.Diagnostics.Trace.WriteLine($"NavigationBar: Navigate to {url}");
         }
     }
 
@@ -218,12 +218,12 @@ public class NavigationBar : TemplatedControl
             try
             {
                 var searchUrl = await _settingsService.GetSearchEngineUrlAsync();
-                System.Diagnostics.Debug.WriteLine($"NavigationBar: Using search engine: {searchUrl}");
+                System.Diagnostics.Trace.WriteLine($"NavigationBar: Using search engine: {searchUrl}");
                 return searchUrl;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"NavigationBar: Error getting search engine: {ex}");
+                System.Diagnostics.Trace.WriteLine($"NavigationBar: Error getting search engine: {ex}");
             }
         }
         

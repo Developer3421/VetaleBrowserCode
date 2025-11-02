@@ -103,6 +103,9 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             // Try to hook fullscreen events via reflection
             TryHookFullscreenEvents();
 
+            // Also inject client-side navigation guards to keep navigation in-tab
+            InjectNavigationGuards();
+
             // Start polling for fullscreen changes as a robust fallback
             _fullscreenPollTimer.Tick += (_, __) => PollFullscreenAsync();
             _fullscreenPollTimer.Start();
@@ -120,7 +123,8 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             {
                 Address = WebView.Address;
                 
-                // Re-inject fullscreen listener on new pages
+                // Re-inject guards and fullscreen listener on new pages
+                InjectNavigationGuards();
                 InjectFullscreenListener();
 
                 // Kick a short PID refresh burst after navigation
@@ -309,6 +313,78 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 System.Diagnostics.Debug.WriteLine($"[TabWorker] Failed to inject fullscreen listener: {ex.Message}");
             }
         }
+
+        private async void InjectNavigationGuards()
+        {
+            try
+            {
+                var js = @"
+                    (function(){
+                        if(window.__vetale_no_external__) return; 
+                        window.__vetale_no_external__ = true;
+                        // Override window.open to open in the same tab
+                        try {
+                            var originalOpen = window.open;
+                            window.open = function(url, name, specs){
+                                try{
+                                    if(url){ location.href = url; }
+                                }catch(e){}
+                                return null;
+                            };
+                        } catch(e) {}
+                        
+                        function isExternalScheme(u){
+                            try{
+                                var a = document.createElement('a');
+                                a.href = u;
+                                var p = a.protocol ? a.protocol.toLowerCase() : '';
+                                if(!p) return false;
+                                if(p === 'http:' || p === 'https:') return false;
+                                return true; // everything else is treated as external
+                            }catch(e){ return false; }
+                        }
+                        
+                        // Intercept anchor clicks with target=_blank or external schemes
+                        document.addEventListener('click', function(e){
+                            try{
+                                var el = e.target;
+                                while(el && el.tagName !== 'A'){ el = el.parentElement; }
+                                if(!el) return;
+                                var href = el.getAttribute('href');
+                                if(!href) return;
+                                var target = el.getAttribute('target');
+                                if((target && target.toLowerCase() === '_blank') || isExternalScheme(href)){
+                                    e.preventDefault(); e.stopPropagation();
+                                    if(!isExternalScheme(href)){
+                                        try{ location.href = href; }catch(_){ }
+                                    } // else: block external app invocation silently
+                                }
+                            }catch(_){ }
+                        }, true);
+                        
+                        // Prevent form target=_blank popups
+                        document.addEventListener('submit', function(e){
+                            try{
+                                var f = e.target; if(!f) return;
+                                var t = f.getAttribute('target');
+                                if(t && t.toLowerCase() === '_blank'){
+                                    e.preventDefault();
+                                    try{ f.removeAttribute('target'); f.submit(); }catch(_){ }
+                                }
+                            }catch(_){ }
+                        }, true);
+                    })();
+                ";
+
+                await WebView.EvaluateScript<object>(js);
+                Debug.WriteLine("[TabWorker] Navigation guards injected");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[TabWorker] Failed to inject navigation guards: {ex.Message}");
+            }
+        }
+
 
         private async void ApplyMuteState()
         {

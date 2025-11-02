@@ -1,0 +1,290 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:windows="clr-namespace:VetaleBrowser.VetaleBrowser.UI.Windows"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="650"
+        x:Class="VetaleBrowser.VetaleBrowser.UI.Windows.ConsoleWindow"
+        Title="{DynamicResource Console.Title}"
+        WindowStartupLocation="CenterScreen"
+        SystemDecorations="None"
+        Background="#FF8B4513"
+        BorderThickness="1"
+        BorderBrush="#22000000"
+        CanResize="True"
+        MinWidth="750"
+        MinHeight="550"
+        Width="900"
+        Height="650"
+        Padding="8"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="42"
+        UseLayoutRounding="True"
+        TransparencyLevelHint="AcrylicBlur">
+
+    <Window.Resources>
+        <LinearGradientBrush x:Key="GrayGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#FFE0E0E0" Offset="0"/>
+            <GradientStop Color="#FFD0D0D0" Offset="0.3"/>
+            <GradientStop Color="#FFC5C5C5" Offset="0.7"/>
+            <GradientStop Color="#FFC0C0C0" Offset="1"/>
+        </LinearGradientBrush>
+    </Window.Resources>
+
+    <Window.Styles>
+        <Style Selector="Button.window-control">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#303030"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.window-control:pointerover">
+            <Setter Property="Background" Value="#40FFFFFF"/>
+        </Style>
+        <Style Selector="Button.window-control.close">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#FF000000"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.window-control.close:pointerover">
+            <Setter Property="Background" Value="#40FF5C5C"/>
+            <Setter Property="Foreground" Value="#FF000000"/>
+        </Style>
+
+        <Style Selector="Button.console-button">
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="BorderBrush" Value="#D0D0D0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="#303030"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Button.console-button:pointerover">
+            <Setter Property="Background" Value="#E0E0E0"/>
+            <Setter Property="BorderBrush" Value="#9A1CE8"/>
+        </Style>
+        <Style Selector="Button.console-button:pressed">
+            <Setter Property="Background" Value="#D0D0D0"/>
+        </Style>
+
+        <Style Selector="ComboBox.filter-combo">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#D0D0D0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="MinWidth" Value="120"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,*">
+        <!-- Top bar -->
+        <Grid Grid.Row="0" Height="42" Background="{StaticResource GrayGradient}" PointerPressed="TopBar_PointerPressed" DoubleTapped="TopBar_DoubleTapped">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" VerticalAlignment="Center">
+                <!-- Left: console icon -->
+                <TextBlock Grid.Column="0" Text="🖥️" FontSize="24" Margin="8,0,6,0" VerticalAlignment="Center"/>
+
+                <!-- Vetale Browser button -->
+                <Button Grid.Column="1" x:Name="PART_OpenMainButton" Click="OpenMainWindow" Background="Transparent" BorderThickness="0" Padding="6,4" Cursor="Hand">
+                    <TextBlock Text="{DynamicResource App.Title}" FontWeight="SemiBold" Foreground="#202020"/>
+                </Button>
+
+                <!-- Spacer -->
+                <Border Grid.Column="2"/>
+
+                <!-- Window control buttons -->
+                <Button Grid.Column="3" Classes="window-control" Click="MinimizeWindow" ToolTip.Tip="{DynamicResource Window.Minimize}" Padding="0">
+                    <Image Source="{DynamicResource MinButtonImage}" Stretch="Uniform"/>
+                </Button>
+                <Button Grid.Column="4" Classes="window-control" Click="MaximizeWindow" ToolTip.Tip="{DynamicResource Window.Maximize}" Padding="0">
+                    <Image Source="{DynamicResource MaxButtonImage}" Stretch="Uniform"/>
+                </Button>
+                <Button Grid.Column="5" Classes="window-control close" Click="CloseWindow" ToolTip.Tip="{DynamicResource Window.Close}" Padding="0" BorderThickness="0">
+                    <Image Source="{DynamicResource CloseButtonImage}" Stretch="UniformToFill"/>
+                </Button>
+            </Grid>
+        </Grid>
+
+        <!-- Toolbar -->
+        <Border Grid.Row="1" Background="#F8F8F8" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="15,10">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto,Auto">
+                <!-- Search -->
+                <TextBox Grid.Column="0" 
+                         x:Name="SearchTextBox"
+                         Watermark="{DynamicResource Console.SearchLogs}"
+                         Background="#FFFFFF"
+                         BorderBrush="#D0D0D0"
+                         BorderThickness="1"
+                         CornerRadius="4"
+                         Padding="8,6"
+                         FontSize="13"
+                         KeyUp="OnSearchKeyUp"/>
+
+                <!-- Filter by level -->
+                <ComboBox Grid.Column="1" 
+                          x:Name="LevelFilterComboBox"
+                          Classes="filter-combo"
+                          Margin="10,0,0,0"
+                          SelectionChanged="OnLevelFilterChanged">
+                    <ComboBoxItem Content="{DynamicResource Console.Level.All}" IsSelected="True"/>
+                    <ComboBoxItem Content="Info"/>
+                    <ComboBoxItem Content="Warning"/>
+                    <ComboBoxItem Content="Error"/>
+                    <ComboBoxItem Content="Debug"/>
+                </ComboBox>
+
+                <!-- Auto-refresh toggle -->
+                <CheckBox Grid.Column="2"
+                          x:Name="AutoRefreshCheckBox"
+                          Content="{DynamicResource Console.AutoRefresh}"
+                          Margin="10,0,0,0"
+                          VerticalAlignment="Center"
+                          IsChecked="True"
+                          Checked="OnAutoRefreshChanged"
+                          Unchecked="OnAutoRefreshChanged"/>
+
+                <!-- Refresh button -->
+                <Button Grid.Column="3"
+                        Classes="console-button"
+                        Click="OnRefreshClick"
+                        Margin="10,0,0,0"
+                        ToolTip.Tip="{DynamicResource Common.Refresh}">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock Text="🔄" FontSize="14"/>
+                        <TextBlock Text="{DynamicResource Common.Refresh}"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Clear button -->
+                <Button Grid.Column="4"
+                        Classes="console-button"
+                        Click="OnClearClick"
+                        Margin="10,0,0,0"
+                        ToolTip.Tip="{DynamicResource Common.ClearAllLogs}">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock Text="🗑️" FontSize="14"/>
+                        <TextBlock Text="{DynamicResource Common.Clear}"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Export button -->
+                <Button Grid.Column="5"
+                        Classes="console-button"
+                        Click="OnExportClick"
+                        Margin="10,0,0,0"
+                        ToolTip.Tip="{DynamicResource Console.ExportLogs}">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock Text="💾" FontSize="14"/>
+                        <TextBlock Text="{DynamicResource Common.Export}"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Copy All button -->
+                <Button Grid.Column="6"
+                        Classes="console-button"
+                        Click="OnCopyAllClick"
+                        Margin="10,0,0,0"
+                        ToolTip.Tip="{DynamicResource Console.CopyAll}">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock Text="📋" FontSize="14"/>
+                        <TextBlock Text="{DynamicResource Common.CopyAll}"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Console output area -->
+        <Border Grid.Row="2" Background="#1E1E1E" Padding="0">
+            <Grid>
+                <ScrollViewer x:Name="LogScrollViewer"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Auto"
+                              Background="#1E1E1E">
+                    <ItemsControl x:Name="LogItemsControl" Padding="10">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="windows:ConsoleLogViewModel">
+                                <Border Padding="5,3" Margin="0,1">
+                                    <Border.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="{DynamicResource Console.CopyMessage}" Click="OnCopyMessageClick"/>
+                                            <MenuItem Header="{DynamicResource Console.CopyRow}" Click="OnCopyRowClick"/>
+                                        </ContextMenu>
+                                    </Border.ContextMenu>
+                                    <Grid ColumnDefinitions="Auto,Auto,Auto,*">
+                                        <!-- Timestamp -->
+                                        <TextBlock Grid.Column="0" 
+                                                   Text="{Binding TimestampFormatted}"
+                                                   Foreground="#808080"
+                                                   FontFamily="Consolas"
+                                                   FontSize="12"
+                                                   Margin="0,0,10,0"/>
+
+                                        <!-- Level badge -->
+                                        <Border Grid.Column="1"
+                                                Background="{Binding LevelColor}"
+                                                CornerRadius="3"
+                                                Padding="5,2"
+                                                Margin="0,0,10,0">
+                                            <TextBlock Text="{Binding Level}"
+                                                       Foreground="#FFFFFF"
+                                                       FontFamily="Consolas"
+                                                       FontSize="11"
+                                                       FontWeight="Bold"/>
+                                        </Border>
+
+                                        <!-- Source -->
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding SourceFormatted}"
+                                                   Foreground="#569CD6"
+                                                   FontFamily="Consolas"
+                                                   FontSize="12"
+                                                   Margin="0,0,10,0"/>
+
+                                        <!-- Message (selectable) -->
+                                        <TextBox Grid.Column="3"
+                                                 Text="{Binding Message}"
+                                                 Foreground="{Binding MessageColor}"
+                                                 Background="Transparent"
+                                                 BorderThickness="0"
+                                                 FontFamily="Consolas"
+                                                 FontSize="12"
+                                                 TextWrapping="Wrap"
+                                                 AcceptsReturn="True"
+                                                 IsReadOnly="True"
+                                                 IsTabStop="False"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Empty state -->
+                <StackPanel x:Name="EmptyStatePanel"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="10"
+                            IsVisible="False">
+                    <TextBlock Text="📋"
+                               FontSize="48"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="{DynamicResource Console.NoLogs}"
+                               FontSize="16"
+                               Foreground="#808080"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="{DynamicResource Console.NoLogs.Hint}"
+                               FontSize="13"
+                               Foreground="#606060"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

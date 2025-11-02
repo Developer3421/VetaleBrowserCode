@@ -8,25 +8,91 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Input;
 using VetaleBrowser;
 using VetaleBrowser.VetaleBrowser.UI.Pages;
+using VetaleBrowser.VetaleBrowser.Database;
+using VetaleBrowser.VetaleBrowser.Database.Services;
+using Avalonia.Media;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Windows;
 
 public partial class ToolsWindow : Window
 {
     private Grid? _contentArea;
+    private Grid? _topBarGrid;
     private ToolsMainPage? _mainPage;
     private ToolsWebViewPage? _webViewPage;
+    private IAppearanceSettingsService? _appearanceSettingsService;
 
     public ToolsWindow()
     {
         InitializeComponent();
         _contentArea = this.FindControl<Grid>("ContentArea");
+        _topBarGrid = this.FindControl<Grid>("TopBarGrid");
+        InitializeAppearanceService();
+        Loaded += OnLoaded;
         InitializePages();
     }
 
     private void InitializeComponent()
     {
         AvaloniaXamlLoader.Load(this);
+    }
+
+    private void InitializeAppearanceService()
+    {
+        try
+        {
+            var cfg = DatabaseConfiguration.CreateDefault();
+            var path = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(cfg.DatabasePath) ?? string.Empty, "appearance_settings.db");
+            _appearanceSettingsService = new AppearanceSettingsService(path, cfg.EncryptionKey);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"ToolsWindow: InitializeAppearanceService error: {ex}");
+        }
+    }
+
+    private async void OnLoaded(object? sender, RoutedEventArgs e)
+    {
+        await ApplyOwnAppearanceAsync();
+    }
+
+    public async System.Threading.Tasks.Task ApplyOwnAppearanceAsync()
+    {
+        try
+        {
+            if (_appearanceSettingsService == null) return;
+            var bg = await _appearanceSettingsService.GetOtherWindowsBackgroundColorAsync();
+            var top = await _appearanceSettingsService.GetOtherWindowsTopBarColorAsync();
+
+            if (_contentArea != null)
+            {
+                var b = TryParseBrush(bg);
+                if (b != null) _contentArea.Background = b;
+            }
+            if (_topBarGrid != null)
+            {
+                var t = TryParseBrush(top);
+                if (t != null) _topBarGrid.Background = t; // else keep GrayGradient from XAML
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"ToolsWindow: ApplyOwnAppearanceAsync error: {ex}");
+        }
+    }
+
+    private IBrush? TryParseBrush(string? color)
+    {
+        if (string.IsNullOrWhiteSpace(color)) return null;
+        try
+        {
+            if (Color.TryParse(color, out var c))
+            {
+                return new SolidColorBrush(c);
+            }
+        }
+        catch { }
+        return null;
     }
 
     private void InitializePages()
@@ -76,7 +142,7 @@ public partial class ToolsWindow : Window
     private void OnNavigateInMainTab(object? sender, string url)
     {
         // Open URL in main browser window
-        System.Diagnostics.Debug.WriteLine($"[ToolsWindow] Navigate in main tab: {url}");
+        System.Diagnostics.Trace.WriteLine($"[ToolsWindow] Navigate in main tab: {url}");
         
         // Try to find existing main window
         MainWindow? mainWindow = null;
@@ -105,7 +171,7 @@ public partial class ToolsWindow : Window
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[ToolsWindow] Failed to navigate main window: {ex}");
+            System.Diagnostics.Trace.WriteLine($"[ToolsWindow] Failed to navigate main window: {ex}");
         }
 
         // Bring main window to foreground

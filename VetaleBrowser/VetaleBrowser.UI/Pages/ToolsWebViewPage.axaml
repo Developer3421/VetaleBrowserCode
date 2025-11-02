@@ -26,17 +26,17 @@
                         BorderThickness="0"
                         Padding="8"
                         Cursor="Hand"
-                        ToolTip.Tip="Назад до списку">
+                        ToolTip.Tip="{DynamicResource Tools.BackToList}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <TextBlock Text="←" FontSize="18" FontWeight="Bold"/>
-                        <TextBlock Text="Назад" FontSize="14" VerticalAlignment="Center"/>
+                        <TextBlock Text="{DynamicResource Common.Back}" FontSize="14" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
 
                 <!-- Tool name -->
                 <TextBlock Grid.Column="1"
                            x:Name="ToolNameText"
-                           Text="Інструмент"
+                           Text="{DynamicResource Tools.ToolTitle}"
                            FontSize="16"
                            FontWeight="SemiBold"
                            VerticalAlignment="Center"
@@ -51,7 +51,7 @@
                         BorderThickness="0"
                         Padding="8"
                         Cursor="Hand"
-                        ToolTip.Tip="Оновити">
+                        ToolTip.Tip="{DynamicResource Common.Refresh}">
                     <TextBlock Text="🔄" FontSize="16"/>
                 </Button>
             </Grid>
@@ -61,7 +61,7 @@
         <Grid Grid.Row="1" 
               x:Name="WebViewContainer"
               Background="#FFFFFF">
-            <TextBlock Text="Завантаження..."
+            <TextBlock Text="{DynamicResource Common.Loading}"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
                        Foreground="#808080"
@@ -69,4 +69,3 @@
         </Grid>
     </Grid>
 </UserControl>
-

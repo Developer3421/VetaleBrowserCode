@@ -71,7 +71,7 @@
         <!-- Header -->
         <StackPanel Grid.Row="0" HorizontalAlignment="Center" Spacing="8">
             <TextBlock Text="⭐" FontSize="32" HorizontalAlignment="Center"/>
-            <TextBlock Text="Додати в закладки" 
+            <TextBlock Text="{DynamicResource Bookmarks.Add.Header}" 
                        FontSize="20" 
                        FontWeight="SemiBold" 
                        Foreground="#303030"
@@ -80,7 +80,7 @@
 
         <!-- Name Label -->
         <TextBlock Grid.Row="2" 
-                   Text="Назва:" 
+                   Text="{DynamicResource Bookmarks.Add.Name}" 
                    FontSize="13" 
                    FontWeight="SemiBold" 
                    Margin="0,0,0,6"/>
@@ -88,7 +88,7 @@
         <!-- Name TextBox -->
         <TextBox Grid.Row="3" 
                  Name="PART_NameTextBox"
-                 Watermark="Введіть назву закладки"/>
+                 Watermark="{DynamicResource Bookmarks.Add.Name.Watermark}"/>
 
         <!-- URL Label -->
         <TextBlock Grid.Row="5" 
@@ -105,7 +105,7 @@
 
         <!-- Folder Label -->
         <TextBlock Grid.Row="8" 
-                   Text="Папка:" 
+                   Text="{DynamicResource Bookmarks.Add.Folder}" 
                    FontSize="13" 
                    FontWeight="SemiBold" 
                    Margin="0,0,0,6"/>
@@ -115,10 +115,10 @@
                   Name="PART_FolderComboBox"
                   SelectedIndex="0"
                   HorizontalAlignment="Stretch">
-            <ComboBoxItem Content="Закладки"/>
-            <ComboBoxItem Content="Робота"/>
-            <ComboBoxItem Content="Особисті"/>
-            <ComboBoxItem Content="Новини"/>
+            <ComboBoxItem Content="{DynamicResource Bookmarks.Folder.Default}"/>
+            <ComboBoxItem Content="{DynamicResource Bookmarks.Folder.Work}"/>
+            <ComboBoxItem Content="{DynamicResource Bookmarks.Folder.Personal}"/>
+            <ComboBoxItem Content="{DynamicResource Bookmarks.Folder.News}"/>
         </ComboBox>
 
         <!-- Buttons -->
@@ -128,17 +128,16 @@
                     Spacing="10"
                     Margin="0,15,0,0">
             <Button Name="PART_CancelButton"
-                    Content="Скасувати" 
+                    Content="{DynamicResource Common.Cancel}" 
                     Width="110"
                     Classes="action-button cancel-button"
                     Click="CancelButton_Click"/>
 
             <Button Name="PART_SaveButton"
-                    Content="Зберегти" 
+                    Content="{DynamicResource Common.Save}" 
                     Width="110"
                     Classes="action-button save-button"
                     Click="SaveButton_Click"/>
         </StackPanel>
     </Grid>
 </UserControl>
-

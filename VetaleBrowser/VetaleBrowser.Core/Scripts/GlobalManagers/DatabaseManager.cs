@@ -11,8 +11,10 @@ public static class DatabaseManager
 {
     private static TabDatabaseService? _instance;
     private static HistoryDatabaseService? _historyInstance;
+    private static ConsoleDatabaseService? _consoleInstance;
     private static readonly object _lock = new object();
     private static readonly object _historyLock = new object();
+    private static readonly object _consoleLock = new object();
 
     /// <summary>
     /// Отримує екземпляр сервісу бази даних
@@ -53,6 +55,27 @@ public static class DatabaseManager
                 }
             }
             return _historyInstance!;
+        }
+    }
+
+    /// <summary>
+    /// Отримує екземпляр сервісу бази даних консолі
+    /// </summary>
+    public static ConsoleDatabaseService ConsoleInstance
+    {
+        get
+        {
+            if (_consoleInstance == null)
+            {
+                lock (_consoleLock)
+                {
+                    if (_consoleInstance == null)
+                    {
+                        InitializeConsole();
+                    }
+                }
+            }
+            return _consoleInstance!;
         }
     }
 
@@ -106,6 +129,27 @@ public static class DatabaseManager
     }
 
     /// <summary>
+    /// Ініціалізує базу даних консолі
+    /// </summary>
+    public static void InitializeConsole(string? customPath = null, string? customKey = null)
+    {
+        lock (_consoleLock)
+        {
+            // Закриваємо попередній екземпляр якщо існує
+            _consoleInstance?.Dispose();
+
+            // Визначаємо шлях до бази даних консолі
+            var dbPath = customPath ?? GetDefaultConsoleDatabasePath();
+            
+            // Визначаємо ключ шифрування
+            var encryptionKey = customKey ?? GenerateEncryptionKey();
+
+            // Створюємо новий екземпляр
+            _consoleInstance = new ConsoleDatabaseService(dbPath, encryptionKey);
+        }
+    }
+
+    /// <summary>
     /// Отримує шлях до бази даних за замовчуванням
     /// </summary>
     private static string GetDefaultDatabasePath()
@@ -137,6 +181,23 @@ public static class DatabaseManager
         }
 
         return Path.Combine(browserDataPath, "history.db");
+    }
+
+    /// <summary>
+    /// Отримує шлях до бази даних консолі за замовчуванням
+    /// </summary>
+    private static string GetDefaultConsoleDatabasePath()
+    {
+        var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        var browserDataPath = Path.Combine(appDataPath, "VetaleBrowser", "Data");
+        
+        // Створюємо директорію якщо не існує
+        if (!Directory.Exists(browserDataPath))
+        {
+            Directory.CreateDirectory(browserDataPath);
+        }
+
+        return Path.Combine(browserDataPath, "console.db");
     }
 
     /// <summary>

@@ -5,7 +5,7 @@
         xmlns:controls="using:VetaleBrowser.VetaleBrowser.UI.Еlements"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="VetaleBrowser.MainWindow"
-        Title="Vetale Browser"
+        Title="{DynamicResource App.Title}"
         WindowStartupLocation="CenterScreen"
         SystemDecorations="BorderOnly"
         Background="#FF8B4513"

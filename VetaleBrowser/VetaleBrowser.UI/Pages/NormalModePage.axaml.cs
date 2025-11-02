@@ -10,6 +10,7 @@ public partial class NormalModePage : UserControl
     private Button? _addTabButton;
     private Grid? _webViewContainer;
     private NavigationBar? _navigationBar;
+    private Grid? _navigationBarRow;
     
     // Window controls
     private Button? _minimizeButton;
@@ -21,6 +22,7 @@ public partial class NormalModePage : UserControl
     public Button? AddTabBtn => _addTabButton;
     public Grid? WebViewGrid => _webViewContainer;
     public NavigationBar? NavBar => _navigationBar;
+    public Grid? NavBarRow => _navigationBarRow;
     public Button? MinBtn => _minimizeButton;
     public Button? MaxBtn => _maximizeButton;
     public Button? ClsBtn => _closeButton;
@@ -39,6 +41,7 @@ public partial class NormalModePage : UserControl
         _addTabButton = this.FindControl<Button>("PART_AddTabButton");
         _webViewContainer = this.FindControl<Grid>("WebViewContainer");
         _navigationBar = this.FindControl<NavigationBar>("NavigationBar");
+        _navigationBarRow = this.FindControl<Grid>("NavigationBarRow");
         
         _minimizeButton = this.FindControl<Button>("MinimizeButton");
         _maximizeButton = this.FindControl<Button>("MaximizeButton");

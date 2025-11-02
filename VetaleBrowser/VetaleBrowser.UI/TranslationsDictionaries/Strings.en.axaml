@@ -1,0 +1,187 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Common Window Titles -->
+  <x:String x:Key="App.Title">Vetale Browser</x:String>
+  <x:String x:Key="Settings.Title">Settings — Vetale Browser</x:String>
+  <x:String x:Key="Tools.Title">Tools — Vetale Browser</x:String>
+  <x:String x:Key="Console.Title">Console — Vetale Browser</x:String>
+  <x:String x:Key="History.Title">History — Vetale Browser</x:String>
+  <x:String x:Key="Bookmarks.Title">Bookmarks — Vetale Browser</x:String>
+
+  <!-- Settings main page -->
+  <x:String x:Key="Settings.Header">Settings</x:String>
+  <x:String x:Key="Settings.Language.Title">Language</x:String>
+  <x:String x:Key="Settings.Language.Sub">Choose your preferred language</x:String>
+  <x:String x:Key="Settings.Appearance.Title">Appearance</x:String>
+  <x:String x:Key="Settings.Appearance.Sub">Customize the look and feel</x:String>
+  <x:String x:Key="Settings.Search.Title">Search Engine</x:String>
+  <x:String x:Key="Settings.Search.Sub">Select your default search engine</x:String>
+
+  <!-- Window controls tooltips -->
+  <x:String x:Key="Window.Minimize">Minimize</x:String>
+  <x:String x:Key="Window.Maximize">Maximize</x:String>
+  <x:String x:Key="Window.Close">Close</x:String>
+
+  <!-- Language page -->
+  <x:String x:Key="Language.Header">Language</x:String>
+  <x:String x:Key="Language.SelectPrompt">Select interface language</x:String>
+  <x:String x:Key="Language.RestartHint">Some changes may require reopening windows</x:String>
+  <x:String x:Key="Common.Save">Save</x:String>
+  <x:String x:Key="Common.Back">Back</x:String>
+
+  <!-- Navigation -->
+  <x:String x:Key="Nav.Back">Back</x:String>
+  <x:String x:Key="Nav.Forward">Forward</x:String>
+  <x:String x:Key="Nav.Home">Home</x:String>
+  <x:String x:Key="Nav.AddressBar.Watermark">Enter URL or search query…</x:String>
+
+  <!-- Common actions -->
+  <x:String x:Key="Common.Refresh">Refresh</x:String>
+  <x:String x:Key="Common.Clear">Clear</x:String>
+  <x:String x:Key="Common.ClearAll">Clear all</x:String>
+  <x:String x:Key="Common.ClearAllLogs">Clear all logs</x:String>
+  <x:String x:Key="Common.Export">Export</x:String>
+  <x:String x:Key="Common.CopyAll">Copy all</x:String>
+  <x:String x:Key="Common.Open">Open</x:String>
+  <x:String x:Key="Common.Delete">Delete</x:String>
+  <x:String x:Key="Common.All">All</x:String>
+  <x:String x:Key="Common.Cancel">Cancel</x:String>
+  <x:String x:Key="Common.Yes">Yes</x:String>
+  <x:String x:Key="Common.Loading">Loading...</x:String>
+  <x:String x:Key="Common.ResetDefaults">Reset to defaults</x:String>
+
+  <!-- Tab -->
+  <x:String x:Key="Tab.Mute.Toggle">Toggle sound</x:String>
+
+  <!-- Bookmarks -->
+  <x:String x:Key="Bookmarks.Header">Bookmarks</x:String>
+  <x:String x:Key="Bookmarks.Add">Add bookmark</x:String>
+  <x:String x:Key="Bookmarks.Folder.Default">Bookmarks</x:String>
+  <x:String x:Key="Bookmarks.Folder.Work">Work</x:String>
+  <x:String x:Key="Bookmarks.Folder.Personal">Personal</x:String>
+  <x:String x:Key="Bookmarks.Folder.News">News</x:String>
+  
+  <!-- Add Bookmark dialog -->
+  <x:String x:Key="Bookmarks.Add.Header">Add to bookmarks</x:String>
+  <x:String x:Key="Bookmarks.Add.Name">Name:</x:String>
+  <x:String x:Key="Bookmarks.Add.Name.Watermark">Enter bookmark name</x:String>
+  <x:String x:Key="Bookmarks.Add.Folder">Folder:</x:String>
+
+  <!-- Tools / Settings button tooltips -->
+  <x:String x:Key="Tools.Button.Tooltip">Tools</x:String>
+  <x:String x:Key="Settings.Button.Tooltip">Settings</x:String>
+
+  <!-- Tools page -->
+  <x:String x:Key="Tools.Header">Tools</x:String>
+
+  <!-- Appearance page -->
+  <x:String x:Key="Appearance.Header">Appearance settings</x:String>
+  <x:String x:Key="Appearance.Tabs.Title">Tabs</x:String>
+  <x:String x:Key="Appearance.Tabs.Sub">Customize tab size, colors and elements</x:String>
+  <x:String x:Key="Appearance.MainWindow.Title">Main window</x:String>
+  <x:String x:Key="Appearance.MainWindow.Sub">Configure navigation bar, buttons and main window</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Title">Other windows</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Sub">Appearance of other browser windows</x:String>
+
+  <!-- History -->
+  <x:String x:Key="History.Header">History</x:String>
+  <x:String x:Key="History.Search.Watermark">Search history…</x:String>
+  <x:String x:Key="History.Filter.All">All</x:String>
+  <x:String x:Key="History.Filter.1Day">1 day</x:String>
+  <x:String x:Key="History.Filter.7Days">7 days</x:String>
+  <x:String x:Key="History.Filter.1Month">1 month</x:String>
+  <x:String x:Key="History.Filter.6Months">6 months</x:String>
+  <x:String x:Key="History.Filter.1Year">1 year</x:String>
+  <x:String x:Key="History.Filter.OlderThanYear">Older than a year</x:String>
+  <x:String x:Key="History.Visits">visits</x:String>
+
+  <!-- Console -->
+  <x:String x:Key="Console.SearchLogs">Search logs…</x:String>
+  <x:String x:Key="Console.AutoRefresh">Auto refresh</x:String>
+  <x:String x:Key="Console.ExportLogs">Export logs</x:String>
+  <x:String x:Key="Console.CopyAll">Copy all visible logs</x:String>
+  <x:String x:Key="Console.CopyMessage">Copy message</x:String>
+  <x:String x:Key="Console.CopyRow">Copy row</x:String>
+  <x:String x:Key="Console.NoLogs">No logs to display</x:String>
+  <x:String x:Key="Console.NoLogs.Hint">Logs will appear here automatically</x:String>
+  <x:String x:Key="Console.InitBanner">Console initialized</x:String>
+  <x:String x:Key="Console.ClearConfirm">This will delete all console entries. Continue?</x:String>
+  <x:String x:Key="Console.Level.All">All levels</x:String>
+  <x:String x:Key="Console.ExportLogs.FilePrefix">console_logs_</x:String>
+
+  <!-- Tools WebView -->
+  <x:String x:Key="Tools.BackToList">Back to list</x:String>
+  <x:String x:Key="Tools.ToolTitle">Tool</x:String>
+
+  <!-- Appearance Tabs page -->
+  <x:String x:Key="Appearance.Tabs.Header">Tab settings</x:String>
+  <x:String x:Key="Appearance.Tabs.Width">Tab width</x:String>
+  <x:String x:Key="Appearance.Tabs.WidthPx">Width (px):</x:String>
+  <x:String x:Key="Appearance.Tabs.ElementsSize">Elements size</x:String>
+  <x:String x:Key="Appearance.Tabs.TextSizePx">Text size (px):</x:String>
+  <x:String x:Key="Appearance.Tabs.IconSize">Icon size</x:String>
+  <x:String x:Key="Appearance.Tabs.IconSizePx">Icon size (px):</x:String>
+  <x:String x:Key="Appearance.Tabs.BackgroundColor">Tab background color</x:String>
+  <x:String x:Key="Appearance.Tabs.TextColor">Tab text color</x:String>
+  <x:String x:Key="Appearance.Tabs.ActiveColor">Active tab color</x:String>
+  <x:String x:Key="Appearance.ColorHex">Color (HEX):</x:String>
+  <x:String x:Key="Appearance.SaveSettings">Save settings</x:String>
+
+  <!-- Common -->
+  <x:String x:Key="Common.WidthPx">Width (px):</x:String>
+  <x:String x:Key="Common.HeightPx">Height (px):</x:String>
+  <x:String x:Key="Common.SizePx">Size (px):</x:String>
+  <x:String x:Key="Common.IconSizePx">Icon size (px):</x:String>
+
+  <!-- Appearance Main Window -->
+  <x:String x:Key="Appearance.MainWindow.Header">Main window settings</x:String>
+  <x:String x:Key="Appearance.MainWindow.NavBarColor">Navigation bar color</x:String>
+  <x:String x:Key="Appearance.MainWindow.NavBarHeight">Navigation bar height</x:String>
+  <x:String x:Key="Appearance.MainWindow.Width">Main window width</x:String>
+  <x:String x:Key="Appearance.MainWindow.Height">Main window height</x:String>
+  <x:String x:Key="Appearance.MainWindow.TopBarBackgroundColor">Top bar background color</x:String>
+  <x:String x:Key="Appearance.MainWindow.ButtonSize">Button size</x:String>
+  <x:String x:Key="Appearance.MainWindow.ButtonIconSize">Button icon size</x:String>
+
+  <!-- Appearance Other Windows -->
+  <x:String x:Key="Appearance.OtherWindows.Header">Other windows settings</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Description">Appearance of additional windows (settings, bookmarks, history, etc.)</x:String>
+  <x:String x:Key="Appearance.OtherWindows.BackgroundColor">Windows background color</x:String>
+  <x:String x:Key="Appearance.OtherWindows.BackgroundColor.Sub">Primary background color for all secondary windows</x:String>
+  <x:String x:Key="Appearance.OtherWindows.TopBarColor">Top bar color</x:String>
+  <x:String x:Key="Appearance.OtherWindows.TopBarColor.Sub">Color of the top bar with title and window controls</x:String>
+  <x:String x:Key="Appearance.OtherWindows.InfoHeader">ℹ️ Additional information</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Info1">These settings apply to all auxiliary browser windows such as the settings, bookmarks, history, and other service windows.</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Info2">Changes will take effect after saving and reopening the corresponding windows.</x:String>
+
+  <!-- Search custom -->
+  <x:String x:Key="Search.Custom.Title">Custom</x:String>
+  <x:String x:Key="Search.Custom.Hint">Enter a search engine URL. Use {0} as the placeholder for the query.</x:String>
+
+  <!-- Tools page - list items -->
+  <x:String x:Key="Tools.VetaleAI.Name">Vetale AI Chat</x:String>
+  <x:String x:Key="Tools.VetaleAI.Description">Chat with Vetale artificial intelligence</x:String>
+  
+  <x:String x:Key="Tools.DuckDuckGoAI.Name">DuckDuckGo AI Chat</x:String>
+  <x:String x:Key="Tools.DuckDuckGoAI.Description">Free AI chat from DuckDuckGo</x:String>
+  
+  <x:String x:Key="Tools.Copilot.Name">Microsoft Copilot</x:String>
+  <x:String x:Key="Tools.Copilot.Description">AI assistant from Microsoft</x:String>
+  
+  <x:String x:Key="Tools.Gemini.Name">Google Gemini</x:String>
+  <x:String x:Key="Tools.Gemini.Description">AI from Google</x:String>
+  
+  <x:String x:Key="Tools.Replika.Name">Replika AI</x:String>
+  <x:String x:Key="Tools.Replika.Description">AI companion for conversation</x:String>
+  
+  <x:String x:Key="Tools.DevTools.Name">Vetale DevTools</x:String>
+  <x:String x:Key="Tools.DevTools.Description">Developer tools</x:String>
+  
+  <x:String x:Key="Tools.History.Name">History</x:String>
+  <x:String x:Key="Tools.History.Description">Browsing history</x:String>
+  
+  <x:String x:Key="Tools.Console.Name">Console</x:String>
+  <x:String x:Key="Tools.Console.Description">Developer console with logs and diagnostics</x:String>
+  
+  <x:String x:Key="Tools.NavigateButton">→ Open in browser</x:String>
+</ResourceDictionary>

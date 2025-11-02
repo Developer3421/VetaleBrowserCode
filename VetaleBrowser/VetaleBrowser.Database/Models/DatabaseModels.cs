@@ -71,3 +71,16 @@ public class SettingItem
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
 
+/// <summary>
+/// Модель для логів консолі з AES шифруванням
+/// </summary>
+public class ConsoleLogItem
+{
+    public int Id { get; set; }
+    public string Level { get; set; } = "Info"; // Info, Warning, Error, Debug
+    public string Message { get; set; } = string.Empty;
+    public string? Source { get; set; } // Джерело логу (WebView, System, User тощо)
+    public string? StackTrace { get; set; }
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+}
+

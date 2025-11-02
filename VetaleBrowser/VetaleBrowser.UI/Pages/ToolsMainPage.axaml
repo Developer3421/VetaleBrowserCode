@@ -45,7 +45,7 @@
                 <TextBlock Text="🛠️" 
                            FontSize="32" 
                            VerticalAlignment="Center"/>
-                <TextBlock Text="Інструменти" 
+                <TextBlock Text="{DynamicResource Tools.Header}" 
                            FontSize="28" 
                            FontWeight="Bold" 
                            Foreground="#303030"
@@ -63,4 +63,3 @@
         </ScrollViewer>
     </Grid>
 </UserControl>
-

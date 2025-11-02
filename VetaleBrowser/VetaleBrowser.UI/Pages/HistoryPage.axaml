@@ -57,14 +57,13 @@
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0" 
-                       Text="Історія переглядів" 
+                       Text="{DynamicResource History.Header}" 
                        FontSize="22" 
                        FontWeight="Bold" 
                        Foreground="#303030"/>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
                 <Button Name="PART_ClearAllButton"
-                        Content="🗑️ Очистити все"
                         Background="#E74C3C"
                         Foreground="White"
                         FontSize="12"
@@ -77,6 +76,10 @@
                             <Setter Property="Background" Value="#C0392B"/>
                         </Style>
                     </Button.Styles>
+                    <TextBlock>
+                        <Run Text="🗑️ "/>
+                        <Run Text="{DynamicResource Common.ClearAll}"/>
+                    </TextBlock>
                 </Button>
             </StackPanel>
         </Grid>
@@ -90,7 +93,7 @@
                 CornerRadius="6"
                 Padding="10">
             <TextBox Name="PART_SearchBox"
-                     Watermark="🔍 Пошук в історії..."
+                     Watermark="{DynamicResource History.Search.Watermark}"
                      FontSize="13"
                      BorderThickness="0"
                      Background="Transparent"
@@ -105,31 +108,31 @@
             <StackPanel Name="PART_FilterPanel" 
                        Orientation="Horizontal">
                 <Button Classes="filter-button" 
-                        Content="Все" 
+                        Content="{DynamicResource History.Filter.All}" 
                         Tag="All"
                         Click="FilterButton_Click"/>
                 <Button Classes="filter-button" 
-                        Content="1 день" 
+                        Content="{DynamicResource History.Filter.1Day}" 
                         Tag="1Day"
                         Click="FilterButton_Click"/>
                 <Button Classes="filter-button" 
-                        Content="7 днів" 
+                        Content="{DynamicResource History.Filter.7Days}" 
                         Tag="7Days"
                         Click="FilterButton_Click"/>
                 <Button Classes="filter-button" 
-                        Content="1 місяць" 
+                        Content="{DynamicResource History.Filter.1Month}" 
                         Tag="1Month"
                         Click="FilterButton_Click"/>
                 <Button Classes="filter-button" 
-                        Content="6 місяців" 
+                        Content="{DynamicResource History.Filter.6Months}" 
                         Tag="6Months"
                         Click="FilterButton_Click"/>
                 <Button Classes="filter-button" 
-                        Content="1 рік" 
+                        Content="{DynamicResource History.Filter.1Year}" 
                         Tag="1Year"
                         Click="FilterButton_Click"/>
                 <Button Classes="filter-button" 
-                        Content="Старіше року" 
+                        Content="{DynamicResource History.Filter.OlderThanYear}" 
                         Tag="OlderThanYear"
                         Click="FilterButton_Click"/>
             </StackPanel>
@@ -178,7 +181,8 @@
                                         <TextBlock FontSize="9" Foreground="#808080">
                                             <Run Text="🔢"/>
                                             <Run Text="{Binding VisitCount}"/>
-                                            <Run Text="відвідувань"/>
+                                            <Run Text=" "/>
+                                            <Run Text="{DynamicResource History.Visits}"/>
                                         </TextBlock>
                                     </StackPanel>
                                 </StackPanel>
@@ -191,14 +195,14 @@
                                     <Button Classes="action-button"
                                             Content="🌐"
                                             Tag="{Binding}"
-                                            ToolTip.Tip="Відкрити"
+                                            ToolTip.Tip="{DynamicResource Common.Open}"
                                             Click="OpenHistory_Click"
                                             Width="28"
                                             Height="28"/>
                                     <Button Classes="action-button"
                                             Content="❌"
                                             Tag="{Binding}"
-                                            ToolTip.Tip="Видалити"
+                                            ToolTip.Tip="{DynamicResource Common.Delete}"
                                             Click="DeleteHistory_Click"
                                             Width="28"
                                             Height="28"/>
@@ -211,4 +215,3 @@
         </ScrollViewer>
     </Grid>
 </UserControl>
-

@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="450"
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.AppearanceMainPage">
+
+    <UserControl.Styles>
+        <Style Selector="Button.section-button">
+            <Setter Property="Background" Value="#F5F5F5"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="20,15"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="CornerRadius" Value="6"/>
+        </Style>
+        <Style Selector="Button.section-button:pointerover">
+            <Setter Property="Background" Value="#E8E8E8"/>
+            <Setter Property="BorderBrush" Value="#9A1CE8"/>
+        </Style>
+        <Style Selector="Button.section-button:pressed">
+            <Setter Property="Background" Value="#E8D4FF"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Margin="20">
+        <StackPanel Spacing="10">
+            <!-- Header -->
+            <TextBlock Text="{DynamicResource Appearance.Header}"
+                      FontSize="24"
+                      FontWeight="Bold"
+                      Margin="0,0,0,20"/>
+
+            <!-- Section Buttons -->
+            <Button Name="TabSettingsButton"
+                    Classes="section-button"
+                    Click="OnTabSettingsClick">
+                <StackPanel Orientation="Vertical" Spacing="5">
+                    <TextBlock Text="{DynamicResource Appearance.Tabs.Title}" FontSize="16" FontWeight="SemiBold"/>
+                    <TextBlock Text="{DynamicResource Appearance.Tabs.Sub}" 
+                              FontSize="12"
+                              Foreground="#666666"/>
+                </StackPanel>
+            </Button>
+
+            <Button Name="MainWindowSettingsButton"
+                    Classes="section-button"
+                    Click="OnMainWindowSettingsClick">
+                <StackPanel Orientation="Vertical" Spacing="5">
+                    <TextBlock Text="{DynamicResource Appearance.MainWindow.Title}" FontSize="16" FontWeight="SemiBold"/>
+                    <TextBlock Text="{DynamicResource Appearance.MainWindow.Sub}"
+                              FontSize="12"
+                              Foreground="#666666"/>
+                </StackPanel>
+            </Button>
+
+            <Button Name="OtherWindowsSettingsButton"
+                    Classes="section-button"
+                    Click="OnOtherWindowsSettingsClick">
+                <StackPanel Orientation="Vertical" Spacing="5">
+                    <TextBlock Text="{DynamicResource Appearance.OtherWindows.Title}" FontSize="16" FontWeight="SemiBold"/>
+                    <TextBlock Text="{DynamicResource Appearance.OtherWindows.Sub}"
+                              FontSize="12"
+                              Foreground="#666666"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

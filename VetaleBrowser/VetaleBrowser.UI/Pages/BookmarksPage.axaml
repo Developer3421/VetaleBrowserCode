@@ -45,14 +45,13 @@
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0" 
-                       Text="Закладки" 
+                       Text="{DynamicResource Bookmarks.Header}" 
                        FontSize="28" 
                        FontWeight="Bold" 
                        Foreground="#303030"/>
 
             <Button Grid.Column="1"
                     Name="PART_AddBookmarkButton"
-                    Content="+ Додати закладку"
                     Background="#9A1CE8"
                     Foreground="White"
                     FontSize="14"
@@ -65,6 +64,10 @@
                         <Setter Property="Background" Value="#8612D0"/>
                     </Style>
                 </Button.Styles>
+                <TextBlock>
+                    <Run Text="+ "/>
+                    <Run Text="{DynamicResource Bookmarks.Add}"/>
+                </TextBlock>
             </Button>
         </Grid>
 
@@ -73,7 +76,7 @@
                     Orientation="Horizontal" 
                     Margin="30,0,30,20">
             <Button Name="PART_AllFoldersButton"
-                    Content="Усі"
+                    Content="{DynamicResource Common.All}"
                     Tag=""
                     Padding="15,8"
                     Margin="0,0,10,0"
@@ -82,8 +85,8 @@
                     BorderThickness="0"
                     CornerRadius="4"
                     Click="FolderFilter_Click"/>
-            <Button Content="Закладки"
-                    Tag="Закладки"
+            <Button Content="{DynamicResource Bookmarks.Folder.Default}"
+                    Tag="{DynamicResource Bookmarks.Folder.Default}"
                     Padding="15,8"
                     Margin="0,0,10,0"
                     Background="#E0E0E0"
@@ -91,8 +94,8 @@
                     BorderThickness="0"
                     CornerRadius="4"
                     Click="FolderFilter_Click"/>
-            <Button Content="Робота"
-                    Tag="Робота"
+            <Button Content="{DynamicResource Bookmarks.Folder.Work}"
+                    Tag="{DynamicResource Bookmarks.Folder.Work}"
                     Padding="15,8"
                     Margin="0,0,10,0"
                     Background="#E0E0E0"
@@ -100,8 +103,8 @@
                     BorderThickness="0"
                     CornerRadius="4"
                     Click="FolderFilter_Click"/>
-            <Button Content="Особисті"
-                    Tag="Особисті"
+            <Button Content="{DynamicResource Bookmarks.Folder.Personal}"
+                    Tag="{DynamicResource Bookmarks.Folder.Personal}"
                     Padding="15,8"
                     Margin="0,0,10,0"
                     Background="#E0E0E0"
@@ -109,8 +112,8 @@
                     BorderThickness="0"
                     CornerRadius="4"
                     Click="FolderFilter_Click"/>
-            <Button Content="Новини"
-                    Tag="Новини"
+            <Button Content="{DynamicResource Bookmarks.Folder.News}"
+                    Tag="{DynamicResource Bookmarks.Folder.News}"
                     Padding="15,8"
                     Background="#E0E0E0"
                     Foreground="#333333"
@@ -171,13 +174,13 @@
                                     <Button Classes="action-button"
                                             Content="🌐"
                                             FontSize="18"
-                                            ToolTip.Tip="Відкрити"
+                                            ToolTip.Tip="{DynamicResource Common.Open}"
                                             Tag="{Binding}"
                                             Click="OpenBookmark_Click"/>
                                     <Button Classes="action-button"
                                             Content="🗑️"
                                             FontSize="18"
-                                            ToolTip.Tip="Видалити"
+                                            ToolTip.Tip="{DynamicResource Common.Delete}"
                                             Tag="{Binding}"
                                             Click="DeleteBookmark_Click"/>
                                 </StackPanel>
@@ -189,4 +192,3 @@
         </ScrollViewer>
     </Grid>
 </UserControl>
-

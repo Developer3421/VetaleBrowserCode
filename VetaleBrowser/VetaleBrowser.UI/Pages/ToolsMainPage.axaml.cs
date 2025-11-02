@@ -41,59 +41,67 @@ public partial class ToolsMainPage : UserControl
         {
             new ToolItem
             {
-                Name = "Vetale AI Chat",
-                Description = "Чат з штучним інтелектом Vetale",
+                NameKey = "Tools.VetaleAI.Name",
+                DescriptionKey = "Tools.VetaleAI.Description",
                 IconUrl = null,
                 IconEmoji = "🤖",
                 Action = () => OpenVetaleAIChat()
             },
             new ToolItem
             {
-                Name = "DuckDuckGo AI Chat",
-                Description = "Безкоштовний AI чат від DuckDuckGo",
+                NameKey = "Tools.DuckDuckGoAI.Name",
+                DescriptionKey = "Tools.DuckDuckGoAI.Description",
                 IconUrl = "https://duckduckgo.com",
                 NavigateUrl = "https://duckduckgo.com/aichat",
-                Action = () => OpenInWebView("DuckDuckGo AI Chat", "https://duckduckgo.com/aichat")
+                Action = () => OpenInWebView(GetLocalizedString("Tools.DuckDuckGoAI.Name"), "https://duckduckgo.com/aichat")
             },
             new ToolItem
             {
-                Name = "Microsoft Copilot",
-                Description = "AI асистент від Microsoft",
+                NameKey = "Tools.Copilot.Name",
+                DescriptionKey = "Tools.Copilot.Description",
                 IconUrl = "https://copilot.microsoft.com",
                 NavigateUrl = "https://copilot.microsoft.com",
-                Action = () => OpenInWebView("Microsoft Copilot", "https://copilot.microsoft.com")
+                Action = () => OpenInWebView(GetLocalizedString("Tools.Copilot.Name"), "https://copilot.microsoft.com")
             },
             new ToolItem
             {
-                Name = "Google Gemini",
-                Description = "AI від Google",
+                NameKey = "Tools.Gemini.Name",
+                DescriptionKey = "Tools.Gemini.Description",
                 IconUrl = "https://gemini.google.com",
                 NavigateUrl = "https://gemini.google.com",
-                Action = () => OpenInWebView("Google Gemini", "https://gemini.google.com")
+                Action = () => OpenInWebView(GetLocalizedString("Tools.Gemini.Name"), "https://gemini.google.com")
             },
             new ToolItem
             {
-                Name = "Replika AI",
-                Description = "AI компаньйон для спілкування",
+                NameKey = "Tools.Replika.Name",
+                DescriptionKey = "Tools.Replika.Description",
                 IconUrl = "https://replika.com",
                 NavigateUrl = "https://replika.com",
-                Action = () => OpenInWebView("Replika AI", "https://replika.com")
+                Action = () => OpenInWebView(GetLocalizedString("Tools.Replika.Name"), "https://replika.com")
             },
             new ToolItem
             {
-                Name = "Vetale DevTools",
-                Description = "Інструменти розробника",
+                NameKey = "Tools.DevTools.Name",
+                DescriptionKey = "Tools.DevTools.Description",
                 IconUrl = null,
                 IconEmoji = "🔧",
                 Action = () => OpenVetaleDevTools()
             },
             new ToolItem
             {
-                Name = "Історія",
-                Description = "Історія відвідувань",
+                NameKey = "Tools.History.Name",
+                DescriptionKey = "Tools.History.Description",
                 IconUrl = null,
                 IconEmoji = "📜",
                 Action = () => OpenHistory()
+            },
+            new ToolItem
+            {
+                NameKey = "Tools.Console.Name",
+                DescriptionKey = "Tools.Console.Description",
+                IconUrl = null,
+                IconEmoji = "🖥️",
+                Action = () => OpenConsole()
             }
         };
 
@@ -163,7 +171,7 @@ public partial class ToolsMainPage : UserControl
 
         var nameText = new TextBlock
         {
-            Text = tool.Name,
+            Text = GetLocalizedString(tool.NameKey),
             FontSize = 16,
             FontWeight = FontWeight.SemiBold,
             Foreground = new SolidColorBrush(Color.Parse("#303030"))
@@ -171,7 +179,7 @@ public partial class ToolsMainPage : UserControl
 
         var descText = new TextBlock
         {
-            Text = tool.Description,
+            Text = GetLocalizedString(tool.DescriptionKey),
             FontSize = 13,
             Foreground = new SolidColorBrush(Color.Parse("#707070"))
         };
@@ -197,7 +205,7 @@ public partial class ToolsMainPage : UserControl
             var navButton = new Button
             {
                 Classes = { "nav-button" },
-                Content = "→ Перейти в браузері",
+                Content = GetLocalizedString("Tools.NavigateButton"),
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(10, 0, 0, 0)
             };
@@ -351,16 +359,55 @@ public partial class ToolsMainPage : UserControl
         }
     }
 
+    private void OpenConsole()
+    {
+        System.Diagnostics.Trace.WriteLine("[ToolsMainPage] Opening Console...");
+        
+        try
+        {
+            var consoleWindow = new Windows.ConsoleWindow();
+            var consoleService = Core.Scripts.GlobalManagers.DatabaseManager.ConsoleInstance;
+            consoleWindow.SetConsoleService(consoleService);
+            consoleWindow.Show();
+            
+            System.Diagnostics.Trace.WriteLine("[ToolsMainPage] Console window opened successfully");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[ToolsMainPage] Error opening console: {ex.Message}");
+        }
+    }
+
+
     private void OpenInWebView(string toolName, string url)
     {
-        System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Opening in WebView: {toolName} - {url}");
+        System.Diagnostics.Trace.WriteLine($"[ToolsMainPage] Opening in WebView: {toolName} - {url}");
         NavigateInWebView?.Invoke(this, new ToolNavigationEventArgs(toolName, url));
+    }
+
+    private string GetLocalizedString(string key)
+    {
+        try
+        {
+            if (Application.Current?.Resources.TryGetResource(key, null, out var resource) == true && resource is string str)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Localized string for '{key}': '{str}'");
+                return str;
+            }
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] WARNING: Localized string not found for key '{key}', using key as fallback");
+            return key;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] ERROR getting localized string for '{key}': {ex.Message}");
+            return key;
+        }
     }
 
     private class ToolItem
     {
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
+        public string NameKey { get; set; } = string.Empty;
+        public string DescriptionKey { get; set; } = string.Empty;
         public string? IconUrl { get; set; }
         public string? IconEmoji { get; set; }
         public string? NavigateUrl { get; set; }
@@ -379,4 +426,3 @@ public class ToolNavigationEventArgs : EventArgs
         Url = url;
     }
 }
-

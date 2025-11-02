@@ -1,0 +1,179 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.OtherWindowsAppearanceSettingsPage">
+
+    <UserControl.Styles>
+        <Style Selector="Button.back-button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style Selector="Button.back-button:pointerover">
+            <Setter Property="Background" Value="#15000000"/>
+        </Style>
+        <Style Selector="TextBox.setting-input">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Width" Value="120"/>
+        </Style>
+        <Style Selector="TextBox.setting-input:focus">
+            <Setter Property="BorderBrush" Value="#9A1CE8"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+        <Style Selector="Button.save-button">
+            <Setter Property="Background" Value="#9A1CE8"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+        <Style Selector="Button.save-button:pointerover">
+            <Setter Property="Background" Value="#8812D0"/>
+        </Style>
+        <Style Selector="TextBlock.setting-label">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,20">
+            <Button Name="BackButton"
+                    Classes="back-button"
+                    Click="OnBackClick"
+                    HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal" Spacing="5">
+                    <TextBlock Text="←" FontSize="16"/>
+                    <TextBlock Text="{DynamicResource Common.Back}"/>
+                </StackPanel>
+            </Button>
+            <TextBlock Text="{DynamicResource Appearance.OtherWindows.Header}"
+                      FontSize="24"
+                      FontWeight="Bold"/>
+            <TextBlock Text="{DynamicResource Appearance.OtherWindows.Description}"
+                      FontSize="13"
+                      Foreground="#666666"/>
+        </StackPanel>
+
+        <!-- Settings Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="20">
+                
+                <!-- Other Windows Background Color -->
+                <Border Background="#F5F5F5" 
+                        BorderBrush="#CCCCCC" 
+                        BorderThickness="1" 
+                        CornerRadius="6" 
+                        Padding="15">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="{DynamicResource Appearance.OtherWindows.BackgroundColor}" FontWeight="SemiBold" FontSize="15"/>
+                        <TextBlock Text="{DynamicResource Appearance.OtherWindows.BackgroundColor.Sub}"
+                                  FontSize="12"
+                                  Foreground="#666666"
+                                  Margin="0,0,0,5"/>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Classes="setting-label" Text="{DynamicResource Appearance.ColorHex}"/>
+                            <TextBox Name="OtherWindowsBackgroundColorTextBox" 
+                                    Classes="setting-input"
+                                    Watermark="#FFFFFF"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Other Windows Top Bar Color -->
+                <Border Background="#F5F5F5" 
+                        BorderBrush="#CCCCCC" 
+                        BorderThickness="1" 
+                        CornerRadius="6" 
+                        Padding="15">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="{DynamicResource Appearance.OtherWindows.TopBarColor}" FontWeight="SemiBold" FontSize="15"/>
+                        <TextBlock Text="{DynamicResource Appearance.OtherWindows.TopBarColor.Sub}"
+                                  FontSize="12"
+                                  Foreground="#666666"
+                                  Margin="0,0,0,5"/>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Classes="setting-label" Text="{DynamicResource Appearance.ColorHex}"/>
+                            <TextBox Name="OtherWindowsTopBarColorTextBox" 
+                                    Classes="setting-input"
+                                    Watermark="#9A1CE8"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Info Panel -->
+                <Border Background="#E8F4FF" 
+                        BorderBrush="#4A90E2" 
+                        BorderThickness="1" 
+                        CornerRadius="6" 
+                        Padding="15">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{DynamicResource Appearance.OtherWindows.InfoHeader}" 
+                                  FontWeight="SemiBold" 
+                                  FontSize="14"
+                                  Foreground="#2C5F8D"/>
+                        <TextBlock TextWrapping="Wrap"
+                                  FontSize="12"
+                                  Foreground="#4A5568"
+                                  Text="{DynamicResource Appearance.OtherWindows.Info1}"/>
+                        <TextBlock TextWrapping="Wrap"
+                                  FontSize="12"
+                                  Foreground="#4A5568"
+                                  Margin="0,5,0,0"
+                                  Text="{DynamicResource Appearance.OtherWindows.Info2}"/>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Action Buttons -->
+        <StackPanel Grid.Row="2" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right" 
+                    Spacing="10"
+                    Margin="0,20,0,0">
+            <Button Name="ResetButton"
+                    Background="#FF6B6B"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Padding="20,10"
+                    FontSize="14"
+                    Cursor="Hand"
+                    CornerRadius="4"
+                    Click="OnResetClick">
+                <Button.Styles>
+                    <Style Selector="Button:pointerover">
+                        <Setter Property="Background" Value="#FF4757"/>
+                    </Style>
+                </Button.Styles>
+                {DynamicResource Common.ResetDefaults}
+            </Button>
+            <Button Name="SaveButton"
+                    Classes="save-button"
+                    Click="OnSaveClick">
+                {DynamicResource Appearance.SaveSettings}
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

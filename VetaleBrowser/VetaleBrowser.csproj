@@ -10,12 +10,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="11.3.0"/>
-        <PackageReference Include="Avalonia.Desktop" Version="11.3.0"/>
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.0"/>
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.0"/>
+        <PackageReference Include="Avalonia" Version="11.3.8" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.3.8"/>
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.8"/>
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.8"/>
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-        <PackageReference Include="Avalonia.Diagnostics" Version="11.3.0">
+        <PackageReference Include="Avalonia.Diagnostics" Version="11.3.8">
             <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
@@ -24,12 +24,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="VetaleBrowser.AI\" />
-      <Folder Include="VetaleBrowser.Core\Scripts\Services\" />
+      <Folder Include="VetaleBrowser.AI\Model\" />
       <Folder Include="VetaleBrowser.DevTools\" />
       <Folder Include="VetaleBrowser.JavaScript\" />
       <Folder Include="VetaleBrowser.Search\" />
-      <Folder Include="VetaleBrowser.UI\TranslationsDictionaries\" />
       <Folder Include="VetaleBrowser.WebEngine\" />
     </ItemGroup>
 
@@ -38,5 +36,7 @@
       <AvaloniaResource Include="VetaleBrowser.UI\Еlements\*.axaml" />
       <!-- Include single SettingsButton.png which sits in Sources/ (not Icons/) -->
       <AvaloniaResource Include="VetaleBrowser.UI\Sources\SettingsButton.png" />
+      <!-- Removed explicit localization dictionaries include to avoid duplicate assets -->
+      <!-- <AvaloniaResource Include="VetaleBrowser.UI\TranslationsDictionaries\*.axaml" /> -->
     </ItemGroup>
 </Project>

@@ -125,6 +125,45 @@ public class SettingsService : ISettingsService, IDisposable
         await SetSearchEngineUrlAsync(url);
     }
 
+    public async Task<string> GetLanguageAsync()
+    {
+        return await Task.Run(() =>
+        {
+            var setting = _settingsCollection.FindOne(x => x.Key == "UILanguage");
+            if (setting == null)
+                return "en";
+
+            var code = _encryptionService.DecryptString(setting.EncryptedValue);
+            return string.IsNullOrWhiteSpace(code) ? "en" : code;
+        });
+    }
+
+    public async Task SetLanguageAsync(string code)
+    {
+        await Task.Run(() =>
+        {
+            if (string.IsNullOrWhiteSpace(code)) code = "en";
+            var encryptedValue = _encryptionService.EncryptString(code);
+            var existing = _settingsCollection.FindOne(x => x.Key == "UILanguage");
+            if (existing != null)
+            {
+                existing.EncryptedValue = encryptedValue;
+                existing.UpdatedAt = DateTime.UtcNow;
+                _settingsCollection.Update(existing);
+            }
+            else
+            {
+                var setting = new SettingItem
+                {
+                    Key = "UILanguage",
+                    EncryptedValue = encryptedValue,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _settingsCollection.Insert(setting);
+            }
+        });
+    }
+
     public void Dispose()
     {
         _database.Dispose();

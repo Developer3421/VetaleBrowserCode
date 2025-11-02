@@ -31,5 +31,14 @@ public interface ISettingsService
     /// Встановлює пошукову систему (назва + URL)
     /// </summary>
     Task SetSearchEngineAsync(string name, string url);
-}
 
+    /// <summary>
+    /// Отримує код мови інтерфейсу (наприклад, "en", "uk", "de", "ru")
+    /// </summary>
+    Task<string> GetLanguageAsync();
+
+    /// <summary>
+    /// Встановлює код мови інтерфейсу
+    /// </summary>
+    Task SetLanguageAsync(string code);
+}

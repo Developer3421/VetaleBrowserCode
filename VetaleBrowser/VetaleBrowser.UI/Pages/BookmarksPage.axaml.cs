@@ -56,23 +56,20 @@ public partial class BookmarksPage : UserControl
 
     private void AddBookmark_Click(object? sender, RoutedEventArgs e)
     {
-        var window = new Windows.AddBookmarkWindow("", "");
+        // Open BookmarksWindow in "add bookmark" mode by passing an empty URL & title
+        var window = new Windows.BookmarksWindow(string.Empty, string.Empty);
         window.ShowDialog(GetParentWindow());
 
-        if (window.IsSaved && _databaseService != null)
+        // Adding is handled inside BookmarksWindow -> AddBookmarkPage; just reload list after window closes
+        if (_databaseService != null)
         {
             try
             {
-                _databaseService.AddBookmark(
-                    window.BookmarkUrl,
-                    window.BookmarkName,
-                    window.BookmarkFolder
-                );
                 LoadBookmarks();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error adding bookmark: {ex.Message}");
+                Console.WriteLine($"Error refreshing bookmarks after add: {ex.Message}");
             }
         }
     }
@@ -172,4 +169,3 @@ public partial class BookmarksPage : UserControl
         throw new InvalidOperationException("Could not find parent window");
     }
 }
-

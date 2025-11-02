@@ -5,18 +5,23 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Input;
+using Avalonia.Controls.ApplicationLifetimes; // added for Windows enumeration
 using VetaleBrowser; // for MainWindow
 using VetaleBrowser.VetaleBrowser.UI.Pages;
 using VetaleBrowser.VetaleBrowser.Database;
 using VetaleBrowser.VetaleBrowser.Database.Services;
+using Avalonia.Media;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Windows;
 
 public partial class SettingsWindow : Window
 {
     private ContentControl? _contentHost;
+    private Grid? _topBarGrid;
+    private Grid? _contentGrid;
     private SettingsMainPage? _mainPage;
     private ISettingsService? _settingsService;
+    private IAppearanceSettingsService? _appearanceSettingsService;
 
     public SettingsWindow()
     {
@@ -36,17 +41,29 @@ public partial class SettingsWindow : Window
         {
             var config = DatabaseConfiguration.CreateDefault();
             _settingsService = new SettingsService(config.DatabasePath, config.EncryptionKey);
+            
+            // Initialize appearance settings service with separate database
+            var appearanceDbPath = Path.Combine(
+                Path.GetDirectoryName(config.DatabasePath) ?? "",
+                "appearance_settings.db"
+            );
+            _appearanceSettingsService = new AppearanceSettingsService(appearanceDbPath, config.EncryptionKey);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"SettingsWindow: Error initializing settings service: {ex}");
+            System.Diagnostics.Trace.WriteLine($"SettingsWindow: Error initializing settings service: {ex}");
         }
     }
 
-    private void OnLoaded(object? sender, RoutedEventArgs e)
+    private async void OnLoaded(object? sender, RoutedEventArgs e)
     {
         _contentHost = this.FindControl<ContentControl>("PART_ContentHost");
+        _topBarGrid = this.FindControl<Grid>("TopBarGrid");
+        _contentGrid = this.FindControl<Grid>("ContentGrid");
         LoadMainPage();
+
+        // Apply current appearance for this window ("Other windows" settings)
+        await ApplyOwnAppearanceAsync();
     }
 
     private void LoadMainPage()
@@ -67,12 +84,221 @@ public partial class SettingsWindow : Window
 
     private void OnLanguageRequested(object? sender, EventArgs e)
     {
-        // TODO: Load language settings page
+        try
+        {
+            var page = new LanguageSettingsPage();
+            page.BackRequested += (_, _) => LoadMainPage();
+            page.SettingsSaved += OnLanguageSettingsSaved;
+            if (_contentHost != null)
+            {
+                _contentHost.Content = page;
+            }
+            ResizeWindowForPage(660, 360);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"SettingsWindow: Error loading language page: {ex}");
+        }
+    }
+
+    private void OnLanguageSettingsSaved(object? sender, EventArgs e)
+    {
+        // After language change, we can refresh main page labels if currently shown
+        // Here just keep current page; user can go back
+        // Optionally, update window title binding by re-setting Title property
+        this.Title = this.FindResource("Settings.Title")?.ToString() ?? this.Title;
     }
 
     private void OnAppearanceRequested(object? sender, EventArgs e)
     {
-        // TODO: Load appearance settings page
+        if (_appearanceSettingsService == null)
+        {
+            System.Diagnostics.Trace.WriteLine("SettingsWindow: Appearance settings service not initialized");
+            return;
+        }
+
+        try
+        {
+            var appearanceMainPage = new AppearanceMainPage();
+            appearanceMainPage.TabSettingsRequested += OnTabSettingsRequested;
+            appearanceMainPage.MainWindowSettingsRequested += OnMainWindowSettingsRequested;
+            appearanceMainPage.OtherWindowsSettingsRequested += OnOtherWindowsSettingsRequested;
+
+            if (_contentHost != null)
+            {
+                _contentHost.Content = appearanceMainPage;
+            }
+
+            // Resize window for appearance main page
+            ResizeWindowForPage(660, 500);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"SettingsWindow: Error loading appearance page: {ex}");
+        }
+    }
+
+    private void OnTabSettingsRequested(object? sender, EventArgs e)
+    {
+        if (_appearanceSettingsService == null) return;
+
+        try
+        {
+            var tabSettingsPage = new TabAppearanceSettingsPage(_appearanceSettingsService);
+            tabSettingsPage.BackRequested += OnAppearanceBackRequested;
+            tabSettingsPage.SettingsSaved += OnAppearanceSettingsSaved;
+
+            if (_contentHost != null)
+            {
+                _contentHost.Content = tabSettingsPage;
+            }
+
+            ResizeWindowForPage(660, 600);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"SettingsWindow: Error loading tab settings page: {ex}");
+        }
+    }
+
+    private void OnMainWindowSettingsRequested(object? sender, EventArgs e)
+    {
+        if (_appearanceSettingsService == null) return;
+
+        try
+        {
+            var mainWindowSettingsPage = new MainWindowAppearanceSettingsPage(_appearanceSettingsService);
+            mainWindowSettingsPage.BackRequested += OnAppearanceBackRequested;
+            mainWindowSettingsPage.SettingsSaved += OnAppearanceSettingsSaved;
+
+            if (_contentHost != null)
+            {
+                _contentHost.Content = mainWindowSettingsPage;
+            }
+
+            ResizeWindowForPage(660, 600);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"SettingsWindow: Error loading main window settings page: {ex}");
+        }
+    }
+
+    private void OnOtherWindowsSettingsRequested(object? sender, EventArgs e)
+    {
+        if (_appearanceSettingsService == null) return;
+
+        try
+        {
+            var otherWindowsSettingsPage = new OtherWindowsAppearanceSettingsPage(_appearanceSettingsService);
+            otherWindowsSettingsPage.BackRequested += OnAppearanceBackRequested;
+            otherWindowsSettingsPage.SettingsSaved += OnAppearanceSettingsSaved;
+
+            if (_contentHost != null)
+            {
+                _contentHost.Content = otherWindowsSettingsPage;
+            }
+
+            ResizeWindowForPage(660, 550);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"SettingsWindow: Error loading other windows settings page: {ex}");
+        }
+    }
+
+    private void OnAppearanceBackRequested(object? sender, EventArgs e)
+    {
+        OnAppearanceRequested(null, EventArgs.Empty);
+    }
+
+    private async void OnAppearanceSettingsSaved(object? sender, EventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine("SettingsWindow: Appearance settings saved successfully");
+        
+        // 1) Apply to this SettingsWindow (Other Windows appearance)
+        await ApplyOwnAppearanceAsync();
+
+        // 2) Apply to any open MainWindow immediately
+        try
+        {
+            var lifetime = Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+            if (lifetime != null)
+            {
+                foreach (var w in lifetime.Windows)
+                {
+                    if (w is MainWindow main)
+                    {
+                        _ = main.ApplyAppearanceSettingsFromStoreAsync();
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"SettingsWindow: Failed to apply appearance to main window(s): {ex}");
+        }
+
+        // 3) Apply to any open ToolsWindow immediately
+        try
+        {
+            var lifetime = Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+            if (lifetime != null)
+            {
+                foreach (var w in lifetime.Windows)
+                {
+                    if (w is ToolsWindow tools)
+                    {
+                        _ = tools.ApplyOwnAppearanceAsync();
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"SettingsWindow: Failed to apply appearance to tools window(s): {ex}");
+        }
+    }
+
+    private async System.Threading.Tasks.Task ApplyOwnAppearanceAsync()
+    {
+        try
+        {
+            if (_appearanceSettingsService == null)
+                return;
+
+            var bg = await _appearanceSettingsService.GetOtherWindowsBackgroundColorAsync();
+            var top = await _appearanceSettingsService.GetOtherWindowsTopBarColorAsync();
+
+            if (_contentGrid != null)
+            {
+                var b = TryParseBrush(bg);
+                if (b != null) _contentGrid.Background = b;
+            }
+            if (_topBarGrid != null)
+            {
+                var t = TryParseBrush(top);
+                if (t != null) _topBarGrid.Background = t; // else keep GrayGradient from XAML
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"SettingsWindow: ApplyOwnAppearanceAsync error: {ex}");
+        }
+    }
+
+    private IBrush? TryParseBrush(string? color)
+    {
+        if (string.IsNullOrWhiteSpace(color)) return null;
+        try
+        {
+            if (Color.TryParse(color, out var c))
+            {
+                return new SolidColorBrush(c);
+            }
+        }
+        catch { }
+        return null;
     }
 
     private void OnSearchEngineRequested(object? sender, EventArgs e)
@@ -111,6 +337,27 @@ public partial class SettingsWindow : Window
     private void OnSearchEngineSettingsSaved(object? sender, EventArgs e)
     {
         System.Diagnostics.Debug.WriteLine("SettingsWindow: Search engine settings saved successfully");
+        
+        // Try to find an existing MainWindow and navigate it to the selected search engine home
+        try
+        {
+            var lifetime = Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+            if (lifetime != null)
+            {
+                foreach (var w in lifetime.Windows)
+                {
+                    if (w is MainWindow main)
+                    {
+                        _ = main.NavigateToSelectedSearchHomeAsync();
+                        break;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"SettingsWindow: Failed to auto-navigate main window: {ex}");
+        }
     }
 
     private void ResizeWindowForPage(double width, double height)

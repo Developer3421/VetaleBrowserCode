@@ -21,7 +21,7 @@
                                 Background="Transparent"
                                 CornerRadius="6"
                                 Padding="0"
-                                ToolTip.Tip="Назад">
+                                ToolTip.Tip="{DynamicResource Nav.Back}">
                             <Image
                                 Source="/VetaleBrowser.UI/Sources/Icons/Backbutton.png"
                                 Stretch="UniformToFill"
@@ -38,7 +38,7 @@
                                 Background="Transparent"
                                 CornerRadius="6"
                                 Padding="0"
-                                ToolTip.Tip="Вперед">
+                                ToolTip.Tip="{DynamicResource Nav.Forward}">
                             <Image
                                 Source="/VetaleBrowser.UI/Sources/Icons/ForwardButton.png"
                                 Stretch="UniformToFill"
@@ -53,7 +53,7 @@
                                 Margin="0,0,4,0"
                                 Background="Transparent"
                                 CornerRadius="6"
-                                ToolTip.Tip="Оновити"
+                                ToolTip.Tip="{DynamicResource Common.Refresh}"
                                 Padding="0">
                             <Image Source="{DynamicResource ReloadTabButtonImage}"
                                    Stretch="UniformToFill"
@@ -69,7 +69,7 @@
                                 Margin="0,0,8,0"
                                 Background="Transparent"
                                 CornerRadius="6"
-                                ToolTip.Tip="Домівка"
+                                ToolTip.Tip="{DynamicResource Nav.Home}"
                                 Padding="0">
                             <Image Source="{DynamicResource HomeButtonImage}"
                                    Stretch="UniformToFill"
@@ -104,7 +104,7 @@
                                          Background="#F3E8FF"
                                          Foreground="#4C1D95"
                                          VerticalAlignment="Center"
-                                         Watermark="Введіть URL або пошуковий запит..."
+                                         Watermark="{DynamicResource Nav.AddressBar.Watermark}"
                                          FontSize="13"
                                          Padding="0,6"/>
 
@@ -116,7 +116,7 @@
                                         Margin="4,0,8,0"
                                         Background="Transparent"
                                         CornerRadius="4"
-                                        ToolTip.Tip="Додати в закладки"
+                                        ToolTip.Tip="{DynamicResource Bookmarks.Add}"
                                         Padding="0">
                                     <Image Source="{DynamicResource AddBookmarkButtonImage}"
                                            Stretch="UniformToFill"
@@ -134,7 +134,7 @@
                                 Margin="0,0,4,0"
                                 Background="Transparent"
                                 CornerRadius="6"
-                                ToolTip.Tip="Інструменти"
+                                ToolTip.Tip="{DynamicResource Tools.Button.Tooltip}"
                                 Padding="0">
                             <Image Source="{DynamicResource InstrumensButtonImage}"
                                    Stretch="UniformToFill"
@@ -149,7 +149,7 @@
                                 Height="32"
                                 Background="Transparent"
                                 CornerRadius="6"
-                                ToolTip.Tip="Налаштування"
+                                ToolTip.Tip="{DynamicResource Settings.Button.Tooltip}"
                                 Padding="0">
                             <Image Source="{DynamicResource SettingsButtonImage}"
                                    Stretch="UniformToFill"

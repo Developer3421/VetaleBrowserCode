@@ -72,19 +72,23 @@
             <!-- Header with back button -->
             <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0,0,0,20">
                 <Button Classes="back-button" Click="OnBackClick">
-                    <TextBlock Text="← Назад" FontSize="14" Foreground="#505050"/>
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock Text="←" FontSize="14" Foreground="#505050"/>
+                        <TextBlock Text="{DynamicResource Common.Back}" FontSize="14" Foreground="#505050"/>
+                    </StackPanel>
                 </Button>
-                <TextBlock Text="Пошукова система" FontSize="24" FontWeight="Bold" Foreground="#303030" VerticalAlignment="Center"/>
+                <TextBlock Text="{DynamicResource Settings.Search.Title}" FontSize="24" FontWeight="Bold" Foreground="#303030" VerticalAlignment="Center"/>
             </StackPanel>
 
             <!-- Search engine options -->
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                 <StackPanel Spacing="0">
-                    <TextBlock Text="Виберіть вашу пошукову систему за замовчуванням:" 
+                    <TextBlock Text="{DynamicResource Settings.Search.Sub}" 
                                FontSize="13" 
                                Foreground="#606060" 
                                Margin="0,0,0,15"/>
                     
+                    <!-- Engines: proper names & sample URLs left literal -->
                     <RadioButton x:Name="GoogleRadio" 
                                  Classes="search-engine" 
                                  GroupName="SearchEngine"
@@ -130,8 +134,8 @@
                                  GroupName="SearchEngine"
                                  Click="OnSearchEngineChanged">
                         <StackPanel Orientation="Vertical" Spacing="8">
-                            <TextBlock Text="Власний вибір" FontSize="15" FontWeight="SemiBold" Foreground="#202020"/>
-                            <TextBlock Text="Введіть URL пошукової системи. Використовуйте {0} як місце для запиту." 
+                            <TextBlock Text="{DynamicResource Search.Custom.Title}" FontSize="15" FontWeight="SemiBold" Foreground="#202020"/>
+                            <TextBlock Text="{DynamicResource Search.Custom.Hint}" 
                                        FontSize="11" 
                                        Foreground="#707070" 
                                        TextWrapping="Wrap"/>
@@ -149,10 +153,8 @@
             <Button Grid.Row="2" 
                     Classes="save-button" 
                     Click="OnSaveClick"
-                    Margin="0,20,0,0">
-                Зберегти
-            </Button>
+                    Margin="0,20,0,0"
+                    Content="{DynamicResource Common.Save}"/>
         </Grid>
     </Grid>
 </UserControl>
-

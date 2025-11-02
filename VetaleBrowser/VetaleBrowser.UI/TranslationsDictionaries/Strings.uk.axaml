@@ -1,0 +1,187 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Заголовки -->
+  <x:String x:Key="App.Title">Vetale Browser</x:String>
+  <x:String x:Key="Settings.Title">Налаштування — Vetale Browser</x:String>
+  <x:String x:Key="Tools.Title">Інструменти — Vetale Browser</x:String>
+  <x:String x:Key="Console.Title">Консоль — Vetale Browser</x:String>
+  <x:String x:Key="History.Title">Історія переглядів — Vetale Browser</x:String>
+  <x:String x:Key="Bookmarks.Title">Закладки — Vetale Browser</x:String>
+
+  <!-- Головна сторінка налаштувань -->
+  <x:String x:Key="Settings.Header">Налаштування</x:String>
+  <x:String x:Key="Settings.Language.Title">Мова</x:String>
+  <x:String x:Key="Settings.Language.Sub">Обрати мову інтерфейсу</x:String>
+  <x:String x:Key="Settings.Appearance.Title">Зовнішній вигляд</x:String>
+  <x:String x:Key="Settings.Appearance.Sub">Налаштувати вигляд та стиль</x:String>
+  <x:String x:Key="Settings.Search.Title">Пошукова система</x:String>
+  <x:String x:Key="Settings.Search.Sub">Виберіть пошукову систему за замовчуванням</x:String>
+
+  <!-- Кнопки вікна -->
+  <x:String x:Key="Window.Minimize">Згорнути</x:String>
+  <x:String x:Key="Window.Maximize">Розгорнути</x:String>
+  <x:String x:Key="Window.Close">Закрити</x:String>
+
+  <!-- Сторінка мови -->
+  <x:String x:Key="Language.Header">Мова</x:String>
+  <x:String x:Key="Language.SelectPrompt">Виберіть мову інтерфейсу</x:String>
+  <x:String x:Key="Language.RestartHint">Деякі зміни потребують перевідкриття вікон</x:String>
+  <x:String x:Key="Common.Save">Зберегти</x:String>
+  <x:String x:Key="Common.Back">Назад</x:String>
+
+  <!-- Навігація -->
+  <x:String x:Key="Nav.Back">Назад</x:String>
+  <x:String x:Key="Nav.Forward">Вперед</x:String>
+  <x:String x:Key="Nav.Home">Домівка</x:String>
+  <x:String x:Key="Nav.AddressBar.Watermark">Введіть URL або пошуковий запит...</x:String>
+
+  <!-- Загальні дії -->
+  <x:String x:Key="Common.Refresh">Оновити</x:String>
+  <x:String x:Key="Common.Clear">Очистити</x:String>
+  <x:String x:Key="Common.ClearAll">Очистити все</x:String>
+  <x:String x:Key="Common.ClearAllLogs">Очистити всі логи</x:String>
+  <x:String x:Key="Common.Export">Експорт</x:String>
+  <x:String x:Key="Common.CopyAll">Копіювати все</x:String>
+  <x:String x:Key="Common.Open">Відкрити</x:String>
+  <x:String x:Key="Common.Delete">Видалити</x:String>
+  <x:String x:Key="Common.All">Усі</x:String>
+  <x:String x:Key="Common.Cancel">Скасувати</x:String>
+  <x:String x:Key="Common.Yes">Так</x:String>
+  <x:String x:Key="Common.Loading">Завантаження...</x:String>
+  <x:String x:Key="Common.ResetDefaults">Повернути до стандартних</x:String>
+
+  <!-- Вкладка -->
+  <x:String x:Key="Tab.Mute.Toggle">Перемкнути звук</x:String>
+
+  <!-- Закладки -->
+  <x:String x:Key="Bookmarks.Header">Закладки</x:String>
+  <x:String x:Key="Bookmarks.Add">Додати закладку</x:String>
+  <x:String x:Key="Bookmarks.Folder.Default">Закладки</x:String>
+  <x:String x:Key="Bookmarks.Folder.Work">Робота</x:String>
+  <x:String x:Key="Bookmarks.Folder.Personal">Особисті</x:String>
+  <x:String x:Key="Bookmarks.Folder.News">Новини</x:String>
+  
+  <!-- Діалог додавання закладки -->
+  <x:String x:Key="Bookmarks.Add.Header">Додати в закладки</x:String>
+  <x:String x:Key="Bookmarks.Add.Name">Назва:</x:String>
+  <x:String x:Key="Bookmarks.Add.Name.Watermark">Введіть назву закладки</x:String>
+  <x:String x:Key="Bookmarks.Add.Folder">Папка:</x:String>
+
+  <!-- Підказки кнопок -->
+  <x:String x:Key="Tools.Button.Tooltip">Інструменти</x:String>
+  <x:String x:Key="Settings.Button.Tooltip">Налаштування</x:String>
+
+  <!-- Інструменти -->
+  <x:String x:Key="Tools.Header">Інструменти</x:String>
+
+  <!-- Вигляд -->
+  <x:String x:Key="Appearance.Header">Налаштування вигляду</x:String>
+  <x:String x:Key="Appearance.Tabs.Title">Вкладки</x:String>
+  <x:String x:Key="Appearance.Tabs.Sub">Налаштуйте розмір вкладок, кольори та елементи</x:String>
+  <x:String x:Key="Appearance.MainWindow.Title">Головне вікно</x:String>
+  <x:String x:Key="Appearance.MainWindow.Sub">Налаштування навігаційного бару, кнопок та головного вікна</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Title">Інші вікна</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Sub">Налаштування вигляду інших вікон браузера</x:String>
+
+  <!-- Історія -->
+  <x:String x:Key="History.Header">Історія переглядів</x:String>
+  <x:String x:Key="History.Search.Watermark">🔍 Пошук в історії...</x:String>
+  <x:String x:Key="History.Filter.All">Все</x:String>
+  <x:String x:Key="History.Filter.1Day">1 день</x:String>
+  <x:String x:Key="History.Filter.7Days">7 днів</x:String>
+  <x:String x:Key="History.Filter.1Month">1 місяць</x:String>
+  <x:String x:Key="History.Filter.6Months">6 місяців</x:String>
+  <x:String x:Key="History.Filter.1Year">1 рік</x:String>
+  <x:String x:Key="History.Filter.OlderThanYear">Старіше року</x:String>
+  <x:String x:Key="History.Visits">відвідувань</x:String>
+
+  <!-- Консоль -->
+  <x:String x:Key="Console.SearchLogs">Пошук в логах...</x:String>
+  <x:String x:Key="Console.AutoRefresh">Авто-оновлення</x:String>
+  <x:String x:Key="Console.ExportLogs">Експортувати логи</x:String>
+  <x:String x:Key="Console.CopyAll">Скопіювати всі видимі логи у буфер</x:String>
+  <x:String x:Key="Console.CopyMessage">Копіювати повідомлення</x:String>
+  <x:String x:Key="Console.CopyRow">Копіювати рядок</x:String>
+  <x:String x:Key="Console.NoLogs">Немає логів для відображення</x:String>
+  <x:String x:Key="Console.NoLogs.Hint">Логи з'являться тут автоматично</x:String>
+  <x:String x:Key="Console.InitBanner">Консоль ініціалізовано</x:String>
+  <x:String x:Key="Console.ClearConfirm">Ця дія видалить всі записи з консолі. Продовжити?</x:String>
+  <x:String x:Key="Console.Level.All">Всі рівні</x:String>
+  <x:String x:Key="Console.ExportLogs.FilePrefix">console_logs_</x:String>
+
+  <!-- Tools WebView -->
+  <x:String x:Key="Tools.BackToList">Назад до списку</x:String>
+  <x:String x:Key="Tools.ToolTitle">Інструмент</x:String>
+
+  <!-- Appearance Tabs page -->
+  <x:String x:Key="Appearance.Tabs.Header">Налаштування вкладок</x:String>
+  <x:String x:Key="Appearance.Tabs.Width">Ширина вкладки</x:String>
+  <x:String x:Key="Appearance.Tabs.WidthPx">Ширина (px):</x:String>
+  <x:String x:Key="Appearance.Tabs.ElementsSize">Розмір елементів</x:String>
+  <x:String x:Key="Appearance.Tabs.TextSizePx">Розмір тексту (px):</x:String>
+  <x:String x:Key="Appearance.Tabs.IconSize">Розмір іконки</x:String>
+  <x:String x:Key="Appearance.Tabs.IconSizePx">Розмір іконки (px):</x:String>
+  <x:String x:Key="Appearance.Tabs.BackgroundColor">Колір фону вкладки</x:String>
+  <x:String x:Key="Appearance.Tabs.TextColor">Колір тексту вкладки</x:String>
+  <x:String x:Key="Appearance.Tabs.ActiveColor">Колір активної вкладки</x:String>
+  <x:String x:Key="Appearance.ColorHex">Колір (HEX):</x:String>
+  <x:String x:Key="Appearance.SaveSettings">Зберегти налаштування</x:String>
+
+  <!-- Розміри та іконки -->
+  <x:String x:Key="Common.WidthPx">Ширина (px):</x:String>
+  <x:String x:Key="Common.HeightPx">Висота (px):</x:String>
+  <x:String x:Key="Common.SizePx">Розмір (px):</x:String>
+  <x:String x:Key="Common.IconSizePx">Розмір іконки (px):</x:String>
+
+  <!-- Appearance Main Window -->
+  <x:String x:Key="Appearance.MainWindow.Header">Налаштування головного вікна</x:String>
+  <x:String x:Key="Appearance.MainWindow.NavBarColor">Колір навігаційного бару</x:String>
+  <x:String x:Key="Appearance.MainWindow.NavBarHeight">Висота навігаційного бару</x:String>
+  <x:String x:Key="Appearance.MainWindow.Width">Ширина головного вікна</x:String>
+  <x:String x:Key="Appearance.MainWindow.Height">Висота головного вікна</x:String>
+  <x:String x:Key="Appearance.MainWindow.TopBarBackgroundColor">Колір фону верхньої лінії</x:String>
+  <x:String x:Key="Appearance.MainWindow.ButtonSize">Розмір кнопок</x:String>
+  <x:String x:Key="Appearance.MainWindow.ButtonIconSize">Розмір зображень всередині кнопок</x:String>
+
+  <!-- Appearance Other Windows -->
+  <x:String x:Key="Appearance.OtherWindows.Header">Налаштування інших вікон</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Description">Налаштування вигляду додаткових вікон (налаштування, закладки, історія тощо)</x:String>
+  <x:String x:Key="Appearance.OtherWindows.BackgroundColor">Колір фону вікон</x:String>
+  <x:String x:Key="Appearance.OtherWindows.BackgroundColor.Sub">Основний колір фону для всіх додаткових вікон</x:String>
+  <x:String x:Key="Appearance.OtherWindows.TopBarColor">Колір верхньої панелі</x:String>
+  <x:String x:Key="Appearance.OtherWindows.TopBarColor.Sub">Колір верхньої панелі з заголовком і кнопками керування</x:String>
+  <x:String x:Key="Appearance.OtherWindows.InfoHeader">ℹ️ Додаткова інформація</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Info1">Ці налаштування застосовуються до всіх додаткових вікон браузера, таких як вікно налаштувань, вікно закладок, вікно історії та інші службові вікна.</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Info2">Зміни набудуть чинності після збереження налаштувань та перезапуску відповідних вікон.</x:String>
+
+  <!-- Пошук користувацький -->
+  <x:String x:Key="Search.Custom.Title">Власний вибір</x:String>
+  <x:String x:Key="Search.Custom.Hint">Введіть URL пошукової системи. Використовуйте {0} як місце для запиту.</x:String>
+
+  <!-- Tools page - список інструментів -->
+  <x:String x:Key="Tools.VetaleAI.Name">Vetale AI Chat</x:String>
+  <x:String x:Key="Tools.VetaleAI.Description">Чат з штучним інтелектом Vetale</x:String>
+  
+  <x:String x:Key="Tools.DuckDuckGoAI.Name">DuckDuckGo AI Chat</x:String>
+  <x:String x:Key="Tools.DuckDuckGoAI.Description">Безкоштовний AI чат від DuckDuckGo</x:String>
+  
+  <x:String x:Key="Tools.Copilot.Name">Microsoft Copilot</x:String>
+  <x:String x:Key="Tools.Copilot.Description">AI асистент від Microsoft</x:String>
+  
+  <x:String x:Key="Tools.Gemini.Name">Google Gemini</x:String>
+  <x:String x:Key="Tools.Gemini.Description">AI від Google</x:String>
+  
+  <x:String x:Key="Tools.Replika.Name">Replika AI</x:String>
+  <x:String x:Key="Tools.Replika.Description">AI компаньйон для спілкування</x:String>
+  
+  <x:String x:Key="Tools.DevTools.Name">Vetale DevTools</x:String>
+  <x:String x:Key="Tools.DevTools.Description">Інструменти розробника</x:String>
+  
+  <x:String x:Key="Tools.History.Name">Історія</x:String>
+  <x:String x:Key="Tools.History.Description">Історія відвідувань</x:String>
+  
+  <x:String x:Key="Tools.Console.Name">Консоль</x:String>
+  <x:String x:Key="Tools.Console.Description">Консоль розробника з логами та діагностикою</x:String>
+  
+  <x:String x:Key="Tools.NavigateButton">→ Перейти в браузері</x:String>
+</ResourceDictionary>

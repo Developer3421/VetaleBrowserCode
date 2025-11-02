@@ -18,6 +18,7 @@ using VetaleBrowser.VetaleBrowser.UI.Pages;
 using VetaleBrowser.VetaleBrowser.UI.Windows; // added for SettingsWindow and ToolsWindow
 using VetaleBrowser.VetaleBrowser.Database;
 using VetaleBrowser.VetaleBrowser.Database.Services;
+using Avalonia.Media;
 
 namespace VetaleBrowser;
 
@@ -26,6 +27,7 @@ public partial class MainWindow : Window
     private readonly WindowManager _windowManager;
     private readonly IFaviconService _faviconService = new FaviconService();
     private ISettingsService? _settingsService;
+    private IAppearanceSettingsService? _appearanceSettingsService;
 
     private readonly TabsManager _tabs = new();
 
@@ -46,6 +48,9 @@ public partial class MainWindow : Window
     private string? _lastFaviconUrl;
     private string? _lastPageTitle;
 
+    // Cached appearance values
+    private double _tabWidth = 200.0;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -53,6 +58,7 @@ public partial class MainWindow : Window
         
         // Initialize settings service
         InitializeSettingsService();
+        InitializeAppearanceSettingsService();
 
         // Initialize after the window is loaded
         this.Loaded += OnWindowLoaded;
@@ -144,6 +150,23 @@ public partial class MainWindow : Window
         }
     }
 
+    private void InitializeAppearanceSettingsService()
+    {
+        try
+        {
+            var config = DatabaseConfiguration.CreateDefault();
+            var appearanceDbPath = System.IO.Path.Combine(
+                System.IO.Path.GetDirectoryName(config.DatabasePath) ?? string.Empty,
+                "appearance_settings.db");
+            _appearanceSettingsService = new AppearanceSettingsService(appearanceDbPath, config.EncryptionKey);
+            System.Diagnostics.Debug.WriteLine("MainWindow: Appearance settings service initialized");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainWindow: Error initializing appearance settings service: {ex}");
+        }
+    }
+
     private async void OnWindowLoaded(object? sender, RoutedEventArgs e)
     {
         System.Diagnostics.Debug.WriteLine("MainWindow: OnWindowLoaded called");
@@ -177,6 +200,9 @@ public partial class MainWindow : Window
                 System.Diagnostics.Debug.WriteLine("MainWindow: NavigationBar initialized");
             }
 
+            // Apply appearance settings at startup
+            await ApplyAppearanceSettingsFromStoreAsync();
+
             // Start favicon/title polling
             _faviconPollTimer.Start();
 
@@ -187,6 +213,97 @@ public partial class MainWindow : Window
         {
             System.Diagnostics.Debug.WriteLine($"MainWindow: Error initializing: {ex}");
             ShowErrorInWebViewContainer($"Помилка ініціалізації: {ex.Message}");
+        }
+    }
+
+    // Public so SettingsWindow can force apply after save
+    public async Task ApplyAppearanceSettingsFromStoreAsync()
+    {
+        if (_appearanceSettingsService == null || _normalModePage == null)
+            return;
+
+        try
+        {
+            // Read settings
+            var navBarColor = await _appearanceSettingsService.GetNavigationBarColorAsync();
+            var navBarHeight = await _appearanceSettingsService.GetNavigationBarHeightAsync();
+            var topBarColor = await _appearanceSettingsService.GetTopBarBackgroundColorAsync();
+            var btnSize = await _appearanceSettingsService.GetButtonSizeAsync();
+            var tabWidth = await _appearanceSettingsService.GetTabWidthAsync();
+            var windowW = await _appearanceSettingsService.GetMainWindowWidthAsync();
+            var windowH = await _appearanceSettingsService.GetMainWindowHeightAsync();
+
+            // Apply navigation bar row
+            if (_normalModePage.NavBarRow != null)
+            {
+                _normalModePage.NavBarRow.Height = navBarHeight;
+                var nbBrush = ParseBrush(navBarColor);
+                if (nbBrush != null)
+                    _normalModePage.NavBarRow.Background = nbBrush;
+            }
+
+            // Apply main top bar background (tabs row) only if a color is provided
+            if (_normalModePage.TabBar != null)
+            {
+                var tbBrush = ParseBrush(topBarColor);
+                if (tbBrush != null)
+                    _normalModePage.TabBar.Background = tbBrush; // else keep GrayGradient from XAML
+            }
+
+            // Cache and apply tab width to existing tabs
+            _tabWidth = tabWidth;
+            UpdateAllTabWidths(tabWidth);
+
+            // Optionally adjust button sizes in NavBar by setting its Height
+            if (_normalModePage.NavBar != null && btnSize > 0)
+            {
+                _normalModePage.NavBar.Height = navBarHeight; // keep consistent height
+            }
+
+            // Apply window size immediately
+            if (windowW > 0 && windowH > 0)
+            {
+                Width = windowW;
+                Height = windowH;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainWindow: Failed to apply appearance settings: {ex}");
+        }
+    }
+
+    private IBrush? ParseBrush(string? color)
+    {
+        if (string.IsNullOrWhiteSpace(color)) return null;
+        try
+        {
+            if (Color.TryParse(color, out var c))
+            {
+                return new SolidColorBrush(c);
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    private void UpdateAllTabWidths(double width)
+    {
+        try
+        {
+            var tabsHost = _normalModePage?.TabsHostPanel;
+            if (tabsHost == null) return;
+            foreach (var child in tabsHost.Children)
+            {
+                if (child is Tab tab)
+                {
+                    tab.Width = width;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainWindow: UpdateAllTabWidths error: {ex.Message}");
         }
     }
 
@@ -242,7 +359,7 @@ public partial class MainWindow : Window
             IsActive = worker.IsActive,
             IsCloseButtonVisible = true,
             IsMuted = worker.IsMuted,
-            Width = 200
+            Width = _tabWidth
         };
 
         tab.Clicked += (_, __) => ActivateWorker(worker);
@@ -937,6 +1054,20 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"MainWindow: Failed to navigate active tab: {ex}");
+        }
+    }
+
+    // Public entry to navigate to homepage of the selected search engine
+    public async Task NavigateToSelectedSearchHomeAsync()
+    {
+        try
+        {
+            var home = await GetSearchHomePageAsync();
+            NavigateUrlInActiveTab(home, openInNewTabIfNone: true);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] NavigateToSelectedSearchHomeAsync error: {ex.Message}");
         }
     }
 

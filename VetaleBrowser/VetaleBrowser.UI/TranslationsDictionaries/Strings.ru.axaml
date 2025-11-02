@@ -1,0 +1,181 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Заголовки -->
+  <x:String x:Key="App.Title">Vetale Browser</x:String>
+  <x:String x:Key="Settings.Title">Настройки — Vetale Browser</x:String>
+  <x:String x:Key="Tools.Title">Инструменты — Vetale Browser</x:String>
+  <x:String x:Key="Console.Title">Консоль — Vetale Browser</x:String>
+  <x:String x:Key="History.Title">История — Vetale Browser</x:String>
+  <x:String x:Key="Bookmarks.Title">Закладки — Vetale Browser</x:String>
+
+  <!-- Главная страница настроек -->
+  <x:String x:Key="Settings.Header">Настройки</x:String>
+  <x:String x:Key="Settings.Language.Title">Язык</x:String>
+  <x:String x:Key="Settings.Language.Sub">Выберите язык интерфейса</x:String>
+  <x:String x:Key="Settings.Appearance.Title">Внешний вид</x:String>
+  <x:String x:Key="Settings.Appearance.Sub">Настройка внешнего вида</x:String>
+  <x:String x:Key="Settings.Search.Title">Поисковая система</x:String>
+  <x:String x:Key="Settings.Search.Sub">Выберите поисковую систему по умолчанию</x:String>
+
+  <!-- Кнопки окна -->
+  <x:String x:Key="Window.Minimize">Свернуть</x:String>
+  <x:String x:Key="Window.Maximize">Развернуть</x:String>
+  <x:String x:Key="Window.Close">Закрыть</x:String>
+
+  <!-- Страница языка -->
+  <x:String x:Key="Language.Header">Язык</x:String>
+  <x:String x:Key="Language.SelectPrompt">Выберите язык интерфейса</x:String>
+  <x:String x:Key="Language.RestartHint">Некоторые изменения требуют переоткрытия окон</x:String>
+  <x:String x:Key="Common.Save">Сохранить</x:String>
+  <x:String x:Key="Common.Back">Назад</x:String>
+
+  <!-- Навигация -->
+  <x:String x:Key="Nav.Back">Назад</x:String>
+  <x:String x:Key="Nav.Forward">Вперед</x:String>
+  <x:String x:Key="Nav.Home">Домой</x:String>
+  <x:String x:Key="Nav.AddressBar.Watermark">Введите URL или поисковый запрос...</x:String>
+
+  <!-- Общие действия -->
+  <x:String x:Key="Common.Refresh">Обновить</x:String>
+  <x:String x:Key="Common.Clear">Очистить</x:String>
+  <x:String x:Key="Common.ClearAll">Очистить всё</x:String>
+  <x:String x:Key="Common.ClearAllLogs">Очистить все логи</x:String>
+  <x:String x:Key="Common.Export">Экспорт</x:String>
+  <x:String x:Key="Common.CopyAll">Копировать всё</x:String>
+  <x:String x:Key="Common.Open">Открыть</x:String>
+  <x:String x:Key="Common.Delete">Удалить</x:String>
+  <x:String x:Key="Common.All">Все</x:String>
+  <x:String x:Key="Common.Cancel">Отмена</x:String>
+  <x:String x:Key="Common.Yes">Да</x:String>
+  <x:String x:Key="Common.Loading">Загрузка...</x:String>
+  <x:String x:Key="Common.ResetDefaults">Сбросить по умолчанию</x:String>
+  <x:String x:Key="Common.WidthPx">Ширина (px):</x:String>
+  <x:String x:Key="Common.HeightPx">Высота (px):</x:String>
+  <x:String x:Key="Common.SizePx">Размер (px):</x:String>
+  <x:String x:Key="Common.IconSizePx">Размер иконки (px):</x:String>
+
+  <!-- Вкладка -->
+  <x:String x:Key="Tab.Mute.Toggle">Переключить звук</x:String>
+
+  <!-- Закладки -->
+  <x:String x:Key="Bookmarks.Header">Закладки</x:String>
+  <x:String x:Key="Bookmarks.Add">Добавить закладку</x:String>
+  <x:String x:Key="Bookmarks.Folder.Default">Закладки</x:String>
+  <x:String x:Key="Bookmarks.Folder.Work">Работа</x:String>
+  <x:String x:Key="Bookmarks.Folder.Personal">Личные</x:String>
+  <x:String x:Key="Bookmarks.Folder.News">Новости</x:String>
+  
+  <!-- Диалог добавления закладки -->
+  <x:String x:Key="Bookmarks.Add.Header">Добавить в закладки</x:String>
+  <x:String x:Key="Bookmarks.Add.Name">Название:</x:String>
+  <x:String x:Key="Bookmarks.Add.Name.Watermark">Введите название закладки</x:String>
+  <x:String x:Key="Bookmarks.Add.Folder">Папка:</x:String>
+
+  <!-- Подсказки кнопок -->
+  <x:String x:Key="Tools.Button.Tooltip">Инструменты</x:String>
+  <x:String x:Key="Settings.Button.Tooltip">Настройки</x:String>
+
+  <!-- Инструменты -->
+  <x:String x:Key="Tools.Header">Инструменты</x:String>
+  <x:String x:Key="Tools.BackToList">Назад к списку</x:String>
+  <x:String x:Key="Tools.ToolTitle">Инструмент</x:String>
+
+  <!-- Оформление -->
+  <x:String x:Key="Appearance.Header">Настройки внешнего вида</x:String>
+  <x:String x:Key="Appearance.Tabs.Title">Вкладки</x:String>
+  <x:String x:Key="Appearance.Tabs.Sub">Настройте размер вкладок, цвета и элементы</x:String>
+  <x:String x:Key="Appearance.MainWindow.Title">Главное окно</x:String>
+  <x:String x:Key="Appearance.MainWindow.Sub">Настройка панели навигации, кнопок и главного окна</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Title">Другие окна</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Sub">Настройка вида других окон браузера</x:String>
+  <x:String x:Key="Appearance.Tabs.Header">Настройки вкладок</x:String>
+  <x:String x:Key="Appearance.Tabs.Width">Ширина вкладки</x:String>
+  <x:String x:Key="Appearance.Tabs.WidthPx">Ширина (px):</x:String>
+  <x:String x:Key="Appearance.Tabs.ElementsSize">Размер элементов</x:String>
+  <x:String x:Key="Appearance.Tabs.TextSizePx">Размер текста (px):</x:String>
+  <x:String x:Key="Appearance.Tabs.IconSize">Размер иконки</x:String>
+  <x:String x:Key="Appearance.Tabs.IconSizePx">Размер иконки (px):</x:String>
+  <x:String x:Key="Appearance.Tabs.BackgroundColor">Цвет фона вкладки</x:String>
+  <x:String x:Key="Appearance.Tabs.TextColor">Цвет текста вкладки</x:String>
+  <x:String x:Key="Appearance.Tabs.ActiveColor">Цвет активной вкладки</x:String>
+  <x:String x:Key="Appearance.ColorHex">Цвет (HEX):</x:String>
+  <x:String x:Key="Appearance.SaveSettings">Сохранить настройки</x:String>
+
+  <!-- Appearance Main Window -->
+  <x:String x:Key="Appearance.MainWindow.Header">Настройки главного окна</x:String>
+  <x:String x:Key="Appearance.MainWindow.NavBarColor">Цвет панели навигации</x:String>
+  <x:String x:Key="Appearance.MainWindow.NavBarHeight">Высота панели навигации</x:String>
+  <x:String x:Key="Appearance.MainWindow.Width">Ширина главного окна</x:String>
+  <x:String x:Key="Appearance.MainWindow.Height">Высота главного окна</x:String>
+  <x:String x:Key="Appearance.MainWindow.TopBarBackgroundColor">Фон верхней панели</x:String>
+  <x:String x:Key="Appearance.MainWindow.ButtonSize">Размер кнопок</x:String>
+  <x:String x:Key="Appearance.MainWindow.ButtonIconSize">Размер изображений в кнопках</x:String>
+
+  <!-- Appearance Other Windows -->
+  <x:String x:Key="Appearance.OtherWindows.Header">Настройки других окон</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Description">Настройка внешнего вида дополнительных окон (настройки, закладки, история и т.д.)</x:String>
+  <x:String x:Key="Appearance.OtherWindows.BackgroundColor">Цвет фона окон</x:String>
+  <x:String x:Key="Appearance.OtherWindows.BackgroundColor.Sub">Основной цвет фона для всех дополнительных окон</x:String>
+  <x:String x:Key="Appearance.OtherWindows.TopBarColor">Цвет верхней панели</x:String>
+  <x:String x:Key="Appearance.OtherWindows.TopBarColor.Sub">Цвет верхней панели с заголовком и кнопками управления</x:String>
+  <x:String x:Key="Appearance.OtherWindows.InfoHeader">ℹ️ Дополнительная информация</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Info1">Эти настройки применяются ко всем дополнительным окнам браузера, таким как окно настроек, окно закладок, окно истории и другие служебные окна.</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Info2">Изменения вступят в силу после сохранения настроек и повторного открытия соответствующих окон.</x:String>
+
+  <!-- История -->
+  <x:String x:Key="History.Header">История просмотров</x:String>
+  <x:String x:Key="History.Search.Watermark">Поиск в истории...</x:String>
+  <x:String x:Key="History.Filter.All">Все</x:String>
+  <x:String x:Key="History.Filter.1Day">1 день</x:String>
+  <x:String x:Key="History.Filter.7Days">7 дней</x:String>
+  <x:String x:Key="History.Filter.1Month">1 месяц</x:String>
+  <x:String x:Key="History.Filter.6Months">6 месяцев</x:String>
+  <x:String x:Key="History.Filter.1Year">1 год</x:String>
+  <x:String x:Key="History.Filter.OlderThanYear">Старше года</x:String>
+  <x:String x:Key="History.Visits">посещений</x:String>
+
+  <!-- Консоль -->
+  <x:String x:Key="Console.SearchLogs">Поиск в логах...</x:String>
+  <x:String x:Key="Console.AutoRefresh">Автообновление</x:String>
+  <x:String x:Key="Console.ExportLogs">Экспорт логов</x:String>
+  <x:String x:Key="Console.CopyAll">Копировать все видимые логи</x:String>
+  <x:String x:Key="Console.CopyMessage">Копировать сообщение</x:String>
+  <x:String x:Key="Console.CopyRow">Копировать строку</x:String>
+  <x:String x:Key="Console.NoLogs">Нет логов для отображения</x:String>
+  <x:String x:Key="Console.NoLogs.Hint">Логи появятся здесь автоматически</x:String>
+  <x:String x:Key="Console.InitBanner">Консоль инициализирована</x:String>
+  <x:String x:Key="Console.ClearConfirm">Это действие удалит все записи консоли. Продолжить?</x:String>
+  <x:String x:Key="Console.Level.All">Все уровни</x:String>
+  <x:String x:Key="Console.ExportLogs.FilePrefix">console_logs_</x:String>
+
+  <!-- Search custom -->
+  <x:String x:Key="Search.Custom.Title">Свой вариант</x:String>
+  <x:String x:Key="Search.Custom.Hint">Введите URL поисковой системы. Используйте {0} как место для запроса.</x:String>
+
+  <!-- Tools page - list items -->
+  <x:String x:Key="Tools.VetaleAI.Name">Vetale AI Chat</x:String>
+  <x:String x:Key="Tools.VetaleAI.Description">Чат с искусственным интеллектом Vetale</x:String>
+  
+  <x:String x:Key="Tools.DuckDuckGoAI.Name">DuckDuckGo AI Chat</x:String>
+  <x:String x:Key="Tools.DuckDuckGoAI.Description">Бесплатный AI чат от DuckDuckGo</x:String>
+  
+  <x:String x:Key="Tools.Copilot.Name">Microsoft Copilot</x:String>
+  <x:String x:Key="Tools.Copilot.Description">AI ассистент от Microsoft</x:String>
+  
+  <x:String x:Key="Tools.Gemini.Name">Google Gemini</x:String>
+  <x:String x:Key="Tools.Gemini.Description">AI от Google</x:String>
+  
+  <x:String x:Key="Tools.Replika.Name">Replika AI</x:String>
+  <x:String x:Key="Tools.Replika.Description">AI компаньон для общения</x:String>
+  
+  <x:String x:Key="Tools.DevTools.Name">Vetale DevTools</x:String>
+  <x:String x:Key="Tools.DevTools.Description">Инструменты разработчика</x:String>
+  
+  <x:String x:Key="Tools.History.Name">История</x:String>
+  <x:String x:Key="Tools.History.Description">История посещений</x:String>
+  
+  <x:String x:Key="Tools.Console.Name">Консоль</x:String>
+  <x:String x:Key="Tools.Console.Description">Консоль разработчика с логами и диагностикой</x:String>
+  
+  <x:String x:Key="Tools.NavigateButton">→ Перейти в браузере</x:String>
+</ResourceDictionary>

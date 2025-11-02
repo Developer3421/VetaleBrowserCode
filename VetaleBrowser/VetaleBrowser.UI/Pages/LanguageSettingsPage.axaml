@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:services="clr-namespace:VetaleBrowser.VetaleBrowser.UI.Services"
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.LanguageSettingsPage">
+  <Grid Margin="30" RowDefinitions="Auto,Auto,*,Auto" MaxWidth="600">
+    <TextBlock Grid.Row="0" Text="{DynamicResource Language.Header}" FontSize="28" FontWeight="Bold" Foreground="#303030" Margin="0,0,0,20"/>
+
+    <StackPanel Grid.Row="1" Orientation="Vertical" Spacing="8">
+      <TextBlock Text="{DynamicResource Language.SelectPrompt}" FontSize="14" Foreground="#404040"/>
+      <ComboBox x:Name="LanguageCombo" Width="300">
+        <ComboBox.ItemTemplate>
+          <DataTemplate DataType="services:LocalizationService+LanguageOption">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="{Binding DisplayName}"/>
+              <TextBlock Text="{Binding Code, StringFormat=' ({0})'}" Opacity="0.6"/>
+            </StackPanel>
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+      <TextBlock Text="{DynamicResource Language.RestartHint}" FontSize="12" Foreground="#707070"/>
+    </StackPanel>
+
+    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,20,0,0">
+      <Button x:Name="BackButton" Content="{DynamicResource Common.Back}" Width="120" Click="OnBack"/>
+      <Button x:Name="SaveButton" Content="{DynamicResource Common.Save}" Width="140" Click="OnSave"/>
+    </StackPanel>
+  </Grid>
+</UserControl>
+
