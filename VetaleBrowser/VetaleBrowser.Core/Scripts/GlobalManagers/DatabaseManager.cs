@@ -10,7 +10,9 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
 public static class DatabaseManager
 {
     private static TabDatabaseService? _instance;
+    private static HistoryDatabaseService? _historyInstance;
     private static readonly object _lock = new object();
+    private static readonly object _historyLock = new object();
 
     /// <summary>
     /// Отримує екземпляр сервісу бази даних
@@ -30,6 +32,27 @@ public static class DatabaseManager
                 }
             }
             return _instance!;
+        }
+    }
+
+    /// <summary>
+    /// Отримує екземпляр сервісу бази даних історії
+    /// </summary>
+    public static IHistoryDatabaseService HistoryInstance
+    {
+        get
+        {
+            if (_historyInstance == null)
+            {
+                lock (_historyLock)
+                {
+                    if (_historyInstance == null)
+                    {
+                        InitializeHistory();
+                    }
+                }
+            }
+            return _historyInstance!;
         }
     }
 
@@ -62,6 +85,27 @@ public static class DatabaseManager
     }
 
     /// <summary>
+    /// Ініціалізує базу даних історії
+    /// </summary>
+    public static void InitializeHistory(string? customPath = null, string? customKey = null)
+    {
+        lock (_historyLock)
+        {
+            // Закриваємо попередній екземпляр якщо існує
+            _historyInstance?.Dispose();
+
+            // Визначаємо шлях до бази даних історії
+            var dbPath = customPath ?? GetDefaultHistoryDatabasePath();
+            
+            // Визначаємо ключ шифрування
+            var encryptionKey = customKey ?? GenerateEncryptionKey();
+
+            // Створюємо новий екземпляр
+            _historyInstance = new HistoryDatabaseService(dbPath, encryptionKey);
+        }
+    }
+
+    /// <summary>
     /// Отримує шлях до бази даних за замовчуванням
     /// </summary>
     private static string GetDefaultDatabasePath()
@@ -76,6 +120,23 @@ public static class DatabaseManager
         }
 
         return Path.Combine(browserDataPath, "browser.db");
+    }
+
+    /// <summary>
+    /// Отримує шлях до бази даних історії за замовчуванням
+    /// </summary>
+    private static string GetDefaultHistoryDatabasePath()
+    {
+        var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        var browserDataPath = Path.Combine(appDataPath, "VetaleBrowser", "Data");
+        
+        // Створюємо директорію якщо не існує
+        if (!Directory.Exists(browserDataPath))
+        {
+            Directory.CreateDirectory(browserDataPath);
+        }
+
+        return Path.Combine(browserDataPath, "history.db");
     }
 
     /// <summary>

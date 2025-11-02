@@ -23,8 +23,8 @@
                         ClipToBounds="False">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
-                            <GradientStop Color="#F5F3FF" Offset="0" />
-                            <GradientStop Color="#EDE9FE" Offset="1" />
+                            <GradientStop Color="#DDD6FE" Offset="0" />
+                            <GradientStop Color="#C4B5FD" Offset="1" />
                         </LinearGradientBrush>
                     </Border.Background>
 
@@ -69,11 +69,7 @@
                                 CornerRadius="3"
                                 Background="#A78BFA">
                             <Grid>
-                                <!-- Fallback globe emoji -->
-                                <TextBlock Text="🌐"
-                                           FontSize="14"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center" />
+                               
                                 <!-- Actual favicon image (renders over fallback when available) -->
                                 <Image Source="{TemplateBinding FaviconSource}"
                                        Width="24"
@@ -90,7 +86,7 @@
                                    Text="{TemplateBinding Title}"
                                    FontSize="12"
                                    FontWeight="Normal"
-                                   Foreground="#1F1B24"
+                                   Foreground="#D84315"
                                    VerticalAlignment="Center"
                                    TextTrimming="CharacterEllipsis"
                                    Margin="0,0,8,0" />
@@ -141,17 +137,17 @@
     <Style Selector="controls|Tab:active /template/ Border#PART_Border">
         <Setter Property="Background">
             <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
-                <GradientStop Color="#F5F3FF" Offset="0" />
-                <GradientStop Color="#EDE9FE" Offset="1" />
+                <GradientStop Color="#DDD6FE" Offset="0" />
+                <GradientStop Color="#C4B5FD" Offset="1" />
             </LinearGradientBrush>
         </Setter>
         <Setter Property="BorderThickness" Value="1,1,1,0" />
-        <Setter Property="BorderBrush" Value="#C4B5FD" />
+        <Setter Property="BorderBrush" Value="#A78BFA" />
     </Style>
 
     <Style Selector="controls|Tab:active /template/ TextBlock#PART_Title">
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Foreground" Value="#4C1D95" />
+        <Setter Property="Foreground" Value="#D84315" />
     </Style>
 
     <!-- Hover Effects -->

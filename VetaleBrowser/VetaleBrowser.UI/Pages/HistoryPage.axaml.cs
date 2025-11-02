@@ -1,25 +1,47 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using VetaleBrowser.VetaleBrowser.Database.Models;
 using VetaleBrowser.VetaleBrowser.Database.Services;
+using VetaleBrowser.VetaleBrowser.UI.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
 
+public class HistoryItemViewModel
+{
+    public HistoryItem Item { get; set; }
+    public Avalonia.Media.IImage? FaviconImage { get; set; }
+    
+    public int Id => Item.Id;
+    public string Url => Item.Url;
+    public string Title => Item.Title;
+    public DateTime VisitedAt => Item.VisitedAt;
+    public int VisitCount => Item.VisitCount;
+
+    public HistoryItemViewModel(HistoryItem item)
+    {
+        Item = item;
+    }
+}
+
 public partial class HistoryPage : UserControl
 {
-    private StackPanel? _historyStackPanel;
-    private TextBlock? _totalSessionsText;
-    private TextBlock? _totalTabsText;
-    private TextBlock? _databaseSizeText;
-    private TextBlock? _usagePercentText;
-    private ITabDatabaseService? _databaseService;
+    private ItemsControl? _historyItemsControl;
+    private TextBox? _searchBox;
+    private StackPanel? _filterPanel;
+    private IHistoryDatabaseService? _historyService;
+    private readonly IFaviconService _faviconService;
+    private string _currentFilter = "All";
 
     public HistoryPage()
     {
         InitializeComponent();
+        _faviconService = new FaviconService();
         Loaded += OnLoaded;
     }
 
@@ -30,41 +52,65 @@ public partial class HistoryPage : UserControl
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        _historyStackPanel = this.FindControl<StackPanel>("PART_HistoryStackPanel");
-        _totalSessionsText = this.FindControl<TextBlock>("PART_TotalSessionsText");
-        _totalTabsText = this.FindControl<TextBlock>("PART_TotalTabsText");
-        _databaseSizeText = this.FindControl<TextBlock>("PART_DatabaseSizeText");
-        _usagePercentText = this.FindControl<TextBlock>("PART_UsagePercentText");
+        _historyItemsControl = this.FindControl<ItemsControl>("PART_HistoryItemsControl");
+        _searchBox = this.FindControl<TextBox>("PART_SearchBox");
+        _filterPanel = this.FindControl<StackPanel>("PART_FilterPanel");
         
+        // Встановлюємо перший фільтр активним
+        UpdateFilterButtonStyles();
         LoadHistory();
     }
 
-    public void SetDatabaseService(ITabDatabaseService databaseService)
+    public void SetHistoryService(IHistoryDatabaseService historyService)
     {
-        _databaseService = databaseService;
+        _historyService = historyService;
         LoadHistory();
     }
 
-    private void LoadHistory()
+    private async void LoadHistory()
     {
-        if (_historyStackPanel == null || _databaseService == null)
+        if (_historyItemsControl == null || _historyService == null)
             return;
 
         try
         {
-            // Load statistics
-            var stats = _databaseService.GetStats();
-            UpdateStatistics(stats);
-
-            // Clear existing items
-            _historyStackPanel.Children.Clear();
-
-            // For demo purposes, show current session
-            var currentSession = _databaseService.GetCurrentSession();
-            if (currentSession != null)
+            List<HistoryItem> historyItems;
+            
+            // Отримуємо історію за фільтром
+            if (!string.IsNullOrWhiteSpace(_searchBox?.Text))
             {
-                AddSessionToUi(currentSession);
+                historyItems = _historyService.SearchHistory(_searchBox.Text);
             }
+            else
+            {
+                var (startDate, endDate) = GetDateRangeForFilter(_currentFilter);
+                historyItems = _historyService.GetHistory(startDate, endDate);
+            }
+
+            // Створюємо ViewModel з завантаженням favicon
+            var viewModels = new List<HistoryItemViewModel>();
+            foreach (var item in historyItems)
+            {
+                var vm = new HistoryItemViewModel(item);
+                
+                // Завантажуємо favicon асинхронно
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(item.Url))
+                    {
+                        var uri = new Uri(item.Url);
+                        vm.FaviconImage = await _faviconService.GetFaviconAsync(uri, 18);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[HistoryPage] Error loading favicon for {item.Url}: {ex.Message}");
+                }
+                
+                viewModels.Add(vm);
+            }
+            
+            _historyItemsControl.ItemsSource = viewModels;
         }
         catch (Exception ex)
         {
@@ -72,250 +118,161 @@ public partial class HistoryPage : UserControl
         }
     }
 
-    private void UpdateStatistics(DatabaseStats stats)
+    private async System.Threading.Tasks.Task LoadFaviconsForHistoryAsync(List<HistoryItem> items)
     {
-        if (_totalSessionsText != null)
-            _totalSessionsText.Text = stats.TotalSessions.ToString();
-
-        if (_totalTabsText != null)
-            _totalTabsText.Text = stats.TotalTabs.ToString();
-
-        if (_databaseSizeText != null)
-        {
-            var sizeMb = stats.DatabaseSizeBytes / (1024.0 * 1024.0);
-            _databaseSizeText.Text = $"{sizeMb:F2} MB";
-        }
-
-        if (_usagePercentText != null)
-            _usagePercentText.Text = $"{stats.UsagePercentage:F1}%";
-    }
-
-    private void AddSessionToUi(BrowserSession session)
-    {
-        if (_historyStackPanel == null || _databaseService == null)
-            return;
-
-        // Session header
-        var sessionHeader = new Border
-        {
-            Background = Brush.Parse("#9A1CE8"),
-            CornerRadius = new Avalonia.CornerRadius(4),
-            Padding = new Avalonia.Thickness(15),
-            Margin = new Avalonia.Thickness(0, 20, 0, 10)
-        };
-
-        var headerGrid = new Grid();
-        headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-        var sessionInfo = new StackPanel();
-        var titleText = new TextBlock
-        {
-            Text = session.IsCurrent ? "Поточна сесія" : $"Сесія від {session.StartedAt:dd.MM.yyyy HH:mm}",
-            FontSize = 16,
-            FontWeight = FontWeight.SemiBold,
-            Foreground = Brushes.White
-        };
-        var countText = new TextBlock
-        {
-            Text = $"{session.TabCount} вкладок",
-            FontSize = 12,
-            Foreground = Brushes.White,
-            Opacity = 0.9,
-            Margin = new Avalonia.Thickness(0, 4, 0, 0)
-        };
-        sessionInfo.Children.Add(titleText);
-        sessionInfo.Children.Add(countText);
-
-        var deleteButton = new Button
-        {
-            Content = "🗑️ Видалити",
-            Background = Brushes.Transparent,
-            Foreground = Brushes.White,
-            BorderThickness = new Avalonia.Thickness(1),
-            BorderBrush = Brushes.White,
-            Padding = new Avalonia.Thickness(10, 5),
-            CornerRadius = new Avalonia.CornerRadius(4),
-            Tag = session.Id
-        };
-        deleteButton.Click += DeleteSession_Click;
-
-        Grid.SetColumn(sessionInfo, 0);
-        Grid.SetColumn(deleteButton, 1);
-        headerGrid.Children.Add(sessionInfo);
-        headerGrid.Children.Add(deleteButton);
-        sessionHeader.Child = headerGrid;
-
-        _historyStackPanel.Children.Add(sessionHeader);
-
-        // Load tabs for this session
-        var tabs = _databaseService.GetSessionTabs(session.Id);
-        foreach (var tab in tabs)
-        {
-            AddTabToUi(tab);
-        }
-    }
-
-    private void AddTabToUi(TabModel tab)
-    {
-        if (_historyStackPanel == null)
-            return;
-
-        var tabBorder = new Border
-        {
-            Background = Brush.Parse("#F8F8F8"),
-            BorderBrush = Brush.Parse("#E0E0E0"),
-            BorderThickness = new Avalonia.Thickness(1),
-            CornerRadius = new Avalonia.CornerRadius(4),
-            Padding = new Avalonia.Thickness(15),
-            Margin = new Avalonia.Thickness(0, 0, 0, 10)
-        };
-
-        var grid = new Grid();
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-        // Icon
-        var iconBorder = new Border
-        {
-            Width = 32,
-            Height = 32,
-            Background = Brush.Parse("#9A1CE8"),
-            CornerRadius = new Avalonia.CornerRadius(4),
-            Margin = new Avalonia.Thickness(0, 0, 15, 0)
-        };
-        var icon = new TextBlock
-        {
-            Text = "🌐",
-            FontSize = 18,
-            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
-            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
-        };
-        iconBorder.Child = icon;
-
-        // Info
-        var infoPanel = new StackPanel { VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
-        var titleText = new TextBlock
-        {
-            Text = string.IsNullOrEmpty(tab.Title) ? "Без назви" : tab.Title,
-            FontSize = 14,
-            FontWeight = FontWeight.SemiBold,
-            Foreground = Brush.Parse("#202020"),
-            TextTrimming = TextTrimming.CharacterEllipsis
-        };
-        var urlText = new TextBlock
-        {
-            Text = tab.Url,
-            FontSize = 12,
-            Foreground = Brush.Parse("#606060"),
-            TextTrimming = TextTrimming.CharacterEllipsis,
-            Margin = new Avalonia.Thickness(0, 4, 0, 0)
-        };
-        var timeText = new TextBlock
-        {
-            Text = $"Відкрито: {tab.LastAccessedAt:dd.MM.yyyy HH:mm}",
-            FontSize = 11,
-            Foreground = Brush.Parse("#9A1CE8"),
-            Margin = new Avalonia.Thickness(0, 4, 0, 0)
-        };
-        infoPanel.Children.Add(titleText);
-        infoPanel.Children.Add(urlText);
-        infoPanel.Children.Add(timeText);
-
-        // Actions
-        var actionsPanel = new StackPanel 
-        { 
-            Orientation = Avalonia.Layout.Orientation.Horizontal,
-            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
-        };
-        
-        var openButton = new Button
-        {
-            Content = "🌐",
-            FontSize = 18,
-            Background = Brushes.Transparent,
-            BorderThickness = new Avalonia.Thickness(0),
-            Padding = new Avalonia.Thickness(8),
-            Tag = tab
-        };
-        openButton.Click += OpenTab_Click;
-        
-        var deleteButton = new Button
-        {
-            Content = "🗑️",
-            FontSize = 18,
-            Background = Brushes.Transparent,
-            BorderThickness = new Avalonia.Thickness(0),
-            Padding = new Avalonia.Thickness(8),
-            Tag = tab
-        };
-        deleteButton.Click += DeleteTab_Click;
-
-        actionsPanel.Children.Add(openButton);
-        actionsPanel.Children.Add(deleteButton);
-
-        Grid.SetColumn(iconBorder, 0);
-        Grid.SetColumn(infoPanel, 1);
-        Grid.SetColumn(actionsPanel, 2);
-        grid.Children.Add(iconBorder);
-        grid.Children.Add(infoPanel);
-        grid.Children.Add(actionsPanel);
-
-        tabBorder.Child = grid;
-        _historyStackPanel.Children.Add(tabBorder);
-    }
-
-    private void OpenTab_Click(object? sender, RoutedEventArgs e)
-    {
-        if (sender is Button button && button.Tag is TabModel tab)
-        {
-            // TODO: Navigate to URL
-            Console.WriteLine($"Opening tab: {tab.Url}");
-        }
-    }
-
-    private void DeleteTab_Click(object? sender, RoutedEventArgs e)
-    {
-        if (sender is Button button && button.Tag is TabModel tab && _databaseService != null)
+        foreach (var item in items)
         {
             try
             {
-                _databaseService.DeleteTab(tab.Id);
-                LoadHistory();
+                if (!string.IsNullOrWhiteSpace(item.Url))
+                {
+                    var uri = new Uri(item.Url);
+                    var favicon = await _faviconService.GetFaviconAsync(uri, 18);
+                    if (favicon != null)
+                    {
+                        // Зберігаємо favicon в FaviconData для подальшого відображення
+                        // Але краще використати прив'язку до Source
+                        // Поки що просто логуємо
+                        System.Diagnostics.Debug.WriteLine($"[HistoryPage] Loaded favicon for {item.Url}");
+                    }
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error deleting tab: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[HistoryPage] Error loading favicon for {item.Url}: {ex.Message}");
             }
         }
     }
 
-    private void DeleteSession_Click(object? sender, RoutedEventArgs e)
+    private (DateTime? startDate, DateTime? endDate) GetDateRangeForFilter(string filter)
     {
-        if (sender is Button button && button.Tag is int sessionId && _databaseService != null)
+        var now = DateTime.UtcNow;
+        
+        return filter switch
         {
-            try
+            "1Day" => (now.AddDays(-1), now),
+            "7Days" => (now.AddDays(-7), now),
+            "1Month" => (now.AddMonths(-1), now),
+            "6Months" => (now.AddMonths(-6), now),
+            "1Year" => (now.AddYears(-1), now),
+            "OlderThanYear" => (null, now.AddYears(-1)),
+            _ => (null, null) // "All"
+        };
+    }
+
+    private void FilterButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is string filter)
+        {
+            _currentFilter = filter;
+            UpdateFilterButtonStyles();
+            LoadHistory();
+        }
+    }
+
+    private void UpdateFilterButtonStyles()
+    {
+        if (_filterPanel == null)
+            return;
+
+        foreach (var child in _filterPanel.Children)
+        {
+            if (child is Button btn)
             {
-                _databaseService.DeleteSession(sessionId);
-                LoadHistory();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error deleting session: {ex.Message}");
+                var isActive = btn.Tag?.ToString() == _currentFilter;
+                btn.Background = isActive 
+                    ? Brush.Parse("#9A1CE8") 
+                    : Brush.Parse("#E0E0E0");
+                btn.Foreground = isActive 
+                    ? Brushes.White 
+                    : Brush.Parse("#333333");
             }
         }
     }
 
-    private void ClearHistory_Click(object? sender, RoutedEventArgs e)
-    {
-        // TODO: Show confirmation dialog
-        Console.WriteLine("Clear history requested");
-    }
-
-    private void Refresh_Click(object? sender, RoutedEventArgs e)
+    private void SearchBox_TextChanged(object? sender, Avalonia.Controls.TextChangedEventArgs e)
     {
         LoadHistory();
+    }
+
+    private void OpenHistory_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is HistoryItemViewModel viewModel)
+        {
+            try
+            {
+                var historyItem = viewModel.Item;
+                
+                // Знаходимо головне вікно та переходимо до URL
+                var appLifetime = Avalonia.Application.Current?.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime;
+                if (appLifetime != null)
+                {
+                    foreach (var window in appLifetime.Windows)
+                    {
+                        if (window is MainWindow mainWindow)
+                        {
+                            mainWindow.NavigateUrlInActiveTab(historyItem.Url);
+                            mainWindow.Activate();
+                            GetParentWindow()?.Close();
+                            
+                            System.Diagnostics.Debug.WriteLine($"[HistoryPage] Navigating to: {historyItem.Url}");
+                            return;
+                        }
+                    }
+                }
+                
+                Console.WriteLine($"[HistoryPage] Could not find MainWindow to navigate to: {historyItem.Url}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[HistoryPage] Error opening history: {ex.Message}");
+            }
+        }
+    }
+
+    private void DeleteHistory_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is HistoryItemViewModel viewModel && _historyService != null)
+        {
+            try
+            {
+                _historyService.DeleteHistoryItem(viewModel.Item.Id);
+                LoadHistory();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting history item: {ex.Message}");
+            }
+        }
+    }
+
+    private void ClearAll_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_historyService == null)
+            return;
+
+        try
+        {
+            // Показуємо діалог підтвердження (спрощена версія)
+            _historyService.ClearHistory();
+            LoadHistory();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error clearing history: {ex.Message}");
+        }
+    }
+
+    private Window GetParentWindow()
+    {
+        var parent = this.Parent;
+        while (parent != null)
+        {
+            if (parent is Window window)
+                return window;
+            parent = parent.Parent;
+        }
+        throw new InvalidOperationException("Could not find parent window");
     }
 }
 

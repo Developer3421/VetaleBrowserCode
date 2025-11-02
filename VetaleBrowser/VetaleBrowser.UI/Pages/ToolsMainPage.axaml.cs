@@ -251,8 +251,104 @@ public partial class ToolsMainPage : UserControl
 
     private void OpenHistory()
     {
-        System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Opening History...");
-        // TODO: Implement History opening
+        System.Diagnostics.Debug.WriteLine("[ToolsMainPage] ===== Opening History START =====");
+        
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Step 1: Creating HistoryWindow instance...");
+            var historyWindow = new Windows.HistoryWindow();
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Step 1: SUCCESS - HistoryWindow created");
+            
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Step 2: Getting HistoryInstance from DatabaseManager...");
+            var historyService = VetaleBrowser.Core.Scripts.GlobalManagers.DatabaseManager.HistoryInstance;
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Step 2: SUCCESS - HistoryService obtained: {historyService != null}");
+            
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Step 3: Setting HistoryService on window...");
+            historyWindow.SetHistoryService(historyService);
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Step 3: SUCCESS - HistoryService set");
+            
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Step 4: Showing window...");
+            historyWindow.Show();
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Step 4: SUCCESS - Window shown");
+            
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] ===== Opening History COMPLETE =====");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] ===== ERROR in OpenHistory =====");
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Exception Type: {ex.GetType().Name}");
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Message: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Stack trace: {ex.StackTrace}");
+            
+            if (ex.InnerException != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Inner Exception: {ex.InnerException.Message}");
+                System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Inner Stack trace: {ex.InnerException.StackTrace}");
+            }
+            
+            // Показуємо користувачу діалог з помилкою
+            try
+            {
+                var errorWindow = new Window
+                {
+                    Title = "Помилка відкриття історії",
+                    Width = 500,
+                    Height = 300,
+                    WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                    Content = new StackPanel
+                    {
+                        Margin = new Thickness(20),
+                        Spacing = 10,
+                        Children =
+                        {
+                            new TextBlock
+                            {
+                                Text = "❌ Помилка відкриття історії",
+                                FontSize = 18,
+                                FontWeight = FontWeight.Bold,
+                                Foreground = new SolidColorBrush(Color.Parse("#E74C3C"))
+                            },
+                            new TextBlock
+                            {
+                                Text = $"Тип помилки: {ex.GetType().Name}",
+                                FontSize = 12,
+                                Foreground = new SolidColorBrush(Color.Parse("#606060"))
+                            },
+                            new ScrollViewer
+                            {
+                                Height = 120,
+                                Content = new TextBlock
+                                {
+                                    Text = ex.Message + (ex.InnerException != null ? "\n\nВнутрішня помилка: " + ex.InnerException.Message : ""),
+                                    TextWrapping = TextWrapping.Wrap,
+                                    FontSize = 11
+                                }
+                            },
+                            new Button
+                            {
+                                Content = "OK",
+                                HorizontalAlignment = HorizontalAlignment.Center,
+                                Margin = new Thickness(0, 10, 0, 0),
+                                Padding = new Thickness(30, 8),
+                                Background = new SolidColorBrush(Color.Parse("#9A1CE8")),
+                                Foreground = Brushes.White,
+                                BorderThickness = new Thickness(0),
+                                CornerRadius = new CornerRadius(4)
+                            }
+                        }
+                    }
+                };
+                
+                var okButton = (Button)((StackPanel)errorWindow.Content).Children[3];
+                okButton.Click += (s, e) => errorWindow.Close();
+                
+                errorWindow.Show();
+            }
+            catch (Exception dialogEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Failed to show error dialog: {dialogEx.Message}");
+            }
+        }
     }
 
     private void OpenInWebView(string toolName, string url)

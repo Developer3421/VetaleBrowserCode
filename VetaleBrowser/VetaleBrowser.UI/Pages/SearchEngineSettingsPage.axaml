@@ -1,0 +1,158 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.SearchEngineSettingsPage">
+
+    <UserControl.Styles>
+        <Style Selector="RadioButton.search-engine">
+            <Setter Property="Background" Value="#F5F5F5"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="15,12"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+        <Style Selector="RadioButton.search-engine:pointerover">
+            <Setter Property="Background" Value="#E8E8E8"/>
+            <Setter Property="BorderBrush" Value="#9A1CE8"/>
+        </Style>
+        <Style Selector="RadioButton.search-engine:checked">
+            <Setter Property="Background" Value="#E8D4FF"/>
+            <Setter Property="BorderBrush" Value="#9A1CE8"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+        <Style Selector="Button.back-button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style Selector="Button.back-button:pointerover">
+            <Setter Property="Background" Value="#15000000"/>
+        </Style>
+        <Style Selector="TextBox.custom-url">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+        <Style Selector="TextBox.custom-url:focus">
+            <Setter Property="BorderBrush" Value="#9A1CE8"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+        <Style Selector="Button.save-button">
+            <Setter Property="Background" Value="#9A1CE8"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+        </Style>
+        <Style Selector="Button.save-button:pointerover">
+            <Setter Property="Background" Value="#8B19D0"/>
+        </Style>
+        <Style Selector="Button.save-button:pressed">
+            <Setter Property="Background" Value="#7B16B8"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Margin="30" MaxWidth="600">
+        <Grid RowDefinitions="Auto,*,Auto">
+            <!-- Header with back button -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0,0,0,20">
+                <Button Classes="back-button" Click="OnBackClick">
+                    <TextBlock Text="← Назад" FontSize="14" Foreground="#505050"/>
+                </Button>
+                <TextBlock Text="Пошукова система" FontSize="24" FontWeight="Bold" Foreground="#303030" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Search engine options -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="0">
+                    <TextBlock Text="Виберіть вашу пошукову систему за замовчуванням:" 
+                               FontSize="13" 
+                               Foreground="#606060" 
+                               Margin="0,0,0,15"/>
+                    
+                    <RadioButton x:Name="GoogleRadio" 
+                                 Classes="search-engine" 
+                                 GroupName="SearchEngine"
+                                 Click="OnSearchEngineChanged">
+                        <StackPanel Orientation="Vertical" Spacing="3">
+                            <TextBlock Text="Google" FontSize="15" FontWeight="SemiBold" Foreground="#202020"/>
+                            <TextBlock Text="https://www.google.com/search?q={0}" FontSize="11" Foreground="#707070"/>
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton x:Name="BingRadio" 
+                                 Classes="search-engine" 
+                                 GroupName="SearchEngine"
+                                 Click="OnSearchEngineChanged">
+                        <StackPanel Orientation="Vertical" Spacing="3">
+                            <TextBlock Text="Bing" FontSize="15" FontWeight="SemiBold" Foreground="#202020"/>
+                            <TextBlock Text="https://www.bing.com/search?q={0}" FontSize="11" Foreground="#707070"/>
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton x:Name="YahooRadio" 
+                                 Classes="search-engine" 
+                                 GroupName="SearchEngine"
+                                 Click="OnSearchEngineChanged">
+                        <StackPanel Orientation="Vertical" Spacing="3">
+                            <TextBlock Text="Yahoo" FontSize="15" FontWeight="SemiBold" Foreground="#202020"/>
+                            <TextBlock Text="https://search.yahoo.com/search?p={0}" FontSize="11" Foreground="#707070"/>
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton x:Name="BaiduRadio" 
+                                 Classes="search-engine" 
+                                 GroupName="SearchEngine"
+                                 Click="OnSearchEngineChanged">
+                        <StackPanel Orientation="Vertical" Spacing="3">
+                            <TextBlock Text="Baidu" FontSize="15" FontWeight="SemiBold" Foreground="#202020"/>
+                            <TextBlock Text="https://www.baidu.com/s?wd={0}" FontSize="11" Foreground="#707070"/>
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton x:Name="CustomRadio" 
+                                 Classes="search-engine" 
+                                 GroupName="SearchEngine"
+                                 Click="OnSearchEngineChanged">
+                        <StackPanel Orientation="Vertical" Spacing="8">
+                            <TextBlock Text="Власний вибір" FontSize="15" FontWeight="SemiBold" Foreground="#202020"/>
+                            <TextBlock Text="Введіть URL пошукової системи. Використовуйте {0} як місце для запиту." 
+                                       FontSize="11" 
+                                       Foreground="#707070" 
+                                       TextWrapping="Wrap"/>
+                            <TextBox x:Name="CustomUrlTextBox" 
+                                     Classes="custom-url"
+                                     Watermark="https://example.com/search?q={0}"
+                                     IsEnabled="False"
+                                     TextChanged="OnCustomUrlChanged"/>
+                        </StackPanel>
+                    </RadioButton>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Save button -->
+            <Button Grid.Row="2" 
+                    Classes="save-button" 
+                    Click="OnSaveClick"
+                    Margin="0,20,0,0">
+                Зберегти
+            </Button>
+        </Grid>
+    </Grid>
+</UserControl>
+

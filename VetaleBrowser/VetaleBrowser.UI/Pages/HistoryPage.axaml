@@ -2,7 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             xmlns:pages="using:VetaleBrowser.VetaleBrowser.UI.Pages"
+             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="550"
              x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.HistoryPage">
 
     <UserControl.Styles>
@@ -11,8 +12,8 @@
             <Setter Property="BorderBrush" Value="#E0E0E0"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Padding" Value="15"/>
-            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
         </Style>
         <Style Selector="Border.history-item:pointerover">
             <Setter Property="Background" Value="#F0F0F0"/>
@@ -21,17 +22,22 @@
         <Style Selector="Button.action-button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Padding" Value="6"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="CornerRadius" Value="3"/>
         </Style>
         <Style Selector="Button.action-button:pointerover">
             <Setter Property="Background" Value="#E0E0E0"/>
         </Style>
-        <Style Selector="Border.session-header">
-            <Setter Property="Background" Value="#9A1CE8"/>
+        <Style Selector="Button.filter-button">
+            <Setter Property="Background" Value="#E0E0E0"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Padding" Value="15"/>
-            <Setter Property="Margin" Value="0,20,0,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
         </Style>
     </UserControl.Styles>
 
@@ -39,128 +45,169 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <Grid Grid.Row="0" Margin="30,30,30,20">
+        <Grid Grid.Row="0" Margin="20,20,20,15">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0" 
-                       Text="Історія вкладок" 
-                       FontSize="28" 
+                       Text="Історія переглядів" 
+                       FontSize="22" 
                        FontWeight="Bold" 
                        Foreground="#303030"/>
 
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
-                <Button Name="PART_ClearHistoryButton"
-                        Content="🗑️ Очистити"
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                <Button Name="PART_ClearAllButton"
+                        Content="🗑️ Очистити все"
                         Background="#E74C3C"
                         Foreground="White"
-                        FontSize="14"
-                        Padding="15,10"
+                        FontSize="12"
+                        Padding="12,8"
                         BorderThickness="0"
                         CornerRadius="4"
-                        Click="ClearHistory_Click">
+                        Click="ClearAll_Click">
                     <Button.Styles>
                         <Style Selector="Button:pointerover">
                             <Setter Property="Background" Value="#C0392B"/>
                         </Style>
                     </Button.Styles>
                 </Button>
-
-                <Button Name="PART_RefreshButton"
-                        Content="🔄 Оновити"
-                        Background="#9A1CE8"
-                        Foreground="White"
-                        FontSize="14"
-                        Padding="15,10"
-                        BorderThickness="0"
-                        CornerRadius="4"
-                        Click="Refresh_Click">
-                    <Button.Styles>
-                        <Style Selector="Button:pointerover">
-                            <Setter Property="Background" Value="#8612D0"/>
-                        </Style>
-                    </Button.Styles>
-                </Button>
             </StackPanel>
         </Grid>
 
-        <!-- Statistics -->
+        <!-- Search Box -->
         <Border Grid.Row="1" 
-                Margin="30,0,30,20"
-                Background="#F0F0F0"
+                Margin="20,0,20,15"
+                Background="White"
                 BorderBrush="#E0E0E0"
                 BorderThickness="1"
-                CornerRadius="4"
-                Padding="15">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="Всього сесій" 
-                               FontSize="12" 
-                               Foreground="#606060"/>
-                    <TextBlock Name="PART_TotalSessionsText" 
-                               Text="0" 
-                               FontSize="20" 
-                               FontWeight="Bold" 
-                               Foreground="#9A1CE8"
-                               Margin="0,5,0,0"/>
-                </StackPanel>
-
-                <StackPanel Grid.Column="1">
-                    <TextBlock Text="Всього вкладок" 
-                               FontSize="12" 
-                               Foreground="#606060"/>
-                    <TextBlock Name="PART_TotalTabsText" 
-                               Text="0" 
-                               FontSize="20" 
-                               FontWeight="Bold" 
-                               Foreground="#9A1CE8"
-                               Margin="0,5,0,0"/>
-                </StackPanel>
-
-                <StackPanel Grid.Column="2">
-                    <TextBlock Text="Розмір БД" 
-                               FontSize="12" 
-                               Foreground="#606060"/>
-                    <TextBlock Name="PART_DatabaseSizeText" 
-                               Text="0 MB" 
-                               FontSize="20" 
-                               FontWeight="Bold" 
-                               Foreground="#9A1CE8"
-                               Margin="0,5,0,0"/>
-                </StackPanel>
-
-                <StackPanel Grid.Column="3">
-                    <TextBlock Text="Використання" 
-                               FontSize="12" 
-                               Foreground="#606060"/>
-                    <TextBlock Name="PART_UsagePercentText" 
-                               Text="0%" 
-                               FontSize="20" 
-                               FontWeight="Bold" 
-                               Foreground="#9A1CE8"
-                               Margin="0,5,0,0"/>
-                </StackPanel>
-            </Grid>
+                CornerRadius="6"
+                Padding="10">
+            <TextBox Name="PART_SearchBox"
+                     Watermark="🔍 Пошук в історії..."
+                     FontSize="13"
+                     BorderThickness="0"
+                     Background="Transparent"
+                     TextChanged="SearchBox_TextChanged"/>
         </Border>
 
-        <!-- History List -->
-        <ScrollViewer Grid.Row="2" Margin="30,0,30,30">
-            <StackPanel Name="PART_HistoryStackPanel">
-                <!-- Sessions and tabs will be added here dynamically -->
+        <!-- Time Period Filters -->
+        <ScrollViewer Grid.Row="2" 
+                     Margin="20,0,20,15"
+                     HorizontalScrollBarVisibility="Auto"
+                     VerticalScrollBarVisibility="Disabled">
+            <StackPanel Name="PART_FilterPanel" 
+                       Orientation="Horizontal">
+                <Button Classes="filter-button" 
+                        Content="Все" 
+                        Tag="All"
+                        Click="FilterButton_Click"/>
+                <Button Classes="filter-button" 
+                        Content="1 день" 
+                        Tag="1Day"
+                        Click="FilterButton_Click"/>
+                <Button Classes="filter-button" 
+                        Content="7 днів" 
+                        Tag="7Days"
+                        Click="FilterButton_Click"/>
+                <Button Classes="filter-button" 
+                        Content="1 місяць" 
+                        Tag="1Month"
+                        Click="FilterButton_Click"/>
+                <Button Classes="filter-button" 
+                        Content="6 місяців" 
+                        Tag="6Months"
+                        Click="FilterButton_Click"/>
+                <Button Classes="filter-button" 
+                        Content="1 рік" 
+                        Tag="1Year"
+                        Click="FilterButton_Click"/>
+                <Button Classes="filter-button" 
+                        Content="Старіше року" 
+                        Tag="OlderThanYear"
+                        Click="FilterButton_Click"/>
             </StackPanel>
+        </ScrollViewer>
+
+        <!-- History List -->
+        <ScrollViewer Grid.Row="3" Margin="20,0,20,20">
+            <ItemsControl Name="PART_HistoryItemsControl">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="pages:HistoryItemViewModel">
+                        <Border Classes="history-item">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <!-- Favicon -->
+                                <Panel Grid.Column="0"
+                                       Width="18"
+                                       Height="18"
+                                       Margin="0,0,10,0">
+                                    <!-- Background placeholder -->
+                                    <Border Width="18"
+                                            Height="18"
+                                            CornerRadius="2"
+                                            Background="#A78BFA"/>
+                                    <!-- Favicon image -->
+                                    <Image Width="18"
+                                           Height="18"
+                                           Stretch="Uniform"
+                                           Source="{Binding FaviconImage}"/>
+                                </Panel>
+
+                                <!-- Info -->
+                                <StackPanel Grid.Column="1" Spacing="3">
+                                    <TextBlock Text="{Binding Title}" 
+                                               FontSize="12" 
+                                               FontWeight="SemiBold"
+                                               Foreground="#303030"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding Url}" 
+                                               FontSize="10" 
+                                               Foreground="#606060"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock FontSize="9" Foreground="#808080">
+                                            <Run Text="📅"/>
+                                            <Run Text="{Binding VisitedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"/>
+                                        </TextBlock>
+                                        <TextBlock FontSize="9" Foreground="#808080">
+                                            <Run Text="🔢"/>
+                                            <Run Text="{Binding VisitCount}"/>
+                                            <Run Text="відвідувань"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Actions -->
+                                <StackPanel Grid.Column="2" 
+                                           Orientation="Horizontal" 
+                                           Spacing="4"
+                                           VerticalAlignment="Center">
+                                    <Button Classes="action-button"
+                                            Content="🌐"
+                                            Tag="{Binding}"
+                                            ToolTip.Tip="Відкрити"
+                                            Click="OpenHistory_Click"
+                                            Width="28"
+                                            Height="28"/>
+                                    <Button Classes="action-button"
+                                            Content="❌"
+                                            Tag="{Binding}"
+                                            ToolTip.Tip="Видалити"
+                                            Click="DeleteHistory_Click"
+                                            Width="28"
+                                            Height="28"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </ScrollViewer>
     </Grid>
 </UserControl>

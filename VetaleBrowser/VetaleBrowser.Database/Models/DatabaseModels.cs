@@ -46,3 +46,28 @@ public class Bookmark
     public int Order { get; set; }
 }
 
+/// <summary>
+/// Модель для історії переглядів
+/// </summary>
+public class HistoryItem
+{
+    public int Id { get; set; }
+    public string Url { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string? FaviconUrl { get; set; }
+    public byte[]? FaviconData { get; set; }
+    public DateTime VisitedAt { get; set; } = DateTime.UtcNow;
+    public int VisitCount { get; set; } = 1;
+}
+
+/// <summary>
+/// Модель для налаштувань браузера з AES шифруванням
+/// </summary>
+public class SettingItem
+{
+    public int Id { get; set; }
+    public string Key { get; set; } = string.Empty;
+    public string EncryptedValue { get; set; } = string.Empty;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
+

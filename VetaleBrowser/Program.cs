@@ -89,14 +89,14 @@ class Program
             {
                 ("enable-gpu", null),
                 ("ignore-gpu-blocklist", null),
-                ("disable-software-rasterizer", null),
+          
                 ("enable-gpu-rasterization", null),
                 ("enable-zero-copy", null),
                 ("enable-native-gpu-memory-buffers", null),
                 ("enable-accelerated-video-decode", null),
                 ("enable-accelerated-video-encode", null),
                 ("enable-media-foundation-widevine", null),
-                ("enable-webgl", null),
+        
                 ("use-angle", "d3d11"),
                 ("user-data-dir", userDataDir),
                 ("disk-cache-dir", diskCacheDir),

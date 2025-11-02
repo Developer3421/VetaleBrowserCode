@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -6,6 +7,8 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Input;
 using VetaleBrowser; // for MainWindow
 using VetaleBrowser.VetaleBrowser.UI.Pages;
+using VetaleBrowser.VetaleBrowser.Database;
+using VetaleBrowser.VetaleBrowser.Database.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Windows;
 
@@ -13,16 +16,31 @@ public partial class SettingsWindow : Window
 {
     private ContentControl? _contentHost;
     private SettingsMainPage? _mainPage;
+    private ISettingsService? _settingsService;
 
     public SettingsWindow()
     {
         InitializeComponent();
+        InitializeSettingsService();
         Loaded += OnLoaded;
     }
 
     private void InitializeComponent()
     {
         AvaloniaXamlLoader.Load(this);
+    }
+
+    private void InitializeSettingsService()
+    {
+        try
+        {
+            var config = DatabaseConfiguration.CreateDefault();
+            _settingsService = new SettingsService(config.DatabasePath, config.EncryptionKey);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"SettingsWindow: Error initializing settings service: {ex}");
+        }
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
@@ -59,7 +77,40 @@ public partial class SettingsWindow : Window
 
     private void OnSearchEngineRequested(object? sender, EventArgs e)
     {
-        // TODO: Load search engine settings page
+        if (_settingsService == null)
+        {
+            System.Diagnostics.Debug.WriteLine("SettingsWindow: Settings service not initialized");
+            return;
+        }
+
+        try
+        {
+            var searchEnginePage = new SearchEngineSettingsPage(_settingsService);
+            searchEnginePage.BackRequested += OnSearchEngineBackRequested;
+            searchEnginePage.SettingsSaved += OnSearchEngineSettingsSaved;
+
+            if (_contentHost != null)
+            {
+                _contentHost.Content = searchEnginePage;
+            }
+
+            // Resize window for search engine page
+            ResizeWindowForPage(660, 600);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"SettingsWindow: Error loading search engine page: {ex}");
+        }
+    }
+
+    private void OnSearchEngineBackRequested(object? sender, EventArgs e)
+    {
+        LoadMainPage();
+    }
+
+    private void OnSearchEngineSettingsSaved(object? sender, EventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine("SettingsWindow: Search engine settings saved successfully");
     }
 
     private void ResizeWindowForPage(double width, double height)

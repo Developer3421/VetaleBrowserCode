@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
+using VetaleBrowser.VetaleBrowser.Database.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Еlements;
 
@@ -30,6 +31,7 @@ public class NavigationBar : TemplatedControl
     private Button? _settingsButton;
     private TextBox? _addressBar;
     private WebViewManager? _webViewManager;
+    private ISettingsService? _settingsService;
 
     public string Url
     {
@@ -67,6 +69,15 @@ public class NavigationBar : TemplatedControl
     {
         _webViewManager = webViewManager ?? throw new ArgumentNullException(nameof(webViewManager));
         System.Diagnostics.Debug.WriteLine("NavigationBar: Initialized with WebViewManager");
+    }
+
+    /// <summary>
+    /// Set settings service for search engine configuration
+    /// </summary>
+    public void SetSettingsService(ISettingsService settingsService)
+    {
+        _settingsService = settingsService;
+        System.Diagnostics.Debug.WriteLine("NavigationBar: Settings service set");
     }
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -185,14 +196,38 @@ public class NavigationBar : TemplatedControl
                 }
                 else
                 {
-                    // Search query
-                    url = "https://www.google.com/search?q=" + Uri.EscapeDataString(url);
+                    // Search query - use saved search engine
+                    var searchUrl = await GetSearchEngineUrlAsync();
+                    url = string.Format(searchUrl, Uri.EscapeDataString(url));
                 }
             }
 
             await _webViewManager.NavigateAsync(url);
             System.Diagnostics.Debug.WriteLine($"NavigationBar: Navigate to {url}");
         }
+    }
+
+    /// <summary>
+    /// Get the search engine URL from settings or use default
+    /// </summary>
+    private async System.Threading.Tasks.Task<string> GetSearchEngineUrlAsync()
+    {
+        if (_settingsService != null)
+        {
+            try
+            {
+                var searchUrl = await _settingsService.GetSearchEngineUrlAsync();
+                System.Diagnostics.Debug.WriteLine($"NavigationBar: Using search engine: {searchUrl}");
+                return searchUrl;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"NavigationBar: Error getting search engine: {ex}");
+            }
+        }
+        
+        // Fallback to Google
+        return "https://www.google.com/search?q={0}";
     }
 
     private void UpdateButtonStates()

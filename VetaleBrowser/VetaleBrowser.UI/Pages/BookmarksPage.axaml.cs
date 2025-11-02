@@ -110,8 +110,37 @@ public partial class BookmarksPage : UserControl
     {
         if (sender is Button button && button.Tag is Bookmark bookmark)
         {
-            // TODO: Navigate to URL
-            Console.WriteLine($"Opening: {bookmark.Url}");
+            try
+            {
+                // Find the main window and navigate to the bookmark URL
+                var appLifetime = Avalonia.Application.Current?.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime;
+                if (appLifetime != null)
+                {
+                    foreach (var window in appLifetime.Windows)
+                    {
+                        if (window is MainWindow mainWindow)
+                        {
+                            // Navigate to the bookmark URL in the active tab
+                            mainWindow.NavigateUrlInActiveTab(bookmark.Url);
+                            
+                            // Activate the main window
+                            mainWindow.Activate();
+                            
+                            // Close the bookmarks window
+                            GetParentWindow()?.Close();
+                            
+                            System.Diagnostics.Debug.WriteLine($"[BookmarksPage] Navigating to: {bookmark.Url}");
+                            return;
+                        }
+                    }
+                }
+                
+                Console.WriteLine($"[BookmarksPage] Could not find MainWindow to navigate to: {bookmark.Url}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[BookmarksPage] Error opening bookmark: {ex.Message}");
+            }
         }
     }
 

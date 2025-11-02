@@ -137,47 +137,20 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             }
             else if (name == "Title")
             {
-                try
+                // Direct access to Title property
+                var t = WebView.Title;
+                if (!string.IsNullOrWhiteSpace(t))
                 {
-                    var t = WebView.GetType().GetProperty("Title")?.GetValue(WebView) as string;
-                    if (!string.IsNullOrWhiteSpace(t))
-                    {
-                        // Prefix with Tab: requested
-                        Title = $"Tab: {t}";
-                        TryUpdateSubprocessTitle();
-                    }
-                }
-                catch
-                {
-                    // ignore
+                    // Prefix with Tab: requested
+                    Title = $"Tab: {t}";
+                    TryUpdateSubprocessTitle();
                 }
             }
             else if (name == "CanGoBack" || name == "CanGoForward")
             {
                 // No-op here; consumers can read from WebView
             }
-            // Detect fullscreen changes exposed as properties on WebView (varies by platform/version)
-            else if (name.Equals("IsFullscreen", StringComparison.OrdinalIgnoreCase)
-                     || name.Equals("IsFullScreen", StringComparison.OrdinalIgnoreCase)
-                     || name.Equals("Fullscreen", StringComparison.OrdinalIgnoreCase))
-            {
-                try
-                {
-                    bool isFs = false;
-                    var t = WebView.GetType();
-                    var p = t.GetProperty("IsFullscreen") ?? t.GetProperty("IsFullScreen") ?? t.GetProperty("Fullscreen");
-                    if (p != null && p.PropertyType == typeof(bool))
-                    {
-                        isFs = (bool)(p.GetValue(WebView) ?? false);
-                    }
-                    System.Diagnostics.Debug.WriteLine($"[TabWorker] Fullscreen property changed: {isFs}");
-                    FullscreenChanged?.Invoke(this, isFs);
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[TabWorker] Failed to read fullscreen property: {ex.Message}");
-                }
-            }
+            // Note: WebViewControl may not expose fullscreen as a property - polling handles this
         }
 
         private void SchedulePidRefreshBurst()
@@ -253,49 +226,31 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
         private async System.Threading.Tasks.Task<bool> EvaluateScriptAsBoolAsync(string script)
         {
-            // Try EvaluateScript or ExecuteScript, handling different return types
-            var t = WebView.GetType();
-            var method = t.GetMethod("EvaluateScript") ?? t.GetMethod("ExecuteScript");
-            if (method == null)
-            {
-                return false;
-            }
-
-            object? callResult;
             try
             {
-                callResult = method.Invoke(WebView, new object[] { script });
-            }
-            catch
-            {
+                // Use direct EvaluateScript from WebViewControl (returns Task<object>)
+                var result = await WebView.EvaluateScript<object>(script);
+                
+                if (result is bool b) return b;
+                if (result is string s)
+                {
+                    if (bool.TryParse(s.Trim(), out var parsed)) return parsed;
+                    if (string.Equals(s.Trim(), "1", StringComparison.Ordinal)) return true;
+                    if (string.Equals(s.Trim(), "0", StringComparison.Ordinal)) return false;
+                    // Check if it's "true" or "false" in lowercase
+                    if (string.Equals(s.Trim(), "true", StringComparison.OrdinalIgnoreCase)) return true;
+                    if (string.Equals(s.Trim(), "false", StringComparison.OrdinalIgnoreCase)) return false;
+                }
+                if (result is int i) return i != 0;
+                if (result is long l) return l != 0;
+                
                 return false;
             }
-
-            // If it's a Task, await it and get its Result
-            if (callResult is System.Threading.Tasks.Task task)
+            catch (Exception ex)
             {
-                await task.ConfigureAwait(false);
-                var resultProp = task.GetType().GetProperty("Result");
-                callResult = resultProp?.GetValue(task);
+                System.Diagnostics.Debug.WriteLine($"[TabWorker] Script evaluation failed: {ex.Message}");
+                return false;
             }
-
-            if (callResult is bool b) return b;
-            if (callResult is string s)
-            {
-                if (bool.TryParse(s.Trim(), out var parsed)) return parsed;
-                if (string.Equals(s.Trim(), "1", StringComparison.Ordinal)) return true;
-                if (string.Equals(s.Trim(), "0", StringComparison.Ordinal)) return false;
-            }
-
-            var resProp = callResult?.GetType().GetProperty("Result");
-            if (resProp != null)
-            {
-                var inner = resProp.GetValue(callResult);
-                if (inner is bool ib) return ib;
-                if (inner is string istring && bool.TryParse(istring, out var ibool)) return ibool;
-            }
-
-            return false;
         }
 
         public async void Navigate(string url)
@@ -317,49 +272,13 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
         private void TryHookFullscreenEvents()
         {
-            try
-            {
-                // Try to find and subscribe to fullscreen events
-                var eventInfo = WebView.GetType().GetEvent("IsFullscreenChanged");
-                if (eventInfo != null)
-                {
-                    var handler = new EventHandler<bool>((s, isFullscreen) =>
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[TabWorker] Fullscreen changed: {isFullscreen}");
-                        FullscreenChanged?.Invoke(this, isFullscreen);
-                    });
-                    eventInfo.AddEventHandler(WebView, handler);
-                    System.Diagnostics.Debug.WriteLine("[TabWorker] Hooked to IsFullscreenChanged event");
-                    return;
-                }
-
-                // Try alternative event names
-                var altEvent = WebView.GetType().GetEvent("FullscreenChanged") 
-                    ?? WebView.GetType().GetEvent("FullScreenChanged");
-                if (altEvent != null)
-                {
-                    var handler = new EventHandler<bool>((s, isFullscreen) =>
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[TabWorker] Fullscreen changed (alt): {isFullscreen}");
-                        FullscreenChanged?.Invoke(this, isFullscreen);
-                    });
-                    altEvent.AddEventHandler(WebView, handler);
-                    System.Diagnostics.Debug.WriteLine("[TabWorker] Hooked to alternative fullscreen event");
-                    return;
-                }
-
-                System.Diagnostics.Debug.WriteLine("[TabWorker] No fullscreen event found - will inject JavaScript listener");
-                
-                // Inject JavaScript listener for fullscreen changes as a fallback (logs only)
-                InjectFullscreenListener();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[TabWorker] Failed to hook fullscreen events: {ex.Message}");
-            }
+            // WebViewControl (CefGlue-based) doesn't expose fullscreen events directly
+            // We rely on JavaScript injection and polling instead
+            System.Diagnostics.Debug.WriteLine("[TabWorker] Using JavaScript polling for fullscreen detection");
+            InjectFullscreenListener();
         }
 
-        private void InjectFullscreenListener()
+        private async void InjectFullscreenListener()
         {
             try
             {
@@ -381,14 +300,9 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     })();
                 ";
 
-                var execMethod = WebView.GetType().GetMethod("ExecuteScript") 
-                    ?? WebView.GetType().GetMethod("EvaluateScript");
-                
-                if (execMethod != null)
-                {
-                    execMethod.Invoke(WebView, new object[] { script });
-                    System.Diagnostics.Debug.WriteLine("[TabWorker] Fullscreen listener injected via JavaScript");
-                }
+                // Use direct EvaluateScript from WebViewControl with explicit type
+                await WebView.EvaluateScript<object>(script);
+                System.Diagnostics.Debug.WriteLine("[TabWorker] Fullscreen listener injected via JavaScript");
             }
             catch (Exception ex)
             {
@@ -396,7 +310,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             }
         }
 
-        private void ApplyMuteState()
+        private async void ApplyMuteState()
         {
             try
             {
@@ -424,61 +338,22 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     return;
                 }
 
-                // Fallbacks: try internal host/WebView properties (if available)
-                var t = WebView.GetType();
-                var browserHostProp = t.GetProperty("BrowserHost") 
-                    ?? t.GetProperty("Host")
-                    ?? t.GetProperty("BrowserHost", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                
-                if (browserHostProp != null)
-                {
-                    var browserHost = browserHostProp.GetValue(WebView);
-                    if (TrySetAudioMutedOnHost(browserHost, _isMuted)) return;
-                }
-
-                var prop = t.GetProperty("IsAudioMuted") 
-                           ?? t.GetProperty("AudioMuted")
-                           ?? t.GetProperty("IsAudioMuted", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                if (prop != null && prop.CanWrite)
-                {
-                    prop.SetValue(WebView, _isMuted);
-                    System.Diagnostics.Debug.WriteLine($"[TabWorker] Audio muted via WebView property: {_isMuted}");
-                    return;
-                }
-
-                var cefBrowser = t.GetProperty("Browser")?.GetValue(WebView)
-                              ?? t.GetProperty("CefBrowser")?.GetValue(WebView)
-                              ?? t.GetMethod("GetBrowser")?.Invoke(WebView, Array.Empty<object>())
-                              ?? t.GetField("Browser", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(WebView);
-                if (cefBrowser != null)
-                {
-                    var host = cefBrowser.GetType().GetProperty("Host")?.GetValue(cefBrowser)
-                              ?? cefBrowser.GetType().GetMethod("GetHost")?.Invoke(cefBrowser, Array.Empty<object>());
-                    if (TrySetAudioMutedOnHost(host, _isMuted)) return;
-                }
-
-                // JavaScript fallback: iterate over media elements
+                // WebViewControl (CefGlue) doesn't expose direct AudioMuted properties
+                // Use JavaScript fallback to control media elements
                 try
                 {
                     var js = _isMuted
                         ? "(function(){try{document.querySelectorAll('video,audio').forEach(m=>{m.muted=true; m.volume=0;});}catch(e){}})();"
                         : "(function(){try{document.querySelectorAll('video,audio').forEach(m=>{m.muted=false; if(m.volume===0) m.volume=1.0;});}catch(e){}})();";
-                    var execMethod = t.GetMethod("ExecuteScript") 
-                        ?? t.GetMethod("EvaluateScript")
-                        ?? t.GetMethod("EvaluateScriptAsync");
-                    if (execMethod != null)
-                    {
-                        _ = execMethod.Invoke(WebView, new object[] { js });
-                        System.Diagnostics.Debug.WriteLine($"[TabWorker] Audio state applied via JavaScript fallback: {_isMuted}");
-                        return;
-                    }
+                    
+                    // Use direct EvaluateScript from WebViewControl (async) with explicit type
+                    await WebView.EvaluateScript<object>(js);
+                    System.Diagnostics.Debug.WriteLine($"[TabWorker] Audio state applied via JavaScript: {_isMuted}");
                 }
                 catch (Exception jsEx)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[TabWorker] JS fallback for mute failed: {jsEx.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[TabWorker] JS mute failed: {jsEx.Message}");
                 }
-
-                System.Diagnostics.Debug.WriteLine("[TabWorker] No host-level mute path found; JS fallback unavailable");
             }
             catch (Exception ex)
             {
@@ -486,51 +361,13 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             }
         }
 
-        private static bool TrySetAudioMutedOnHost(object? host, bool muted)
-        {
-            if (host == null) return false;
-            try
-            {
-                var ht = host.GetType();
-                // Prefer SetAudioMuted method
-                var setAudioMuted = ht.GetMethod("SetAudioMuted") 
-                                   ?? ht.GetMethod("set_AudioMuted")
-                                   ?? ht.GetMethod("SetAudioMuted", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                if (setAudioMuted != null)
-                {
-                    setAudioMuted.Invoke(host, new object[] { muted });
-                    System.Diagnostics.Debug.WriteLine($"[TabWorker] Audio muted via Host.SetAudioMuted: {muted}");
-                    return true;
-                }
-
-                // Try property assignment
-                var audioMutedProp = ht.GetProperty("AudioMuted") 
-                                   ?? ht.GetProperty("IsAudioMuted");
-                if (audioMutedProp != null && audioMutedProp.CanWrite)
-                {
-                    audioMutedProp.SetValue(host, muted);
-                    System.Diagnostics.Debug.WriteLine($"[TabWorker] Audio muted via Host.AudioMuted property: {muted}");
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[TabWorker] Host mute attempt failed: {ex.Message}");
-            }
-            return false;
-        }
-
         private void TryUpdateSubprocessTitle()
         {
             try
             {
-                string siteTitle = null;
-                try
-                {
-                    siteTitle = WebView.GetType().GetProperty("Title")?.GetValue(WebView) as string;
-                }
-                catch { }
-
+                // Direct access to Title property
+                string? siteTitle = WebView.Title;
+                
                 if (string.IsNullOrWhiteSpace(siteTitle))
                 {
                     // Fallback to host from Address

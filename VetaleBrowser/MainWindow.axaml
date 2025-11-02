@@ -81,47 +81,6 @@
         </Style>
     </Window.Styles>
 
-    <Grid x:Name="PART_MainGrid" RowDefinitions="Auto,Auto,*">
-        <!-- Top row: tab bar with window controls -->
-        <Grid x:Name="TabBarRow" Grid.Row="0" Margin="0" Height="42" 
-              Background="{StaticResource GrayGradient}"
-              PointerPressed="TopBar_PointerPressed" DoubleTapped="TopBar_DoubleTapped">
-            <Grid ColumnDefinitions="*,Auto">
-                <!-- left area - tabs -->
-                <StackPanel x:Name="TabsHost" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Top" Margin="8,4,0,0" Spacing="4">
-                    <!-- Add Tab Button (left of tabs) -->
-                    <Button x:Name="PART_AddTabButton" Width="32" Height="32" Margin="0,0,8,0" Background="Transparent" Padding="0" BorderThickness="0" ToolTip.Tip="Нова вкладка">
-                        <Image Source="{DynamicResource AddTabImage}" Stretch="UniformToFill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0"/>
-                    </Button>
-                </StackPanel>
-
-                <!-- window controls on the right -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Classes="window-control" Click="MinimizeWindow" ToolTip.Tip="Minimize" Padding="0">
-                        <Image Source="{DynamicResource MinButtonImage}" Stretch="Uniform"/>
-                    </Button>
-                    <Button Classes="window-control" Click="MaximizeWindow" ToolTip.Tip="Maximize" Padding="0">
-                        <Image Source="{DynamicResource MaxButtonImage}" Stretch="Uniform"/>
-                    </Button>
-                    <Button Classes="window-control close" Click="CloseWindow" ToolTip.Tip="Close" Padding="0" BorderThickness="0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
-                        <Image Source="{DynamicResource CloseButtonImage}" Stretch="UniformToFill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0"/>
-                    </Button>
-                </StackPanel>
-            </Grid>
-        </Grid>
-
-        <!-- Middle row: Navigation Bar -->
-        <Grid x:Name="NavigationBarRow" Grid.Row="1" Background="{StaticResource PurpleGradient}" Height="36">
-            <controls:NavigationBar x:Name="NavigationBar" />
-        </Grid>
-
-        <!-- Bottom row: WebView container -->
-        <Grid Grid.Row="2" Background="#FFFFFF" x:Name="WebViewContainer">
-            <TextBlock Text="Ініціалізація WebView..." 
-                       HorizontalAlignment="Center" 
-                       VerticalAlignment="Center" 
-                       Foreground="#A0A0A0" 
-                       FontSize="16"/>
-        </Grid>
-     </Grid>
+    <!-- Content area: will switch between NormalModePage and FullscreenModePage -->
+    <ContentControl x:Name="PageContainer" />
  </Window>
