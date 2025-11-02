@@ -62,14 +62,23 @@ public class SettingsService : ISettingsService, IDisposable
         await Task.Run(() =>
         {
             var encryptedValue = _encryptionService.EncryptString(url);
-            var setting = new SettingItem
+            var existing = _settingsCollection.FindOne(x => x.Key == "SearchEngineUrl");
+            if (existing != null)
             {
-                Key = "SearchEngineUrl",
-                EncryptedValue = encryptedValue,
-                UpdatedAt = DateTime.UtcNow
-            };
-            
-            _settingsCollection.Upsert(setting);
+                existing.EncryptedValue = encryptedValue;
+                existing.UpdatedAt = DateTime.UtcNow;
+                _settingsCollection.Update(existing);
+            }
+            else
+            {
+                var setting = new SettingItem
+                {
+                    Key = "SearchEngineUrl",
+                    EncryptedValue = encryptedValue,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _settingsCollection.Insert(setting);
+            }
         });
     }
 
@@ -90,14 +99,23 @@ public class SettingsService : ISettingsService, IDisposable
         await Task.Run(() =>
         {
             var encryptedValue = _encryptionService.EncryptString(name);
-            var setting = new SettingItem
+            var existing = _settingsCollection.FindOne(x => x.Key == "SearchEngineName");
+            if (existing != null)
             {
-                Key = "SearchEngineName",
-                EncryptedValue = encryptedValue,
-                UpdatedAt = DateTime.UtcNow
-            };
-            
-            _settingsCollection.Upsert(setting);
+                existing.EncryptedValue = encryptedValue;
+                existing.UpdatedAt = DateTime.UtcNow;
+                _settingsCollection.Update(existing);
+            }
+            else
+            {
+                var setting = new SettingItem
+                {
+                    Key = "SearchEngineName",
+                    EncryptedValue = encryptedValue,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _settingsCollection.Insert(setting);
+            }
         });
     }
 

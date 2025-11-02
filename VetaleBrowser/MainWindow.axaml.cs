@@ -110,7 +110,7 @@ public partial class MainWindow : Window
         
         // Setup add tab button handler
         if (_normalModePage.AddTabBtn != null)
-            _normalModePage.AddTabBtn.Click += (_, __) => CreateNewTab("https://www.google.com");
+            _normalModePage.AddTabBtn.Click += OnAddTabBtnClickAsync; // use selected search engine homepage
         
         // Setup window control buttons
         if (_normalModePage.MinBtn != null)
@@ -153,7 +153,8 @@ public partial class MainWindow : Window
             // Ensure there's at least one tab
             if (_tabs.Active == null)
             {
-                CreateNewTab("https://www.google.com");
+                var home = await GetSearchHomePageAsync();
+                CreateNewTab(home);
             }
 
             // Initialize NavigationBar with the active tab's manager
@@ -213,6 +214,21 @@ public partial class MainWindow : Window
         var worker = _tabs.Create(initialUrl);
         AddTabControlForWorker(worker);
         ActivateWorker(worker);
+    }
+
+    // Open a new tab using the selected search engine homepage
+    private async void OnAddTabBtnClickAsync(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var home = await GetSearchHomePageAsync();
+            CreateNewTab(home);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] OnAddTabBtnClickAsync error: {ex.Message}");
+            CreateNewTab("https://www.google.com");
+        }
     }
 
     private void AddTabControlForWorker(TabWorker worker)
@@ -583,7 +599,12 @@ public partial class MainWindow : Window
         else
         {
             // Ensure at least one tab exists
-            CreateNewTab("https://www.google.com");
+            // Use selected search engine homepage
+            _ = Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                var home = await GetSearchHomePageAsync();
+                CreateNewTab(home);
+            });
         }
     }
 
@@ -916,6 +937,47 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"MainWindow: Failed to navigate active tab: {ex}");
+        }
+    }
+
+    private async Task<string> GetSearchHomePageAsync()
+    {
+        try
+        {
+            // Prefer configured search engine URL template
+            string template = "https://www.google.com/search?q={0}";
+            if (_settingsService != null)
+            {
+                try
+                {
+                    var t = await _settingsService.GetSearchEngineUrlAsync();
+                    if (!string.IsNullOrWhiteSpace(t))
+                        template = t;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] GetSearchHomePageAsync: failed to get template: {ex.Message}");
+                }
+            }
+
+            // Derive homepage from template: take scheme+host root
+            string basePart = template;
+            var qIdx = template.IndexOf('?');
+            if (qIdx >= 0)
+                basePart = template.Substring(0, qIdx);
+
+            if (Uri.TryCreate(basePart, UriKind.Absolute, out var uri))
+            {
+                var home = $"{uri.Scheme}://{uri.Host}/";
+                return home;
+            }
+
+            // Fallback to Google
+            return "https://www.google.com/";
+        }
+        catch
+        {
+            return "https://www.google.com/";
         }
     }
 }

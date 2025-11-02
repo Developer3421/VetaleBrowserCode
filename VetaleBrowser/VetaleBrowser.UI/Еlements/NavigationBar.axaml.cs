@@ -155,7 +155,8 @@ public class NavigationBar : TemplatedControl
     {
         if (_webViewManager != null)
         {
-            await _webViewManager.NavigateAsync("https://www.google.com");
+            var home = await GetSearchHomePageAsync();
+            await _webViewManager.NavigateAsync(home);
             System.Diagnostics.Debug.WriteLine("NavigationBar: Home button clicked");
         }
     }
@@ -230,6 +231,24 @@ public class NavigationBar : TemplatedControl
         return "https://www.google.com/search?q={0}";
     }
 
+    private async System.Threading.Tasks.Task<string> GetSearchHomePageAsync()
+    {
+        try
+        {
+            var template = await GetSearchEngineUrlAsync();
+            string basePart = template;
+            var qIdx = template.IndexOf('?');
+            if (qIdx >= 0)
+                basePart = template.Substring(0, qIdx);
+            if (Uri.TryCreate(basePart, UriKind.Absolute, out var uri))
+            {
+                return $"{uri.Scheme}://{uri.Host}/";
+            }
+        }
+        catch { }
+        return "https://www.google.com/";
+    }
+
     private void UpdateButtonStates()
     {
         if (_backButton != null)
@@ -252,4 +271,3 @@ public class NavigationBar : TemplatedControl
         }
     }
 }
-
