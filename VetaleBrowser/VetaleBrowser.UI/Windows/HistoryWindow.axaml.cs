@@ -19,6 +19,7 @@ public partial class HistoryWindow : Window
     {
         InitializeComponent();
         Loaded += OnLoaded;
+        Closing += OnWindowClosing;
     }
 
     private void InitializeComponent()
@@ -30,6 +31,12 @@ public partial class HistoryWindow : Window
     {
         _contentHost = this.FindControl<ContentControl>("PART_ContentHost");
         ShowHistoryPage();
+    }
+
+    private void OnWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        // Очищаємо ресурси при закритті вікна
+        Cleanup();
     }
 
     public void SetHistoryService(IHistoryDatabaseService historyService)
@@ -84,6 +91,29 @@ public partial class HistoryWindow : Window
     private void CloseWindow(object? sender, RoutedEventArgs e)
     {
         Close();
+    }
+
+    private void Cleanup()
+    {
+        // Відписуємося від подій
+        Loaded -= OnLoaded;
+        Closing -= OnWindowClosing;
+
+        // Очищаємо ContentControl
+        if (_contentHost != null)
+        {
+            _contentHost.Content = null;
+        }
+
+        // Очищаємо HistoryPage
+        if (_historyPage != null)
+        {
+            _historyPage = null;
+        }
+
+        // Очищаємо сервіси
+        _historyService = null;
+        _contentHost = null;
     }
 
     private void OpenMainWindow(object? sender, RoutedEventArgs e)

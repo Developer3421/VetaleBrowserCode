@@ -155,7 +155,7 @@
                           Content="{DynamicResource Console.AutoRefresh}"
                           Margin="10,0,0,0"
                           VerticalAlignment="Center"
-                          IsChecked="True"
+                          IsChecked="False"
                           Checked="OnAutoRefreshChanged"
                           Unchecked="OnAutoRefreshChanged"/>
 

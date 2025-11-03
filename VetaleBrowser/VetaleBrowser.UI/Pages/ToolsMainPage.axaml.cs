@@ -16,6 +16,10 @@ public partial class ToolsMainPage : UserControl
     private readonly IFaviconService? _faviconService;
     private StackPanel? _toolsListPanel;
 
+    // Статичні посилання на вікна для уникнення витоків пам'яті
+    private static Windows.HistoryWindow? _historyWindowInstance;
+    private static Windows.ConsoleWindow? _consoleWindowInstance;
+
     public event EventHandler<ToolNavigationEventArgs>? NavigateInWebView;
     public event EventHandler<string>? NavigateInMainTab;
 
@@ -263,9 +267,35 @@ public partial class ToolsMainPage : UserControl
         
         try
         {
+            // Перевіряємо, чи існує вже відкрите вікно
+            if (_historyWindowInstance != null)
+            {
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Reusing existing HistoryWindow");
+                    _historyWindowInstance.Activate();
+                    _historyWindowInstance.WindowState = WindowState.Normal;
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] ===== Opening History COMPLETE (reused) =====");
+                    return;
+                }
+                catch
+                {
+                    // Вікно закрите, очищаємо посилання
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Previous window was closed, creating new one");
+                    _historyWindowInstance = null;
+                }
+            }
+
             System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Step 1: Creating HistoryWindow instance...");
-            var historyWindow = new Windows.HistoryWindow();
+            _historyWindowInstance = new Windows.HistoryWindow();
             System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Step 1: SUCCESS - HistoryWindow created");
+            
+            // Підписуємося на закриття вікна для очищення посилання
+            _historyWindowInstance.Closed += (s, e) =>
+            {
+                System.Diagnostics.Debug.WriteLine("[ToolsMainPage] HistoryWindow closed, clearing reference");
+                _historyWindowInstance = null;
+            };
             
             System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Step 2: Getting HistoryInstance from DatabaseManager...");
             var historyService = VetaleBrowser.Core.Scripts.GlobalManagers.DatabaseManager.HistoryInstance;
@@ -274,15 +304,16 @@ public partial class ToolsMainPage : UserControl
             if (historyService == null)
             {
                 System.Diagnostics.Debug.WriteLine("[ToolsMainPage] ERROR: HistoryService is null! Cannot open History window.");
+                _historyWindowInstance = null;
                 return;
             }
             
             System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Step 3: Setting HistoryService on window...");
-            historyWindow.SetHistoryService(historyService);
+            _historyWindowInstance.SetHistoryService(historyService);
             System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Step 3: SUCCESS - HistoryService set");
             
             System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Step 4: Showing window...");
-            historyWindow.Show();
+            _historyWindowInstance.Show();
             System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Step 4: SUCCESS - Window shown");
             
             System.Diagnostics.Debug.WriteLine("[ToolsMainPage] ===== Opening History COMPLETE =====");
@@ -371,16 +402,44 @@ public partial class ToolsMainPage : UserControl
         
         try
         {
-            var consoleWindow = new Windows.ConsoleWindow();
+            // Перевіряємо, чи існує вже відкрите вікно
+            if (_consoleWindowInstance != null)
+            {
+                try
+                {
+                    System.Diagnostics.Trace.WriteLine("[ToolsMainPage] Reusing existing ConsoleWindow");
+                    _consoleWindowInstance.Activate();
+                    _consoleWindowInstance.WindowState = WindowState.Normal;
+                    System.Diagnostics.Trace.WriteLine("[ToolsMainPage] Console window reused successfully");
+                    return;
+                }
+                catch
+                {
+                    // Вікно закрите, очищаємо посилання
+                    System.Diagnostics.Trace.WriteLine("[ToolsMainPage] Previous console window was closed, creating new one");
+                    _consoleWindowInstance = null;
+                }
+            }
+
+            _consoleWindowInstance = new Windows.ConsoleWindow();
+            
+            // Підписуємося на закриття вікна для очищення посилання
+            _consoleWindowInstance.Closed += (s, e) =>
+            {
+                System.Diagnostics.Trace.WriteLine("[ToolsMainPage] ConsoleWindow closed, clearing reference");
+                _consoleWindowInstance = null;
+            };
+            
             var consoleService = Core.Scripts.GlobalManagers.DatabaseManager.ConsoleInstance;
-            consoleWindow.SetConsoleService(consoleService);
-            consoleWindow.Show();
+            _consoleWindowInstance.SetConsoleService(consoleService);
+            _consoleWindowInstance.Show();
             
             System.Diagnostics.Trace.WriteLine("[ToolsMainPage] Console window opened successfully");
         }
         catch (Exception ex)
         {
             System.Diagnostics.Trace.WriteLine($"[ToolsMainPage] Error opening console: {ex.Message}");
+            _consoleWindowInstance = null;
         }
     }
 

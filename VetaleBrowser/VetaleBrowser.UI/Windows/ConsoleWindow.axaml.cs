@@ -40,11 +40,27 @@ public partial class ConsoleWindow : Window
 
     public ConsoleWindow()
     {
-        InitializeComponent();
-        InitializeControls();
-        
-        this.Opened += OnWindowOpened;
-        this.Closing += OnWindowClosing;
+        try
+        {
+            System.Diagnostics.Trace.WriteLine("[ConsoleWindow] Constructor started");
+            
+            InitializeComponent();
+            System.Diagnostics.Trace.WriteLine("[ConsoleWindow] InitializeComponent completed");
+            
+            InitializeControls();
+            System.Diagnostics.Trace.WriteLine("[ConsoleWindow] InitializeControls completed");
+            
+            this.Opened += OnWindowOpened;
+            this.Closing += OnWindowClosing;
+            
+            System.Diagnostics.Trace.WriteLine("[ConsoleWindow] Constructor completed successfully");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[ConsoleWindow] Constructor FAILED: {ex.Message}");
+            System.Diagnostics.Trace.WriteLine($"[ConsoleWindow] Stack trace: {ex.StackTrace}");
+            throw;
+        }
     }
 
     private void InitializeComponent()
@@ -54,73 +70,168 @@ public partial class ConsoleWindow : Window
 
     private void InitializeControls()
     {
-        _logItemsControl = this.FindControl<ItemsControl>("LogItemsControl");
-        _logScrollViewer = this.FindControl<ScrollViewer>("LogScrollViewer");
-        _emptyStatePanel = this.FindControl<Panel>("EmptyStatePanel");
-        _searchTextBox = this.FindControl<TextBox>("SearchTextBox");
-        _levelFilterComboBox = this.FindControl<ComboBox>("LevelFilterComboBox");
-        _autoRefreshCheckBox = this.FindControl<CheckBox>("AutoRefreshCheckBox");
-
-        if (_logItemsControl != null)
+        try
         {
-            _logItemsControl.ItemsSource = _logItems;
-        }
+            _logItemsControl = this.FindControl<ItemsControl>("LogItemsControl");
+            _logScrollViewer = this.FindControl<ScrollViewer>("LogScrollViewer");
+            _emptyStatePanel = this.FindControl<Panel>("EmptyStatePanel");
+            _searchTextBox = this.FindControl<TextBox>("SearchTextBox");
+            _levelFilterComboBox = this.FindControl<ComboBox>("LevelFilterComboBox");
+            _autoRefreshCheckBox = this.FindControl<CheckBox>("AutoRefreshCheckBox");
 
-        if (_logScrollViewer != null)
-        {
-            _logScrollViewer.ScrollChanged += (_, e) =>
+            if (_logItemsControl != null)
             {
-                // Disable auto-scroll if user scrolls up
-                if (e.OffsetDelta.Y < 0)
+                _logItemsControl.ItemsSource = _logItems;
+            }
+
+            if (_logScrollViewer != null)
+            {
+                _logScrollViewer.ScrollChanged += (_, e) =>
                 {
-                    _isAutoScrollEnabled = false;
-                }
-            };
+                    // Disable auto-scroll if user scrolls up
+                    if (e.OffsetDelta.Y < 0)
+                    {
+                        _isAutoScrollEnabled = false;
+                    }
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[ConsoleWindow] Error initializing controls: {ex.Message}");
         }
     }
 
     public void SetConsoleService(ConsoleDatabaseService? service)
     {
         _consoleService = service;
-        LoadLogs();
+        // Не викликаємо LoadLogs тут, бо вікно може бути не повністю завантажене
+        // LoadLogs викличеться в OnWindowOpened
     }
 
     private void OnWindowOpened(object? sender, EventArgs e)
     {
-        // Додаємо одноразовий банер ініціалізації та виконуємо перше завантаження
-        _initBannerAdded = false; // гарантуємо додавання саме при відкритті
-        LoadLogs(addInitBannerOnce: true);
-
-        // Start auto-refresh timer
-        if (_autoRefreshCheckBox?.IsChecked == true)
+        try
         {
-            StartAutoRefresh();
+            System.Diagnostics.Trace.WriteLine("[ConsoleWindow] Window opened");
+            
+            // Додаємо одноразовий банер ініціалізації та виконуємо перше завантаження
+            _initBannerAdded = false; // гарантуємо додавання саме при відкритті
+            LoadLogs(addInitBannerOnce: true);
+
+            // Автооновлення тепер керується лише чекбоксом, не запускаємо автоматично
+            
+            System.Diagnostics.Trace.WriteLine("[ConsoleWindow] OnWindowOpened completed");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[ConsoleWindow] OnWindowOpened error: {ex.Message}");
+            System.Diagnostics.Trace.WriteLine($"[ConsoleWindow] Stack trace: {ex.StackTrace}");
         }
     }
 
     private void OnWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
         StopAutoRefresh();
+        Cleanup();
+    }
+
+    private bool _isDisposed = false;
+    
+    private void Cleanup()
+    {
+        if (_isDisposed)
+            return;
+            
+        try
+        {
+            System.Diagnostics.Trace.WriteLine("[ConsoleWindow] Cleanup started");
+            
+            // Очищаємо таймер
+            StopAutoRefresh();
+
+            // Очищаємо колекцію логів
+            _logItems.Clear();
+
+            // Очищаємо сервіс
+            _consoleService = null;
+
+            // Очищаємо посилання на контроли
+            if (_logItemsControl != null)
+            {
+                _logItemsControl.ItemsSource = null;
+                _logItemsControl = null;
+            }
+
+            _logScrollViewer = null;
+            _emptyStatePanel = null;
+            _searchTextBox = null;
+            _levelFilterComboBox = null;
+            _autoRefreshCheckBox = null;
+
+            // Відписуємося від подій
+            this.Opened -= OnWindowOpened;
+            this.Closing -= OnWindowClosing;
+            
+            _isDisposed = true;
+            System.Diagnostics.Trace.WriteLine("[ConsoleWindow] Cleanup completed");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[ConsoleWindow] Cleanup error: {ex.Message}");
+        }
     }
 
     private void StartAutoRefresh()
     {
+        if (_isDisposed) return;
+        
         StopAutoRefresh();
+        
         _autoRefreshTimer = new Timer(_ =>
         {
-            Dispatcher.UIThread.Post(() => LoadLogs(true));
+            // Перевіряємо чи не disposed вікно перед викликом
+            if (!_isDisposed && _consoleService != null)
+            {
+                try
+                {
+                    Dispatcher.UIThread.Post(() => 
+                    {
+                        if (!_isDisposed)
+                        {
+                            LoadLogs(true);
+                        }
+                    });
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[ConsoleWindow] Auto-refresh error: {ex.Message}");
+                }
+            }
         }, null, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(2));
     }
 
     private void StopAutoRefresh()
     {
-        _autoRefreshTimer?.Dispose();
-        _autoRefreshTimer = null;
+        try
+        {
+            if (_autoRefreshTimer != null)
+            {
+                System.Diagnostics.Trace.WriteLine("[ConsoleWindow] Stopping auto-refresh timer");
+                _autoRefreshTimer.Dispose();
+                _autoRefreshTimer = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[ConsoleWindow] Error stopping auto-refresh: {ex.Message}");
+        }
     }
 
     private void LoadLogs(bool isAutoRefresh = false, bool addInitBannerOnce = false)
     {
-        if (_consoleService == null) return;
+        // Захист від виклику після закриття вікна
+        if (_isDisposed || _consoleService == null) return;
 
         try
         {
@@ -136,6 +247,13 @@ public partial class ConsoleWindow : Window
             else
             {
                 logs = _consoleService.GetLogs(level: selectedLevel);
+            }
+
+            // Обмежуємо кількість логів для запобігання витоку пам'яті
+            var maxLogs = 1000; // максимум 1000 логів
+            if (logs.Count > maxLogs)
+            {
+                logs = logs.Skip(logs.Count - maxLogs).ToList();
             }
 
             var viewModels = logs.Select(log => new ConsoleLogViewModel
@@ -203,18 +321,22 @@ public partial class ConsoleWindow : Window
 
     private void OnSearchKeyUp(object? sender, KeyEventArgs e)
     {
+        if (_isDisposed) return;
         LoadLogs();
         _isAutoScrollEnabled = true;
     }
 
     private void OnLevelFilterChanged(object? sender, SelectionChangedEventArgs e)
     {
+        if (_isDisposed) return;
         LoadLogs();
         _isAutoScrollEnabled = true;
     }
 
     private void OnAutoRefreshChanged(object? sender, RoutedEventArgs e)
     {
+        if (_isDisposed) return;
+        
         if (_autoRefreshCheckBox?.IsChecked == true)
         {
             StartAutoRefresh();
@@ -227,6 +349,8 @@ public partial class ConsoleWindow : Window
 
     private void OnRefreshClick(object? sender, RoutedEventArgs e)
     {
+        if (_isDisposed) return;
+        
         LoadLogs();
         _isAutoScrollEnabled = true;
         if (_logScrollViewer != null)
