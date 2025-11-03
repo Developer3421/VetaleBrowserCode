@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="using:VetaleBrowser.VetaleBrowser.UI.Еlements"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
-             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.NormalModePage">
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.NormalModePage"
+             Background="#FF9800">
 
     <UserControl.Resources>
         <!-- Футуристичний сірий градієнт -->

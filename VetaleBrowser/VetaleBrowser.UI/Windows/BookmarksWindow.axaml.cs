@@ -102,9 +102,7 @@ public partial class BookmarksWindow : Window
 
     private void TopBar_DoubleTapped(object? sender, TappedEventArgs e)
     {
-        WindowState = WindowState == WindowState.Maximized 
-            ? WindowState.Normal 
-            : WindowState.Maximized;
+        // Maximize disabled for secondary windows
     }
 
     private void MinimizeWindow(object? sender, RoutedEventArgs e)

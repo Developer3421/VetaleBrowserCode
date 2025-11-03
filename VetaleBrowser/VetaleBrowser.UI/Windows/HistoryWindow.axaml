@@ -54,12 +54,24 @@
             <Setter Property="Background" Value="#40FF5C5C"/>
             <Setter Property="Foreground" Value="#FF000000"/>
         </Style>
+        
+        <!-- Зелені відтінки для всіх кнопок -->
+        <Style Selector="Button:not(.window-control)">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button:not(.window-control):pointerover">
+            <Setter Property="Background" Value="#66BB6A"/>
+        </Style>
+        <Style Selector="Button:not(.window-control):pressed">
+            <Setter Property="Background" Value="#43A047"/>
+        </Style>
     </Window.Styles>
 
     <Grid RowDefinitions="Auto,*">
         <!-- Top bar -->
         <Grid Grid.Row="0" Height="42" Background="{StaticResource GrayGradient}" PointerPressed="TopBar_PointerPressed" DoubleTapped="TopBar_DoubleTapped">
-            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" VerticalAlignment="Center">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" VerticalAlignment="Center">
                 <!-- Left: history icon -->
                 <TextBlock Grid.Column="0" Text="📜" FontSize="24" Margin="8,0,6,0" VerticalAlignment="Center"/>
 
@@ -75,10 +87,7 @@
                 <Button Grid.Column="3" Classes="window-control" Click="MinimizeWindow" ToolTip.Tip="{DynamicResource Window.Minimize}" Padding="0">
                     <Image Source="{DynamicResource MinButtonImage}" Stretch="Uniform"/>
                 </Button>
-                <Button Grid.Column="4" Classes="window-control" Click="MaximizeWindow" ToolTip.Tip="{DynamicResource Window.Maximize}" Padding="0">
-                    <Image Source="{DynamicResource MaxButtonImage}" Stretch="Uniform"/>
-                </Button>
-                <Button Grid.Column="5" Classes="window-control close" Click="CloseWindow" ToolTip.Tip="{DynamicResource Window.Close}" Padding="0" BorderThickness="0">
+                <Button Grid.Column="4" Classes="window-control close" Click="CloseWindow" ToolTip.Tip="{DynamicResource Window.Close}" Padding="0" BorderThickness="0">
                     <Image Source="{DynamicResource CloseButtonImage}" Stretch="UniformToFill"/>
                 </Button>
             </Grid>

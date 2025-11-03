@@ -446,7 +446,7 @@ public partial class ConsoleWindow : Window
 
     private void TopBar_DoubleTapped(object? sender, RoutedEventArgs e)
     {
-        MaximizeWindow(sender, e);
+        // Maximize disabled for secondary windows
     }
 
     // Helper: build a line string from a VM

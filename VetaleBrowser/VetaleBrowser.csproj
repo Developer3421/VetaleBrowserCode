@@ -16,9 +16,14 @@
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <DebugType>none</DebugType>
         <DebugSymbols>false</DebugSymbols>
-   
-        <PublishTrimmed>false</PublishTrimmed>
+
         <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+        <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+        <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+        
+        <!-- Exclude all PDB files from publish -->
+        <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
+        <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
     </PropertyGroup>
 
     <ItemGroup>
@@ -51,4 +56,21 @@
       <!-- Removed explicit localization dictionaries include to avoid duplicate assets -->
       <!-- <AvaloniaResource Include="VetaleBrowser.UI\TranslationsDictionaries\*.axaml" /> -->
     </ItemGroup>
+
+    <!-- Exclude PDB files from publish -->
+    <ItemGroup Condition="'$(Configuration)' == 'Release'">
+      <Content Remove="**\*.pdb" />
+      <None Remove="**\*.pdb" />
+    </ItemGroup>
+
+    <!-- Remove CefGlueBrowserProcess folder and PDB files after publish -->
+    <Target Name="CleanupAfterPublish" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">
+      <ItemGroup>
+        <PdbFiles Include="$(PublishDir)**\*.pdb" />
+        <CefGlueFolder Include="$(PublishDir)CefGlueBrowserProcess\" />
+      </ItemGroup>
+      <Delete Files="@(PdbFiles)" />
+      <RemoveDir Directories="@(CefGlueFolder)" Condition="Exists('$(PublishDir)CefGlueBrowserProcess\')" />
+      <Message Text="Cleaned up PDB files and CefGlueBrowserProcess folder from publish output" Importance="high" />
+    </Target>
 </Project>

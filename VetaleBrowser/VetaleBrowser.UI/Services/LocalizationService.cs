@@ -23,7 +23,8 @@ public static class LocalizationService
         new("en", "English"),
         new("uk", "Українська"),
         new("de", "Deutsch"),
-        new("ru", "Русский")
+        new("ru", "Русский"),
+        new("tr", "Türkçe")
     };
 
     public static string CurrentLanguageCode { get; private set; } = "en";
@@ -90,4 +91,3 @@ public static class LocalizationService
         }
     }
 }
-

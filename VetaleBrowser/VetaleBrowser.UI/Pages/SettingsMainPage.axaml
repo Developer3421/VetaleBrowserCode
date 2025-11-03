@@ -3,13 +3,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
-             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.SettingsMainPage">
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.SettingsMainPage"
+             Background="#FF9800">
 
     <UserControl.Styles>
         <Style Selector="Button.settings-button">
-            <Setter Property="Background" Value="#F5F5F5"/>
-            <Setter Property="BorderBrush" Value="#CCCCCC"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="#66BB6A"/>
+            <Setter Property="BorderBrush" Value="#4CAF50"/>
+            <Setter Property="BorderThickness" Value="2"/>
             <Setter Property="Padding" Value="20,15"/>
             <Setter Property="Margin" Value="0,0,0,15"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
@@ -19,11 +20,12 @@
             <Setter Property="CornerRadius" Value="4"/>
         </Style>
         <Style Selector="Button.settings-button:pointerover">
-            <Setter Property="Background" Value="#E8E8E8"/>
-            <Setter Property="BorderBrush" Value="#9A1CE8"/>
+            <Setter Property="Background" Value="#81C784"/>
+            <Setter Property="BorderBrush" Value="#66BB6A"/>
         </Style>
         <Style Selector="Button.settings-button:pressed">
-            <Setter Property="Background" Value="#D0D0D0"/>
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="BorderBrush" Value="#388E3C"/>
         </Style>
     </UserControl.Styles>
 

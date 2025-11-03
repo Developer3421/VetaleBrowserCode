@@ -75,43 +75,87 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
         public TabWorker()
         {
-            // Start dedicated subprocess for this tab (created via the OS) and track its PID
-            _subprocess = new TabSubprocessService(Id);
-            if (_subprocess.ProcessId.HasValue)
+            try
             {
-                _relatedPids.Add(_subprocess.ProcessId.Value);
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Constructor started");
+                
+                // Start dedicated subprocess for this tab (created via the OS) and track its PID
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Creating subprocess service...");
+                _subprocess = new TabSubprocessService(Id);
+                if (_subprocess.ProcessId.HasValue)
+                {
+                    _relatedPids.Add(_subprocess.ProcessId.Value);
+                    System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Subprocess PID: {_subprocess.ProcessId.Value}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Subprocess has no PID");
+                }
+
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Creating WebView...");
+                WebView = new WebView
+                {
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch,
+                };
+                
+                if (WebView == null)
+                {
+                    throw new InvalidOperationException("WebView creation returned null");
+                }
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] WebView created successfully");
+
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Creating WebViewManager...");
+                Manager = new GlobalManagers.WebViewManager();
+                if (Manager == null)
+                {
+                    throw new InvalidOperationException("WebViewManager creation returned null");
+                }
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] WebViewManager created");
+                
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Initializing Manager...");
+                Manager.Initialize(WebView);
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Manager initialized");
+
+                // Forward manager-initiated navigations to Address property
+                Manager.Navigated += (_, url) => Address = url;
+
+                // Observe WebView property changes to keep state up-to-date
+                WebView.PropertyChanged += WebViewOnPropertyChanged;
+
+                // Initialize subprocess title
+                TryUpdateSubprocessTitle();
+                
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Setting up fullscreen events...");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] ERROR in constructor (before hooks): {ex}");
+                throw;
             }
 
-            WebView = new WebView
+            try
             {
-                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch,
-            };
+                // Try to hook fullscreen events via reflection
+                TryHookFullscreenEvents();
 
-            Manager = new GlobalManagers.WebViewManager();
-            Manager.Initialize(WebView);
+                // Also inject client-side navigation guards to keep navigation in-tab
+                InjectNavigationGuards();
 
-            // Forward manager-initiated navigations to Address property
-            Manager.Navigated += (_, url) => Address = url;
+                // Start polling for fullscreen changes as a robust fallback
+                _fullscreenPollTimer.Tick += (_, __) => PollFullscreenAsync();
+                _fullscreenPollTimer.Start();
 
-            // Observe WebView property changes to keep state up-to-date
-            WebView.PropertyChanged += WebViewOnPropertyChanged;
-
-            // Initialize subprocess title
-            TryUpdateSubprocessTitle();
-
-            // Try to hook fullscreen events via reflection
-            TryHookFullscreenEvents();
-
-            // Also inject client-side navigation guards to keep navigation in-tab
-            InjectNavigationGuards();
-
-            // Start polling for fullscreen changes as a robust fallback
-            _fullscreenPollTimer.Tick += (_, __) => PollFullscreenAsync();
-            _fullscreenPollTimer.Start();
-
-            // Periodically refresh related PIDs shortly after navigation/content changes
-            _pidRefreshTimer.Tick += (_, __) => RefreshRelatedProcessesBestEffort();
+                // Periodically refresh related PIDs shortly after navigation/content changes
+                _pidRefreshTimer.Tick += (_, __) => RefreshRelatedProcessesBestEffort();
+                
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Constructor completed successfully");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] ERROR in constructor (hooks): {ex}");
+                // Continue - these are non-critical features
+            }
         }
 
         private void WebViewOnPropertyChanged(object? sender, Avalonia.AvaloniaPropertyChangedEventArgs e)

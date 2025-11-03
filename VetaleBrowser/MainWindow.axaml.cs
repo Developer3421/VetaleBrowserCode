@@ -24,7 +24,7 @@ namespace VetaleBrowser;
 
 public partial class MainWindow : Window
 {
-    private readonly WindowManager _windowManager;
+    private readonly WindowManager? _windowManager;
     private readonly IFaviconService _faviconService = new FaviconService();
     private ISettingsService? _settingsService;
     private IAppearanceSettingsService? _appearanceSettingsService;
@@ -53,12 +53,50 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
-        InitializeComponent();
-        _windowManager = new WindowManager(this);
+        try
+        {
+            InitializeComponent();
+            System.Diagnostics.Debug.WriteLine("[MainWindow] InitializeComponent completed");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] CRITICAL: InitializeComponent failed: {ex}");
+            throw; // Can't continue without UI
+        }
+
+        try
+        {
+            _windowManager = new WindowManager(this);
+            System.Diagnostics.Debug.WriteLine("[MainWindow] WindowManager initialized");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] WindowManager initialization failed: {ex.Message}");
+            // Continue - not critical
+        }
         
         // Initialize settings service
-        InitializeSettingsService();
-        InitializeAppearanceSettingsService();
+        try
+        {
+            InitializeSettingsService();
+            System.Diagnostics.Debug.WriteLine("[MainWindow] Settings service initialized");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Settings service initialization failed: {ex.Message}");
+            // Continue - not critical for startup
+        }
+
+        try
+        {
+            InitializeAppearanceSettingsService();
+            System.Diagnostics.Debug.WriteLine("[MainWindow] Appearance settings service initialized");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Appearance settings initialization failed: {ex.Message}");
+            // Continue - not critical for startup
+        }
 
         // Initialize after the window is loaded
         this.Loaded += OnWindowLoaded;
@@ -99,41 +137,134 @@ public partial class MainWindow : Window
                 System.Diagnostics.Debug.WriteLine($"[MainWindow] Poll tick error: {ex.Message}");
             }
         };
+
+        System.Diagnostics.Debug.WriteLine("[MainWindow] Constructor completed successfully");
     }
 
     private void InitializeComponent()
     {
-        AvaloniaXamlLoader.Load(this);
-        
-        _pageContainer = this.FindControl<ContentControl>("PageContainer");
-        
-        // Create pages
-        _normalModePage = new NormalModePage();
-        _fullscreenModePage = new FullscreenModePage();
-        
-        // Start with normal mode
-        _pageContainer!.Content = _normalModePage;
-        
-        // Setup add tab button handler
-        if (_normalModePage.AddTabBtn != null)
-            _normalModePage.AddTabBtn.Click += OnAddTabBtnClickAsync; // use selected search engine homepage
-        
-        // Setup window control buttons
-        if (_normalModePage.MinBtn != null)
-            _normalModePage.MinBtn.Click += MinimizeWindow;
-        if (_normalModePage.MaxBtn != null)
-            _normalModePage.MaxBtn.Click += MaximizeWindow;
-        if (_normalModePage.ClsBtn != null)
-            _normalModePage.ClsBtn.Click += CloseWindow;
-        
-        // Setup drag for TabBarRow
-        if (_normalModePage.TabBar != null)
+        try
         {
-            _normalModePage.TabBar.PointerPressed += TopBar_PointerPressed;
-            _normalModePage.TabBar.DoubleTapped += TopBar_DoubleTapped;
+            System.Diagnostics.Debug.WriteLine("[MainWindow] InitializeComponent: Loading XAML...");
+            AvaloniaXamlLoader.Load(this);
+            System.Diagnostics.Debug.WriteLine("[MainWindow] InitializeComponent: XAML loaded");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] CRITICAL: AvaloniaXamlLoader.Load failed: {ex}");
+            throw;
         }
         
-        System.Diagnostics.Debug.WriteLine($"[MainWindow] InitializeComponent: Pages created and container set");
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("[MainWindow] InitializeComponent: Finding PageContainer...");
+            _pageContainer = this.FindControl<ContentControl>("PageContainer");
+            if (_pageContainer == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] ERROR: PageContainer not found!");
+                throw new InvalidOperationException("PageContainer control not found in XAML");
+            }
+            System.Diagnostics.Debug.WriteLine("[MainWindow] InitializeComponent: PageContainer found");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] ERROR finding PageContainer: {ex.Message}");
+            throw;
+        }
+        
+        try
+        {
+            // Create pages
+            System.Diagnostics.Debug.WriteLine("[MainWindow] InitializeComponent: Creating NormalModePage...");
+            _normalModePage = new NormalModePage();
+            System.Diagnostics.Debug.WriteLine("[MainWindow] InitializeComponent: NormalModePage created");
+            
+            System.Diagnostics.Debug.WriteLine("[MainWindow] InitializeComponent: Creating FullscreenModePage...");
+            _fullscreenModePage = new FullscreenModePage();
+            System.Diagnostics.Debug.WriteLine("[MainWindow] InitializeComponent: FullscreenModePage created");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] ERROR creating pages: {ex}");
+            throw;
+        }
+        
+        try
+        {
+            // Start with normal mode
+            System.Diagnostics.Debug.WriteLine("[MainWindow] InitializeComponent: Setting PageContainer content...");
+            _pageContainer.Content = _normalModePage;
+            System.Diagnostics.Debug.WriteLine("[MainWindow] InitializeComponent: PageContainer content set");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] ERROR setting PageContainer content: {ex}");
+            throw;
+        }
+        
+        try
+        {
+            // Setup add tab button handler
+            if (_normalModePage.AddTabBtn != null)
+            {
+                _normalModePage.AddTabBtn.Click += OnAddTabBtnClickAsync;
+                System.Diagnostics.Debug.WriteLine("[MainWindow] InitializeComponent: AddTabBtn handler attached");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] WARNING: AddTabBtn is null");
+            }
+            
+            // Setup window control buttons
+            if (_normalModePage.MinBtn != null)
+            {
+                _normalModePage.MinBtn.Click += MinimizeWindow;
+                System.Diagnostics.Debug.WriteLine("[MainWindow] InitializeComponent: MinBtn handler attached");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] WARNING: MinBtn is null");
+            }
+            
+            if (_normalModePage.MaxBtn != null)
+            {
+                _normalModePage.MaxBtn.Click += MaximizeWindow;
+                System.Diagnostics.Debug.WriteLine("[MainWindow] InitializeComponent: MaxBtn handler attached");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] WARNING: MaxBtn is null");
+            }
+            
+            if (_normalModePage.ClsBtn != null)
+            {
+                _normalModePage.ClsBtn.Click += CloseWindow;
+                System.Diagnostics.Debug.WriteLine("[MainWindow] InitializeComponent: ClsBtn handler attached");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] WARNING: ClsBtn is null");
+            }
+            
+            // Setup drag for TabBarRow
+            if (_normalModePage.TabBar != null)
+            {
+                _normalModePage.TabBar.PointerPressed += TopBar_PointerPressed;
+                _normalModePage.TabBar.DoubleTapped += TopBar_DoubleTapped;
+                System.Diagnostics.Debug.WriteLine("[MainWindow] InitializeComponent: TabBar handlers attached");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] WARNING: TabBar is null");
+            }
+            
+            System.Diagnostics.Debug.WriteLine("[MainWindow] InitializeComponent: Completed successfully");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] ERROR setting up event handlers: {ex.Message}");
+            // Non-critical, continue
+        }
     }
 
     private void InitializeSettingsService()
@@ -176,43 +307,85 @@ public partial class MainWindow : Window
             // Ensure there's at least one tab
             if (_tabs.Active == null)
             {
-                var home = await GetSearchHomePageAsync();
-                CreateNewTab(home);
+                try
+                {
+                    var home = await GetSearchHomePageAsync();
+                    CreateNewTab(home);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"MainWindow: Failed to create initial tab: {ex.Message}");
+                    // Fallback to Google if settings fail
+                    CreateNewTab("https://www.google.com");
+                }
             }
 
             // Initialize NavigationBar with the active tab's manager
-            var navigationBar = _normalModePage?.NavBar;
-            if (navigationBar != null && _tabs.Active != null)
+            try
             {
-                navigationBar.Initialize(_tabs.Active.Manager);
-                
-                // Set settings service for search engine configuration
-                if (_settingsService != null)
+                var navigationBar = _normalModePage?.NavBar;
+                if (navigationBar != null && _tabs.Active != null)
                 {
-                    navigationBar.SetSettingsService(_settingsService);
+                    navigationBar.Initialize(_tabs.Active.Manager);
+                    
+                    // Set settings service for search engine configuration
+                    if (_settingsService != null)
+                    {
+                        navigationBar.SetSettingsService(_settingsService);
+                    }
+
+                    // Subscribe only to events that need external handling
+                    navigationBar.BookmarkRequested += OnBookmarkRequested;
+                    navigationBar.ToolsRequested += OnToolsRequested;
+                    navigationBar.SettingsRequested += OnSettingsRequested;
+
+                    System.Diagnostics.Debug.WriteLine("MainWindow: NavigationBar initialized");
                 }
-
-                // Subscribe only to events that need external handling
-                navigationBar.BookmarkRequested += OnBookmarkRequested;
-                navigationBar.ToolsRequested += OnToolsRequested;
-                navigationBar.SettingsRequested += OnSettingsRequested;
-
-                System.Diagnostics.Debug.WriteLine("MainWindow: NavigationBar initialized");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"MainWindow: NavigationBar initialization failed: {ex.Message}");
             }
 
             // Apply appearance settings at startup
-            await ApplyAppearanceSettingsFromStoreAsync();
+            try
+            {
+                await ApplyAppearanceSettingsFromStoreAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"MainWindow: Failed to apply appearance settings: {ex.Message}");
+            }
 
             // Start favicon/title polling
-            _faviconPollTimer.Start();
+            try
+            {
+                _faviconPollTimer.Start();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"MainWindow: Failed to start poll timer: {ex.Message}");
+            }
 
-            // Navigate default handled per tab creation
-            await Task.CompletedTask;
+            System.Diagnostics.Debug.WriteLine("MainWindow: OnWindowLoaded completed successfully");
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainWindow: Error initializing: {ex}");
-            ShowErrorInWebViewContainer($"Помилка ініціалізації: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"MainWindow: Error in OnWindowLoaded: {ex}");
+            
+            // Last resort - ensure at least basic functionality
+            try
+            {
+                if (_tabs.Active == null)
+                {
+                    CreateNewTab("https://www.google.com");
+                }
+            }
+            catch (Exception innerEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"MainWindow: CRITICAL - Could not create fallback tab: {innerEx.Message}");
+                ShowErrorInWebViewContainer($"Помилка ініціалізації: {ex.Message}\n\nБудь ласка, перезапустіть додаток.");
+            }
         }
     }
 
@@ -841,23 +1014,23 @@ public partial class MainWindow : Window
 
     private void MinimizeWindow(object? sender, RoutedEventArgs e)
     {
-        _windowManager.Minimize();
+        _windowManager?.Minimize();
     }
 
     private void MaximizeWindow(object? sender, RoutedEventArgs e)
     {
-        _windowManager.ToggleMaximize();
+        _windowManager?.ToggleMaximize();
     }
 
     private void CloseWindow(object? sender, RoutedEventArgs e)
     {
-        _windowManager.Close();
+        _windowManager?.Close();
     }
 
     // Подвійний клік по верхній панелі -> максимізувати/відновити
     private void TopBar_DoubleTapped(object? sender, RoutedEventArgs e)
     {
-        _windowManager.OnTopBarDoubleTapped(sender, e);
+        _windowManager?.OnTopBarDoubleTapped(sender, e);
     }
 
     // Перетягування вікна при натисканні на верхню панель
@@ -865,7 +1038,7 @@ public partial class MainWindow : Window
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            _windowManager.TryBeginMoveDrag(e);
+            _windowManager?.TryBeginMoveDrag(e);
         }
     }
 

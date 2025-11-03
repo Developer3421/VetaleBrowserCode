@@ -210,7 +210,7 @@ public partial class ToolsWindow : Window
 
     private void TopBar_DoubleTapped(object? sender, RoutedEventArgs e)
     {
-        MaximizeWindow(sender, e);
+        // Maximize disabled for secondary windows
     }
 
     private void OpenMainWindow(object? sender, RoutedEventArgs e)

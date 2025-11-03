@@ -3,7 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
-             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.ToolsMainPage">
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.ToolsMainPage"
+             Background="#FF9800">
 
     <UserControl.Styles>
         <Style Selector="Border.tool-item">
@@ -16,19 +17,19 @@
         </Style>
         <Style Selector="Border.tool-item:pointerover">
             <Setter Property="Background" Value="#F0F0F0"/>
-            <Setter Property="BorderBrush" Value="#9A1CE8"/>
+            <Setter Property="BorderBrush" Value="#4CAF50"/>
         </Style>
         <Style Selector="Button.nav-button">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderBrush" Value="#9A1CE8"/>
+            <Setter Property="BorderBrush" Value="#4CAF50"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="4"/>
             <Setter Property="Padding" Value="10,6"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Foreground" Value="#9A1CE8"/>
+            <Setter Property="Foreground" Value="#4CAF50"/>
         </Style>
         <Style Selector="Button.nav-button:pointerover">
-            <Setter Property="Background" Value="#9A1CE8"/>
+            <Setter Property="Background" Value="#4CAF50"/>
             <Setter Property="Foreground" Value="White"/>
         </Style>
     </UserControl.Styles>

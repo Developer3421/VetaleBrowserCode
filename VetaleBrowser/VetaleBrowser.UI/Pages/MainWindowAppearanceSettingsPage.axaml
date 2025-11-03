@@ -3,7 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
-             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.MainWindowAppearanceSettingsPage">
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.MainWindowAppearanceSettingsPage"
+             Background="#FF9800">
 
     <UserControl.Styles>
         <Style Selector="Button.back-button">
@@ -30,9 +31,10 @@
             <Setter Property="BorderThickness" Value="2"/>
         </Style>
         <Style Selector="Button.save-button">
-            <Setter Property="Background" Value="#9A1CE8"/>
+            <Setter Property="Background" Value="#2E7D32"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="#1B5E20"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="20,10"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
@@ -40,12 +42,23 @@
             <Setter Property="CornerRadius" Value="4"/>
         </Style>
         <Style Selector="Button.save-button:pointerover">
-            <Setter Property="Background" Value="#8812D0"/>
+            <Setter Property="Background" Value="#388E3C"/>
+            <Setter Property="BorderBrush" Value="#2E7D32"/>
+        </Style>
+        <Style Selector="Button.save-button:pressed">
+            <Setter Property="Background" Value="#1B5E20"/>
         </Style>
         <Style Selector="TextBlock.setting-label">
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="0,0,10,0"/>
+        </Style>
+        
+        <!-- Оранжевий фон для панелі кнопок -->
+        <Style Selector="Border.button-panel">
+            <Setter Property="Background" Value="#FF9800"/>
+            <Setter Property="BorderBrush" Value="#F57C00"/>
+            <Setter Property="BorderThickness" Value="0,1,0,0"/>
         </Style>
     </UserControl.Styles>
 
@@ -199,32 +212,41 @@
         </ScrollViewer>
 
         <!-- Action Buttons -->
-        <StackPanel Grid.Row="2" 
-                    Orientation="Horizontal" 
-                    HorizontalAlignment="Right" 
-                    Spacing="10"
-                    Margin="0,20,0,0">
-            <Button Name="ResetButton"
-                    Background="#FF6B6B"
-                    Foreground="White"
-                    BorderThickness="0"
-                    Padding="20,10"
-                    FontSize="14"
-                    Cursor="Hand"
-                    CornerRadius="4"
-                    Click="OnResetClick">
-                <Button.Styles>
-                    <Style Selector="Button:pointerover">
-                        <Setter Property="Background" Value="#FF4757"/>
-                    </Style>
-                </Button.Styles>
-                {DynamicResource Common.ResetDefaults}
-            </Button>
-            <Button Name="SaveButton"
-                    Classes="save-button"
-                    Click="OnSaveClick">
-                {DynamicResource Appearance.SaveSettings}
-            </Button>
-        </StackPanel>
+        <Border Grid.Row="2" 
+                Classes="button-panel"
+                Padding="15,12"
+                Margin="0,20,0,0">
+            <StackPanel Orientation="Horizontal" 
+                        HorizontalAlignment="Right" 
+                        Spacing="10">
+                <Button Name="ResetButton"
+                        Background="#FF6B6B"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Padding="20,10"
+                        FontSize="14"
+                        Cursor="Hand"
+                        CornerRadius="4"
+                        Click="OnResetClick">
+                    <Button.Styles>
+                        <Style Selector="Button:pointerover">
+                            <Setter Property="Background" Value="#FF4757"/>
+                        </Style>
+                    </Button.Styles>
+                    <!-- Use Content with DynamicResource -->
+                    <Button.Content>
+                        <TextBlock Text="{DynamicResource Common.ResetDefaults}"/>
+                    </Button.Content>
+                </Button>
+                <Button Name="SaveButton"
+                        Classes="save-button"
+                        Click="OnSaveClick">
+                    <!-- Use Content with DynamicResource -->
+                    <Button.Content>
+                        <TextBlock Text="{DynamicResource Appearance.SaveSettings}"/>
+                    </Button.Content>
+                </Button>
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>

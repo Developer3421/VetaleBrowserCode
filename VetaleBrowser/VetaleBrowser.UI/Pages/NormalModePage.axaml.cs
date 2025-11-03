@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using VetaleBrowser.VetaleBrowser.UI.Еlements;
+using System;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
 
@@ -30,22 +31,68 @@ public partial class NormalModePage : UserControl
 
     public NormalModePage()
     {
-        InitializeComponent();
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("[NormalModePage] Constructor called");
+            InitializeComponent();
+            System.Diagnostics.Debug.WriteLine("[NormalModePage] Constructor completed successfully");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[NormalModePage] CRITICAL ERROR in constructor: {ex}");
+            throw;
+        }
     }
 
     private void InitializeComponent()
     {
-        AvaloniaXamlLoader.Load(this);
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("[NormalModePage] InitializeComponent: Loading XAML...");
+            AvaloniaXamlLoader.Load(this);
+            System.Diagnostics.Debug.WriteLine("[NormalModePage] InitializeComponent: XAML loaded");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[NormalModePage] ERROR loading XAML: {ex}");
+            throw;
+        }
         
-        _tabsHost = this.FindControl<StackPanel>("TabsHost");
-        _addTabButton = this.FindControl<Button>("PART_AddTabButton");
-        _webViewContainer = this.FindControl<Grid>("WebViewContainer");
-        _navigationBar = this.FindControl<NavigationBar>("NavigationBar");
-        _navigationBarRow = this.FindControl<Grid>("NavigationBarRow");
-        
-        _minimizeButton = this.FindControl<Button>("MinimizeButton");
-        _maximizeButton = this.FindControl<Button>("MaximizeButton");
-        _closeButton = this.FindControl<Button>("CloseButton");
-        _tabBarRow = this.FindControl<Grid>("TabBarRow");
+        try
+        {
+            _tabsHost = this.FindControl<StackPanel>("TabsHost");
+            System.Diagnostics.Debug.WriteLine($"[NormalModePage] TabsHost: {(_tabsHost != null ? "Found" : "NULL")}");
+            
+            _addTabButton = this.FindControl<Button>("PART_AddTabButton");
+            System.Diagnostics.Debug.WriteLine($"[NormalModePage] AddTabButton: {(_addTabButton != null ? "Found" : "NULL")}");
+            
+            _webViewContainer = this.FindControl<Grid>("WebViewContainer");
+            System.Diagnostics.Debug.WriteLine($"[NormalModePage] WebViewContainer: {(_webViewContainer != null ? "Found" : "NULL")}");
+            
+            _navigationBar = this.FindControl<NavigationBar>("NavigationBar");
+            System.Diagnostics.Debug.WriteLine($"[NormalModePage] NavigationBar: {(_navigationBar != null ? "Found" : "NULL")}");
+            
+            _navigationBarRow = this.FindControl<Grid>("NavigationBarRow");
+            System.Diagnostics.Debug.WriteLine($"[NormalModePage] NavigationBarRow: {(_navigationBarRow != null ? "Found" : "NULL")}");
+            
+            _minimizeButton = this.FindControl<Button>("MinimizeButton");
+            System.Diagnostics.Debug.WriteLine($"[NormalModePage] MinimizeButton: {(_minimizeButton != null ? "Found" : "NULL")}");
+            
+            _maximizeButton = this.FindControl<Button>("MaximizeButton");
+            System.Diagnostics.Debug.WriteLine($"[NormalModePage] MaximizeButton: {(_maximizeButton != null ? "Found" : "NULL")}");
+            
+            _closeButton = this.FindControl<Button>("CloseButton");
+            System.Diagnostics.Debug.WriteLine($"[NormalModePage] CloseButton: {(_closeButton != null ? "Found" : "NULL")}");
+            
+            _tabBarRow = this.FindControl<Grid>("TabBarRow");
+            System.Diagnostics.Debug.WriteLine($"[NormalModePage] TabBarRow: {(_tabBarRow != null ? "Found" : "NULL")}");
+            
+            System.Diagnostics.Debug.WriteLine("[NormalModePage] InitializeComponent completed");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[NormalModePage] ERROR finding controls: {ex.Message}");
+            throw;
+        }
     }
 }

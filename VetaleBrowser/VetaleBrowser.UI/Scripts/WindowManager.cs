@@ -58,7 +58,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Scripts
         }
 
         // Called when top bar is double-tapped
-        public void OnTopBarDoubleTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        public void OnTopBarDoubleTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs? e)
         {
             ToggleMaximize();
         }
@@ -91,16 +91,22 @@ namespace VetaleBrowser.VetaleBrowser.UI.Scripts
         }
 
         // Optional helper if callers want to trigger drag from here (will call Window.BeginMoveDrag if available)
-        public void TryBeginMoveDrag(PointerPressedEventArgs e)
+        public void TryBeginMoveDrag(PointerPressedEventArgs? e)
         {
-            // Avalonia's PointerPressedEventArgs is non-null when this handler is invoked by the UI system
+            if (e == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[WindowManager] TryBeginMoveDrag: PointerPressedEventArgs is null");
+                return;
+            }
+            
             try
             {
                 _window.BeginMoveDrag(e);
             }
-            catch
+            catch (Exception ex)
             {
-                // Some platforms or versions might not allow BeginMoveDrag from here; ignore.
+                // Some platforms or versions might not allow BeginMoveDrag from here
+                System.Diagnostics.Debug.WriteLine($"[WindowManager] BeginMoveDrag failed: {ex.Message}");
             }
         }
 

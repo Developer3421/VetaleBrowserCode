@@ -13,59 +13,85 @@ public partial class App : Application
         AvaloniaXamlLoader.Load(this);
     }
 
-    public override async void OnFrameworkInitializationCompleted()
+    public override void OnFrameworkInitializationCompleted()
     {
-        // Initialize logging
         try
         {
-            VetaleBrowser.Core.Scripts.Services.ConsoleLogger.Initialize();
-            System.Diagnostics.Trace.WriteLine("App: ConsoleLogger initialized successfully");
+            // Initialize logging
+            try
+            {
+                VetaleBrowser.Core.Scripts.Services.ConsoleLogger.Initialize();
+                System.Diagnostics.Trace.WriteLine("App: ConsoleLogger initialized successfully");
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"App: Failed to initialize ConsoleLogger: {ex.Message}");
+            }
+
+            // Initialize database before reading settings
+            try
+            {
+                DatabaseManager.Initialize();
+                System.Diagnostics.Trace.WriteLine("App: Database initialized successfully");
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"App: Failed to initialize database: {ex.Message}");
+            }
+
+            // Apply UI language from settings after DB init (async is safe here but not awaited to avoid blocking startup)
+            try
+            {
+                _ = LocalizationService.InitializeFromSettingsAsync();
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"App: Failed to apply localization: {ex.Message}");
+            }
+
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                // ALWAYS create the main window - critical for startup
+                desktop.MainWindow = new MainWindow();
+                System.Diagnostics.Trace.WriteLine("App: MainWindow created successfully");
+                
+                // Закриваємо базу даних при виході з додатку
+                desktop.ShutdownRequested += (sender, e) =>
+                {
+                    try
+                    {
+                        DatabaseManager.Shutdown();
+                        System.Diagnostics.Trace.WriteLine("App: Database shutdown successfully");
+                    }
+                    catch (System.Exception ex)
+                    {
+                        System.Diagnostics.Trace.WriteLine($"App: Error during database shutdown: {ex.Message}");
+                    }
+                };
+            }
+
+            base.OnFrameworkInitializationCompleted();
         }
         catch (System.Exception ex)
         {
-            System.Diagnostics.Trace.WriteLine($"App: Failed to initialize ConsoleLogger: {ex.Message}");
-        }
-
-        // Initialize database before reading settings
-        try
-        {
-            DatabaseManager.Initialize();
-            System.Diagnostics.Trace.WriteLine("App: Database initialized successfully");
-        }
-        catch (System.Exception ex)
-        {
-            System.Diagnostics.Trace.WriteLine($"App: Failed to initialize database: {ex.Message}");
-        }
-
-        // Apply UI language from settings after DB init
-        try
-        {
-            await LocalizationService.InitializeFromSettingsAsync();
-        }
-        catch (System.Exception ex)
-        {
-            System.Diagnostics.Trace.WriteLine($"App: Failed to apply localization: {ex.Message}");
-        }
-
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            desktop.MainWindow = new MainWindow();
+            // Critical error during initialization - log and try to show main window anyway
+            System.Diagnostics.Trace.WriteLine($"App: CRITICAL ERROR during initialization: {ex}");
             
-            // Закриваємо базу даних при виході з додатку
-            desktop.ShutdownRequested += (sender, e) =>
+            // Last resort - ensure window is created
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow == null)
             {
                 try
                 {
-                    DatabaseManager.Shutdown();
-                    System.Diagnostics.Trace.WriteLine("App: Database shutdown successfully");
+                    desktop.MainWindow = new MainWindow();
                 }
-                catch (System.Exception ex)
+                catch (System.Exception innerEx)
                 {
-                    System.Diagnostics.Trace.WriteLine($"App: Error during database shutdown: {ex.Message}");
+                    System.Diagnostics.Trace.WriteLine($"App: FATAL - Could not create MainWindow: {innerEx}");
+                    throw; // Re-throw if we can't even create the window
                 }
-            };
+            }
+            
+            base.OnFrameworkInitializationCompleted();
         }
-
-        base.OnFrameworkInitializationCompleted();
     }
 }

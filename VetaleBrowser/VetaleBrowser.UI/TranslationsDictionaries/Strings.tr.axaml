@@ -1,0 +1,153 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Turkish translations (tr) -->
+  <x:String x:Key="App.Title">Vetale Tarayıcı</x:String>
+  <x:String x:Key="Settings.Title">Ayarlar — Vetale Tarayıcı</x:String>
+  <x:String x:Key="Tools.Title">Araçlar — Vetale Tarayıcı</x:String>
+  <x:String x:Key="Console.Title">Konsol — Vetale Tarayıcı</x:String>
+  <x:String x:Key="History.Title">Geçmiş — Vetale Tarayıcı</x:String>
+  <x:String x:Key="Bookmarks.Title">Yer İmleri — Vetale Tarayıcı</x:String>
+
+  <!-- Settings main page -->
+  <x:String x:Key="Settings.Header">Ayarlar</x:String>
+  <x:String x:Key="Settings.Language.Title">Dil</x:String>
+  <x:String x:Key="Settings.Language.Sub">Tercih ettiğiniz dili seçin</x:String>
+  <x:String x:Key="Settings.Appearance.Title">Görünüm</x:String>
+  <x:String x:Key="Settings.Appearance.Sub">Görünümü ve stili özelleştirin</x:String>
+  <x:String x:Key="Settings.Search.Title">Arama Motoru</x:String>
+  <x:String x:Key="Settings.Search.Sub">Varsayılan arama motorunuzu seçin</x:String>
+
+  <!-- Window controls tooltips -->
+  <x:String x:Key="Window.Minimize">Küçült</x:String>
+  <x:String x:Key="Window.Maximize">Büyüt</x:String>
+  <x:String x:Key="Window.Close">Kapat</x:String>
+
+  <!-- Language page -->
+  <x:String x:Key="Language.Header">Dil</x:String>
+  <x:String x:Key="Language.SelectPrompt">Arayüz dilini seçin</x:String>
+  <x:String x:Key="Language.RestartHint">Bazı değişiklikler pencereyi yeniden açmayı gerektirebilir</x:String>
+  <x:String x:Key="Common.Save">Kaydet</x:String>
+  <x:String x:Key="Common.Back">Geri</x:String>
+
+  <!-- Navigation -->
+  <x:String x:Key="Nav.Back">Geri</x:String>
+  <x:String x:Key="Nav.Forward">İleri</x:String>
+  <x:String x:Key="Nav.Home">Ana Sayfa</x:String>
+  <x:String x:Key="Nav.AddressBar.Watermark">URL veya arama sorgusu girin…</x:String>
+
+  <!-- Common actions -->
+  <x:String x:Key="Common.Refresh">Yenile</x:String>
+  <x:String x:Key="Common.Clear">Temizle</x:String>
+  <x:String x:Key="Common.ClearAll">Hepsini temizle</x:String>
+  <x:String x:Key="Common.ClearAllLogs">Tüm günlükleri temizle</x:String>
+  <x:String x:Key="Common.Export">Dışa aktar</x:String>
+  <x:String x:Key="Common.CopyAll">Tümünü kopyala</x:String>
+  <x:String x:Key="Common.Open">Aç</x:String>
+  <x:String x:Key="Common.Delete">Sil</x:String>
+  <x:String x:Key="Common.All">Hepsi</x:String>
+  <x:String x:Key="Common.Cancel">İptal</x:String>
+  <x:String x:Key="Common.Yes">Evet</x:String>
+  <x:String x:Key="Common.Loading">Yükleniyor...</x:String>
+  <x:String x:Key="Common.ResetDefaults">Varsayılanlara sıfırla</x:String>
+
+  <!-- Tab -->
+  <x:String x:Key="Tab.Mute.Toggle">Sesi değiştir</x:String>
+
+  <!-- Bookmarks -->
+  <x:String x:Key="Bookmarks.Header">Yer İmleri</x:String>
+  <x:String x:Key="Bookmarks.Add">Yer imi ekle</x:String>
+  <x:String x:Key="Bookmarks.Folder.Default">Yer İmleri</x:String>
+  <x:String x:Key="Bookmarks.Folder.Work">İş</x:String>
+  <x:String x:Key="Bookmarks.Folder.Personal">Kişisel</x:String>
+  <x:String x:Key="Bookmarks.Folder.News">Haberler</x:String>
+
+  <!-- Add Bookmark dialog -->
+  <x:String x:Key="Bookmarks.Add.Header">Yer imlerine ekle</x:String>
+  <x:String x:Key="Bookmarks.Add.Name">Ad:</x:String>
+  <x:String x:Key="Bookmarks.Add.Name.Watermark">Yer imi adı girin</x:String>
+  <x:String x:Key="Bookmarks.Add.Folder">Klasör:</x:String>
+
+  <!-- Tools / Settings button tooltips -->
+  <x:String x:Key="Tools.Button.Tooltip">Araçlar</x:String>
+  <x:String x:Key="Settings.Button.Tooltip">Ayarlar</x:String>
+
+  <!-- Tools page -->
+  <x:String x:Key="Tools.Header">Araçlar</x:String>
+
+  <!-- Appearance page -->
+  <x:String x:Key="Appearance.Header">Görünüm ayarları</x:String>
+  <x:String x:Key="Appearance.Tabs.Title">Sekmeler</x:String>
+  <x:String x:Key="Appearance.Tabs.Sub">Sekme boyutu, renkleri ve öğeleri özelleştirin</x:String>
+  <x:String x:Key="Appearance.MainWindow.Title">Ana pencere</x:String>
+  <x:String x:Key="Appearance.MainWindow.Sub">Gezinme çubuğu, düğmeler ve ana pencereyi yapılandırın</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Title">Diğer pencereler</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Sub">Diğer tarayıcı pencerelerinin görünümü</x:String>
+
+  <x:String x:Key="Appearance.Tabs.Header">Sekme ayarları</x:String>
+  <x:String x:Key="Appearance.Tabs.Width">Sekme genişliği</x:String>
+  <x:String x:Key="Appearance.Tabs.WidthPx">Genişlik (px):</x:String>
+  <x:String x:Key="Appearance.Tabs.ElementsSize">Öğe boyutu</x:String>
+  <x:String x:Key="Appearance.Tabs.TextSizePx">Metin boyutu (px):</x:String>
+  <x:String x:Key="Appearance.Tabs.IconSize">Simge boyutu</x:String>
+  <x:String x:Key="Appearance.Tabs.IconSizePx">Simge boyutu (px):</x:String>
+  <x:String x:Key="Appearance.Tabs.BackgroundColor">Sekme arka plan rengi</x:String>
+  <x:String x:Key="Appearance.Tabs.TextColor">Sekme metin rengi</x:String>
+  <x:String x:Key="Appearance.Tabs.ActiveColor">Aktif sekme rengi</x:String>
+  <x:String x:Key="Appearance.ColorHex">Renk (HEX):</x:String>
+  <x:String x:Key="Appearance.SaveSettings">Ayarları kaydet</x:String>
+
+  <!-- Common -->
+  <x:String x:Key="Common.WidthPx">Genişlik (px):</x:String>
+  <x:String x:Key="Common.HeightPx">Yükseklik (px):</x:String>
+  <x:String x:Key="Common.SizePx">Boyut (px):</x:String>
+  <x:String x:Key="Common.IconSizePx">Simge boyutu (px):</x:String>
+
+  <!-- Appearance Main Window -->
+  <x:String x:Key="Appearance.MainWindow.Header">Ana pencere ayarları</x:String>
+  <x:String x:Key="Appearance.MainWindow.NavBarColor">Gezinme çubuğu rengi</x:String>
+  <x:String x:Key="Appearance.MainWindow.NavBarHeight">Gezinme çubuğu yüksekliği</x:String>
+  <x:String x:Key="Appearance.MainWindow.Width">Ana pencere genişliği</x:String>
+  <x:String x:Key="Appearance.MainWindow.Height">Ana pencere yüksekliği</x:String>
+  <x:String x:Key="Appearance.MainWindow.TopBarBackgroundColor">Üst bar arka plan rengi</x:String>
+  <x:String x:Key="Appearance.MainWindow.ButtonSize">Düğme boyutu</x:String>
+  <x:String x:Key="Appearance.MainWindow.ButtonIconSize">Düğme simge boyutu</x:String>
+
+  <!-- Appearance Other Windows -->
+  <x:String x:Key="Appearance.OtherWindows.Header">Diğer pencere ayarları</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Description">Ayarlar ek pencere türlerine uygulanır</x:String>
+  <x:String x:Key="Appearance.OtherWindows.BackgroundColor">Pencereler arka plan rengi</x:String>
+  <x:String x:Key="Appearance.OtherWindows.BackgroundColor.Sub">Tüm ikincil pencereler için birincil arka plan rengi</x:String>
+  <x:String x:Key="Appearance.OtherWindows.TopBarColor">Üst bar rengi</x:String>
+  <x:String x:Key="Appearance.OtherWindows.TopBarColor.Sub">Başlık ve pencere kontrolünün üst bar rengi</x:String>
+
+  <!-- Search custom -->
+  <x:String x:Key="Search.Custom.Title">Özel</x:String>
+  <x:String x:Key="Search.Custom.Hint">Arama motoru URL'si girin. Sorgu için {0} yer tutucusunu kullanın.</x:String>
+
+  <!-- Tools page - list items -->
+  <x:String x:Key="Tools.VetaleAI.Name">Vetale AI Sohbet</x:String>
+  <x:String x:Key="Tools.VetaleAI.Description">Vetale yapay zekasıyla sohbet</x:String>
+
+  <x:String x:Key="Tools.DuckDuckGoAI.Name">DuckDuckGo AI Sohbet</x:String>
+  <x:String x:Key="Tools.DuckDuckGoAI.Description">DuckDuckGo'dan ücretsiz AI sohbet</x:String>
+
+  <x:String x:Key="Tools.Copilot.Name">Microsoft Copilot</x:String>
+  <x:String x:Key="Tools.Copilot.Description">Microsoft'tan AI asistanı</x:String>
+
+  <x:String x:Key="Tools.Gemini.Name">Google Gemini</x:String>
+  <x:String x:Key="Tools.Gemini.Description">Google'dan AI</x:String>
+
+  <x:String x:Key="Tools.Replika.Name">Replika AI</x:String>
+  <x:String x:Key="Tools.Replika.Description">Sohbet için AI arkadaşı</x:String>
+
+  <x:String x:Key="Tools.DevTools.Name">Vetale DevTools</x:String>
+  <x:String x:Key="Tools.DevTools.Description">Geliştirici araçları</x:String>
+
+  <x:String x:Key="Tools.History.Name">Geçmiş</x:String>
+  <x:String x:Key="Tools.History.Description">Gözatma geçmişi</x:String>
+
+  <x:String x:Key="Tools.Console.Name">Konsol</x:String>
+  <x:String x:Key="Tools.Console.Description">Günlükler ve teşhislerle geliştirici konsolu</x:String>
+
+  <x:String x:Key="Tools.NavigateButton">→ Tarayıcıda aç</x:String>
+</ResourceDictionary>
