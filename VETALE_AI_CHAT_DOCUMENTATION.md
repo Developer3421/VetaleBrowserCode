@@ -91,7 +91,7 @@ Code-behind для вікна з функціями:
 
 ## Інтеграція з Tools
 
-Вікно відкривається через ToolsMenu:
+Вікно відкривається через ToolsWindow:
 1. Користувач відкриває Tools (InstrumensButton)
 2. Клікає на "Vetale AI Chat" 🤖
 3. Вікно відкривається або активується, якщо вже відкрите
@@ -102,9 +102,45 @@ private static Windows.VetaleAIWindow? _vetaleAiWindowInstance;
 
 private void OpenVetaleAIChat()
 {
-    // Створення або активація існуючого вікна
+    try
+    {
+        // Перевіряємо, чи існує вже відкрите вікно
+        if (_vetaleAiWindowInstance != null)
+        {
+            try
+            {
+                _vetaleAiWindowInstance.Activate();
+                _vetaleAiWindowInstance.WindowState = WindowState.Normal;
+                return;
+            }
+            catch
+            {
+                _vetaleAiWindowInstance = null;
+            }
+        }
+
+        // Створення нового вікна
+        _vetaleAiWindowInstance = new Windows.VetaleAIWindow();
+        
+        // Очищення посилання при закритті
+        _vetaleAiWindowInstance.Closed += (s, e) =>
+        {
+            _vetaleAiWindowInstance = null;
+        };
+        
+        _vetaleAiWindowInstance.Show();
+    }
+    catch (Exception ex)
+    {
+        System.Diagnostics.Debug.WriteLine($"ERROR opening VetaleAI: {ex.Message}");
+    }
 }
 ```
+
+**Як працює:**
+- При першому відкритті створюється нове вікно
+- При повторному натисканні активується існуюче вікно
+- Після закриття вікна посилання очищається для економії пам'яті
 
 ## TODO: Інтеграція LlamaSharp
 
@@ -161,7 +197,21 @@ private void InitializeAIModel()
 - ✅ Режим міркування (reasoning)
 - ✅ Стиль в дусі Claude
 - ✅ Інтеграція з існуючою системою вікон
+- ✅ Відкриття через Tools Menu (виправлено)
 - ⏳ LlamaSharp інтеграція (в розробці)
+
+## Історія змін
+
+### 4 листопада 2025 - Початкове створення
+- Створено VetaleAIWindow та VetaleAIChatPage
+- Додано локалізацію (EN/UK)
+- Реалізовано UI в стилі Claude
+- Додано інструменти: Reasoning, Language selector
+
+### 4 листопада 2025 - Виправлення
+- **ВИПРАВЛЕНО:** Метод `OpenVetaleAIChat()` у `ToolsMainPage.axaml.cs` тепер правильно відкриває вікно
+- Вікно коректно викликається з Tools Menu
+- Додано singleton pattern для управління екземпляром вікна
 
 ## Дата створення
 4 листопада 2025
