@@ -8,6 +8,7 @@
   <x:String x:Key="History.Title">Історія переглядів — Vetale Browser</x:String>
   <x:String x:Key="Bookmarks.Title">Закладки — Vetale Browser</x:String>
   <x:String x:Key="DevTools.Title">Інструменти розробника — Vetale Browser</x:String>
+  <x:String x:Key="VetaleAI.Title">Vetale AI Chat — Vetale Browser</x:String>
 
   <!-- Головна сторінка налаштувань -->
   <x:String x:Key="Settings.Header">Налаштування</x:String>
@@ -248,4 +249,30 @@
   <x:String x:Key="DevTools.WebViewWorker.Navigating">Навігація...</x:String>
   <x:String x:Key="DevTools.WebViewWorker.NoUrlToLoad">Немає URL для завантаження з поточної вкладки</x:String>
   <x:String x:Key="DevTools.WebViewWorker.LoadingFromTab">Завантаження URL з поточної вкладки...</x:String>
+
+  <!-- VetaleAI Chat -->
+  <x:String x:Key="VetaleAI.Header">Vetale AI Chat</x:String>
+  <x:String x:Key="VetaleAI.InputPlaceholder">Введіть ваше повідомлення...</x:String>
+  <x:String x:Key="VetaleAI.Send">Надіслати</x:String>
+  <x:String x:Key="VetaleAI.NewChat">Новий чат</x:String>
+  <x:String x:Key="VetaleAI.ClearHistory">Очистити історію</x:String>
+  <x:String x:Key="VetaleAI.Settings">Налаштування</x:String>
+  <x:String x:Key="VetaleAI.EnableReasoning">Увімкнути міркування</x:String>
+  <x:String x:Key="VetaleAI.ResponseLanguage">Мова відповідей</x:String>
+  <x:String x:Key="VetaleAI.Language.Auto">Авто-визначення</x:String>
+  <x:String x:Key="VetaleAI.Language.English">Англійська</x:String>
+  <x:String x:Key="VetaleAI.Language.Ukrainian">Українська</x:String>
+  <x:String x:Key="VetaleAI.Language.Russian">Російська</x:String>
+  <x:String x:Key="VetaleAI.Language.German">Німецька</x:String>
+  <x:String x:Key="VetaleAI.Language.French">Французька</x:String>
+  <x:String x:Key="VetaleAI.Language.Spanish">Іспанська</x:String>
+  <x:String x:Key="VetaleAI.WelcomeMessage">Привіт! Я Vetale AI. Як я можу вам допомогти сьогодні?</x:String>
+  <x:String x:Key="VetaleAI.Thinking">Міркую...</x:String>
+  <x:String x:Key="VetaleAI.User">Ви</x:String>
+  <x:String x:Key="VetaleAI.Assistant">Vetale AI</x:String>
+  <x:String x:Key="VetaleAI.CopyMessage">Копіювати</x:String>
+  <x:String x:Key="VetaleAI.RegenerateResponse">Згенерувати знову</x:String>
+  <x:String x:Key="VetaleAI.ModelLoading">Завантаження AI моделі...</x:String>
+  <x:String x:Key="VetaleAI.ModelLoaded">Модель успішно завантажено</x:String>
+  <x:String x:Key="VetaleAI.ModelError">Помилка завантаження моделі</x:String>
 </ResourceDictionary>

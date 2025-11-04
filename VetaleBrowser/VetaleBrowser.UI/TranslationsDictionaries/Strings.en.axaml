@@ -8,6 +8,7 @@
   <x:String x:Key="History.Title">History — Vetale Browser</x:String>
   <x:String x:Key="Bookmarks.Title">Bookmarks — Vetale Browser</x:String>
   <x:String x:Key="DevTools.Title">Developer Tools — Vetale Browser</x:String>
+  <x:String x:Key="VetaleAI.Title">Vetale AI Chat — Vetale Browser</x:String>
 
   <!-- Settings main page -->
   <x:String x:Key="Settings.Header">Settings</x:String>
@@ -248,4 +249,30 @@
   <x:String x:Key="DevTools.WebViewWorker.Navigating">Navigating...</x:String>
   <x:String x:Key="DevTools.WebViewWorker.NoUrlToLoad">No URL to load from current tab</x:String>
   <x:String x:Key="DevTools.WebViewWorker.LoadingFromTab">Loading URL from current tab...</x:String>
+
+  <!-- VetaleAI Chat -->
+  <x:String x:Key="VetaleAI.Header">Vetale AI Chat</x:String>
+  <x:String x:Key="VetaleAI.InputPlaceholder">Type your message...</x:String>
+  <x:String x:Key="VetaleAI.Send">Send</x:String>
+  <x:String x:Key="VetaleAI.NewChat">New Chat</x:String>
+  <x:String x:Key="VetaleAI.ClearHistory">Clear History</x:String>
+  <x:String x:Key="VetaleAI.Settings">Settings</x:String>
+  <x:String x:Key="VetaleAI.EnableReasoning">Enable Reasoning</x:String>
+  <x:String x:Key="VetaleAI.ResponseLanguage">Response Language</x:String>
+  <x:String x:Key="VetaleAI.Language.Auto">Auto-detect</x:String>
+  <x:String x:Key="VetaleAI.Language.English">English</x:String>
+  <x:String x:Key="VetaleAI.Language.Ukrainian">Ukrainian</x:String>
+  <x:String x:Key="VetaleAI.Language.Russian">Russian</x:String>
+  <x:String x:Key="VetaleAI.Language.German">German</x:String>
+  <x:String x:Key="VetaleAI.Language.French">French</x:String>
+  <x:String x:Key="VetaleAI.Language.Spanish">Spanish</x:String>
+  <x:String x:Key="VetaleAI.WelcomeMessage">Hello! I'm Vetale AI. How can I help you today?</x:String>
+  <x:String x:Key="VetaleAI.Thinking">Thinking...</x:String>
+  <x:String x:Key="VetaleAI.User">You</x:String>
+  <x:String x:Key="VetaleAI.Assistant">Vetale AI</x:String>
+  <x:String x:Key="VetaleAI.CopyMessage">Copy</x:String>
+  <x:String x:Key="VetaleAI.RegenerateResponse">Regenerate</x:String>
+  <x:String x:Key="VetaleAI.ModelLoading">Loading AI model...</x:String>
+  <x:String x:Key="VetaleAI.ModelLoaded">Model loaded successfully</x:String>
+  <x:String x:Key="VetaleAI.ModelError">Error loading model</x:String>
 </ResourceDictionary>

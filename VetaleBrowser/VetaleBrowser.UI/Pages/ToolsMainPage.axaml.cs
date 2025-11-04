@@ -20,6 +20,7 @@ public partial class ToolsMainPage : UserControl
     private static Windows.HistoryWindow? _historyWindowInstance;
     private static Windows.ConsoleWindow? _consoleWindowInstance;
     private static Windows.DevToolsWindow? _devToolsWindowInstance;
+    private static Windows.VetaleAIWindow? _vetaleAiWindowInstance;
 
     public event EventHandler<ToolNavigationEventArgs>? NavigateInWebView;
     public event EventHandler<string>? NavigateInMainTab;
@@ -252,8 +253,46 @@ public partial class ToolsMainPage : UserControl
 
     private void OpenVetaleAIChat()
     {
-        System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Opening Vetale AI Chat...");
-        // TODO: Implement Vetale AI Chat opening
+        try
+        {
+            // Перевіряємо, чи існує вже відкрите вікно
+            if (_vetaleAiWindowInstance != null)
+            {
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Reusing existing VetaleAIWindow");
+                    _vetaleAiWindowInstance.Activate();
+                    _vetaleAiWindowInstance.WindowState = WindowState.Normal;
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] VetaleAI window activated");
+                    return;
+                }
+                catch
+                {
+                    // Вікно закрите, очищаємо посилання
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Previous VetaleAI window was closed, creating new one");
+                    _vetaleAiWindowInstance = null;
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Creating new VetaleAIWindow instance...");
+            _vetaleAiWindowInstance = new Windows.VetaleAIWindow();
+            
+            // Підписуємося на закриття вікна для очищення посилання
+            _vetaleAiWindowInstance.Closed += (s, e) =>
+            {
+                System.Diagnostics.Debug.WriteLine("[ToolsMainPage] VetaleAIWindow closed, clearing reference");
+                _vetaleAiWindowInstance = null;
+            };
+            
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Showing VetaleAI window...");
+            _vetaleAiWindowInstance.Show();
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] VetaleAI window opened successfully");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] ERROR opening VetaleAI: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Stack trace: {ex.StackTrace}");
+        }
     }
 
     private void OpenVetaleDevTools()

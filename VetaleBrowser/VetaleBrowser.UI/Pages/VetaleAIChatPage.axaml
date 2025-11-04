@@ -1,0 +1,230 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.VetaleAIChatPage"
+             Background="White">
+
+    <UserControl.Styles>
+        <!-- Message bubbles -->
+        <Style Selector="Border.message-bubble">
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="Margin" Value="0,8"/>
+            <Setter Property="MaxWidth" Value="700"/>
+        </Style>
+        
+        <Style Selector="Border.user-message">
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+        </Style>
+        
+        <Style Selector="Border.assistant-message">
+            <Setter Property="Background" Value="#E8F5E9"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+
+        <!-- Input area -->
+        <Style Selector="TextBox.chat-input">
+            <Setter Property="Background" Value="#F8F8F8"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="MinHeight" Value="50"/>
+            <Setter Property="MaxHeight" Value="150"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="AcceptsReturn" Value="True"/>
+        </Style>
+
+        <Style Selector="TextBox.chat-input:focus">
+            <Setter Property="BorderBrush" Value="#4CAF50"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+
+        <!-- Buttons -->
+        <Style Selector="Button.icon-button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="CornerRadius" Value="6"/>
+        </Style>
+
+        <Style Selector="Button.icon-button:pointerover">
+            <Setter Property="Background" Value="#F0F0F0"/>
+        </Style>
+
+        <Style Selector="Button.send-button">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Button.send-button:pointerover">
+            <Setter Property="Background" Value="#66BB6A"/>
+        </Style>
+
+        <Style Selector="Button.send-button:pressed">
+            <Setter Property="Background" Value="#43A047"/>
+        </Style>
+
+        <Style Selector="Button.send-button:disabled">
+            <Setter Property="Background" Value="#CCCCCC"/>
+            <Setter Property="Cursor" Value="Default"/>
+        </Style>
+
+        <!-- Toggle buttons -->
+        <Style Selector="ToggleButton.tool-toggle">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="#4CAF50"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="#4CAF50"/>
+        </Style>
+
+        <Style Selector="ToggleButton.tool-toggle:checked">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+        <Style Selector="ToggleButton.tool-toggle:pointerover">
+            <Setter Property="Background" Value="#E8F5E9"/>
+        </Style>
+
+        <Style Selector="ToggleButton.tool-toggle:checked:pointerover">
+            <Setter Property="Background" Value="#66BB6A"/>
+        </Style>
+
+        <!-- ComboBox -->
+        <Style Selector="ComboBox.language-selector">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#4CAF50"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="10,6"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="*,Auto">
+        <!-- Chat messages area -->
+        <ScrollViewer x:Name="MessageScrollViewer" Grid.Row="0" 
+                      Padding="20" 
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel x:Name="MessagesPanel" Spacing="0">
+                <!-- Welcome message -->
+                <Border Classes="message-bubble assistant-message" HorizontalAlignment="Center">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="🤖" FontSize="32" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{DynamicResource VetaleAI.WelcomeMessage}" 
+                                   FontSize="16" 
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+                <!-- Messages will be added here dynamically -->
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Input area with toolbar -->
+        <Border Grid.Row="1" 
+                Background="#FAFAFA" 
+                BorderBrush="#E0E0E0" 
+                BorderThickness="0,1,0,0"
+                Padding="20">
+            <Grid RowDefinitions="Auto,Auto">
+                <!-- Toolbar above input -->
+                <Grid Grid.Row="0" Margin="0,0,0,10" ColumnDefinitions="Auto,Auto,*">
+                    <!-- Reasoning toggle -->
+                    <ToggleButton x:Name="ReasoningToggle" 
+                                  Grid.Column="0"
+                                  Classes="tool-toggle"
+                                  Margin="0,0,10,0"
+                                  ToolTip.Tip="{DynamicResource VetaleAI.EnableReasoning}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="💭"/>
+                            <TextBlock Text="{DynamicResource VetaleAI.EnableReasoning}"/>
+                        </StackPanel>
+                    </ToggleButton>
+
+                    <!-- Language selector -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="🌐" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="{DynamicResource VetaleAI.ResponseLanguage}" 
+                                   VerticalAlignment="Center"
+                                   FontSize="13"
+                                   Foreground="#666"/>
+                        <ComboBox x:Name="LanguageSelector" 
+                                  Classes="language-selector"
+                                  MinWidth="150"
+                                  SelectedIndex="0">
+                            <ComboBoxItem Content="{DynamicResource VetaleAI.Language.Auto}"/>
+                            <ComboBoxItem Content="{DynamicResource VetaleAI.Language.Ukrainian}"/>
+                            <ComboBoxItem Content="{DynamicResource VetaleAI.Language.English}"/>
+                            <ComboBoxItem Content="{DynamicResource VetaleAI.Language.Russian}"/>
+                            <ComboBoxItem Content="{DynamicResource VetaleAI.Language.German}"/>
+                            <ComboBoxItem Content="{DynamicResource VetaleAI.Language.French}"/>
+                            <ComboBoxItem Content="{DynamicResource VetaleAI.Language.Spanish}"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- Right side buttons -->
+                    <StackPanel Grid.Column="2" 
+                                Orientation="Horizontal" 
+                                Spacing="8"
+                                HorizontalAlignment="Right">
+                        <Button x:Name="NewChatButton" 
+                                Classes="icon-button"
+                                Click="NewChat_Click"
+                                ToolTip.Tip="{DynamicResource VetaleAI.NewChat}">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="➕" FontSize="14"/>
+                                <TextBlock Text="{DynamicResource VetaleAI.NewChat}"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="ClearHistoryButton" 
+                                Classes="icon-button"
+                                Click="ClearHistory_Click"
+                                ToolTip.Tip="{DynamicResource VetaleAI.ClearHistory}">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="🗑️" FontSize="14"/>
+                                <TextBlock Text="{DynamicResource VetaleAI.ClearHistory}"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Input box with send button -->
+                <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+                    <TextBox x:Name="MessageInput" 
+                             Grid.Column="0"
+                             Classes="chat-input"
+                             Watermark="{DynamicResource VetaleAI.InputPlaceholder}"
+                             KeyDown="MessageInput_KeyDown"/>
+                    
+                    <Button x:Name="SendButton" 
+                            Grid.Column="1"
+                            Classes="send-button"
+                            Margin="10,0,0,0"
+                            Click="Send_Click"
+                            IsEnabled="False">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="✈️"/>
+                            <TextBlock Text="{DynamicResource VetaleAI.Send}"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
+
