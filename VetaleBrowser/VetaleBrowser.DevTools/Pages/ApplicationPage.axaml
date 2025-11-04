@@ -59,19 +59,19 @@
                 <Grid RowDefinitions="Auto,*">
                     <TextBlock Grid.Row="0" Text="Storage Types" FontWeight="SemiBold" Padding="10,8" Background="#F0F0F0"/>
                     <ListBox Grid.Row="1" x:Name="StorageTypesList" SelectionChanged="OnStorageTypeSelected">
-                        <ListBoxItem Tag="LocalStorage">
+                        <ListBoxItem Tag="localStorage">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock Text="📦"/>
                                 <TextBlock Text="Local Storage"/>
                             </StackPanel>
                         </ListBoxItem>
-                        <ListBoxItem Tag="SessionStorage">
+                        <ListBoxItem Tag="sessionStorage">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock Text="📋"/>
                                 <TextBlock Text="Session Storage"/>
                             </StackPanel>
                         </ListBoxItem>
-                        <ListBoxItem Tag="Cookies">
+                        <ListBoxItem Tag="cookies">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock Text="🍪"/>
                                 <TextBlock Text="Cookies"/>

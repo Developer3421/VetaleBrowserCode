@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevTools Тестова Сторінка</title>
+    
+    <!-- Inline Style для тестування -->
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .info {
+            background: rgba(33, 150, 243, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        #output {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 5px;
+            min-height: 100px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+    </style>
+    
+    <!-- External Stylesheet (placeholder) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 DevTools Тестова Сторінка</h1>
+        
+        <div class="section">
+            <h2>📦 LocalStorage Тест</h2>
+            <div class="info">
+                <strong>Збережено в LocalStorage:</strong>
+                <ul id="localStorageList"></ul>
+            </div>
+            <button onclick="addLocalStorage()">Додати LocalStorage</button>
+            <button onclick="clearLocalStorage()">Очистити LocalStorage</button>
+        </div>
+        
+        <div class="section">
+            <h2>📋 SessionStorage Тест</h2>
+            <div class="info">
+                <strong>Збережено в SessionStorage:</strong>
+                <ul id="sessionStorageList"></ul>
+            </div>
+            <button onclick="addSessionStorage()">Додати SessionStorage</button>
+            <button onclick="clearSessionStorage()">Очистити SessionStorage</button>
+        </div>
+        
+        <div class="section">
+            <h2>🍪 Cookies Тест</h2>
+            <div class="info">
+                <strong>Поточні Cookies:</strong>
+                <p id="cookiesList"></p>
+            </div>
+            <button onclick="addCookie()">Додати Cookie</button>
+            <button onclick="clearCookies()">Очистити Cookies</button>
+        </div>
+        
+        <div class="section">
+            <h2>🌐 Мережеві Ресурси</h2>
+            <div class="info">
+                Ця сторінка містить:
+                <ul>
+                    <li>✅ Inline CSS стилі</li>
+                    <li>✅ External CSS (Font Awesome)</li>
+                    <li>✅ Inline JavaScript</li>
+                    <li>✅ External JavaScript</li>
+                    <li>✅ Зображення</li>
+                </ul>
+            </div>
+            <button onclick="loadExternalImage()">Завантажити зображення</button>
+            <div id="imageContainer"></div>
+        </div>
+        
+        <div class="section">
+            <h2>📊 Інформація</h2>
+            <div id="output"></div>
+        </div>
+    </div>
+    
+    <!-- Inline Script -->
+    <script>
+        // Ініціалізація даних при завантаженні
+        window.addEventListener('load', function() {
+            initializeStorage();
+            updateDisplay();
+            logInfo('Сторінка завантажена! Відкрийте DevTools для перевірки.');
+        });
+        
+        // LocalStorage функції
+        function initializeStorage() {
+            if (!localStorage.getItem('testKey1')) {
+                localStorage.setItem('testKey1', 'Тестове значення 1');
+                localStorage.setItem('testKey2', 'Тестове значення 2');
+                localStorage.setItem('userSettings', JSON.stringify({
+                    theme: 'dark',
+                    language: 'uk',
+                    notifications: true
+                }));
+            }
+            
+            if (!sessionStorage.getItem('sessionKey1')) {
+                sessionStorage.setItem('sessionKey1', 'Session значення 1');
+                sessionStorage.setItem('pageVisits', '1');
+            }
+            
+            if (!document.cookie.includes('testCookie')) {
+                document.cookie = 'testCookie=testValue; path=/';
+                document.cookie = 'userPreference=darkMode; path=/';
+            }
+        }
+        
+        function addLocalStorage() {
+            const key = 'dynamicKey' + Date.now();
+            const value = 'Value at ' + new Date().toLocaleTimeString();
+            localStorage.setItem(key, value);
+            updateDisplay();
+            logInfo('✅ Додано LocalStorage: ' + key + ' = ' + value);
+        }
+        
+        function clearLocalStorage() {
+            localStorage.clear();
+            updateDisplay();
+            logInfo('🗑️ LocalStorage очищено');
+        }
+        
+        // SessionStorage функції
+        function addSessionStorage() {
+            const key = 'sessionKey' + Date.now();
+            const value = 'Session at ' + new Date().toLocaleTimeString();
+            sessionStorage.setItem(key, value);
+            updateDisplay();
+            logInfo('✅ Додано SessionStorage: ' + key + ' = ' + value);
+        }
+        
+        function clearSessionStorage() {
+            sessionStorage.clear();
+            updateDisplay();
+            logInfo('🗑️ SessionStorage очищено');
+        }
+        
+        // Cookie функції
+        function addCookie() {
+            const name = 'cookie' + Date.now();
+            const value = 'Value_' + Math.random().toString(36).substr(2, 9);
+            document.cookie = name + '=' + value + '; path=/';
+            updateDisplay();
+            logInfo('✅ Додано Cookie: ' + name + ' = ' + value);
+        }
+        
+        function clearCookies() {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const name = cookie.split('=')[0].trim();
+                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+            }
+            updateDisplay();
+            logInfo('🗑️ Cookies очищено');
+        }
+        
+        // Завантаження зображення
+        function loadExternalImage() {
+            const container = document.getElementById('imageContainer');
+            const img = document.createElement('img');
+            img.src = 'https://picsum.photos/200/150?random=' + Date.now();
+            img.style.marginTop = '10px';
+            img.style.borderRadius = '5px';
+            img.alt = 'Random Image';
+            container.innerHTML = '';
+            container.appendChild(img);
+            logInfo('🖼️ Завантажено нове зображення');
+        }
+        
+        // Оновлення відображення
+        function updateDisplay() {
+            // LocalStorage
+            const localList = document.getElementById('localStorageList');
+            localList.innerHTML = '';
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                const li = document.createElement('li');
+                li.textContent = key + ' = ' + (value.length > 50 ? value.substr(0, 47) + '...' : value);
+                localList.appendChild(li);
+            }
+            
+            // SessionStorage
+            const sessionList = document.getElementById('sessionStorageList');
+            sessionList.innerHTML = '';
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                const value = sessionStorage.getItem(key);
+                const li = document.createElement('li');
+                li.textContent = key + ' = ' + value;
+                sessionList.appendChild(li);
+            }
+            
+            // Cookies
+            const cookiesList = document.getElementById('cookiesList');
+            cookiesList.textContent = document.cookie || '(Немає cookies)';
+        }
+        
+        // Логування
+        function logInfo(message) {
+            const output = document.getElementById('output');
+            const time = new Date().toLocaleTimeString();
+            output.innerHTML = '[' + time + '] ' + message + '<br>' + output.innerHTML;
+            console.log('[TestPage]', message);
+        }
+        
+        // Тестові дані для Performance
+        window.addEventListener('load', function() {
+            const perfData = window.performance.timing;
+            const loadTime = perfData.loadEventEnd - perfData.navigationStart;
+            logInfo('⚡ Page Load Time: ' + loadTime + 'ms');
+        });
+    </script>
+    
+    <!-- External JavaScript (CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+</body>
+</html>
+

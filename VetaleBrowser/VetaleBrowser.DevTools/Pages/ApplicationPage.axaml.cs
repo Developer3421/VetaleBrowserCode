@@ -58,10 +58,18 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
                     list.Add(it);
                 }
 
+                Debug.WriteLine($"[ApplicationPage] Captured storage data: {items.Count} items");
+                Debug.WriteLine($"[ApplicationPage] Storage types: {string.Join(", ", _storageData.Keys)}");
+
                 // Refresh UI if selected type exists
                 if (_storageTypesList?.SelectedItem is ListBoxItem li)
                 {
                     DisplayStorageType(li.Tag?.ToString() ?? string.Empty);
+                }
+                else if (_storageTypesList != null && _storageTypesList.Items.Count > 0)
+                {
+                    // Auto-select first item if nothing selected
+                    _storageTypesList.SelectedIndex = 0;
                 }
             }
             catch (Exception ex)
@@ -82,17 +90,25 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
         private void DisplayStorageType(string storageType)
         {
             if (_storageTypeTitle != null)
-                _storageTypeTitle.Text = storageType;
+                _storageTypeTitle.Text = $"{storageType} ({(_storageData.ContainsKey(storageType) ? _storageData[storageType].Count : 0)} items)";
 
             if (_storageDataList != null)
             {
                 _storageDataList.Items.Clear();
                 if (_storageData.TryGetValue(storageType, out var items))
                 {
+                    Debug.WriteLine($"[ApplicationPage] Displaying {items.Count} items for {storageType}");
                     foreach (var item in items)
                     {
-                        _storageDataList.Items.Add($"{item.Key} = {item.EncryptedValue}");
+                        var displayText = $"{item.Key} = {item.EncryptedValue}";
+                        _storageDataList.Items.Add(displayText);
+                        Debug.WriteLine($"[ApplicationPage] Added item: {displayText}");
                     }
+                }
+                else
+                {
+                    Debug.WriteLine($"[ApplicationPage] No items found for {storageType}");
+                    _storageDataList.Items.Add("No data captured yet. Click 'Capture Storage' button.");
                 }
             }
         }
