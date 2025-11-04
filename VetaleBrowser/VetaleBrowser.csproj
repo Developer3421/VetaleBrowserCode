@@ -43,7 +43,6 @@
     <ItemGroup>
       <Folder Include="VetaleBrowser.AI\Model\" />
       <Folder Include="VetaleBrowser.DevTools\" />
-      <Folder Include="VetaleBrowser.JavaScript\" />
       <Folder Include="VetaleBrowser.Search\" />
       <Folder Include="VetaleBrowser.WebEngine\" />
     </ItemGroup>

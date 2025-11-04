@@ -67,6 +67,16 @@ public partial class App : Application
                     {
                         System.Diagnostics.Trace.WriteLine($"App: Error during database shutdown: {ex.Message}");
                     }
+
+                    try
+                    {
+                        VetaleBrowser.Database.Services.DevToolsDataService.DisposeAll();
+                        System.Diagnostics.Trace.WriteLine("App: DevTools database shutdown successfully");
+                    }
+                    catch (System.Exception ex)
+                    {
+                        System.Diagnostics.Trace.WriteLine($"App: Error during DevTools database shutdown: {ex.Message}");
+                    }
                 };
             }
 

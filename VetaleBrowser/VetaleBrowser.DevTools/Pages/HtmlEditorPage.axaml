@@ -1,0 +1,145 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="VetaleBrowser.VetaleBrowser.DevTools.Pages.HtmlEditorPage"
+             Background="White">
+
+    <UserControl.Styles>
+        <Style Selector="Button.toolbar-btn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="#D0D0D0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+        </Style>
+        <Style Selector="Button.toolbar-btn:pointerover">
+            <Setter Property="Background" Value="#F0F0F0"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        
+        <!-- Toolbar -->
+        <Border Grid.Row="0" Background="#F8F8F8" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="10,8">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4">
+                    <Button Classes="toolbar-btn" Click="NewFile" ToolTip.Tip="{DynamicResource HtmlEditor.New}">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="📄" FontSize="14"/>
+                            <TextBlock Text="{DynamicResource HtmlEditor.New}"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="toolbar-btn" Click="OpenFile" ToolTip.Tip="{DynamicResource HtmlEditor.Open}">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="📁" FontSize="14"/>
+                            <TextBlock Text="{DynamicResource HtmlEditor.Open}"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="toolbar-btn" Click="SaveFile" ToolTip.Tip="{DynamicResource HtmlEditor.Save}">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="💾" FontSize="14"/>
+                            <TextBlock Text="{DynamicResource HtmlEditor.Save}"/>
+                        </StackPanel>
+                    </Button>
+                    <Separator Width="1" Height="24" Background="#D0D0D0" Margin="4,0"/>
+                    <Button Classes="toolbar-btn" Click="UndoAction" ToolTip.Tip="Undo">
+                        <TextBlock Text="↶" FontSize="16"/>
+                    </Button>
+                    <Button Classes="toolbar-btn" Click="RedoAction" ToolTip.Tip="Redo">
+                        <TextBlock Text="↷" FontSize="16"/>
+                    </Button>
+                    <Separator Width="1" Height="24" Background="#D0D0D0" Margin="4,0"/>
+                    <Button Classes="toolbar-btn" Click="FormatCode" ToolTip.Tip="{DynamicResource HtmlEditor.Format}">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="🎨" FontSize="14"/>
+                            <TextBlock Text="{DynamicResource HtmlEditor.Format}"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="toolbar-btn" Click="ValidateHtml" ToolTip.Tip="{DynamicResource HtmlEditor.Validate}">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="✔️" FontSize="14"/>
+                            <TextBlock Text="{DynamicResource HtmlEditor.Validate}"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                    <ComboBox x:Name="TemplateSelector" SelectionChanged="OnTemplateSelected" MinWidth="150">
+                        <ComboBoxItem IsSelected="True">Blank HTML</ComboBoxItem>
+                        <ComboBoxItem>HTML5 Boilerplate</ComboBoxItem>
+                        <ComboBoxItem>Bootstrap Template</ComboBoxItem>
+                        <ComboBoxItem>Responsive Layout</ComboBoxItem>
+                    </ComboBox>
+                    <ToggleButton x:Name="PreviewToggle" 
+                                  IsChecked="True"
+                                  Checked="TogglePreview"
+                                  Unchecked="TogglePreview"
+                                  Padding="8,6"
+                                  ToolTip.Tip="{DynamicResource HtmlEditor.Preview}">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="👁️" FontSize="14"/>
+                            <TextBlock Text="{DynamicResource HtmlEditor.Preview}"/>
+                        </StackPanel>
+                    </ToggleButton>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Editor and Preview -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Code Editor -->
+            <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0">
+                <TextBox x:Name="CodeEditor"
+                         AcceptsReturn="True"
+                         TextWrapping="NoWrap"
+                         FontFamily="Consolas, Courier New, monospace"
+                         FontSize="13"
+                         Padding="10"
+                         BorderThickness="0"
+                         Background="#FAFAFA"
+                         TextChanged="OnCodeChanged"/>
+            </Border>
+
+            <!-- Splitter -->
+            <GridSplitter Grid.Column="1" Background="#E0E0E0" ResizeDirection="Columns"/>
+
+            <!-- Live Preview -->
+            <Border Grid.Column="2" x:Name="PreviewPanel" BorderBrush="#E0E0E0" BorderThickness="1,0,0,0">
+                <Grid RowDefinitions="Auto,*">
+                    <Border Grid.Row="0" Background="#F0F0F0" Padding="8,6" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+                        <TextBlock Text="Live Preview" FontWeight="SemiBold" Foreground="#505050"/>
+                    </Border>
+                    <Border Grid.Row="1" x:Name="PreviewContainer" Background="White">
+                        <TextBlock Text="Preview will appear here..." 
+                                   Foreground="#A0A0A0" 
+                                   HorizontalAlignment="Center" 
+                                   VerticalAlignment="Center"
+                                   FontSize="14"/>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="#F8F8F8" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="10,6">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
+                <TextBlock Grid.Column="0" x:Name="StatusText" Text="Ready" Foreground="#505050"/>
+                <TextBlock Grid.Column="1" x:Name="LineColText" Text="Ln 1, Col 1" Foreground="#707070" Margin="10,0"/>
+                <TextBlock Grid.Column="2" x:Name="CharCountText" Text="0 characters" Foreground="#707070" Margin="10,0"/>
+                <TextBlock Grid.Column="3" x:Name="LinesCountText" Text="0 lines" Foreground="#707070" Margin="10,0"/>
+                <TextBlock Grid.Column="4" Text="UTF-8" Foreground="#707070" Margin="10,0"/>
+            </Grid>
+        </Border>
+
+    </Grid>
+</UserControl>
+

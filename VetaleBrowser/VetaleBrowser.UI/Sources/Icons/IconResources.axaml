@@ -18,6 +18,7 @@
     <Bitmap x:Key="ForwardButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/ForwardButton.png</Bitmap>
     <Bitmap x:Key="AddTabImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/AddTab.png</Bitmap>
     <Bitmap x:Key="InstrumensButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/InstrumensButton.png</Bitmap>
+    <Bitmap x:Key="InstrumentsButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/InstrumensButton.png</Bitmap>
     <Bitmap x:Key="CloseTabButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/CloseTabButton.png</Bitmap>
     
     <!-- Additional button images provided -->

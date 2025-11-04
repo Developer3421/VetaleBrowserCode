@@ -1,0 +1,112 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="VetaleBrowser.VetaleBrowser.DevTools.Pages.ElementsPage"
+             Background="White">
+    
+    <UserControl.Styles>
+        <Style Selector="Button.action-btn">
+            <Setter Property="Background" Value="#2196F3"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.action-btn:pointerover">
+            <Setter Property="Background" Value="#1976D2"/>
+        </Style>
+    </UserControl.Styles>
+    
+    <Grid RowDefinitions="Auto,*">
+        
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#F5F5F5" Padding="12,8" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="🔍" FontSize="20" VerticalAlignment="Center"/>
+                    <TextBlock Text="Elements Inspector" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                    <Button Classes="action-btn"
+                            Click="CaptureDomFromWebView"
+                            ToolTip.Tip="Capture DOM from WebView Worker">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="🔄" FontSize="14"/>
+                            <TextBlock Text="Capture DOM"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="action-btn"
+                            Click="ClearDomTree"
+                            ToolTip.Tip="Clear DOM tree">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="🗑️" FontSize="14"/>
+                            <TextBlock Text="Clear"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+        
+        <!-- Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,4,300">
+            
+            <!-- DOM Tree -->
+            <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0" Background="#FAFAFA">
+                <Grid RowDefinitions="Auto,*">
+                    <TextBlock Grid.Row="0" Text="DOM Tree" FontWeight="SemiBold" Padding="10,8" Background="#F0F0F0"/>
+                    <ScrollViewer Grid.Row="1">
+                        <TreeView x:Name="DomTree" SelectionChanged="OnElementSelected" Padding="5">
+                            <!-- Will be populated dynamically -->
+                        </TreeView>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+            
+            <!-- Splitter -->
+            <GridSplitter Grid.Column="1" Background="#E0E0E0" ResizeDirection="Columns"/>
+            
+            <!-- Element Details -->
+            <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto,*">
+                
+                <!-- Attributes Section -->
+                <Border Grid.Row="0" Background="#F0F0F0" Padding="10,6" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+                    <TextBlock Text="Attributes" FontWeight="SemiBold"/>
+                </Border>
+                
+                <ScrollViewer Grid.Row="1" Background="White">
+                    <TextBox x:Name="AttributesViewer"
+                             IsReadOnly="True"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             FontFamily="Consolas, Courier New, monospace"
+                             FontSize="11"
+                             Padding="10"
+                             BorderThickness="0"
+                             Background="#FAFAFA"/>
+                </ScrollViewer>
+                
+                <!-- Styles Section -->
+                <Border Grid.Row="2" Background="#F0F0F0" Padding="10,6" BorderBrush="#E0E0E0" BorderThickness="0,1,0,1">
+                    <TextBlock Text="Computed Styles" FontWeight="SemiBold"/>
+                </Border>
+                
+                <ScrollViewer Grid.Row="3" Background="White">
+                    <TextBox x:Name="StylesViewer"
+                             IsReadOnly="True"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             FontFamily="Consolas, Courier New, monospace"
+                             FontSize="11"
+                             Padding="10"
+                             BorderThickness="0"
+                             Background="#FAFAFA"/>
+                </ScrollViewer>
+                
+            </Grid>
+            
+        </Grid>
+        
+    </Grid>
+</UserControl>
+

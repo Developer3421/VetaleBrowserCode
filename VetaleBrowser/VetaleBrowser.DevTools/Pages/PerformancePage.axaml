@@ -1,0 +1,106 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="VetaleBrowser.VetaleBrowser.DevTools.Pages.PerformancePage"
+             Background="White">
+    
+    <UserControl.Styles>
+        <Style Selector="Button.action-btn">
+            <Setter Property="Background" Value="#FF9800"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.action-btn:pointerover">
+            <Setter Property="Background" Value="#F57C00"/>
+        </Style>
+    </UserControl.Styles>
+    
+    <Grid RowDefinitions="Auto,*">
+        
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#F5F5F5" Padding="12,8" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="⚡" FontSize="20" VerticalAlignment="Center"/>
+                    <TextBlock Text="Performance Analyzer" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                </StackPanel>
+                
+                <Button Grid.Column="2" 
+                        Classes="action-btn"
+                        Click="CapturePerformanceFromWebView"
+                        ToolTip.Tip="Capture performance data from WebView Worker">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="📊" FontSize="14"/>
+                        <TextBlock Text="Capture Performance"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+        
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Margin="15" Spacing="15">
+                
+                <!-- Summary -->
+                <Border Background="#F8F8F8" CornerRadius="4" Padding="15" BorderBrush="#E0E0E0" BorderThickness="1">
+                    <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*,*">
+                        <TextBlock Grid.Row="0" Grid.ColumnSpan="3" Text="Summary" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                        
+                        <StackPanel Grid.Row="1" Grid.Column="0" Spacing="5">
+                            <TextBlock Text="Load Time" FontSize="11" Foreground="#707070"/>
+                            <TextBlock x:Name="LoadTimeText" Text="0 ms" FontSize="16" FontWeight="SemiBold"/>
+                        </StackPanel>
+                        
+                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="5">
+                            <TextBlock Text="DOM Content Loaded" FontSize="11" Foreground="#707070"/>
+                            <TextBlock x:Name="DomLoadTimeText" Text="0 ms" FontSize="16" FontWeight="SemiBold"/>
+                        </StackPanel>
+                        
+                        <StackPanel Grid.Row="1" Grid.Column="2" Spacing="5">
+                            <TextBlock Text="First Paint" FontSize="11" Foreground="#707070"/>
+                            <TextBlock x:Name="FirstPaintText" Text="0 ms" FontSize="16" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                
+                <!-- Memory Usage -->
+                <Border Background="#F8F8F8" CornerRadius="4" Padding="15" BorderBrush="#E0E0E0" BorderThickness="1">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Memory Usage" FontSize="14" FontWeight="SemiBold"/>
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="JavaScript Heap Size" FontSize="11" Foreground="#707070"/>
+                            <TextBlock x:Name="MemoryText" Text="0 MB" FontSize="16" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Resource Timings -->
+                <Border Background="#F8F8F8" CornerRadius="4" Padding="15" BorderBrush="#E0E0E0" BorderThickness="1">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Resource Timings" FontSize="14" FontWeight="SemiBold"/>
+                        <ScrollViewer MaxHeight="400">
+                            <ListBox x:Name="ResourceTimingsList"
+                                     Background="White"
+                                     BorderBrush="#E0E0E0"
+                                     BorderThickness="1">
+                            </ListBox>
+                        </ScrollViewer>
+                    </StackPanel>
+                </Border>
+                
+                <!-- URL Info -->
+                <Border Background="#E3F2FD" CornerRadius="4" Padding="15" BorderBrush="#2196F3" BorderThickness="1">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="Current URL" FontSize="11" Foreground="#1976D2"/>
+                        <TextBlock x:Name="UrlText" Text="No data captured" FontSize="13" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+                
+            </StackPanel>
+        </ScrollViewer>
+        
+    </Grid>
+</UserControl>
+

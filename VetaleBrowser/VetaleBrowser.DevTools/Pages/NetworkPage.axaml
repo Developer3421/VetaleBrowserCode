@@ -1,0 +1,16 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="VetaleBrowser.VetaleBrowser.DevTools.Pages.NetworkPage"
+             Background="White">
+    <Grid>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="15">
+            <TextBlock Text="🌐" FontSize="64" HorizontalAlignment="Center"/>
+            <TextBlock Text="Network Monitor" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
+            <TextBlock Text="Monitor all HTTP/HTTPS requests and responses" 
+                       FontSize="14" Foreground="#707070" HorizontalAlignment="Center"/>
+            <TextBlock Text="Coming soon..." 
+                       FontSize="14" Foreground="#A0A0A0" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
+

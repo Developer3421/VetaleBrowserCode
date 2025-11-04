@@ -19,6 +19,7 @@ public partial class ToolsMainPage : UserControl
     // Статичні посилання на вікна для уникнення витоків пам'яті
     private static Windows.HistoryWindow? _historyWindowInstance;
     private static Windows.ConsoleWindow? _consoleWindowInstance;
+    private static Windows.DevToolsWindow? _devToolsWindowInstance;
 
     public event EventHandler<ToolNavigationEventArgs>? NavigateInWebView;
     public event EventHandler<string>? NavigateInMainTab;
@@ -257,7 +258,47 @@ public partial class ToolsMainPage : UserControl
 
     private void OpenVetaleDevTools()
     {
-        System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Opening Vetale DevTools...");
+        
+        try
+        {
+            // Перевіряємо, чи існує вже відкрите вікно
+            if (_devToolsWindowInstance != null)
+            {
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Reusing existing DevToolsWindow");
+                    _devToolsWindowInstance.Activate();
+                    _devToolsWindowInstance.WindowState = WindowState.Normal;
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] DevTools window activated");
+                    return;
+                }
+                catch
+                {
+                    // Вікно закрите, очищаємо посилання
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Previous DevTools window was closed, creating new one");
+                    _devToolsWindowInstance = null;
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Creating new DevToolsWindow instance...");
+            _devToolsWindowInstance = new Windows.DevToolsWindow();
+            
+            // Підписуємося на закриття вікна для очищення посилання
+            _devToolsWindowInstance.Closed += (s, e) =>
+            {
+                System.Diagnostics.Debug.WriteLine("[ToolsMainPage] DevToolsWindow closed, clearing reference");
+                _devToolsWindowInstance = null;
+            };
+            
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Showing DevTools window...");
+            _devToolsWindowInstance.Show();
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] DevTools window opened successfully");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] ERROR opening DevTools: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Stack trace: {ex.StackTrace}");
+        }
         // TODO: Implement DevTools opening
     }
 

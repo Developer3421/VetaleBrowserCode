@@ -1,0 +1,106 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="VetaleBrowser.VetaleBrowser.DevTools.Pages.ApplicationPage"
+             Background="White">
+    
+    <UserControl.Styles>
+        <Style Selector="Button.action-btn">
+            <Setter Property="Background" Value="#9C27B0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.action-btn:pointerover">
+            <Setter Property="Background" Value="#7B1FA2"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="#E1BEE7"/>
+        </Style>
+    </UserControl.Styles>
+    
+    <Grid RowDefinitions="Auto,*">
+        
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#F5F5F5" Padding="12,8" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="💾" FontSize="20" VerticalAlignment="Center"/>
+                    <TextBlock Text="Application Storage" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                    <Button Classes="action-btn"
+                            Click="CaptureStorageFromWebView"
+                            ToolTip.Tip="Capture storage data from WebView Worker">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="🔄" FontSize="14"/>
+                            <TextBlock Text="Capture Storage"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="action-btn"
+                            Click="ClearAllStorage"
+                            ToolTip.Tip="Clear captured data">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="🗑️" FontSize="14"/>
+                            <TextBlock Text="Clear"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+        
+        <!-- Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="200,4,*">
+            
+            <!-- Storage Types -->
+            <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0" Background="#FAFAFA">
+                <Grid RowDefinitions="Auto,*">
+                    <TextBlock Grid.Row="0" Text="Storage Types" FontWeight="SemiBold" Padding="10,8" Background="#F0F0F0"/>
+                    <ListBox Grid.Row="1" x:Name="StorageTypesList" SelectionChanged="OnStorageTypeSelected">
+                        <ListBoxItem Tag="LocalStorage">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="📦"/>
+                                <TextBlock Text="Local Storage"/>
+                            </StackPanel>
+                        </ListBoxItem>
+                        <ListBoxItem Tag="SessionStorage">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="📋"/>
+                                <TextBlock Text="Session Storage"/>
+                            </StackPanel>
+                        </ListBoxItem>
+                        <ListBoxItem Tag="Cookies">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="🍪"/>
+                                <TextBlock Text="Cookies"/>
+                            </StackPanel>
+                        </ListBoxItem>
+                    </ListBox>
+                </Grid>
+            </Border>
+            
+            <!-- Splitter -->
+            <GridSplitter Grid.Column="1" Background="#E0E0E0" ResizeDirection="Columns"/>
+            
+            <!-- Storage Data -->
+            <Grid Grid.Column="2" RowDefinitions="Auto,*">
+                <Border Grid.Row="0" Background="#F0F0F0" Padding="10,6" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+                    <TextBlock x:Name="StorageTypeTitle" Text="Select storage type" FontWeight="SemiBold"/>
+                </Border>
+                
+                <ScrollViewer Grid.Row="1" Background="White">
+                    <ListBox x:Name="StorageDataList"
+                             Background="White"
+                             BorderThickness="0"
+                             Padding="10">
+                    </ListBox>
+                </ScrollViewer>
+            </Grid>
+            
+        </Grid>
+        
+    </Grid>
+</UserControl>
+

@@ -7,6 +7,7 @@
   <x:String x:Key="Console.Title">Console — Vetale Browser</x:String>
   <x:String x:Key="History.Title">History — Vetale Browser</x:String>
   <x:String x:Key="Bookmarks.Title">Bookmarks — Vetale Browser</x:String>
+  <x:String x:Key="DevTools.Title">Developer Tools — Vetale Browser</x:String>
 
   <!-- Settings main page -->
   <x:String x:Key="Settings.Header">Settings</x:String>
@@ -184,4 +185,67 @@
   <x:String x:Key="Tools.Console.Description">Developer console with logs and diagnostics</x:String>
   
   <x:String x:Key="Tools.NavigateButton">→ Open in browser</x:String>
+
+  <!-- DevTools -->
+  <x:String x:Key="DevTools.Header">Developer Tools</x:String>
+  <x:String x:Key="DevTools.Tab.Main">Home</x:String>
+  <x:String x:Key="DevTools.Tab.Elements">Elements</x:String>
+  <x:String x:Key="DevTools.Tab.Console">Console</x:String>
+  <x:String x:Key="DevTools.Tab.Network">Network</x:String>
+  <x:String x:Key="DevTools.Tab.Sources">Sources</x:String>
+  <x:String x:Key="DevTools.Tab.HtmlEditor">HTML Editor</x:String>
+  <x:String x:Key="DevTools.Tab.Application">Application</x:String>
+  <x:String x:Key="DevTools.Tab.Performance">Performance</x:String>
+  <x:String x:Key="DevTools.Tab.WebViewWorker">WebView Worker</x:String>
+
+  <!-- DevTools Tools List -->
+  <x:String x:Key="DevTools.Tool.Elements.Title">Elements Inspector</x:String>
+  <x:String x:Key="DevTools.Tool.Elements.Description">Inspect and edit the DOM structure of the current page</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Console.Title">JavaScript Console</x:String>
+  <x:String x:Key="DevTools.Tool.Console.Description">View logs, errors, and JavaScript console output (separate window)</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Network.Title">Network Monitor</x:String>
+  <x:String x:Key="DevTools.Tool.Network.Description">Monitor all HTTP/HTTPS requests and responses</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Sources.Title">Sources Viewer</x:String>
+  <x:String x:Key="DevTools.Tool.Sources.Description">View and debug JavaScript, CSS, and HTML files</x:String>
+  
+  <x:String x:Key="DevTools.Tool.HtmlEditor.Title">HTML Editor</x:String>
+  <x:String x:Key="DevTools.Tool.HtmlEditor.Description">Professional HTML editor with live preview and syntax highlighting</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Application.Title">Application Storage</x:String>
+  <x:String x:Key="DevTools.Tool.Application.Description">Manage Cookies, Local Storage, Session Storage, and Cache</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Performance.Title">Performance Analyzer</x:String>
+  <x:String x:Key="DevTools.Tool.Performance.Description">Profile CPU, Memory, and analyze page performance</x:String>
+
+  <!-- HTML Editor -->
+  <x:String x:Key="HtmlEditor.New">New</x:String>
+  <x:String x:Key="HtmlEditor.Open">Open</x:String>
+  <x:String x:Key="HtmlEditor.Save">Save</x:String>
+  <x:String x:Key="HtmlEditor.Preview">Preview</x:String>
+  <x:String x:Key="HtmlEditor.Format">Format Code</x:String>
+  <x:String x:Key="HtmlEditor.Validate">Validate HTML</x:String>
+
+  <!-- WebView Worker -->
+  <x:String x:Key="DevTools.WebViewWorker.Title">WebView Worker</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Description">Separate WebView instance for testing and debugging web pages</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.CurrentTab">Current Active Tab:</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.NoActiveTab">No active tab</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.LoadCurrentTab">Load from Current Tab</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.EnterUrl">Enter URL or search query...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Go">Go</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Back">Back</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Forward">Forward</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Refresh">Refresh</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Placeholder">WebView Worker is ready. Enter a URL or load from the current tab.</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Ready">Ready</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.WebViewReady">WebView initialized and ready</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Loading">Loading...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Loaded">Page loaded</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Refreshing">Refreshing page...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Navigating">Navigating...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.NoUrlToLoad">No URL to load from current tab</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.LoadingFromTab">Loading URL from current tab...</x:String>
 </ResourceDictionary>

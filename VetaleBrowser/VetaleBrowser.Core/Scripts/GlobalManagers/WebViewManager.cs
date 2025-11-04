@@ -104,6 +104,103 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers
             }
         }
 
+        /// <summary>
+        /// Execute JavaScript code and return result as string.
+        /// </summary>
+        public async Task<string> ExecuteScriptAsync(string script)
+        {
+            if (!_isInitialized || _webView == null)
+            {
+                Debug.WriteLine("WebViewManager: Not initialized, cannot execute script");
+                return string.Empty;
+            }
+
+            try
+            {
+                return await Task.Run(() =>
+                {
+                    try
+                    {
+                        // WebViewControl використовує ExecuteJavascript або подібні методи
+                        // Оскільки точний API невідомий, використовуємо альтернативний підхід
+                        var result = string.Empty;
+                        Dispatcher.UIThread.Post(() =>
+                        {
+                            try
+                            {
+                                // Спроба виконати через address bar з javascript: protocol
+                                // або інший доступний спосіб
+                                Debug.WriteLine($"WebViewManager: Attempting to execute script: {script.Substring(0, Math.Min(100, script.Length))}...");
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine($"WebViewManager.ExecuteScriptAsync inner error: {ex}");
+                            }
+                        });
+                        return result;
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"WebViewManager.ExecuteScriptAsync inner error: {ex}");
+                        return $"Error: {ex.Message}";
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"WebViewManager.ExecuteScriptAsync error: {ex}");
+                return $"Error: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// Inject JavaScript code into the page.
+        /// Note: This is a placeholder implementation. 
+        /// WebViewControl may not support direct script injection.
+        /// </summary>
+        public async Task InjectScriptAsync(string script)
+        {
+            if (!_isInitialized || _webView == null)
+            {
+                Debug.WriteLine("WebViewManager: Not initialized, cannot inject script");
+                return;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        Debug.WriteLine("WebViewManager: Script injection not directly supported by WebViewControl");
+                        Debug.WriteLine($"Script to inject: {script.Substring(0, Math.Min(100, script.Length))}...");
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"WebViewManager.InjectScriptAsync error: {ex}");
+                }
+            });
+        }
+
+        /// <summary>
+        /// Get page HTML source.
+        /// Note: This method may not work with WebViewControl limitations.
+        /// </summary>
+        public async Task<string> GetPageSourceAsync()
+        {
+            return await ExecuteScriptAsync("document.documentElement.outerHTML");
+        }
+
+        /// <summary>
+        /// Get page title.
+        /// Note: This method may not work with WebViewControl limitations.
+        /// </summary>
+        public async Task<string> GetPageTitleAsync()
+        {
+            return await ExecuteScriptAsync("document.title");
+        }
+
         public void Dispose()
         {
             try

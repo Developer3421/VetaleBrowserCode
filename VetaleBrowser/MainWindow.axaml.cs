@@ -31,6 +31,9 @@ public partial class MainWindow : Window
 
     private readonly TabsManager _tabs = new();
 
+    // Public property to access TabsManager (for DevTools)
+    public TabsManager TabsManager => _tabs;
+
     // Pages
     private NormalModePage? _normalModePage;
     private FullscreenModePage? _fullscreenModePage;

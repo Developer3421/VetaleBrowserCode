@@ -7,6 +7,7 @@
   <x:String x:Key="Console.Title">Консоль — Vetale Browser</x:String>
   <x:String x:Key="History.Title">Історія переглядів — Vetale Browser</x:String>
   <x:String x:Key="Bookmarks.Title">Закладки — Vetale Browser</x:String>
+  <x:String x:Key="DevTools.Title">Інструменти розробника — Vetale Browser</x:String>
 
   <!-- Головна сторінка налаштувань -->
   <x:String x:Key="Settings.Header">Налаштування</x:String>
@@ -184,4 +185,67 @@
   <x:String x:Key="Tools.Console.Description">Консоль розробника з логами та діагностикою</x:String>
   
   <x:String x:Key="Tools.NavigateButton">→ Перейти в браузері</x:String>
+
+  <!-- DevTools -->
+  <x:String x:Key="DevTools.Header">Інструменти розробника</x:String>
+  <x:String x:Key="DevTools.Tab.Main">Головна</x:String>
+  <x:String x:Key="DevTools.Tab.Elements">Елементи</x:String>
+  <x:String x:Key="DevTools.Tab.Console">Консоль</x:String>
+  <x:String x:Key="DevTools.Tab.Network">Мережа</x:String>
+  <x:String x:Key="DevTools.Tab.Sources">Джерела</x:String>
+  <x:String x:Key="DevTools.Tab.HtmlEditor">Редактор HTML</x:String>
+  <x:String x:Key="DevTools.Tab.Application">Застосунок</x:String>
+  <x:String x:Key="DevTools.Tab.Performance">Продуктивність</x:String>
+  <x:String x:Key="DevTools.Tab.WebViewWorker">WebView Worker</x:String>
+
+  <!-- DevTools Список інструментів -->
+  <x:String x:Key="DevTools.Tool.Elements.Title">Інспектор елементів</x:String>
+  <x:String x:Key="DevTools.Tool.Elements.Description">Перегляд та редагування DOM структури поточної сторінки</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Console.Title">Консоль JavaScript</x:String>
+  <x:String x:Key="DevTools.Tool.Console.Description">Перегляд логів, помилок та виводу JavaScript консолі (окреме вікно)</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Network.Title">Монітор мережі</x:String>
+  <x:String x:Key="DevTools.Tool.Network.Description">Моніторинг всіх HTTP/HTTPS запитів та відповідей</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Sources.Title">Перегляд джерел</x:String>
+  <x:String x:Key="DevTools.Tool.Sources.Description">Перегляд та налагодження JavaScript, CSS та HTML файлів</x:String>
+  
+  <x:String x:Key="DevTools.Tool.HtmlEditor.Title">Редактор HTML</x:String>
+  <x:String x:Key="DevTools.Tool.HtmlEditor.Description">Професійний редактор HTML з live preview та підсвіткою синтаксису</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Application.Title">Сховище застосунку</x:String>
+  <x:String x:Key="DevTools.Tool.Application.Description">Управління Cookies, Local Storage, Session Storage та кешем</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Performance.Title">Аналізатор продуктивності</x:String>
+  <x:String x:Key="DevTools.Tool.Performance.Description">Профілювання CPU, пам'яті та аналіз продуктивності сторінки</x:String>
+
+  <!-- HTML Editor -->
+  <x:String x:Key="HtmlEditor.New">Новий</x:String>
+  <x:String x:Key="HtmlEditor.Open">Відкрити</x:String>
+  <x:String x:Key="HtmlEditor.Save">Зберегти</x:String>
+  <x:String x:Key="HtmlEditor.Preview">Попередній перегляд</x:String>
+  <x:String x:Key="HtmlEditor.Format">Форматувати код</x:String>
+  <x:String x:Key="HtmlEditor.Validate">Перевірити HTML</x:String>
+
+  <!-- WebView Worker -->
+  <x:String x:Key="DevTools.WebViewWorker.Title">WebView Worker</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Description">Окремий екземпляр WebView для тестування та налагодження веб-сторінок</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.CurrentTab">Поточна активна вкладка:</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.NoActiveTab">Немає активної вкладки</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.LoadCurrentTab">Завантажити з поточної вкладки</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.EnterUrl">Введіть URL або пошуковий запит...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Go">Перейти</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Back">Назад</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Forward">Вперед</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Refresh">Оновити</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Placeholder">WebView Worker готовий. Введіть URL або завантажте з поточної вкладки.</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Ready">Готово</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.WebViewReady">WebView ініціалізовано та готовий</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Loading">Завантаження...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Loaded">Сторінка завантажена</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Refreshing">Оновлення сторінки...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Navigating">Навігація...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.NoUrlToLoad">Немає URL для завантаження з поточної вкладки</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.LoadingFromTab">Завантаження URL з поточної вкладки...</x:String>
 </ResourceDictionary>
