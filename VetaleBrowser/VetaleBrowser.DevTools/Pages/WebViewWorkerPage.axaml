@@ -159,7 +159,7 @@
 
         <!-- Status Bar -->
         <Border Grid.Row="4" Background="#F5F5F5" Padding="10,5" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+            <Grid ColumnDefinitions="Auto,*,Auto">
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
                     <TextBlock x:Name="StatusIcon" Text="⚪" FontSize="12"/>
                     <TextBlock x:Name="StatusText" 
@@ -168,25 +168,54 @@
                                Foreground="#666666"/>
                 </StackPanel>
                 
-                <!-- Load HTML from Editor Button -->
-                <Button Grid.Column="2"
-                        Classes="action-button"
-                        Click="OnLoadHtmlFromEditor"
-                        Margin="0,0,8,0"
-                        Background="#FF9800"
-                        ToolTip.Tip="Завантажити HTML з редактора та захопити дані">
-                    <StackPanel Orientation="Horizontal" Spacing="4">
-                        <TextBlock Text="📝" FontSize="12"/>
-                        <TextBlock Text="Load HTML from Editor"/>
-                    </StackPanel>
-                </Button>
-                
-                <TextBlock Grid.Column="3" 
-                           x:Name="LoadingProgress"
-                           Text=""
-                           FontSize="11" 
-                           Foreground="#4CAF50"
-                           FontWeight="Medium"/>
+                <!-- Action Buttons -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
+                    <!-- Open Local HTML File -->
+                    <Button Classes="action-button"
+                            Click="OnOpenLocalHtmlFile"
+                            Background="#4CAF50"
+                            ToolTip.Tip="Відкрити локальний HTML файл">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="📂" FontSize="12"/>
+                            <TextBlock Text="Open HTML File"/>
+                        </StackPanel>
+                    </Button>
+                    
+                    <!-- Load HTML from Editor -->
+                    <Button Classes="action-button"
+                            Click="OnLoadHtmlFromEditor"
+                            Background="#FF9800"
+                            ToolTip.Tip="Завантажити HTML з редактора та захопити дані">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="📝" FontSize="12"/>
+                            <TextBlock Text="From Editor"/>
+                        </StackPanel>
+                    </Button>
+                    
+                    <!-- Save to Editor -->
+                    <Button Classes="action-button"
+                            Click="OnSaveToEditor"
+                            x:Name="SaveToEditorButton"
+                            Background="#2196F3"
+                            IsEnabled="False"
+                            ToolTip.Tip="Зберегти поточний HTML код в редактор">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="💾" FontSize="12"/>
+                            <TextBlock Text="To Editor"/>
+                        </StackPanel>
+                    </Button>
+                    
+                    <!-- Capture Data -->
+                    <Button Classes="action-button"
+                            Click="OnCaptureData"
+                            Background="#9C27B0"
+                            ToolTip.Tip="Захопити дані з поточної сторінки">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="📊" FontSize="12"/>
+                            <TextBlock Text="Capture Data"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
             </Grid>
         </Border>
     </Grid>

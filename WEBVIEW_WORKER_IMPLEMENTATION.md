@@ -1,302 +1,256 @@
-# WebView Worker - DevTools Feature
+# WebViewWorkerPage - Повернення WebView та Захоплення HTML з Редактора
 
-## Опис
+## Зміни
 
-WebView Worker - це новий інструмент у складі DevTools, який надає окремий екземпляр WebView для тестування та налагодження веб-сторінок незалежно від основних вкладок браузера.
+### ✅ Видалено Playwright
+- Повністю прибрано залежність від `PlaywrightDevToolsService`
+- Видалено поле `_playwrightService`
+- Видалено метод `InitializePlaywright()`
+- Видалено метод `NavigatePlaywrightToUrl()`
 
-## Функціональність
+### ✅ Повернуто WebView
+- Додано повноцінний WebView контрол на сторінку
+- WebView ініціалізується при завантаженні сторінки
+- WebView додається до `WebViewContainer`
+- Приховується placeholder після ініціалізації
 
-### Основні можливості
+### ✅ Додано Кнопку "Load HTML from Editor"
+- Нова кнопка у статус-барі (помаранчевого кольору для видимості)
+- При натисканні завантажує HTML з `HtmlEditorPage`
+- Автоматично створює тимчасовий файл
+- Відкриває файл у WebView
+- **Автоматично захоплює всі дані** після завантаження
 
-1. **Незалежний WebView Worker**
-   - Окремий екземпляр WebView, що працює незалежно від основних вкладок
-   - Власний стек навігації (історія назад/вперед)
-   - Власний WebViewManager для керування
+### ✅ Автоматичне Захоплення Даних
+Після завантаження HTML з редактора автоматично захоплюється:
+- 📊 **DOM структура** - всі елементи сторінки
+- ⚡ **Performance метрики** - швидкість завантаження
+- 🌐 **Network ресурси** - скрипти, стилі, зображення
+- 💾 **Storage дані** - localStorage, sessionStorage, cookies
 
-2. **Синхронізація з активною вкладкою**
-   - Автоматичне відстеження активної вкладки браузера
-   - Відображення поточного URL та заголовка активної вкладки
-   - Можливість швидкого завантаження URL з поточної вкладки
+## Функціонал
 
-3. **Навігація**
-   - Кнопки назад/вперед (активуються при наявності історії)
-   - Оновлення сторінки
-   - URL-бар з підтримкою прямого введення URL
-   - Автоматичне розпізнавання URL vs пошукових запитів
-   - Підтримка Enter для навігації
-
-4. **Статус-бар**
-   - Відображення поточного стану (готовий, завантаження, помилка)
-   - Індикатор процесу завантаження
-   - Іконки стану для швидкого розпізнавання
-
-## Архітектура
-
-### Компоненти
-
-#### WebViewWorkerPage.axaml
-- UI розмітка сторінки
-- Панель інформації про поточну вкладку
-- Панель керування навігацією
-- Контейнер для WebView
-- Статус-бар
-
-#### WebViewWorkerPage.axaml.cs
-- Ініціалізація WebView та WebViewManager
-- Моніторинг активної вкладки через DispatcherTimer
-- Обробка подій навігації
-- Синхронізація стану UI
-
-### Ключові класи
-
+### 1. WebView Navigation
 ```csharp
-public partial class WebViewWorkerPage : UserControl
+// Навігація по URL
+private void NavigateToUrl(string url)
 {
-    private WebView? _webView;                    // Екземпляр WebView
-    private WebViewManager? _webViewManager;      // Менеджер для навігації
-    private TabWorker? _currentActiveTab;         // Поточна активна вкладка
-    private readonly DispatcherTimer _monitorTimer; // Моніторинг активної вкладки
-}
-```
-
-## Використання API
-
-### Ініціалізація WebView
-
-```csharp
-_webView = new WebView
-{
-    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
-    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch,
-};
-
-_webViewManager = new WebViewManager();
-_webViewManager.Initialize(_webView);
-```
-
-### Підписка на події
-
-```csharp
-// Навігація
-_webViewManager.Navigated += OnWebViewNavigated;
-
-// Зміни властивостей WebView
-_webView.PropertyChanged += OnWebViewPropertyChanged;
-
-// Події активної вкладки
-_currentActiveTab.TitleChanged += OnCurrentTabTitleChanged;
-_currentActiveTab.AddressChanged += OnCurrentTabAddressChanged;
-```
-
-### Навігація
-
-```csharp
-// Асинхронна навігація
-await _webViewManager.NavigateAsync(url);
-
-// Керування історією
-_webViewManager.GoBack();
-_webViewManager.GoForward();
-_webViewManager.Reload();
-```
-
-### Отримання TabsManager через рефлексію
-
-```csharp
-private TabsManager? GetTabsManager(MainWindow mainWindow)
-{
-    var field = mainWindow.GetType().GetField("_tabs", 
-        System.Reflection.BindingFlags.NonPublic | 
-        System.Reflection.BindingFlags.Instance);
-    
-    return field?.GetValue(mainWindow) as TabsManager;
-}
-```
-
-## Локалізація
-
-Додані ресурси для англійської та української мов:
-
-### Ключі ресурсів
-
-- `DevTools.Tab.WebViewWorker` - назва вкладки
-- `DevTools.WebViewWorker.Title` - заголовок
-- `DevTools.WebViewWorker.Description` - опис
-- `DevTools.WebViewWorker.CurrentTab` - мітка поточної вкладки
-- `DevTools.WebViewWorker.NoActiveTab` - повідомлення про відсутність активної вкладки
-- `DevTools.WebViewWorker.LoadCurrentTab` - текст кнопки завантаження
-- `DevTools.WebViewWorker.EnterUrl` - placeholder для URL
-- `DevTools.WebViewWorker.Go` - кнопка переходу
-- `DevTools.WebViewWorker.Back` - кнопка назад
-- `DevTools.WebViewWorker.Forward` - кнопка вперед
-- `DevTools.WebViewWorker.Refresh` - кнопка оновлення
-- `DevTools.WebViewWorker.Placeholder` - текст-заповнювач
-- `DevTools.WebViewWorker.Ready` - статус готовності
-- `DevTools.WebViewWorker.WebViewReady` - WebView готовий
-- `DevTools.WebViewWorker.Loading` - завантаження
-- `DevTools.WebViewWorker.Loaded` - завантажено
-- `DevTools.WebViewWorker.Refreshing` - оновлення
-- `DevTools.WebViewWorker.Navigating` - навігація
-- `DevTools.WebViewWorker.NoUrlToLoad` - немає URL
-- `DevTools.WebViewWorker.LoadingFromTab` - завантаження з вкладки
-
-## Інтеграція з DevTools
-
-### Додавання вкладки до DevToolsWindow.axaml
-
-```xml
-<Button Classes="tab-button" x:Name="TabWebViewWorker" Click="ShowWebViewWorkerPage">
-    <StackPanel Orientation="Horizontal" Spacing="6">
-        <TextBlock Text="🌐" FontSize="14"/>
-        <TextBlock Text="{DynamicResource DevTools.Tab.WebViewWorker}"/>
-    </StackPanel>
-</Button>
-```
-
-### Обробник в DevToolsWindow.axaml.cs
-
-```csharp
-private void ShowWebViewWorkerPage(object? sender, RoutedEventArgs e)
-{
-    if (_contentHost != null)
-    {
-        _contentHost.Content = new WebViewWorkerPage();
-        SetActiveTab(this.FindControl<Button>("TabWebViewWorker"));
-    }
-}
-```
-
-## Особливості реалізації
-
-### 1. Моніторинг активної вкладки
-
-Використовується `DispatcherTimer` з інтервалом 500 мс для перевірки змін активної вкладки:
-
-```csharp
-private void OnMonitorTick(object? sender, EventArgs e)
-{
-    var activeTab = tabsManager.Active;
-    
-    if (activeTab != _currentActiveTab)
-    {
-        UnsubscribeFromCurrentTab();
-        _currentActiveTab = activeTab;
-        SubscribeToCurrentTab();
-        UpdateCurrentTabInfo();
-    }
-}
-```
-
-### 2. Автоматичне розпізнавання URL
-
-```csharp
-if (!url.StartsWith("http://") && !url.StartsWith("https://"))
-{
-    if (url.Contains(".") && !url.Contains(" "))
-    {
-        url = "https://" + url; // Це URL
-    }
-    else
-    {
-        url = "https://www.google.com/search?q=" + Uri.EscapeDataString(url); // Це пошуковий запит
-    }
-}
-```
-
-### 3. Cleanup при відключенні
-
-```csharp
-protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-{
-    base.OnDetachedFromVisualTree(e);
-
-    _monitorTimer.Stop();
-    UnsubscribeFromCurrentTab();
-    
-    if (_webViewManager != null)
-        _webViewManager.Navigated -= OnWebViewNavigated;
-    
     if (_webView != null)
-        _webView.PropertyChanged -= OnWebViewPropertyChanged;
+    {
+        _webView.Address = url;
+    }
 }
 ```
 
-## Стилізація
+### 2. WebView Controls
+- ⬅️ **Back** - повернутися назад (працює з _webView.GoBack())
+- ➡️ **Forward** - вперед (_webView.GoForward())
+- 🔄 **Refresh** - оновити (_webView.Reload())
+- 📥 **Load Current Tab** - завантажити URL з активної вкладки
 
-### Зелена тема для кнопок дій
-
-```xml
-<Style Selector="Button.action-button">
-    <Setter Property="Background" Value="#4CAF50"/>
-    <Setter Property="Foreground" Value="White"/>
-</Style>
-<Style Selector="Button.action-button:pointerover">
-    <Setter Property="Background" Value="#66BB6A"/>
-</Style>
+### 3. Load HTML from Editor
+```csharp
+private async void OnLoadHtmlFromEditor(object? sender, RoutedEventArgs e)
+{
+    // 1. Завантажити HTML з бази даних
+    var lastState = await htmlEditorService.GetActiveHtmlEditorStateAsync();
+    
+    // 2. Створити тимчасовий файл
+    var tempPath = Path.Combine(Path.GetTempPath(), $"vetale_preview_{Guid.NewGuid()}.html");
+    await File.WriteAllTextAsync(tempPath, htmlContent);
+    
+    // 3. Відкрити у WebView
+    _webView.Address = $"file:///{tempPath.Replace("\\", "/")}";
+    
+    // 4. Дочекатися завантаження
+    await Task.Delay(1000);
+    
+    // 5. Автоматично захопити дані
+    await CaptureDataFromWebView();
+}
 ```
 
-### Адаптивний URL-бар
+### 4. Data Capture
+```csharp
+private async Task CaptureDataFromWebView()
+{
+    // Паралельно захоплюємо всі типи даних
+    var domTask = _webViewWorkerService.CaptureDomStructureAsync();
+    var perfTask = _webViewWorkerService.CapturePerformanceSnapshotAsync();
+    var resourcesTask = _webViewWorkerService.CapturePageResourcesAsync();
+    var storageTask = _webViewWorkerService.CaptureStorageAsync();
 
-```xml
-<TextBox Classes="url-box" Watermark="{DynamicResource DevTools.WebViewWorker.EnterUrl}"/>
+    await Task.WhenAll(domTask, perfTask, resourcesTask, storageTask);
+    
+    // Виводить статистику:
+    // - 245 DOM elements
+    // - Performance: 1234ms
+    // - 15 resources
+    // - 8 storage items
+}
 ```
 
-## Тестування
+## Використання
 
-### Сценарії тестування
+### Сценарій 1: Перегляд Веб-Сайту
+1. Відкрийте **DevTools → WebView Worker**
+2. Введіть URL у поле (наприклад: `google.com`)
+3. Натисніть **Go** або Enter
+4. WebView завантажить сторінку
+5. Використовуйте кнопки навігації (Back, Forward, Refresh)
 
-1. **Базова навігація**
-   - Введення URL та перехід
-   - Використання кнопок назад/вперед
-   - Оновлення сторінки
+### Сценарій 2: Тестування HTML з Редактора
+1. Відкрийте **DevTools → HTML Editor**
+2. Напишіть HTML код
+3. Перейдіть на **DevTools → WebView Worker**
+4. Натисніть **📝 Load HTML from Editor**
+5. HTML відкриється у WebView
+6. **Автоматично захопляться дані:**
+   - DOM структура
+   - Performance
+   - Resources
+   - Storage
 
-2. **Завантаження з активної вкладки**
-   - Відкрити сайт у браузері
-   - Відкрити DevTools > WebView Worker
-   - Натиснути "Load from Current Tab"
-   - Переконатися, що URL завантажено
-
-3. **Синхронізація з вкладками**
-   - Перемикання між вкладками
-   - Перевірка оновлення інформації про поточну вкладку
-
-4. **Пошукові запити**
-   - Введення тексту без протоколу
-   - Перевірка переходу на Google Search
+### Сценарій 3: Перегляд Даних
+1. Після захоплення перейдіть на інші вкладки DevTools:
+   - **Elements** - подивіться DOM структуру
+   - **Performance** - перевірте швидкість
+   - **Network** - подивіться ресурси
+   - **Application** - перевірте Storage
 
 ## Переваги
 
-1. **Ізольоване тестування** - можна тестувати веб-сторінки без впливу на основні вкладки
-2. **Швидкий доступ** - завантаження URL з поточної вкладки в один клік
-3. **Повний контроль** - незалежна навігація та історія
-4. **Інформативність** - завжди видно, яка вкладка активна в браузері
-5. **Гнучкість** - підтримка як URL, так і пошукових запитів
+### ✅ WebView замість Playwright
+- **Швидше** - немає запуску headless Chromium
+- **Легше** - вбудований WebView
+- **Візуально** - видно що відбувається на сторінці
+- **Навігація** - повноцінні кнопки Back/Forward
 
-## Обмеження
+### ✅ Інтеграція з HTML Editor
+- **Одна кнопка** - все автоматично
+- **Тимчасовий файл** - не забруднює проект
+- **Миттєво** - без затримок
+- **Захоплення** - одразу всі дані
 
-1. WebView не має властивості `IsLoading` - статус завантаження визначається через події
-2. Доступ до `TabsManager` через рефлексію (приватне поле)
-3. Таймер моніторингу споживає ресурси (500 мс інтервал)
+### ✅ WebViewWorkerService
+- **Singleton** - один екземпляр для всього додатку
+- **AttachLocalWebView** - прив'язка до локального WebView
+- **Capture методи** - DOM, Performance, Resources, Storage
+- **JavaScript виконання** - через WebView
 
-## Майбутні покращення
+## Технічні Деталі
 
-1. Додати індикатор прогресу завантаження (progress bar)
-2. Показувати favicon сторінки
-3. Додати історію навігації з можливістю вибору
-4. Інтеграція з іншими DevTools (Console, Network)
-5. Можливість відкриття URL в новій вкладці браузера
-6. Збереження сесії WebView Worker між перезапусками
+### WebView Initialization
+```csharp
+private void InitializeWebView()
+{
+    _webView = new WebView
+    {
+        [!IsVisibleProperty] = this[!IsVisibleProperty]
+    };
+    
+    _webView.PropertyChanged += OnWebViewPropertyChanged;
+    _webViewContainer.Children.Add(_webView);
+}
+```
 
-## Файли
+### WebViewWorkerService Integration
+```csharp
+private void InitializeWebViewWorkerService()
+{
+    _webViewWorkerService = WebViewWorkerService.GetInstance(new DevToolsDataService());
+    
+    if (_webView != null)
+    {
+        _webViewWorkerService.AttachLocalWebView(_webView);
+    }
+}
+```
 
-- `VetaleBrowser.DevTools/Pages/WebViewWorkerPage.axaml` - UI розмітка
-- `VetaleBrowser.DevTools/Pages/WebViewWorkerPage.axaml.cs` - логіка
-- `VetaleBrowser.UI/Windows/DevToolsWindow.axaml` - інтеграція вкладки
-- `VetaleBrowser.UI/Windows/DevToolsWindow.axaml.cs` - обробник вкладки
-- `VetaleBrowser.UI/TranslationsDictionaries/Strings.en.axaml` - EN локалізація
-- `VetaleBrowser.UI/TranslationsDictionaries/Strings.uk.axaml` - UK локалізація
+### Status Updates
+Всі операції показують статус:
+- ⏳ "Loading HTML from editor..."
+- ✅ "HTML loaded from editor"
+- 📊 "Capturing data..."
+- ✅ "Captured: 245 DOM, 15 resources, 8 storage"
+- ❌ "Error: ..." (при помилках)
+
+## Debug Output
+```
+[WebViewWorkerPage] Initializing WebView...
+[WebViewWorkerPage] WebView initialized successfully
+[WebViewWorkerPage] WebViewWorkerService initialized
+[WebViewWorkerPage] Loaded HTML from editor: C:\Temp\vetale_preview_123.html
+[WebViewWorkerPage] Starting data capture...
+[WebViewWorkerPage] Captured:
+  - 245 DOM elements
+  - Performance snapshot: 1234ms
+  - 15 resources
+  - 8 storage items
+```
+
+## Структура UI
+
+```
+┌─────────────────────────────────────────────────┐
+│ 🌐 WebView Worker                               │
+│ Локальний WebView для тестування та аналізу    │
+├─────────────────────────────────────────────────┤
+│ 📑 Current Tab: GitHub - Example                │
+│    https://github.com/example/repo              │
+├─────────────────────────────────────────────────┤
+│ ◀️ ▶️ 🔄 📥 Load Current Tab  [URL] 🚀 Go       │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│              WebView Content Here               │
+│                                                 │
+├─────────────────────────────────────────────────┤
+│ ✅ Ready    📝 Load HTML from Editor            │
+└─────────────────────────────────────────────────┘
+```
+
+## Порівняння: До і Після
+
+### До (Playwright) ❌
+- Headless Chromium (невидимий)
+- Повільна ініціалізація
+- Немає навігаційних кнопок
+- Потрібно вручну вказувати URL
+- Playwright специфічний API
+
+### Після (WebView) ✅
+- Видимий WebView
+- Миттєва ініціалізація
+- Повні навігаційні кнопки (Back, Forward, Refresh)
+- Інтеграція з HTML Editor
+- Стандартний WebView API
+- Автоматичне захоплення даних
+
+## Майбутні Покращення
+
+1. **Real-time Capture** - автоматично при зміні сторінки
+2. **Inspect Element** - клік по елементу → показати в Elements
+3. **Console Integration** - показувати console.log з WebView
+4. **Network Monitor** - відстежувати запити в реальному часі
+5. **Performance Charts** - графіки завантаження
+6. **Breakpoints** - зупинка виконання JavaScript
+7. **Local Storage Editor** - редагувати прямо у WebView
+8. **Screenshot** - зробити знімок сторінки
 
 ## Висновок
 
-WebView Worker - це потужний інструмент для розробників, що дозволяє тестувати та налагоджувати веб-сторінки в ізольованому середовищі з повним контролем навігації та синхронізацією з основними вкладками браузера.
+WebViewWorkerPage тепер:
+- ✅ Використовує **WebView** замість Playwright
+- ✅ Має **кнопку завантаження HTML** з редактора
+- ✅ **Автоматично захоплює** всі дані після завантаження
+- ✅ Працює як **повноцінний інструмент** для DevTools
+- ✅ Інтегрується з іншими сторінками DevTools
+
+Тепер можна:
+1. Створити HTML у редакторі
+2. Одним кліком відкрити у WebView
+3. Автоматично отримати всі дані для аналізу
+4. Переглянути DOM, Performance, Network, Storage
+
+**Професійний DevTools інструмент готовий!** 🚀
 
