@@ -111,25 +111,45 @@
     </UserControl.Styles>
 
     <Grid RowDefinitions="*,Auto">
-        <!-- Chat messages area -->
-        <ScrollViewer x:Name="MessageScrollViewer" Grid.Row="0" 
-                      Padding="20" 
-                      VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Disabled">
-            <StackPanel x:Name="MessagesPanel" Spacing="0">
-                <!-- Welcome message -->
-                <Border Classes="message-bubble assistant-message" HorizontalAlignment="Center">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="🤖" FontSize="32" HorizontalAlignment="Center"/>
-                        <TextBlock Text="{DynamicResource VetaleAI.WelcomeMessage}" 
-                                   FontSize="16" 
-                                   TextAlignment="Center"
-                                   TextWrapping="Wrap"/>
+        <!-- Chat messages area with overlay button -->
+        <Grid Grid.Row="0">
+            <ScrollViewer x:Name="MessageScrollViewer" 
+                          Padding="20,20,20,0" 
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <StackPanel x:Name="MessagesPanel" Spacing="0">
+                    <!-- Welcome message -->
+                    <Border Classes="message-bubble assistant-message" HorizontalAlignment="Center">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="🤖" FontSize="32" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource VetaleAI.WelcomeMessage}" 
+                                       FontSize="16" 
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    <!-- Messages will be added here dynamically -->
+                    <!-- Bottom padding spacer to ensure complete scroll -->
+                    <Border Height="20"/>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Scroll to bottom button -->
+            <Button x:Name="ScrollToBottomButton"
+                    Classes="icon-button"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="20"
+                    IsVisible="False"
+                    Click="ScrollToBottomButton_Click">
+                <Border Background="#F0F0F0" CornerRadius="16" Padding="12,8">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="⬇️"/>
+                        <TextBlock Text="{DynamicResource VetaleAI.ScrollToBottom}"/>
                     </StackPanel>
                 </Border>
-                <!-- Messages will be added here dynamically -->
-            </StackPanel>
-        </ScrollViewer>
+            </Button>
+        </Grid>
 
         <!-- Input area with toolbar -->
         <Border Grid.Row="1" 
@@ -204,8 +224,7 @@
                     <TextBox x:Name="MessageInput" 
                              Grid.Column="0"
                              Classes="chat-input"
-                             Watermark="{DynamicResource VetaleAI.InputPlaceholder}"
-                             KeyDown="MessageInput_KeyDown"/>
+                             Watermark="{DynamicResource VetaleAI.InputPlaceholder}"/>
                     
                     <Button x:Name="SendButton" 
                             Grid.Column="1"
@@ -223,4 +242,3 @@
         </Border>
     </Grid>
 </UserControl>
-
