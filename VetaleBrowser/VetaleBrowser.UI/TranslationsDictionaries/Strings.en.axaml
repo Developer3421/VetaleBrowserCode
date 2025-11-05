@@ -221,6 +221,53 @@
   <x:String x:Key="DevTools.Tool.Performance.Title">Performance Analyzer</x:String>
   <x:String x:Key="DevTools.Tool.Performance.Description">Profile CPU, Memory, and analyze page performance</x:String>
 
+  <!-- DevTools - Performance Page -->
+  <x:String x:Key="DevTools.Performance.CapturePerformance">Capture Performance</x:String>
+  <x:String x:Key="DevTools.Performance.GetWebVitals">Get Web Vitals</x:String>
+  <x:String x:Key="DevTools.Performance.LoadTime">Load Time</x:String>
+  <x:String x:Key="DevTools.Performance.DomContentLoaded">DOM Content Loaded</x:String>
+  <x:String x:Key="DevTools.Performance.FirstPaint">First Paint</x:String>
+  <x:String x:Key="DevTools.Performance.MemoryUsage">Memory Usage</x:String>
+  <x:String x:Key="DevTools.Performance.CoreWebVitals">Core Web Vitals</x:String>
+  <x:String x:Key="DevTools.Performance.ResourceTimings">Resource Timings</x:String>
+
+  <!-- DevTools - Elements Page -->
+  <x:String x:Key="DevTools.Elements.Query">Query</x:String>
+  <x:String x:Key="DevTools.Elements.CaptureDom">Capture DOM</x:String>
+  <x:String x:Key="DevTools.Elements.DomTree">DOM Tree</x:String>
+  <x:String x:Key="DevTools.Elements.SelectElement">Select an element</x:String>
+  <x:String x:Key="DevTools.Elements.Attributes">Attributes</x:String>
+  <x:String x:Key="DevTools.Elements.ComputedStyles">Computed Styles</x:String>
+
+  <!-- DevTools - Application Page -->
+  <x:String x:Key="DevTools.Application.CaptureStorage">Capture Storage</x:String>
+  <x:String x:Key="DevTools.Application.ClearCookies">Clear Cookies</x:String>
+  <x:String x:Key="DevTools.Application.StorageTypes">Storage Types</x:String>
+  <x:String x:Key="DevTools.Application.LocalStorage">Local Storage</x:String>
+  <x:String x:Key="DevTools.Application.SessionStorage">Session Storage</x:String>
+  <x:String x:Key="DevTools.Application.Cookies">Cookies</x:String>
+  <x:String x:Key="DevTools.Application.IndexedDB">IndexedDB</x:String>
+  <x:String x:Key="DevTools.Application.SelectStorageType">Select storage type</x:String>
+  <x:String x:Key="DevTools.Application.Key">Key:</x:String>
+  <x:String x:Key="DevTools.Application.Value">Value:</x:String>
+
+  <!-- DevTools - Sources Page -->
+  <x:String x:Key="DevTools.Sources.CaptureSources">Capture Sources</x:String>
+  <x:String x:Key="DevTools.Sources.GetHtml">Get HTML</x:String>
+  <x:String x:Key="DevTools.Sources.FileTree">File Tree</x:String>
+  <x:String x:Key="DevTools.Sources.FilterByType">Filter by type:</x:String>
+  <x:String x:Key="DevTools.Sources.All">All</x:String>
+  <x:String x:Key="DevTools.Sources.Scripts">Scripts</x:String>
+  <x:String x:Key="DevTools.Sources.Stylesheets">Stylesheets</x:String>
+  <x:String x:Key="DevTools.Sources.Images">Images</x:String>
+  <x:String x:Key="DevTools.Sources.Inline">Inline</x:String>
+  <x:String x:Key="DevTools.Sources.SelectFile">Select a file</x:String>
+  <x:String x:Key="DevTools.Sources.Type">Type:</x:String>
+  <x:String x:Key="DevTools.Sources.Size">Size:</x:String>
+  <x:String x:Key="DevTools.Sources.ExecuteJavaScript">Execute JavaScript:</x:String>
+  <x:String x:Key="DevTools.Sources.EnterJavaScriptCode">Enter JavaScript code...</x:String>
+  <x:String x:Key="DevTools.Sources.Execute">Execute</x:String>
+
   <!-- HTML Editor -->
   <x:String x:Key="HtmlEditor.New">New</x:String>
   <x:String x:Key="HtmlEditor.Open">Open</x:String>

@@ -24,7 +24,8 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
 
         public NetworkPage()
         {
-            _workerService = new WebViewWorkerService(_dataService);
+            // Use singleton instance to prevent multiple Playwright windows
+            _workerService = WebViewWorkerService.GetInstance(_dataService);
             InitializeComponent();
             InitializeControls();
         }
@@ -43,17 +44,85 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
 
         private async void CaptureNetworkFromWebView(object? sender, RoutedEventArgs e)
         {
+            var button = sender as Button;
+            var originalContent = button?.Content;
+            
             try
             {
-                EnsureLocalWebViewAttached();
+                // Show loading state
+                if (button != null)
+                {
+                    button.IsEnabled = false;
+                    button.Content = "⏳ Capturing...";
+                }
+                
+                // Clear previous data
+                if (_networkResourcesList != null)
+                {
+                    _networkResourcesList.Items.Clear();
+                }
+                if (_resourceDetailsText != null)
+                {
+                    _resourceDetailsText.Text = "Loading...";
+                }
+                
+                // Automatically sync with current active tab
+                _workerService?.SyncWithMainWindow();
+                
+                var url = _workerService?.CurrentUrl;
+                if (string.IsNullOrEmpty(url))
+                {
+                    Debug.WriteLine("[NetworkPage] No URL available from current tab");
+                    ShowMessage("No active tab found. Please open a webpage first.");
+                    if (_resourceDetailsText != null)
+                    {
+                        _resourceDetailsText.Text = "No active tab";
+                    }
+                    return;
+                }
+                
+                Debug.WriteLine($"[NetworkPage] Capturing network resources from URL: {url} (headless Playwright)");
+                
                 _networkResources = await _workerService.CapturePageResourcesAsync();
-                DisplayNetworkResources();
+                
                 Debug.WriteLine($"[NetworkPage] Captured {_networkResources.Count} network resources");
+                
+                // Update UI on UI thread
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    DisplayNetworkResources();
+                });
+                
+                if (_resourceDetailsText != null)
+                {
+                    _resourceDetailsText.Text = $"Captured {_networkResources.Count} resources\nSelect a resource to see details";
+                }
+                
+                ShowMessage($"✓ Captured {_networkResources.Count} network resources from {url}");
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[NetworkPage] Error capturing network: {ex.Message}");
+                ShowMessage($"❌ Error: {ex.Message}");
+                if (_resourceDetailsText != null)
+                {
+                    _resourceDetailsText.Text = $"Error: {ex.Message}";
+                }
             }
+            finally
+            {
+                // Restore button state
+                if (button != null)
+                {
+                    button.IsEnabled = true;
+                    button.Content = originalContent;
+                }
+            }
+        }
+        
+        private void ShowMessage(string message)
+        {
+            Debug.WriteLine($"[NetworkPage] {message}");
         }
 
         private void DisplayNetworkResources()
@@ -207,43 +276,6 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
             return content.Substring(0, maxLength) + "\n... (truncated)";
         }
 
-        private void EnsureLocalWebViewAttached()
-        {
-            try
-            {
-                var workerPage = FindSiblingOrParent<WebViewWorkerPage>(this);
-                if (workerPage?.DevToolsLocalWebView != null)
-                {
-                    _workerService.AttachLocalWebView(workerPage.DevToolsLocalWebView);
-                    return;
-                }
-
-                var reg = DevToolsWebViewRegistry.CurrentWebView;
-                if (reg != null)
-                {
-                    _workerService.AttachLocalWebView(reg);
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[NetworkPage] EnsureLocalWebViewAttached error: {ex.Message}");
-            }
-
-            // Fallback: attach to active tab
-            try
-            {
-                var main = GetMainWindow();
-                if (main?.TabsManager?.Active != null)
-                {
-                    _workerService.ActiveTab = main.TabsManager.Active;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[NetworkPage] EnsureActiveTabSet error: {ex.Message}");
-            }
-        }
 
         private static TControl? FindSiblingOrParent<TControl>(Control start) where TControl : Control
         {

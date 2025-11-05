@@ -24,7 +24,8 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
 
         public SourcesPage()
         {
-            _workerService = new WebViewWorkerService(_dataService);
+            // Use singleton instance to prevent multiple Playwright windows
+            _workerService = WebViewWorkerService.GetInstance(_dataService);
             InitializeComponent();
             InitializeControls();
         }
@@ -43,9 +44,49 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
 
         private async void CaptureSourcesFromWebView(object? sender, RoutedEventArgs e)
         {
+            var button = sender as Button;
+            var originalContent = button?.Content;
+            
             try
             {
-                EnsureLocalWebViewAttached();
+                // Show loading state
+                if (button != null)
+                {
+                    button.IsEnabled = false;
+                    button.Content = "⏳ Capturing...";
+                }
+                
+                // Clear previous data
+                if (_fileTree != null)
+                {
+                    _fileTree.Items.Clear();
+                }
+                if (_codeViewer != null)
+                {
+                    _codeViewer.Text = "Loading...";
+                }
+                
+                // Automatically sync with current active tab
+                _workerService?.SyncWithMainWindow();
+                
+                var url = _workerService?.CurrentUrl;
+                if (string.IsNullOrEmpty(url))
+                {
+                    Debug.WriteLine("[SourcesPage] No URL available from current tab");
+                    ShowMessage("No active tab found. Please open a webpage first.");
+                    if (_codeViewer != null)
+                    {
+                        _codeViewer.Text = "No active tab";
+                    }
+                    if (_fileNameText != null)
+                    {
+                        _fileNameText.Text = "No active tab";
+                    }
+                    return;
+                }
+                
+                Debug.WriteLine($"[SourcesPage] Capturing sources from URL: {url} (headless Playwright)");
+                
                 var list = await _workerService.CapturePageResourcesAsync();
                 _resources.Clear();
                 foreach (var res in list)
@@ -53,12 +94,49 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
                     var key = string.IsNullOrWhiteSpace(res.Url) ? res.Type : res.Url;
                     _resources[key] = res;
                 }
-                PopulateFileTree();
+                
+                Debug.WriteLine($"[SourcesPage] Captured {_resources.Count} sources");
+                
+                // Update UI on UI thread
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    PopulateFileTree();
+                });
+                
+                if (_codeViewer != null)
+                {
+                    _codeViewer.Text = $"Captured {_resources.Count} source files\nSelect a file to view its content";
+                }
+                if (_fileNameText != null)
+                {
+                    _fileNameText.Text = $"{_resources.Count} files";
+                }
+                
+                ShowMessage($"✓ Captured {_resources.Count} sources from {url}");
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[SourcesPage] Error capturing sources: {ex.Message}");
+                ShowMessage($"❌ Error: {ex.Message}");
+                if (_codeViewer != null)
+                {
+                    _codeViewer.Text = $"Error: {ex.Message}";
+                }
             }
+            finally
+            {
+                // Restore button state
+                if (button != null)
+                {
+                    button.IsEnabled = true;
+                    button.Content = originalContent;
+                }
+            }
+        }
+        
+        private void ShowMessage(string message)
+        {
+            Debug.WriteLine($"[SourcesPage] {message}");
         }
 
         private void PopulateFileTree()
@@ -83,43 +161,6 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
             }
         }
 
-        private void EnsureLocalWebViewAttached()
-        {
-            try
-            {
-                var workerPage = FindSiblingOrParent<WebViewWorkerPage>(this);
-                if (workerPage?.DevToolsLocalWebView != null)
-                {
-                    _workerService.AttachLocalWebView(workerPage.DevToolsLocalWebView);
-                    return;
-                }
-
-                var reg = DevToolsWebViewRegistry.CurrentWebView;
-                if (reg != null)
-                {
-                    _workerService.AttachLocalWebView(reg);
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[SourcesPage] EnsureLocalWebViewAttached error: {ex.Message}");
-            }
-
-            // Fallback: active tab
-            try
-            {
-                var main = GetMainWindow();
-                if (main?.TabsManager?.Active != null)
-                {
-                    _workerService.ActiveTab = main.TabsManager.Active;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[SourcesPage] Fallback attach to ActiveTab error: {ex.Message}");
-            }
-        }
 
         private static TControl? FindSiblingOrParent<TControl>(Control start) where TControl : Control
         {

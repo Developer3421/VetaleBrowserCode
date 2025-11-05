@@ -142,29 +142,46 @@
 
         <!-- WebView Container -->
         <Border Grid.Row="3" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
-            <Grid x:Name="WebViewContainer">
-                <!-- WebView будет добавлен программно -->
+            <Grid>
+                <Grid x:Name="WebViewContainer">
+                    <!-- WebView буде доданий програмно -->
+                </Grid>
                 <TextBlock x:Name="PlaceholderText"
-                           Text="{DynamicResource DevTools.WebViewWorker.Placeholder}"
+                           Text="WebView Worker готовий&#10;&#10;Введіть URL та натисніть 'Go'&#10;або&#10;Натисніть 'Load HTML from Editor' щоб відкрити створений HTML"
                            FontSize="13"
                            Foreground="#999999"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
-                           TextAlignment="Center"/>
+                           TextAlignment="Center"
+                           IsVisible="True"/>
             </Grid>
         </Border>
 
         <!-- Status Bar -->
         <Border Grid.Row="4" Background="#F5F5F5" Padding="10,5" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
-            <Grid ColumnDefinitions="Auto,*,Auto">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
                     <TextBlock x:Name="StatusIcon" Text="⚪" FontSize="12"/>
                     <TextBlock x:Name="StatusText" 
-                               Text="{DynamicResource DevTools.WebViewWorker.Ready}" 
+                               Text="Ready" 
                                FontSize="11" 
                                Foreground="#666666"/>
                 </StackPanel>
-                <TextBlock Grid.Column="2" 
+                
+                <!-- Load HTML from Editor Button -->
+                <Button Grid.Column="2"
+                        Classes="action-button"
+                        Click="OnLoadHtmlFromEditor"
+                        Margin="0,0,8,0"
+                        Background="#FF9800"
+                        ToolTip.Tip="Завантажити HTML з редактора та захопити дані">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="📝" FontSize="12"/>
+                        <TextBlock Text="Load HTML from Editor"/>
+                    </StackPanel>
+                </Button>
+                
+                <TextBlock Grid.Column="3" 
                            x:Name="LoadingProgress"
                            Text=""
                            FontSize="11" 

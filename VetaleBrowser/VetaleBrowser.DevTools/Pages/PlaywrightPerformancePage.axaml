@@ -1,0 +1,101 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="VetaleBrowser.VetaleBrowser.DevTools.Pages.PlaywrightPerformancePage"
+             Background="#FF9800">
+    
+    <Grid RowDefinitions="Auto,Auto,*">
+        <!-- Header with title -->
+        <Border Grid.Row="0" 
+                Background="#F8F8F8" 
+                BorderBrush="#E0E0E0" 
+                BorderThickness="0,0,0,1"
+                Padding="15,10">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="⚡" FontSize="20" VerticalAlignment="Center"/>
+                    <TextBlock Text="{DynamicResource DevTools.Tab.Performance}" 
+                               FontSize="16" 
+                               FontWeight="SemiBold" 
+                               VerticalAlignment="Center"
+                               Foreground="#303030"/>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                    <Button x:Name="CapturePerformanceButton"
+                            Content="{DynamicResource DevTools.Performance.CapturePerformance}" 
+                            Click="OnCapturePerformance"
+                            Background="#4CAF50"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Padding="10,6"
+                            Cursor="Hand"/>
+                    <Button x:Name="GetWebVitalsButton"
+                            Content="{DynamicResource DevTools.Performance.GetWebVitals}" 
+                            Click="OnGetWebVitals"
+                            Background="#4CAF50"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Padding="10,6"
+                            Cursor="Hand"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Метрики продуктивності -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*" Margin="15" Background="#FFFFFF">
+            <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="1" Padding="15" Margin="0,0,8,0" Background="#F8F8F8">
+                <StackPanel>
+                    <TextBlock Text="{DynamicResource DevTools.Performance.LoadTime}" FontWeight="SemiBold" Foreground="#505050"/>
+                    <TextBlock Name="LoadTimeText" Text="-" FontSize="24" Margin="0,5,0,0" Foreground="#4CAF50" FontWeight="Bold"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="1" BorderBrush="#E0E0E0" BorderThickness="1" Padding="15" Margin="8,0,8,0" Background="#F8F8F8">
+                <StackPanel>
+                    <TextBlock Text="{DynamicResource DevTools.Performance.DomContentLoaded}" FontWeight="SemiBold" Foreground="#505050"/>
+                    <TextBlock Name="DomLoadTimeText" Text="-" FontSize="24" Margin="0,5,0,0" Foreground="#4CAF50" FontWeight="Bold"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2" BorderBrush="#E0E0E0" BorderThickness="1" Padding="15" Margin="8,0,8,0" Background="#F8F8F8">
+                <StackPanel>
+                    <TextBlock Text="{DynamicResource DevTools.Performance.FirstPaint}" FontWeight="SemiBold" Foreground="#505050"/>
+                    <TextBlock Name="FirstPaintText" Text="-" FontSize="24" Margin="0,5,0,0" Foreground="#4CAF50" FontWeight="Bold"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="3" BorderBrush="#E0E0E0" BorderThickness="1" Padding="15" Margin="8,0,0,0" Background="#F8F8F8">
+                <StackPanel>
+                    <TextBlock Text="{DynamicResource DevTools.Performance.MemoryUsage}" FontWeight="SemiBold" Foreground="#505050"/>
+                    <TextBlock Name="MemoryText" Text="-" FontSize="24" Margin="0,5,0,0" Foreground="#4CAF50" FontWeight="Bold"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Детальна інформація -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="15,0,15,15" Background="#FFFFFF">
+            <!-- Core Web Vitals -->
+            <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="1" Margin="0,0,8,0" Background="#FAFAFA">
+                <Grid RowDefinitions="Auto,*">
+                    <TextBlock Grid.Row="0" Text="{DynamicResource DevTools.Performance.CoreWebVitals}" FontWeight="SemiBold" Margin="10" Foreground="#303030" FontSize="14"/>
+                    <ScrollViewer Grid.Row="1" Padding="10">
+                        <StackPanel Name="WebVitalsPanel" Spacing="8"/>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Resource Timings -->
+            <Border Grid.Column="1" BorderBrush="#E0E0E0" BorderThickness="1" Margin="8,0,0,0" Background="#FAFAFA">
+                <Grid RowDefinitions="Auto,*">
+                    <TextBlock Grid.Row="0" Text="{DynamicResource DevTools.Performance.ResourceTimings}" FontWeight="SemiBold" Margin="10" Foreground="#303030" FontSize="14"/>
+                    <ScrollViewer Grid.Row="1" Padding="10">
+                        <ListBox Name="ResourceTimingsList" Background="Transparent" BorderThickness="0"/>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

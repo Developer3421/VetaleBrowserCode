@@ -37,6 +37,10 @@
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
         <PackageReference Include="LiteDB" Version="6.0.0-prerelease.73" />
+        <PackageReference Include="LLamaSharp" Version="0.25.0" />
+        <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.25.0" />
+        <PackageReference Include="Microsoft.Agents.AI.Abstractions" Version="1.0.0-preview.251104.1" />
+        <PackageReference Include="Microsoft.Playwright" Version="1.55.0" />
         <PackageReference Include="WebViewControl-Avalonia" Version="3.120.9" />
     </ItemGroup>
 

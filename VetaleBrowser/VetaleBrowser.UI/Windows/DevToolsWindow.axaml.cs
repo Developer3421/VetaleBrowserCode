@@ -103,7 +103,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Windows
         {
             if (_contentHost != null)
             {
-                _contentHost.Content = new ElementsPage();
+                _contentHost.Content = new PlaywrightElementsPage();
                 SetActiveTab(this.FindControl<Button>("TabElements"));
             }
         }
@@ -121,7 +121,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Windows
         {
             if (_contentHost != null)
             {
-                _contentHost.Content = new SourcesPage();
+                _contentHost.Content = new PlaywrightSourcesPage();
                 SetActiveTab(this.FindControl<Button>("TabSources"));
             }
         }
@@ -139,7 +139,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Windows
         {
             if (_contentHost != null)
             {
-                _contentHost.Content = new ApplicationPage();
+                _contentHost.Content = new PlaywrightApplicationPage();
                 SetActiveTab(this.FindControl<Button>("TabApplication"));
             }
         }
@@ -148,7 +148,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Windows
         {
             if (_contentHost != null)
             {
-                _contentHost.Content = new PerformancePage();
+                _contentHost.Content = new PlaywrightPerformancePage();
                 SetActiveTab(this.FindControl<Button>("TabPerformance"));
             }
         }

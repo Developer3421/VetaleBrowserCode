@@ -20,11 +20,13 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
         private ListBox? _resourceTimingsList;
  
         private readonly IDevToolsDataService _devToolsDataService;
-        private readonly WebViewWorkerService _workerService = new(new DevToolsDataService());
+        // Use singleton instance to prevent multiple Playwright windows
+        private readonly WebViewWorkerService _workerService;
 
         public PerformancePage()
         {
             _devToolsDataService = new DevToolsDataService();
+            _workerService = WebViewWorkerService.GetInstance(new DevToolsDataService());
 
             InitializeComponent();
             InitializeControls();
@@ -47,19 +49,89 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
 
         private async void CapturePerformanceFromWebView(object? sender, RoutedEventArgs e)
         {
+            var button = sender as Button;
+            var originalContent = button?.Content;
+            
             try
             {
-                EnsureLocalWebViewAttached();
+                // Show loading state
+                if (button != null)
+                {
+                    button.IsEnabled = false;
+                    button.Content = "⏳ Analyzing...";
+                }
+                
+                // Clear previous data
+                ClearPerformanceData();
+                
+                // Automatically sync with current active tab
+                _workerService?.SyncWithMainWindow();
+                
+                var url = _workerService?.CurrentUrl;
+                if (string.IsNullOrEmpty(url))
+                {
+                    Debug.WriteLine("[PerformancePage] No URL available from current tab");
+                    ShowMessage("No active tab found. Please open a webpage first.");
+                    if (_urlText != null)
+                    {
+                        _urlText.Text = "No active tab";
+                    }
+                    return;
+                }
+                
+                Debug.WriteLine($"[PerformancePage] Capturing performance from URL: {url} (headless Playwright)");
+                
                 var snapshot = await _workerService.CapturePerformanceSnapshotAsync();
                 if (snapshot != null)
                 {
-                    DisplaySnapshot(snapshot);
+                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        DisplaySnapshot(snapshot);
+                    });
+                    ShowMessage($"✓ Performance analysis complete for {url}");
+                }
+                else
+                {
+                    ShowMessage("⚠ No performance data captured");
+                    if (_urlText != null)
+                    {
+                        _urlText.Text = "Failed to capture performance data";
+                    }
                 }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[PerformancePage] Error capturing performance: {ex.Message}");
+                ShowMessage($"❌ Error: {ex.Message}");
+                if (_urlText != null)
+                {
+                    _urlText.Text = $"Error: {ex.Message}";
+                }
             }
+            finally
+            {
+                // Restore button state
+                if (button != null)
+                {
+                    button.IsEnabled = true;
+                    button.Content = originalContent;
+                }
+            }
+        }
+        
+        private void ClearPerformanceData()
+        {
+            if (_loadTimeText != null) _loadTimeText.Text = "---";
+            if (_domLoadTimeText != null) _domLoadTimeText.Text = "---";
+            if (_firstPaintText != null) _firstPaintText.Text = "---";
+            if (_memoryText != null) _memoryText.Text = "---";
+            if (_urlText != null) _urlText.Text = "Analyzing...";
+            if (_resourceTimingsList != null) _resourceTimingsList.Items.Clear();
+        }
+        
+        private void ShowMessage(string message)
+        {
+            Debug.WriteLine($"[PerformancePage] {message}");
         }
 
         private void DisplaySnapshot(VetaleBrowser.Database.Models.PerformanceSnapshot snapshot)
@@ -92,36 +164,6 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
             }
         }
 
-        private void EnsureLocalWebViewAttached()
-        {
-            try
-            {
-                var workerPage = FindSiblingOrParent<WebViewWorkerPage>(this);
-                if (workerPage?.DevToolsLocalWebView != null)
-                {
-                    _workerService.AttachLocalWebView(workerPage.DevToolsLocalWebView);
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[PerformancePage] EnsureLocalWebViewAttached error: {ex.Message}");
-            }
-
-            // Fallback to ActiveTab
-            try
-            {
-                var main = GetMainWindow();
-                if (main?.TabsManager?.Active != null)
-                {
-                    _workerService.ActiveTab = main.TabsManager.Active;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[PerformancePage] EnsureActiveTabSet error: {ex.Message}");
-            }
-        }
 
         private static TControl? FindSiblingOrParent<TControl>(Control start) where TControl : Control
         {

@@ -7,24 +7,29 @@ using Avalonia.Threading;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
+using System.IO;
 using Avalonia.Controls.ApplicationLifetimes;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.Models;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
+using VetaleBrowser.VetaleBrowser.DevTools.Services;
+using VetaleBrowser.VetaleBrowser.Database.Services;
 using WebViewControl;
-using VetaleBrowser.VetaleBrowser.DevTools.Services; // registry
 
 namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
 {
     public partial class WebViewWorkerPage : UserControl
     {
-        private WebView? _webView;
-        private WebViewManager? _webViewManager;
+        private WebViewWorkerService? _webViewWorkerService;
         private TabWorker? _currentActiveTab;
         
-        // Public property to access WebViewManager (for DevTools)
-        public WebViewManager? WebViewManager => _webViewManager;
-        // New: expose local WebView so other DevTools pages can attach to it
-        public WebView? DevToolsLocalWebView => _webView;
+        // WebView Control
+        private WebView? _webView;
+        private bool _webViewInitialized = false;
+        
+        // Public properties
+        public string? CurrentUrl => _webView?.Address;
+        public WebView? WebView => _webView;
         
         // UI Controls
         private Grid? _webViewContainer;
@@ -47,6 +52,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
             InitializeComponent();
             InitializeControls();
             InitializeWebView();
+            InitializeWebViewWorkerService();
             StartMonitoring();
         }
 
@@ -75,41 +81,83 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
             try
             {
                 Debug.WriteLine("[WebViewWorkerPage] Initializing WebView...");
-
+                
                 _webView = new WebView
                 {
-                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
-                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch,
+                    [!IsVisibleProperty] = this[!IsVisibleProperty]
                 };
 
-                _webViewManager = new WebViewManager();
-                _webViewManager.Initialize(_webView);
-
-                // Subscribe to navigation events
-                _webViewManager.Navigated += OnWebViewNavigated;
-
-                // Subscribe to WebView property changes for detecting navigation
-                if (_webView != null)
-                {
-                    _webView.PropertyChanged += OnWebViewPropertyChanged;
-                    // Register to registry
-                    DevToolsWebViewRegistry.CurrentWebView = _webView;
-                }
-
+                // Subscribe to WebView events
+                _webView.PropertyChanged += OnWebViewPropertyChanged;
+                
                 // Add WebView to container
-                if (_webViewContainer != null && _placeholderText != null)
+                if (_webViewContainer != null)
                 {
                     _webViewContainer.Children.Add(_webView);
-                    _placeholderText.IsVisible = false;
+                    _webViewInitialized = true;
+                    
+                    // Hide placeholder when WebView is initialized
+                    if (_placeholderText != null)
+                    {
+                        _placeholderText.IsVisible = false;
+                    }
                 }
 
-                UpdateStatus("✅", "DevTools.WebViewWorker.WebViewReady");
+                UpdateStatus("✅", "WebView готовий");
                 Debug.WriteLine("[WebViewWorkerPage] WebView initialized successfully");
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[WebViewWorkerPage] Error initializing WebView: {ex}");
                 UpdateStatus("❌", $"Error: {ex.Message}");
+                
+                if (_placeholderText != null)
+                {
+                    _placeholderText.Text = $"❌ Помилка ініціалізації WebView:\n{ex.Message}";
+                    _placeholderText.IsVisible = true;
+                }
+            }
+        }
+
+        private void InitializeWebViewWorkerService()
+        {
+            try
+            {
+                _webViewWorkerService = WebViewWorkerService.GetInstance(new DevToolsDataService());
+                
+                // Attach our local WebView to the service
+                if (_webView != null)
+                {
+                    _webViewWorkerService.AttachLocalWebView(_webView);
+                }
+                
+                Debug.WriteLine("[WebViewWorkerPage] WebViewWorkerService initialized");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[WebViewWorkerPage] Error initializing WebViewWorkerService: {ex}");
+            }
+        }
+
+        private void OnWebViewPropertyChanged(object? sender, Avalonia.AvaloniaPropertyChangedEventArgs e)
+        {
+            if (e.Property.Name == "Address")
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (_webView != null && _urlTextBox != null)
+                    {
+                        _urlTextBox.Text = _webView.Address;
+                    }
+                    UpdateNavigationButtons();
+                });
+            }
+            else if (e.Property.Name == "Title")
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    UpdateStatus("✅", _webView?.Title ?? "Loaded");
+                });
             }
         }
 
@@ -131,13 +179,14 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
 
                 var activeTab = tabsManager.Active;
                 
-                // If active tab changed, update UI and subscribe to new tab
+                // If active tab changed, update UI only (NO auto-sync)
                 if (activeTab != _currentActiveTab)
                 {
                     UnsubscribeFromCurrentTab();
                     _currentActiveTab = activeTab;
                     SubscribeToCurrentTab();
                     UpdateCurrentTabInfo();
+                    // Removed auto-sync - user must click button to load
                 }
             }
             catch (Exception ex)
@@ -169,7 +218,11 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
 
         private void OnCurrentTabAddressChanged(object? sender, string? address)
         {
-            Dispatcher.UIThread.Post(() => UpdateCurrentTabInfo());
+            Dispatcher.UIThread.Post(() =>
+            {
+                UpdateCurrentTabInfo();
+                // Removed auto-sync - user must click button to navigate
+            });
         }
 
         private void UpdateCurrentTabInfo()
@@ -198,55 +251,24 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
                 _loadCurrentButton.IsEnabled = !string.IsNullOrWhiteSpace(_currentActiveTab.Address);
         }
 
-        private void OnWebViewPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
-        {
-            try
-            {
-                if (e.Property.Name == "CanGoBack" && _backButton != null)
-                {
-                    var canGoBack = _webView?.CanGoBack ?? false;
-                    _backButton.IsEnabled = canGoBack;
-                }
-                else if (e.Property.Name == "CanGoForward" && _forwardButton != null)
-                {
-                    var canGoForward = _webView?.CanGoForward ?? false;
-                    _forwardButton.IsEnabled = canGoForward;
-                }
-                else if (e.Property.Name == "Address")
-                {
-                    // Update UI when address changes
-                    var newAddress = _webView?.Address;
-                    if (!string.IsNullOrEmpty(newAddress) && _urlTextBox != null)
-                    {
-                        _urlTextBox.Text = newAddress;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[WebViewWorkerPage] Error in property changed: {ex}");
-            }
-        }
-
-        private void OnWebViewNavigated(object? sender, string url)
-        {
-            Dispatcher.UIThread.Post(() =>
-            {
-                if (_urlTextBox != null)
-                    _urlTextBox.Text = url;
-                
-                UpdateNavigationButtons();
-                UpdateStatus("✅", "DevTools.WebViewWorker.Loaded");
-            });
-        }
-
         private void UpdateNavigationButtons()
         {
-            if (_backButton != null)
-                _backButton.IsEnabled = _webView?.CanGoBack ?? false;
+            if (_webView != null)
+            {
+                if (_backButton != null)
+                    _backButton.IsEnabled = _webView.CanGoBack;
 
-            if (_forwardButton != null)
-                _forwardButton.IsEnabled = _webView?.CanGoForward ?? false;
+                if (_forwardButton != null)
+                    _forwardButton.IsEnabled = _webView.CanGoForward;
+            }
+            else
+            {
+                if (_backButton != null)
+                    _backButton.IsEnabled = false;
+
+                if (_forwardButton != null)
+                    _forwardButton.IsEnabled = false;
+            }
         }
 
         private void UpdateStatus(string icon, string messageKey)
@@ -265,42 +287,30 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
 
         private void OnBackClick(object? sender, RoutedEventArgs e)
         {
-            try
-            {
-                if (_webView?.CanGoBack == true)
-                {
-                    _webView.GoBack();
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[WebViewWorkerPage] Error going back: {ex}");
-                UpdateStatus("❌", $"Error: {ex.Message}");
-            }
+            // Playwright doesn't support back navigation in this context
+            UpdateStatus("⚠️", "Back navigation not available in Playwright mode");
         }
 
         private void OnForwardClick(object? sender, RoutedEventArgs e)
         {
-            try
-            {
-                if (_webView?.CanGoForward == true)
-                {
-                    _webView.GoForward();
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[WebViewWorkerPage] Error going forward: {ex}");
-                UpdateStatus("❌", $"Error: {ex.Message}");
-            }
+            // Playwright doesn't support forward navigation in this context
+            UpdateStatus("⚠️", "Forward navigation not available in Playwright mode");
         }
 
-        private void OnRefreshClick(object? sender, RoutedEventArgs e)
+        private async void OnRefreshClick(object? sender, RoutedEventArgs e)
         {
             try
             {
-                _webViewManager?.Reload();
-                UpdateStatus("🔄", "DevTools.WebViewWorker.Refreshing");
+                if (_playwrightService != null && !string.IsNullOrWhiteSpace(_currentPlaywrightUrl))
+                {
+                    UpdateStatus("🔄", "Refreshing...");
+                    await _playwrightService.NavigateAsync(_currentPlaywrightUrl);
+                    UpdateStatus("✅", "Refreshed");
+                }
+                else
+                {
+                    UpdateStatus("⚠️", "No URL to refresh");
+                }
             }
             catch (Exception ex)
             {
@@ -309,7 +319,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
             }
         }
 
-        private void OnLoadCurrentTabUrl(object? sender, RoutedEventArgs e)
+        private async void OnLoadCurrentTabUrl(object? sender, RoutedEventArgs e)
         {
             try
             {
@@ -320,7 +330,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
                 }
 
                 var url = _currentActiveTab.Address;
-                NavigateToUrl(url);
+                await NavigatePlaywrightToUrl(url);
                 UpdateStatus("🔄", "DevTools.WebViewWorker.LoadingFromTab");
             }
             catch (Exception ex)
@@ -354,7 +364,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
                 }
 
                 var url = _urlTextBox.Text.Trim();
-                NavigateToUrl(url);
+                _ = NavigatePlaywrightToUrl(url);
             }
             catch (Exception ex)
             {
@@ -363,7 +373,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
             }
         }
 
-        private async void NavigateToUrl(string url)
+        private async Task NavigatePlaywrightToUrl(string url)
         {
             if (string.IsNullOrWhiteSpace(url))
                 return;
@@ -385,10 +395,35 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
                 }
             }
 
-            if (_webViewManager != null)
+            try
             {
-                await _webViewManager.NavigateAsync(url);
-                UpdateStatus("🔄", "DevTools.WebViewWorker.Navigating");
+                // Initialize Playwright on first use (lazy initialization)
+                if (_playwrightService == null)
+                {
+                    UpdateStatus("⏳", "Initializing Playwright Chromium...");
+                    _playwrightService = PlaywrightDevToolsService.GetInstance(new Database.Services.DevToolsDataService());
+                    await _playwrightService.InitializeAsync();
+                    
+                    if (_placeholderText != null)
+                    {
+                        _placeholderText.Text = "✅ Playwright Chromium готовий";
+                    }
+                }
+
+                UpdateStatus("🔄", "Navigating...");
+                await _playwrightService.NavigateAsync(url);
+                _currentPlaywrightUrl = url;
+                
+                if (_urlTextBox != null)
+                    _urlTextBox.Text = url;
+                
+                UpdateStatus("✅", "Loaded successfully");
+                Debug.WriteLine($"[WebViewWorkerPage] Playwright navigated to: {url}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[WebViewWorkerPage] Playwright error: {ex}");
+                UpdateStatus("❌", $"Error: {ex.Message}");
             }
         }
 
@@ -428,17 +463,8 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
             _monitorTimer.Stop();
             UnsubscribeFromCurrentTab();
 
-            if (_webViewManager != null)
-            {
-                _webViewManager.Navigated -= OnWebViewNavigated;
-            }
-
-            if (_webView != null)
-            {
-                _webView.PropertyChanged -= OnWebViewPropertyChanged;
-                if (ReferenceEquals(DevToolsWebViewRegistry.CurrentWebView, _webView))
-                    DevToolsWebViewRegistry.CurrentWebView = null;
-            }
+            _playwrightService?.Dispose();
+            _playwrightService = null;
         }
     }
 }

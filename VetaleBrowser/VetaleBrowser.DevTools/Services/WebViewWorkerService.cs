@@ -1,12 +1,13 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Avalonia.Threading;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.Models;
 using VetaleBrowser.VetaleBrowser.Database.Models;
 using VetaleBrowser.VetaleBrowser.Database.Services;
-using WebViewControl; // added for direct WebView access
+using WebViewControl;
 
 namespace VetaleBrowser.VetaleBrowser.DevTools.Services
 {
@@ -16,24 +17,65 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
     /// </summary>
     public class WebViewWorkerService
     {
+        private static WebViewWorkerService? _instance;
+        private static readonly object _lock = new object();
+        
         private readonly DevToolsDataService _dataService;
         private TabWorker? _activeTab;
         private string _sessionId;
 
         // New: local DevTools WebView (not tied to MainWindow tabs)
         private WebView? _localWebView;
+        
+        // Playwright integration - works in parallel with WebView
+        private PlaywrightDevToolsService? _playwrightService;
 
         public event EventHandler<DomElement>? DomElementCaptured;
         public event EventHandler<PerformanceSnapshot>? PerformanceSnapshotCaptured;
         public event EventHandler<PageResource>? ResourceCaptured;
         public event EventHandler<StorageItem>? StorageItemCaptured;
 
-        public WebViewWorkerService(DevToolsDataService dataService)
+        /// <summary>
+        /// Get singleton instance of WebViewWorkerService
+        /// </summary>
+        public static WebViewWorkerService GetInstance(DevToolsDataService dataService)
+        {
+            if (_instance == null)
+            {
+                lock (_lock)
+                {
+                    if (_instance == null)
+                    {
+                        _instance = new WebViewWorkerService(dataService);
+                    }
+                }
+            }
+            return _instance;
+        }
+
+        private WebViewWorkerService(DevToolsDataService dataService)
         {
             _dataService = dataService ?? throw new ArgumentNullException(nameof(dataService));
             _sessionId = Guid.NewGuid().ToString();
+            
+            // Initialize Playwright service (headless mode for DevTools analysis)
+            _playwrightService = PlaywrightDevToolsService.GetInstance(_dataService);
+            InitializePlaywrightAsync().ConfigureAwait(false);
         }
-
+        
+        private async Task InitializePlaywrightAsync()
+        {
+            try
+            {
+                await _playwrightService!.InitializeAsync();
+                Debug.WriteLine("[WebViewWorkerService] Playwright initialized in headless mode");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[WebViewWorkerService] Failed to initialize Playwright: {ex.Message}");
+            }
+        }
+        
         public TabWorker? ActiveTab
         {
             get => _activeTab;
@@ -94,6 +136,45 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         public string CurrentTitle => _localWebView?.Title ?? _activeTab?.Title ?? "";
         public string SessionId => _sessionId;
 
+        /// <summary>
+        /// Automatically sync with the current active tab from MainWindow
+        /// </summary>
+        public void SyncWithMainWindow()
+        {
+            try
+            {
+                if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+                {
+                    var mainWindow = desktop.Windows.FirstOrDefault(w => w.GetType().Name == "MainWindow");
+                    if (mainWindow != null)
+                    {
+                        var tabsManagerProp = mainWindow.GetType().GetProperty("TabsManager");
+                        if (tabsManagerProp != null)
+                        {
+                            var tabsManager = tabsManagerProp.GetValue(mainWindow);
+                            if (tabsManager != null)
+                            {
+                                var activeProp = tabsManager.GetType().GetProperty("Active");
+                                if (activeProp != null)
+                                {
+                                    var activeTab = activeProp.GetValue(tabsManager) as TabWorker;
+                                    if (activeTab != null && activeTab != _activeTab)
+                                    {
+                                        ActiveTab = activeTab;
+                                        Debug.WriteLine($"[WebViewWorkerService] Synced with active tab: {activeTab.Title}");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[WebViewWorkerService] Error syncing with MainWindow: {ex.Message}");
+            }
+        }
+
         private void SubscribeToTab(TabWorker? tab)
         {
             if (tab == null) return;
@@ -124,6 +205,23 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         /// </summary>
         public async Task<List<DomElement>> CaptureDomStructureAsync()
         {
+            // Try to use Playwright for better DOM analysis (takes URL from WebView)
+            var currentUrl = CurrentUrl;
+            if (!string.IsNullOrEmpty(currentUrl) && _playwrightService != null)
+            {
+                try
+                {
+                    Debug.WriteLine($"[WebViewWorkerService] Using Playwright to analyze DOM for: {currentUrl}");
+                    await _playwrightService.NavigateAsync(currentUrl);
+                    return await _playwrightService.CaptureDomStructureAsync();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[WebViewWorkerService] Playwright failed, falling back to WebView: {ex.Message}");
+                }
+            }
+            
+            // Fallback: use WebView JavaScript
             if (!HasAnyWebView())
             {
                 Debug.WriteLine("[WebViewWorkerService] No WebView available (neither local nor active tab)");
@@ -252,9 +350,25 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         /// </summary>
         public async Task<PerformanceSnapshot?> CapturePerformanceSnapshotAsync()
         {
+            // Try to use Playwright for better performance analysis (takes URL from WebView)
+            var currentUrl = CurrentUrl;
+            if (!string.IsNullOrEmpty(currentUrl) && _playwrightService != null)
+            {
+                try
+                {
+                    Debug.WriteLine($"[WebViewWorkerService] Using Playwright to analyze performance for: {currentUrl}");
+                    await _playwrightService.NavigateAsync(currentUrl);
+                    return await _playwrightService.CapturePerformanceSnapshotAsync();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[WebViewWorkerService] Playwright failed, falling back to WebView: {ex.Message}");
+                }
+            }
+            
+            // Fallback: use WebView JavaScript
             if (!HasAnyWebView())
             {
-                Debug.WriteLine("[WebViewWorkerService] No WebView available (neither local nor active tab)");
                 return null;
             }
 
@@ -334,6 +448,23 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         /// </summary>
         public async Task<List<PageResource>> CapturePageResourcesAsync()
         {
+            // Try to use Playwright for better resource analysis (takes URL from WebView)
+            var currentUrl = CurrentUrl;
+            if (!string.IsNullOrEmpty(currentUrl) && _playwrightService != null)
+            {
+                try
+                {
+                    Debug.WriteLine($"[WebViewWorkerService] Using Playwright to analyze resources for: {currentUrl}");
+                    await _playwrightService.NavigateAsync(currentUrl);
+                    return await _playwrightService.CapturePageResourcesAsync();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[WebViewWorkerService] Playwright failed, falling back to WebView: {ex.Message}");
+                }
+            }
+            
+            // Fallback: use WebView JavaScript
             if (!HasAnyWebView())
             {
                 Debug.WriteLine("[WebViewWorkerService] No WebView available (neither local nor active tab)");
@@ -447,10 +578,26 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         #region Storage (Application Page)
 
         /// <summary>
-        /// Захоплює LocalStorage, SessionStorage та Cookies
+        /// Захоплює Storage (localStorage, sessionStorage, cookies)
         /// </summary>
         public async Task<List<StorageItem>> CaptureStorageAsync(string storageType = "all")
         {
+            // Try to use Playwright for better storage analysis (takes URL from WebView)
+            var currentUrl = CurrentUrl;
+            if (!string.IsNullOrEmpty(currentUrl) && _playwrightService != null)
+            {
+                try
+                {
+                    Debug.WriteLine($"[WebViewWorkerService] Using Playwright to analyze storage for: {currentUrl}");
+                    await _playwrightService.NavigateAsync(currentUrl);
+                    return await _playwrightService.CaptureStorageAsync();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[WebViewWorkerService] Playwright failed, falling back to WebView: {ex.Message}");
+                }
+            }
+            
             if (!HasAnyWebView())
             {
                 Debug.WriteLine("[WebViewWorkerService] No WebView available (neither local nor active tab)");
@@ -614,7 +761,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
 
         private bool HasAnyWebView() => _localWebView != null || _activeTab?.WebView != null;
 
-        private async Task<string> ExecuteJavaScriptAsync(string script)
+        public async Task<string> ExecuteJavaScriptAsync(string script)
         {
             var webView = _localWebView ?? _activeTab?.WebView;
             if (webView == null) return "";
@@ -688,6 +835,14 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         }
 
         #endregion
+        
+        public void Dispose()
+        {
+            DetachLocalWebView();
+            UnsubscribeFromTab(_activeTab);
+            _playwrightService?.Dispose();
+            _dataService?.Dispose();
+        }
     }
 }
 

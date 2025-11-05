@@ -7,24 +7,27 @@ using System.Diagnostics;
 using System.Linq;
 using VetaleBrowser.VetaleBrowser.Database.Services;
 using VetaleBrowser.VetaleBrowser.Database.Models;
-using Avalonia.Controls.ApplicationLifetimes;
 using VetaleBrowser.VetaleBrowser.DevTools.Services;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.VisualTree;
 
 namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
 {
+    // DevTools Application Page
     public partial class ApplicationPage : UserControl
     {
         private ListBox? _storageTypesList;
         private ListBox? _storageDataList;
         private TextBlock? _storageTypeTitle;
         private readonly DevToolsDataService _dataService = new();
-        private readonly WebViewWorkerService _workerService;
+        private WebViewWorkerService? _workerService;
         private readonly Dictionary<string, List<StorageItem>> _storageData = new();
 
         public ApplicationPage()
         {
-            _workerService = new WebViewWorkerService(_dataService);
+            // Use singleton instance to prevent multiple Playwright windows
+            var dataService = _dataService;
+            _workerService = WebViewWorkerService.GetInstance(dataService);
             InitializeComponent();
             InitializeControls();
         }
@@ -43,9 +46,32 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
 
         private async void CaptureStorageFromWebView(object? sender, RoutedEventArgs e)
         {
+            var button = sender as Button;
+            var originalContent = button?.Content;
+            
             try
             {
-                EnsureLocalWebViewAttached();
+                // Show loading state
+                if (button != null)
+                {
+                    button.IsEnabled = false;
+                    button.Content = "⏳ Capturing...";
+                }
+                
+                // Automatically sync with current active tab
+                _workerService?.SyncWithMainWindow();
+                
+                var url = _workerService?.CurrentUrl;
+                if (string.IsNullOrEmpty(url))
+                {
+                    Debug.WriteLine("[ApplicationPage] No URL available from current tab");
+                    ShowMessage("No active tab found. Please open a webpage first.");
+                    return;
+                }
+                
+                Debug.WriteLine($"[ApplicationPage] Capturing storage from URL: {url} (headless Playwright)");
+                
+                // Use headless Playwright via WebViewWorkerService
                 var items = await _workerService.CaptureStorageAsync();
                 _storageData.Clear();
                 foreach (var it in items)
@@ -58,24 +84,57 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
                     list.Add(it);
                 }
 
-                Debug.WriteLine($"[ApplicationPage] Captured storage data: {items.Count} items");
-                Debug.WriteLine($"[ApplicationPage] Storage types: {string.Join(", ", _storageData.Keys)}");
+                Debug.WriteLine($"[ApplicationPage] Captured {items.Count} storage items - Types: {string.Join(", ", _storageData.Keys)}");
 
-                // Refresh UI if selected type exists
-                if (_storageTypesList?.SelectedItem is ListBoxItem li)
+                // Auto-select localStorage if available, otherwise first item
+                if (_storageTypesList != null)
                 {
-                    DisplayStorageType(li.Tag?.ToString() ?? string.Empty);
+                    if (_storageData.ContainsKey("localStorage"))
+                    {
+                        // Find and select localStorage item
+                        for (int i = 0; i < _storageTypesList.Items.Count; i++)
+                        {
+                            if (_storageTypesList.Items[i] is ListBoxItem item && 
+                                item.Tag?.ToString() == "localStorage")
+                            {
+                                _storageTypesList.SelectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                    else if (_storageTypesList.SelectedIndex == -1 && _storageTypesList.Items.Count > 0)
+                    {
+                        _storageTypesList.SelectedIndex = 0;
+                    }
+                    else if (_storageTypesList.SelectedItem is ListBoxItem li)
+                    {
+                        // Refresh current selection
+                        DisplayStorageType(li.Tag?.ToString() ?? string.Empty);
+                    }
                 }
-                else if (_storageTypesList != null && _storageTypesList.Items.Count > 0)
-                {
-                    // Auto-select first item if nothing selected
-                    _storageTypesList.SelectedIndex = 0;
-                }
+                
+                ShowMessage($"✓ Captured {items.Count} storage items from {url}");
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[ApplicationPage] Error capturing storage: {ex.Message}");
+                ShowMessage($"❌ Error: {ex.Message}");
             }
+            finally
+            {
+                // Restore button state
+                if (button != null)
+                {
+                    button.IsEnabled = true;
+                    button.Content = originalContent;
+                }
+            }
+        }
+        
+        private void ShowMessage(string message)
+        {
+            Debug.WriteLine($"[ApplicationPage] {message}");
+            // Could also show in UI status bar if needed
         }
 
         private void OnStorageTypeSelected(object? sender, SelectionChangedEventArgs e)
@@ -119,43 +178,6 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
             _storageDataList?.Items.Clear();
         }
 
-        private void EnsureLocalWebViewAttached()
-        {
-            try
-            {
-                var workerPage = FindSiblingOrParent<WebViewWorkerPage>(this);
-                if (workerPage?.DevToolsLocalWebView != null)
-                {
-                    _workerService.AttachLocalWebView(workerPage.DevToolsLocalWebView);
-                    return;
-                }
-
-                var reg = DevToolsWebViewRegistry.CurrentWebView;
-                if (reg != null)
-                {
-                    _workerService.AttachLocalWebView(reg);
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[ApplicationPage] EnsureLocalWebViewAttached error: {ex.Message}");
-            }
-
-            // Fallback: attach to active tab
-            try
-            {
-                var main = GetMainWindow();
-                if (main?.TabsManager?.Active != null)
-                {
-                    _workerService.ActiveTab = main.TabsManager.Active;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[ApplicationPage] EnsureActiveTabSet error: {ex.Message}");
-            }
-        }
 
         private static TControl? FindSiblingOrParent<TControl>(Control start) where TControl : Control
         {

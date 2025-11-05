@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="VetaleBrowser.VetaleBrowser.DevTools.Pages.PlaywrightDevToolsMainPage">
+    
+    <Grid RowDefinitions="Auto,*">
+        <!-- Tabs -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Background="#2D2D30" Spacing="0">
+            <Button Name="ElementsTab" Content="Elements" Click="OnTabClick" Tag="elements" 
+                    Padding="15,10" Background="#2D2D30" Foreground="White" BorderThickness="0"/>
+            <Button Name="PerformanceTab" Content="Performance" Click="OnTabClick" Tag="performance" 
+                    Padding="15,10" Background="#2D2D30" Foreground="White" BorderThickness="0"/>
+            <Button Name="ApplicationTab" Content="Application" Click="OnTabClick" Tag="application" 
+                    Padding="15,10" Background="#2D2D30" Foreground="White" BorderThickness="0"/>
+            <Button Name="SourcesTab" Content="Sources" Click="OnTabClick" Tag="sources" 
+                    Padding="15,10" Background="#2D2D30" Foreground="White" BorderThickness="0"/>
+        </StackPanel>
+
+        <!-- Content -->
+        <ContentControl Grid.Row="1" Name="ContentHost"/>
+    </Grid>
+</UserControl>
+

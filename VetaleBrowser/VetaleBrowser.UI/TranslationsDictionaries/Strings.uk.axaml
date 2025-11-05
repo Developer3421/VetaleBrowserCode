@@ -221,6 +221,53 @@
   <x:String x:Key="DevTools.Tool.Performance.Title">Аналізатор продуктивності</x:String>
   <x:String x:Key="DevTools.Tool.Performance.Description">Профілювання CPU, пам'яті та аналіз продуктивності сторінки</x:String>
 
+  <!-- DevTools - Performance Page -->
+  <x:String x:Key="DevTools.Performance.CapturePerformance">Захопити продуктивність</x:String>
+  <x:String x:Key="DevTools.Performance.GetWebVitals">Отримати Web Vitals</x:String>
+  <x:String x:Key="DevTools.Performance.LoadTime">Час завантаження</x:String>
+  <x:String x:Key="DevTools.Performance.DomContentLoaded">DOM завантажено</x:String>
+  <x:String x:Key="DevTools.Performance.FirstPaint">Перша відрисовка</x:String>
+  <x:String x:Key="DevTools.Performance.MemoryUsage">Використання пам'яті</x:String>
+  <x:String x:Key="DevTools.Performance.CoreWebVitals">Core Web Vitals</x:String>
+  <x:String x:Key="DevTools.Performance.ResourceTimings">Таймінги ресурсів</x:String>
+
+  <!-- DevTools - Elements Page -->
+  <x:String x:Key="DevTools.Elements.Query">Запит</x:String>
+  <x:String x:Key="DevTools.Elements.CaptureDom">Захопити DOM</x:String>
+  <x:String x:Key="DevTools.Elements.DomTree">Дерево DOM</x:String>
+  <x:String x:Key="DevTools.Elements.SelectElement">Виберіть елемент</x:String>
+  <x:String x:Key="DevTools.Elements.Attributes">Атрибути</x:String>
+  <x:String x:Key="DevTools.Elements.ComputedStyles">Обчислені стилі</x:String>
+
+  <!-- DevTools - Application Page -->
+  <x:String x:Key="DevTools.Application.CaptureStorage">Захопити сховище</x:String>
+  <x:String x:Key="DevTools.Application.ClearCookies">Очистити Cookies</x:String>
+  <x:String x:Key="DevTools.Application.StorageTypes">Типи сховищ</x:String>
+  <x:String x:Key="DevTools.Application.LocalStorage">Local Storage</x:String>
+  <x:String x:Key="DevTools.Application.SessionStorage">Session Storage</x:String>
+  <x:String x:Key="DevTools.Application.Cookies">Cookies</x:String>
+  <x:String x:Key="DevTools.Application.IndexedDB">IndexedDB</x:String>
+  <x:String x:Key="DevTools.Application.SelectStorageType">Виберіть тип сховища</x:String>
+  <x:String x:Key="DevTools.Application.Key">Ключ:</x:String>
+  <x:String x:Key="DevTools.Application.Value">Значення:</x:String>
+
+  <!-- DevTools - Sources Page -->
+  <x:String x:Key="DevTools.Sources.CaptureSources">Захопити джерела</x:String>
+  <x:String x:Key="DevTools.Sources.GetHtml">Отримати HTML</x:String>
+  <x:String x:Key="DevTools.Sources.FileTree">Дерево файлів</x:String>
+  <x:String x:Key="DevTools.Sources.FilterByType">Фільтр за типом:</x:String>
+  <x:String x:Key="DevTools.Sources.All">Всі</x:String>
+  <x:String x:Key="DevTools.Sources.Scripts">Скрипти</x:String>
+  <x:String x:Key="DevTools.Sources.Stylesheets">Таблиці стилів</x:String>
+  <x:String x:Key="DevTools.Sources.Images">Зображення</x:String>
+  <x:String x:Key="DevTools.Sources.Inline">Вбудовані</x:String>
+  <x:String x:Key="DevTools.Sources.SelectFile">Виберіть файл</x:String>
+  <x:String x:Key="DevTools.Sources.Type">Тип:</x:String>
+  <x:String x:Key="DevTools.Sources.Size">Розмір:</x:String>
+  <x:String x:Key="DevTools.Sources.ExecuteJavaScript">Виконати JavaScript:</x:String>
+  <x:String x:Key="DevTools.Sources.EnterJavaScriptCode">Введіть JavaScript код...</x:String>
+  <x:String x:Key="DevTools.Sources.Execute">Виконати</x:String>
+
   <!-- HTML Editor -->
   <x:String x:Key="HtmlEditor.New">Новий</x:String>
   <x:String x:Key="HtmlEditor.Open">Відкрити</x:String>

@@ -1,0 +1,110 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="VetaleBrowser.VetaleBrowser.DevTools.Pages.PlaywrightElementsPage"
+             Background="#FF9800">
+    
+    <Grid RowDefinitions="Auto,*">
+        <!-- Header with title -->
+        <Border Grid.Row="0" 
+                Background="#F8F8F8" 
+                BorderBrush="#E0E0E0" 
+                BorderThickness="0,0,0,1"
+                Padding="15,10">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="🔍" FontSize="20" VerticalAlignment="Center"/>
+                    <TextBlock Text="{DynamicResource DevTools.Tab.Elements}" 
+                               FontSize="16" 
+                               FontWeight="SemiBold" 
+                               VerticalAlignment="Center"
+                               Foreground="#303030"/>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                    <TextBox Name="SelectorInput" 
+                             Watermark="CSS Selector (e.g., .className)" 
+                             Width="200"
+                             Padding="6,4"/>
+                    <Button x:Name="QueryButton"
+                            Content="{DynamicResource DevTools.Elements.Query}" 
+                            Click="OnQuery"
+                            Background="#4CAF50"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Padding="10,6"
+                            Cursor="Hand"/>
+                    <Button x:Name="CaptureDomButton"
+                            Content="{DynamicResource DevTools.Elements.CaptureDom}" 
+                            Click="OnCaptureDom"
+                            Background="#4CAF50"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Padding="10,6"
+                            Cursor="Hand"/>
+                    <Button x:Name="RefreshButton"
+                            Content="{DynamicResource Common.Refresh}" 
+                            Click="OnRefresh"
+                            Background="#4CAF50"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Padding="10,6"
+                            Cursor="Hand"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Основний контент -->
+        <Grid Grid.Row="1" ColumnDefinitions="2*,3*" Margin="15" Background="#FFFFFF">
+            <!-- Ліва панель - DOM дерево -->
+            <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="1" Margin="0,0,8,0" Background="#FAFAFA">
+                <Grid RowDefinitions="Auto,*">
+                    <TextBlock Grid.Row="0" Text="{DynamicResource DevTools.Elements.DomTree}" FontWeight="SemiBold" Margin="10" Foreground="#303030" FontSize="14"/>
+                    <ScrollViewer Grid.Row="1" Padding="10">
+                        <TreeView Name="DomTree" SelectionChanged="OnElementSelected" Background="Transparent" BorderThickness="0"/>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Права панель - Деталі елемента -->
+            <Grid Grid.Column="1" RowDefinitions="Auto,*,*" Margin="8,0,0,0">
+                <!-- Назва елемента -->
+                <TextBlock Grid.Row="0" Name="ElementTitle" Text="{DynamicResource DevTools.Elements.SelectElement}" FontWeight="SemiBold" Margin="0,0,0,10" Foreground="#303030" FontSize="14"/>
+
+                <!-- Атрибути -->
+                <Border Grid.Row="1" BorderBrush="#E0E0E0" BorderThickness="1" Margin="0,0,0,8" Background="#FAFAFA">
+                    <Grid RowDefinitions="Auto,*">
+                        <TextBlock Grid.Row="0" Text="{DynamicResource DevTools.Elements.Attributes}" FontWeight="SemiBold" Margin="10" Foreground="#303030" FontSize="14"/>
+                        <ScrollViewer Grid.Row="1" Padding="10">
+                            <TextBox Name="AttributesViewer" 
+                                   IsReadOnly="True" 
+                                   AcceptsReturn="True" 
+                                   TextWrapping="Wrap"
+                                   Background="White"
+                                   BorderThickness="0"
+                                   FontFamily="Consolas,Courier New,monospace"/>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+
+                <!-- Стилі -->
+                <Border Grid.Row="2" BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA">
+                    <Grid RowDefinitions="Auto,*">
+                        <TextBlock Grid.Row="0" Text="{DynamicResource DevTools.Elements.ComputedStyles}" FontWeight="SemiBold" Margin="10" Foreground="#303030" FontSize="14"/>
+                        <ScrollViewer Grid.Row="1" Padding="10">
+                            <TextBox Name="StylesViewer" 
+                                   IsReadOnly="True" 
+                                   AcceptsReturn="True" 
+                                   TextWrapping="Wrap"
+                                   Background="White"
+                                   BorderThickness="0"
+                                   FontFamily="Consolas,Courier New,monospace"/>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>
