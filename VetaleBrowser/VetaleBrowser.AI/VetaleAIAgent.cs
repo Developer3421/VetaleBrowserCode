@@ -32,8 +32,12 @@ public class VetaleAIAgent : IDisposable
     private static readonly Regex ThaiCharsRegex = new(@"[\u0E00-\u0E7F]+", RegexOptions.Compiled);
     private static readonly Regex ZeroWidthCharsRegex = new(@"[\u200B-\u200D\uFEFF]", RegexOptions.Compiled);
     
-    // Response end markers
-    private static readonly string[] EndMarkers = { "<|end|>", "<|im_end|>", "</s>", "[END]", "<end_of_turn>" };
+    // Response end markers - strict to prevent infinite generation
+    private static readonly string[] EndMarkers = { 
+        "<|end|>", "<|im_end|>", "</s>", "[END]", "<end_of_turn>",
+        "\nUser:", "\nHuman:", "\n\nUser:", "\n\nHuman:",
+        "\n\nAssistant:", "\nQuestion:", "User:", "Human:"
+    };
 
     public VetaleAIAgent(string modelPath)
     {
@@ -115,8 +119,8 @@ public class VetaleAIAgent : IDisposable
 
             var inferenceParams = new InferenceParams
             {
-                MaxTokens = 2048,
-                AntiPrompts = new List<string> { "User:", "\nUser:" }
+                MaxTokens = 4096,
+                AntiPrompts = new List<string> { "\nUser:", "\n\nUser:", "\nHuman:", "\n\nHuman:", "User:" }
             };
 
             var responseBuilder = new StringBuilder();
@@ -154,8 +158,22 @@ public class VetaleAIAgent : IDisposable
                     break;
                 }
 
-                // Safety limit
-                if (responseBuilder.Length > 8000)
+                // Check for repetitive text (infinite loop detection)
+                if (currentResponse.Length > 100 && HasRepetitivePattern(currentResponse))
+                {
+                    System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Repetitive pattern detected at token {tokenCount}");
+                    break;
+                }
+
+                // Check for 3+ identical characters in a row (spam detection)
+                if (HasRepeatingCharacters(currentResponse))
+                {
+                    System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Repeating characters detected at token {tokenCount}");
+                    break;
+                }
+
+                // Safety limit - allow long detailed responses
+                if (responseBuilder.Length > 12000)
                 {
                     System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Safety limit reached at {responseBuilder.Length} chars");
                     break;
@@ -213,8 +231,8 @@ public class VetaleAIAgent : IDisposable
 
             var inferenceParams = new InferenceParams
             {
-                MaxTokens = 2048,
-                AntiPrompts = new List<string> { "User:", "\nUser:" }
+                MaxTokens = 4096,
+                AntiPrompts = new List<string> { "\nUser:", "\n\nUser:", "\nHuman:", "\n\nHuman:", "User:" }
             };
 
             var responseBuilder = new StringBuilder();
@@ -242,8 +260,22 @@ public class VetaleAIAgent : IDisposable
                     break;
                 }
 
-                // Safety length guard
-                if (responseBuilder.Length > 8000)
+                // Check for repetitive text (infinite loop detection)
+                if (current.Length > 100 && HasRepetitivePattern(current))
+                {
+                    System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Repetitive pattern detected at token {tokenCount} (streaming)");
+                    break;
+                }
+
+                // Check for 3+ identical characters in a row (spam detection)
+                if (HasRepeatingCharacters(current))
+                {
+                    System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Repeating characters detected at token {tokenCount} (streaming)");
+                    break;
+                }
+
+                // Safety length guard - allow long detailed responses
+                if (responseBuilder.Length > 12000)
                 {
                     System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Safety limit reached at {responseBuilder.Length} chars (streaming)");
                     break;
@@ -317,7 +349,19 @@ public class VetaleAIAgent : IDisposable
     /// </summary>
     private bool ShouldStopGeneration(string text)
     {
-        return EndMarkers.Any(marker => text.Contains(marker, StringComparison.OrdinalIgnoreCase));
+        // Check standard end markers
+        if (EndMarkers.Any(marker => text.Contains(marker, StringComparison.OrdinalIgnoreCase)))
+            return true;
+
+        // Check if AI started generating dialogue (self-iteration)
+        // Pattern: "User: ... Assistant: ..." or "Q: ... A: ..."
+        if (Regex.IsMatch(text, @"(User|Human|Question|Q):\s*.+\s*(Assistant|AI|Answer|A):", RegexOptions.IgnoreCase))
+        {
+            System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Detected self-dialogue pattern - stopping");
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -337,6 +381,56 @@ public class VetaleAIAgent : IDisposable
     }
 
     /// <summary>
+    /// Check if text has repetitive pattern (indicates infinite loop)
+    /// </summary>
+    private bool HasRepetitivePattern(string text)
+    {
+        if (text.Length < 100) return false;
+
+        // Check last 50 characters for repetition
+        var checkLength = Math.Min(50, text.Length / 4);
+        var endPart = text.Substring(text.Length - checkLength);
+        var beforeEnd = text.Substring(0, text.Length - checkLength);
+
+        // Count how many times the end pattern appears in the text
+        int count = 0;
+        int index = 0;
+        while ((index = beforeEnd.IndexOf(endPart, index, StringComparison.Ordinal)) != -1)
+        {
+            count++;
+            index += checkLength;
+            if (count >= 2) // If pattern repeats 2+ times, it's likely a loop
+            {
+                System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Detected repetitive pattern: '{endPart.Substring(0, Math.Min(20, endPart.Length))}...'");
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Check if text has 3+ identical characters in a row (spam detection)
+    /// </summary>
+    private bool HasRepeatingCharacters(string text)
+    {
+        if (text.Length < 20) return false;
+
+        // Check last 100 characters for repeating characters
+        var checkText = text.Length > 100 ? text.Substring(text.Length - 100) : text;
+        
+        // Pattern: 3 or more identical characters (except spaces and newlines)
+        var match = Regex.Match(checkText, @"([^\s\r\n])\1{2,}");
+        if (match.Success)
+        {
+            System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Detected repeating characters: '{match.Value}'");
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Final cleanup of the response
     /// </summary>
     private string CleanupResponse(string text)
@@ -344,13 +438,19 @@ public class VetaleAIAgent : IDisposable
         // Remove trailing incomplete sentences
         text = text.TrimEnd();
         
-        // Remove any remaining control or spam characters
-        text = FilterCharacters(text);
+        // DON'T modify newlines - preserve formatting for poems and lists
+        // Only remove excessive blank lines (4+ empty lines in a row)
+        text = Regex.Replace(text, @"(\r?\n\s*){4,}", "\n\n\n");
         
-        // Fix multiple newlines
-        text = Regex.Replace(text, @"\n{3,}", "\n\n");
+        // Remove trailing whitespace from each line while preserving empty lines
+        var lines = text.Split('\n');
+        for (int i = 0; i < lines.Length; i++)
+        {
+            lines[i] = lines[i].TrimEnd();
+        }
+        text = string.Join('\n', lines);
         
-        // Remove leading/trailing whitespace
+        // Remove leading/trailing whitespace from entire text
         text = text.Trim();
 
         return text;
@@ -362,21 +462,19 @@ public class VetaleAIAgent : IDisposable
     private string BuildSystemPrompt(string? languageHint, bool enableReasoning)
     {
         var systemPrompt = new StringBuilder();
-        systemPrompt.AppendLine("You are Vetale AI, a helpful and knowledgeable assistant integrated into Vetale Browser.");
-        systemPrompt.AppendLine("Vetale is a character inspired by Vetala from Indian mythology - a spirit known for wisdom and storytelling.");
+        systemPrompt.AppendLine("You are Vetale AI, a helpful assistant for Vetale Browser.");
+        systemPrompt.AppendLine("Provide detailed, comprehensive answers with examples and explanations.");
+        systemPrompt.AppendLine("IMPORTANT: Stop generating immediately after completing your answer. Do not continue with follow-up questions or additional dialogue.");
         
         if (!string.IsNullOrEmpty(languageHint))
         {
-            systemPrompt.AppendLine($"Please respond in {languageHint}.");
+            systemPrompt.AppendLine($"Respond in {languageHint}.");
         }
         
         if (enableReasoning)
         {
-            systemPrompt.AppendLine("Show your reasoning process when answering questions.");
+            systemPrompt.AppendLine("Show your reasoning when answering.");
         }
-        
-        systemPrompt.AppendLine("Provide clear, concise, and helpful responses.");
-        systemPrompt.AppendLine("Do not use Bengali, Arabic, Chinese, Devanagari, Thai or other non-Latin scripts unless specifically requested.");
 
         return systemPrompt.ToString();
     }

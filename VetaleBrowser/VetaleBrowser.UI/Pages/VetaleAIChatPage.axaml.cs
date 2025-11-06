@@ -131,29 +131,33 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
     {
         if (_messagesPanel == null) return;
 
-        var messageBorder = new Border
+        var contentStack = new StackPanel
         {
-            Classes = { "message-bubble", "user-message" },
-            Child = new StackPanel
+            Classes = { "message-content" },
+            Spacing = 6,
+            Children =
             {
-                Spacing = 4,
-                Children =
+                new TextBlock
                 {
-                    new TextBlock
-                    {
-                        Text = Application.Current?.FindResource("VetaleAI.User") as string ?? "You",
-                        FontWeight = FontWeight.SemiBold,
-                        FontSize = 13,
-                        Foreground = new SolidColorBrush(Color.Parse("#666666"))
-                    },
-                    new TextBlock
-                    {
-                        Text = text,
-                        TextWrapping = TextWrapping.Wrap,
-                        FontSize = 14
-                    }
+                    Text = Application.Current?.FindResource("VetaleAI.User") as string ?? "You",
+                    FontWeight = FontWeight.SemiBold,
+                    FontSize = 13,
+                    Foreground = new SolidColorBrush(Color.Parse("#666666"))
+                },
+                new TextBlock
+                {
+                    Text = text,
+                    TextWrapping = TextWrapping.Wrap,
+                    FontSize = 15,
+                    LineHeight = 24
                 }
             }
+        };
+
+        var messageBorder = new Border
+        {
+            Classes = { "message-container", "user-message" },
+            Child = contentStack
         };
 
         _messagesPanel.Children.Add(messageBorder);
@@ -164,29 +168,33 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
     {
         if (_messagesPanel == null) return;
 
-        var messageBorder = new Border
+        var contentStack = new StackPanel
         {
-            Classes = { "message-bubble", "assistant-message" },
-            Child = new StackPanel
+            Classes = { "message-content" },
+            Spacing = 6,
+            Children =
             {
-                Spacing = 4,
-                Children =
+                new TextBlock
                 {
-                    new TextBlock
-                    {
-                        Text = Application.Current?.FindResource("VetaleAI.Assistant") as string ?? "Vetale AI",
-                        FontWeight = FontWeight.SemiBold,
-                        FontSize = 13,
-                        Foreground = new SolidColorBrush(Color.Parse("#4CAF50"))
-                    },
-                    new TextBlock
-                    {
-                        Text = text,
-                        TextWrapping = TextWrapping.Wrap,
-                        FontSize = 14
-                    }
+                    Text = Application.Current?.FindResource("VetaleAI.Assistant") as string ?? "Vetale AI",
+                    FontWeight = FontWeight.SemiBold,
+                    FontSize = 13,
+                    Foreground = new SolidColorBrush(Color.Parse("#4CAF50"))
+                },
+                new TextBlock
+                {
+                    Text = text,
+                    TextWrapping = TextWrapping.Wrap,
+                    FontSize = 15,
+                    LineHeight = 24
                 }
             }
+        };
+
+        var messageBorder = new Border
+        {
+            Classes = { "message-container", "assistant-message" },
+            Child = contentStack
         };
 
         _messagesPanel.Children.Add(messageBorder);
@@ -197,29 +205,34 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
     {
         if (_messagesPanel == null) return;
 
+        var contentStack = new StackPanel
+        {
+            Classes = { "message-content" },
+            Spacing = 6,
+            Orientation = Avalonia.Layout.Orientation.Horizontal,
+            Children =
+            {
+                new TextBlock
+                {
+                    Text = "💭",
+                    FontSize = 18
+                },
+                new TextBlock
+                {
+                    Text = Application.Current?.FindResource("VetaleAI.Thinking") as string ?? "Thinking...",
+                    FontStyle = FontStyle.Italic,
+                    Foreground = new SolidColorBrush(Color.Parse("#999999")),
+                    FontSize = 15,
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+                }
+            }
+        };
+
         var thinkingBorder = new Border
         {
             Name = "ThinkingMessage",
-            Classes = { "message-bubble", "assistant-message" },
-            Child = new StackPanel
-            {
-                Spacing = 4,
-                Orientation = Avalonia.Layout.Orientation.Horizontal,
-                Children =
-                {
-                    new TextBlock
-                    {
-                        Text = "💭",
-                        FontSize = 16
-                    },
-                    new TextBlock
-                    {
-                        Text = Application.Current?.FindResource("VetaleAI.Thinking") as string ?? "Thinking...",
-                        FontStyle = FontStyle.Italic,
-                        Foreground = new SolidColorBrush(Color.Parse("#999999"))
-                    }
-                }
-            }
+            Classes = { "message-container", "assistant-message" },
+            Child = contentStack
         };
 
         _messagesPanel.Children.Add(thinkingBorder);
@@ -610,27 +623,31 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
         {
             Text = initialText,
             TextWrapping = TextWrapping.Wrap,
-            FontSize = 14
+            FontSize = 15,
+            LineHeight = 24
+        };
+
+        var contentStack = new StackPanel
+        {
+            Classes = { "message-content" },
+            Spacing = 6,
+            Children =
+            {
+                new TextBlock
+                {
+                    Text = Application.Current?.FindResource("VetaleAI.Assistant") as string ?? "Vetale AI",
+                    FontWeight = FontWeight.SemiBold,
+                    FontSize = 13,
+                    Foreground = new SolidColorBrush(Color.Parse("#4CAF50"))
+                },
+                contentTextBlock
+            }
         };
 
         var messageBorder = new Border
         {
-            Classes = { "message-bubble", "assistant-message" },
-            Child = new StackPanel
-            {
-                Spacing = 4,
-                Children =
-                {
-                    new TextBlock
-                    {
-                        Text = Application.Current?.FindResource("VetaleAI.Assistant") as string ?? "Vetale AI",
-                        FontWeight = FontWeight.SemiBold,
-                        FontSize = 13,
-                        Foreground = new SolidColorBrush(Color.Parse("#4CAF50"))
-                    },
-                    contentTextBlock
-                }
-            }
+            Classes = { "message-container", "assistant-message" },
+            Child = contentStack
         };
 
         _messagesPanel.Children.Add(messageBorder);

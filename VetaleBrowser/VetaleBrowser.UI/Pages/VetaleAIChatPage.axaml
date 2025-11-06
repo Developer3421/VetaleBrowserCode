@@ -7,21 +7,23 @@
              Background="White">
 
     <UserControl.Styles>
-        <!-- Message bubbles -->
-        <Style Selector="Border.message-bubble">
-            <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding" Value="16,12"/>
-            <Setter Property="Margin" Value="0,8"/>
-            <Setter Property="MaxWidth" Value="700"/>
+        <!-- Modern chat message container (like Claude/Gemini) -->
+        <Style Selector="Border.message-container">
+            <Setter Property="Padding" Value="24,16"/>
+            <Setter Property="BorderThickness" Value="0"/>
         </Style>
         
         <Style Selector="Border.user-message">
-            <Setter Property="Background" Value="#F0F0F0"/>
-            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="Background" Value="#F7F7F8"/>
         </Style>
         
         <Style Selector="Border.assistant-message">
-            <Setter Property="Background" Value="#E8F5E9"/>
+            <Setter Property="Background" Value="White"/>
+        </Style>
+        
+        <!-- Message content wrapper -->
+        <Style Selector="StackPanel.message-content">
+            <Setter Property="MaxWidth" Value="800"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
         </Style>
 
@@ -114,23 +116,23 @@
         <!-- Chat messages area with overlay button -->
         <Grid Grid.Row="0">
             <ScrollViewer x:Name="MessageScrollViewer" 
-                          Padding="20,20,20,0" 
+                          Padding="0" 
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled">
-                <StackPanel x:Name="MessagesPanel" Spacing="0">
+                <StackPanel x:Name="MessagesPanel" Spacing="0" Margin="0,0,0,40">
                     <!-- Welcome message -->
-                    <Border Classes="message-bubble assistant-message" HorizontalAlignment="Center">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="🤖" FontSize="32" HorizontalAlignment="Center"/>
+                    <Border Classes="message-container assistant-message" Padding="40,32">
+                        <StackPanel Classes="message-content" HorizontalAlignment="Center">
+                            <TextBlock Text="🤖" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,16"/>
                             <TextBlock Text="{DynamicResource VetaleAI.WelcomeMessage}" 
                                        FontSize="16" 
                                        TextAlignment="Center"
-                                       TextWrapping="Wrap"/>
+                                       TextWrapping="Wrap"
+                                       Foreground="#666666"
+                                       LineHeight="24"/>
                         </StackPanel>
                     </Border>
                     <!-- Messages will be added here dynamically -->
-                    <!-- Bottom padding spacer to ensure complete scroll -->
-                    <Border Height="20"/>
                 </StackPanel>
             </ScrollViewer>
 
