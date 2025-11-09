@@ -33,10 +33,15 @@ public class VetaleAIAgent : IDisposable
     private static readonly Regex ZeroWidthCharsRegex = new(@"[\u200B-\u200D\uFEFF]", RegexOptions.Compiled);
     
     // Response end markers - strict to prevent infinite generation
-    private static readonly string[] EndMarkers = { 
+    private static readonly string[] EndMarkers = {
         "<|end|>", "<|im_end|>", "</s>", "[END]", "<end_of_turn>",
+        "<|eot_id|>", "</assistant>", "</assistant_response>",
         "\nUser:", "\nHuman:", "\n\nUser:", "\n\nHuman:",
-        "\n\nAssistant:", "\nQuestion:", "User:", "Human:"
+        "User:", "Human:",
+        // Also stop if it tries to restart roles
+        "\nAssistant:", "Assistant:", "\nAI:", "AI:",
+        // Common instruction tags
+        "### Instruction:", "### User:", "<|user|>", "<|assistant|>", "[INST]", "[/INST]"
     };
 
     public VetaleAIAgent(string modelPath)
@@ -113,14 +118,34 @@ public class VetaleAIAgent : IDisposable
 
             // Build system prompt with language hint
             var systemPrompt = BuildSystemPrompt(languageHint, enableReasoning);
-            var fullPrompt = $"{systemPrompt}\n\nUser: {prompt}\nAssistant:";
+            // Switch to instruction/response format to reduce self-dialogue
+            var fullPrompt = new StringBuilder();
+            fullPrompt.AppendLine(systemPrompt);
+            fullPrompt.AppendLine();
+            fullPrompt.AppendLine("### Instruction:");
+            fullPrompt.AppendLine(prompt);
+            fullPrompt.AppendLine();
+            fullPrompt.Append("### Response:\n");
             
             System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Full prompt length: {fullPrompt.Length} chars");
 
             var inferenceParams = new InferenceParams
             {
                 MaxTokens = 4096,
-                AntiPrompts = new List<string> { "\nUser:", "\n\nUser:", "\nHuman:", "\n\nHuman:", "User:" }
+                AntiPrompts = new List<string>
+                {
+                    // Role markers (various cases)
+                    "\nUser:", "\n\nUser:", "User:", "user:", "USER:",
+                    "\nHuman:", "\n\nHuman:", "Human:", "human:",
+                    "\nAssistant:", "Assistant:", "assistant:",
+                    "\nAI:", "AI:", "ai:",
+                    // Instruction tags
+                    "### Instruction:", "### User:",
+                    // Tokenizer-style roles
+                    "<|user|>", "<|assistant|>",
+                    // Llama chat tags
+                    "[INST]", "[/INST]"
+                }
             };
 
             var responseBuilder = new StringBuilder();
@@ -129,7 +154,7 @@ public class VetaleAIAgent : IDisposable
 
             System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Starting token generation...");
 
-            await foreach (var token in _executor.InferAsync(fullPrompt, inferenceParams, cancellationToken))
+            await foreach (var token in _executor.InferAsync(fullPrompt.ToString(), inferenceParams, cancellationToken))
             {
                 tokenCount++;
                 
@@ -148,12 +173,11 @@ public class VetaleAIAgent : IDisposable
                     System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Token {tokenCount}, response length: {responseBuilder.Length}");
                 }
 
-                // Check for end markers
+                // Check for end markers / self-iteration
                 var currentResponse = responseBuilder.ToString();
                 if (ShouldStopGeneration(currentResponse))
                 {
-                    System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: End marker detected at token {tokenCount}");
-                    // Remove end marker from response
+                    System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: End/self-iteration marker at token {tokenCount}");
                     responseBuilder = new StringBuilder(RemoveEndMarkers(currentResponse));
                     break;
                 }
@@ -176,6 +200,13 @@ public class VetaleAIAgent : IDisposable
                 if (responseBuilder.Length > 12000)
                 {
                     System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Safety limit reached at {responseBuilder.Length} chars");
+                    break;
+                }
+
+                // Detect hard looping sequence early (used inline before appending optionally)
+                if (DetectLoopingSequence(currentResponse))
+                {
+                    System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Instruction/Response loop detected");
                     break;
                 }
             }
@@ -227,12 +258,28 @@ public class VetaleAIAgent : IDisposable
             }
 
             var systemPrompt = BuildSystemPrompt(languageHint, enableReasoning);
-            var fullPrompt = $"{systemPrompt}\n\nUser: {prompt}\nAssistant:";
+            var sb = new StringBuilder();
+            sb.AppendLine(systemPrompt);
+            sb.AppendLine();
+            sb.AppendLine("### Instruction:");
+            sb.AppendLine(prompt);
+            sb.AppendLine();
+            sb.Append("### Response:\n");
+            var fullPrompt = sb.ToString();
 
             var inferenceParams = new InferenceParams
             {
                 MaxTokens = 4096,
-                AntiPrompts = new List<string> { "\nUser:", "\n\nUser:", "\nHuman:", "\n\nHuman:", "User:" }
+                AntiPrompts = new List<string>
+                {
+                    "\nUser:", "\n\nUser:", "User:", "user:", "USER:",
+                    "\nHuman:", "\n\nHuman:", "Human:", "human:",
+                    "\nAssistant:", "Assistant:", "assistant:",
+                    "\nAI:", "AI:", "ai:",
+                    "### Instruction:", "### User:",
+                    "<|user|>", "<|assistant|>",
+                    "[INST]", "[/INST]"
+                }
             };
 
             var responseBuilder = new StringBuilder();
@@ -253,7 +300,6 @@ public class VetaleAIAgent : IDisposable
                 var current = responseBuilder.ToString();
                 if (ShouldStopGeneration(current))
                 {
-                    // Trim end marker(s) from the builder so they never get streamed out
                     var trimmed = RemoveEndMarkers(current);
                     responseBuilder.Clear();
                     responseBuilder.Append(trimmed);
@@ -349,13 +395,12 @@ public class VetaleAIAgent : IDisposable
     /// </summary>
     private bool ShouldStopGeneration(string text)
     {
-        // Check standard end markers
-        if (EndMarkers.Any(marker => text.Contains(marker, StringComparison.OrdinalIgnoreCase)))
+        // Check standard end markers / role restarts
+        if (EndMarkers.Any(marker => text.IndexOf(marker, StringComparison.OrdinalIgnoreCase) >= 0))
             return true;
 
-        // Check if AI started generating dialogue (self-iteration)
-        // Pattern: "User: ... Assistant: ..." or "Q: ... A: ..."
-        if (Regex.IsMatch(text, @"(User|Human|Question|Q):\s*.+\s*(Assistant|AI|Answer|A):", RegexOptions.IgnoreCase))
+        // Broad self-dialogue pattern, tolerant to markup and spacing
+        if (Regex.IsMatch(text, @"(\*\*|\[)?\s*(User|Human|Question|Q)\s*(\*\*|\])?\s*:.*?(\*\*|\[)?\s*(Assistant|AI|Answer|A)\s*(\*\*|\])?\s*:", RegexOptions.IgnoreCase | RegexOptions.Singleline))
         {
             System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Detected self-dialogue pattern - stopping");
             return true;
@@ -385,49 +430,88 @@ public class VetaleAIAgent : IDisposable
     /// </summary>
     private bool HasRepetitivePattern(string text)
     {
-        if (text.Length < 100) return false;
+        // Strict mode: minimal length threshold; analyze recent window
+        if (string.IsNullOrEmpty(text) || text.Length < 30) return false;
+        var window = text.Length > 800 ? text[^800..] : text;
 
-        // Check last 50 characters for repetition
-        var checkLength = Math.Min(50, text.Length / 4);
-        var endPart = text.Substring(text.Length - checkLength);
-        var beforeEnd = text.Substring(0, text.Length - checkLength);
-
-        // Count how many times the end pattern appears in the text
-        int count = 0;
-        int index = 0;
-        while ((index = beforeEnd.IndexOf(endPart, index, StringComparison.Ordinal)) != -1)
+        // 1. Immediate consecutive chunk repetition (2+ repeats of 5–80 chars)
+        var consecutive = Regex.Match(window, @"(.{5,80})\1+");
+        if (consecutive.Success)
         {
-            count++;
-            index += checkLength;
-            if (count >= 2) // If pattern repeats 2+ times, it's likely a loop
+            System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: STRICT consecutive repetition '{consecutive.Groups[1].Value.Substring(0, Math.Min(30, consecutive.Groups[1].Value.Length))}...' ");
+            return true;
+        }
+
+        // 2. Tail appears earlier once (last 40–120 chars); ANY previous occurrence triggers stop
+        for (int size = 120; size >= 40; size -= 20)
+        {
+            if (text.Length <= size * 2) continue; // need earlier content
+            var tail = text[^size..];
+            var prior = text.Substring(0, text.Length - size);
+            if (prior.Contains(tail, StringComparison.Ordinal))
             {
-                System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Detected repetitive pattern: '{endPart.Substring(0, Math.Min(20, endPart.Length))}...'");
+                System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: STRICT tail duplication size={size}");
                 return true;
             }
+        }
+
+        // 3. High-frequency n-gram (3–8 chars) repeated ≥5 times (lower tolerance)
+        for (int gram = 3; gram <= 8; gram++)
+        {
+            var counts = new Dictionary<string,int>();
+            for (int i = 0; i <= window.Length - gram; i++)
+            {
+                var g = window.Substring(i, gram);
+                if (!Regex.IsMatch(g, @"[A-Za-z0-9]")) continue; // ignore pure punctuation
+                counts[g] = counts.TryGetValue(g, out var c) ? c + 1 : 1;
+                if (counts[g] >= 5)
+                {
+                    System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: STRICT n-gram '{g}' count={counts[g]}");
+                    return true;
+                }
+            }
+        }
+
+        // 4. Repeated structural markers (multiple Response headers)
+        var respCount = Regex.Matches(text, @"### Response:").Count;
+        if (respCount > 1)
+        {
+            System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: STRICT repeated response headers respCount={respCount}");
+            return true;
         }
 
         return false;
     }
 
-    /// <summary>
-    /// Check if text has 3+ identical characters in a row (spam detection)
-    /// </summary>
-    private bool HasRepeatingCharacters(string text)
+    // Detect hard looping sequence early (used inline before appending optionally)
+    private bool DetectLoopingSequence(string aggregate)
     {
-        if (text.Length < 20) return false;
-
-        // Check last 100 characters for repeating characters
-        var checkText = text.Length > 100 ? text.Substring(text.Length - 100) : text;
-        
-        // Pattern: 3 or more identical characters (except spaces and newlines)
-        var match = Regex.Match(checkText, @"([^\s\r\n])\1{2,}");
-        if (match.Success)
+        // If model starts injecting new Instruction/Response blocks repeatedly
+        int instCount = Regex.Matches(aggregate, @"### Instruction:").Count;
+        int respCount = Regex.Matches(aggregate, @"### Response:").Count;
+        if (instCount > 1 || respCount > 1)
         {
-            System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Detected repeating characters: '{match.Value}'");
+            System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Repeated instruction/response blocks (inst={instCount}, resp={respCount})");
             return true;
         }
-
         return false;
+    }
+
+    private string RemoveTrailingRepeatedChunk(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text) || text.Length < 200) return text.Trim();
+        // Try to remove duplicated tail: find largest tail (40-200 chars) that appears earlier immediately before
+        for (int size = Math.Min(200, text.Length / 2); size >= 40; size -= 10)
+        {
+            var tail = text.Substring(text.Length - size);
+            var preceding = text.Substring(0, text.Length - size);
+            if (preceding.EndsWith(tail))
+            {
+                System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Trimming duplicated tail size={size}");
+                return preceding.TrimEnd();
+            }
+        }
+        return text.Trim();
     }
 
     /// <summary>
@@ -453,6 +537,9 @@ public class VetaleAIAgent : IDisposable
         // Remove leading/trailing whitespace from entire text
         text = text.Trim();
 
+        // Remove any trailing repeated chunk that might cause looping
+        text = RemoveTrailingRepeatedChunk(text);
+
         return text;
     }
 
@@ -465,6 +552,8 @@ public class VetaleAIAgent : IDisposable
         systemPrompt.AppendLine("You are Vetale AI, a helpful assistant for Vetale Browser.");
         systemPrompt.AppendLine("Provide detailed, comprehensive answers with examples and explanations.");
         systemPrompt.AppendLine("IMPORTANT: Stop generating immediately after completing your answer. Do not continue with follow-up questions or additional dialogue.");
+        systemPrompt.AppendLine("Absolutely never include role prefixes like 'User:', 'Assistant:', 'Human:', 'AI:', 'Q:', or 'A:' in your output.");
+        systemPrompt.AppendLine("Write a direct response only.");
         
         if (!string.IsNullOrEmpty(languageHint))
         {
@@ -544,5 +633,22 @@ public class VetaleAIAgent : IDisposable
         _generationLock.Dispose();
         
         System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Disposed");
+    }
+
+    /// <summary>
+    /// Check if text has 3+ identical characters in a row (spam detection)
+    /// </summary>
+    private bool HasRepeatingCharacters(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return false;
+        // Limit to recent tail to keep it fast
+        var check = text.Length > 200 ? text.Substring(text.Length - 200) : text;
+        // 3+ identical non-whitespace characters
+        if (Regex.IsMatch(check, @"([^\s\r\n])\1{2,}"))
+            return true;
+        // 4+ identical punctuation/symbols
+        if (Regex.IsMatch(check, @"([^\w\s])\1{3,}"))
+            return true;
+        return false;
     }
 }

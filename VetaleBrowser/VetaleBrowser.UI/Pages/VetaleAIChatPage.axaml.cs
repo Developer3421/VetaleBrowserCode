@@ -24,6 +24,7 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
     private ToggleButton? _reasoningToggle;
     private ComboBox? _languageSelector;
     private Button? _scrollToBottomButton;
+    private Button? _stopButton;
     private bool _autoScroll = true;
 
     private bool _isProcessing;
@@ -32,7 +33,7 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
     private bool _isDisposed;
     private Task? _ongoingResponseTask;
 
-    private static readonly Regex TrailingUserCueRegex = new(@"(?:\s|:)*\*{0,2}\s*User\s*\*{0,2}(?:\s*:)?\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex TrailingUserCueRegex = new(@"(?:\s|:|#|\[|\])*(\*{0,2}\s*)?(User|Human|Assistant|AI|Q|A)(\s*\*{0,2})?(?:\s*:)?\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     public VetaleAIChatPage()
     {
@@ -55,6 +56,7 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
         _reasoningToggle = this.FindControl<ToggleButton>("ReasoningToggle");
         _languageSelector = this.FindControl<ComboBox>("LanguageSelector");
         _scrollToBottomButton = this.FindControl<Button>("ScrollToBottomButton");
+        _stopButton = this.FindControl<Button>("StopButton");
 
         if (_messageInput != null)
         {
@@ -124,6 +126,12 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
         if (_sendButton != null && _messageInput != null)
         {
             _sendButton.IsEnabled = !string.IsNullOrWhiteSpace(_messageInput.Text) && !_isProcessing;
+        }
+
+        if (_stopButton != null)
+        {
+            _stopButton.IsEnabled = _isProcessing; // enabled only while processing
+            _stopButton.IsVisible = _isProcessing; // visible only while processing
         }
     }
 
@@ -278,6 +286,23 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
         UpdateSendButtonState();
     }
 
+    private void Stop_Click(object? sender, RoutedEventArgs e)
+    {
+        if (!_isProcessing)
+            return;
+        System.Diagnostics.Trace.WriteLine("VetaleAIChatPage: Stop requested");
+        try
+        {
+            _cancellationTokenSource?.Cancel();
+        }
+        catch { }
+        finally
+        {
+            _isProcessing = false; // will be flipped when cancellation observed
+            UpdateSendButtonState();
+        }
+    }
+
     private async Task GetAIResponseInternal(string userMessage)
     {
         AddThinkingMessage();
@@ -313,6 +338,12 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
 
             _cancellationTokenSource = new CancellationTokenSource();
             var ct = _cancellationTokenSource.Token;
+            // Ensure stop button state reflects processing
+            if (_stopButton != null)
+            {
+                _stopButton.IsVisible = true;
+                _stopButton.IsEnabled = true;
+            }
 
             var progress = new Progress<string>(token =>
             {
@@ -356,6 +387,10 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
             {
                 _cancellationTokenSource?.Dispose();
                 _cancellationTokenSource = null;
+                if (_stopButton != null)
+                {
+                    _stopButton.IsEnabled = false; // disable while finishing cleanup
+                }
             }
 
             finalText = StripTrailingUserCue(finalText);
@@ -382,6 +417,14 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
             RemoveThinkingMessage();
             AddAssistantMessage($"Error: {ex.Message}");
             System.Diagnostics.Trace.WriteLine($"VetaleAIChatPage: Error getting AI response: {ex}");
+        }
+        finally
+        {
+            if (_stopButton != null)
+            {
+                _stopButton.IsVisible = false;
+                _stopButton.IsEnabled = false;
+            }
         }
     }
 
@@ -423,7 +466,11 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
                 System.Diagnostics.Trace.WriteLine($"VetaleAIChatPage: Calling AI service (attempt {attempt + 1}) with language={language}, reasoning={enableReasoning}");
 
                 _cancellationTokenSource = new CancellationTokenSource();
-                
+                if (_stopButton != null)
+                {
+                    _stopButton.IsVisible = true;
+                    _stopButton.IsEnabled = true;
+                }
                 var response = await _aiService.GenerateResponseAsync(
                     prompt, 
                     language, 
@@ -474,6 +521,11 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
             {
                 _cancellationTokenSource?.Dispose();
                 _cancellationTokenSource = null;
+                if (_stopButton != null)
+                {
+                    _stopButton.IsVisible = false;
+                    _stopButton.IsEnabled = false;
+                }
             }
         }
         

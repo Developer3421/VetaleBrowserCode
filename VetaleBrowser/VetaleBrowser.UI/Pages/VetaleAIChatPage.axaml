@@ -79,6 +79,26 @@
             <Setter Property="Background" Value="#CCCCCC"/>
         </Style>
 
+        <!-- Stop button styles -->
+        <Style Selector="Button.stop-button">
+            <Setter Property="Background" Value="#E53935"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.stop-button:pointerover">
+            <Setter Property="Background" Value="#EF5350"/>
+        </Style>
+        <Style Selector="Button.stop-button:pressed">
+            <Setter Property="Background" Value="#C62828"/>
+        </Style>
+        <Style Selector="Button.stop-button:disabled">
+            <Setter Property="Background" Value="#E0E0E0"/>
+            <Setter Property="Foreground" Value="#9E9E9E"/>
+        </Style>
+
         <!-- Toggle buttons -->
         <Style Selector="ToggleButton.tool-toggle">
             <Setter Property="Background" Value="Transparent"/>
@@ -221,15 +241,30 @@
                     </StackPanel>
                 </Grid>
 
-                <!-- Input box with send button -->
-                <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+                <!-- Input box with send/stop buttons -->
+                <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto">
                     <TextBox x:Name="MessageInput" 
                              Grid.Column="0"
                              Classes="chat-input"
                              Watermark="{DynamicResource VetaleAI.InputPlaceholder}"/>
+
+                    <!-- Stop button placed to the left of Send -->
+                    <Button x:Name="StopButton"
+                            Grid.Column="1"
+                            Classes="stop-button"
+                            Margin="10,0,0,0"
+                            Click="Stop_Click"
+                            IsVisible="False"
+                            IsEnabled="False"
+                            ToolTip.Tip="{DynamicResource VetaleAI.Stop}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="⏹"/>
+                            <TextBlock Text="{DynamicResource VetaleAI.Stop}"/>
+                        </StackPanel>
+                    </Button>
                     
                     <Button x:Name="SendButton" 
-                            Grid.Column="1"
+                            Grid.Column="2"
                             Classes="send-button"
                             Margin="10,0,0,0"
                             Click="Send_Click"
