@@ -652,6 +652,10 @@ public partial class MainWindow : Window
     {
         _tabs.Activate(worker);
         
+        // Використовуємо urlOverride або поточну адресу воркера
+        var finalUrl = urlOverride ?? worker.Address ?? "";
+        System.Diagnostics.Debug.WriteLine($"[MainWindow] ActivateWorkerForInternalPage - URL: {finalUrl}");
+        
         var targetContainer = _isFullscreen 
             ? _fullscreenModePage?.FullscreenGrid 
             : _normalModePage?.WebViewGrid;
@@ -676,10 +680,11 @@ public partial class MainWindow : Window
             }
         }
         
+        // Оновлюємо NavBar з новим URL
         var navBar = _normalModePage?.NavBar;
         if (navBar != null)
         {
-            navBar.Url = urlOverride ?? worker.Address ?? "";
+            navBar.Url = finalUrl;
             navBar.CanGoBack = false;
             navBar.CanGoForward = false;
             System.Diagnostics.Debug.WriteLine($"[MainWindow] NavBar updated: Url={navBar.Url}");
