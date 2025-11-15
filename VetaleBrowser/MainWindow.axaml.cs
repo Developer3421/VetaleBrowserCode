@@ -933,6 +933,25 @@ public partial class MainWindow : Window
         if (e == null) return;
         var isAlt = (e.KeyModifiers & KeyModifiers.Alt) == KeyModifiers.Alt;
 
+        // Якщо це внутрішня сторінка з результатами пошуку Vetale, ігноруємо F/F11
+        if (IsCurrentInternalSearchResultsPage())
+        {
+            if (e.Key == Key.F || e.Key == Key.F11 || (e.Key == Key.F && isAlt))
+            {
+                // Не чіпаємо fullscreen гарячі клавіші на сторінці результатів пошуку
+                return;
+            }
+        }
+
+        // Якщо зараз показується Vetale Search (home або results), блокуємо F/F11
+        if (IsCurrentVetaleSearchInternalPage())
+        {
+            if (e.Key == Key.F11 || e.Key == Key.F || (e.Key == Key.F && (e.KeyModifiers & KeyModifiers.Alt) == KeyModifiers.Alt))
+            {
+                return;
+            }
+        }
+
         if (e.Key == Key.F11)
         {
             ToggleFullscreen();
@@ -962,6 +981,40 @@ public partial class MainWindow : Window
             e.Handled = true;
             return;
         }
+    }
+
+    private bool IsCurrentInternalSearchResultsPage()
+    {
+        try
+        {
+            // Для внутрішніх сторінок ми зберігаємо UserControl у WebView.Tag
+            var active = _tabs.Active;
+            if (active?.WebView?.Tag is VetaleSearchResultsPage)
+                return true;
+        }
+        catch
+        {
+            // Якщо щось пішло не так, не блокуємо гарячі клавіші
+        }
+
+        return false;
+    }
+
+    private bool IsCurrentVetaleSearchInternalPage()
+    {
+        try
+        {
+            var active = _tabs.Active;
+            // Для внутрішніх сторінок Vetale Search ми зберігаємо UserControl у WebView.Tag
+            if (active?.WebView?.Tag is VetaleSearchHomePage || active?.WebView?.Tag is VetaleSearchResultsPage)
+                return true;
+        }
+        catch
+        {
+            // Якщо щось пішло не так, не блокуємо гарячі клавіші
+        }
+
+        return false;
     }
 
     // React to WebView property changes (e.g., Address changes, CanGoBack/Forward, Title)
@@ -1295,6 +1348,15 @@ public partial class MainWindow : Window
 
     private void OnWindowKeyDown(object? sender, KeyEventArgs e)
     {
+        // Якщо зараз показується Vetale Search (home або results), блокуємо F/F11
+        if (IsCurrentVetaleSearchInternalPage())
+        {
+            if (e.Key == Key.F11 || e.Key == Key.F || (e.Key == Key.F && (e.KeyModifiers & KeyModifiers.Alt) == KeyModifiers.Alt))
+            {
+                return;
+            }
+        }
+
         // F11 toggles fullscreen
         if (e.Key == Key.F11)
         {
@@ -1710,8 +1772,7 @@ public partial class MainWindow : Window
             var activeWorker = _tabs.Active;
             if (activeWorker == null)
             {
-                System.Diagnostics.Debug.WriteLine($"[MainWindow] No active tab - creating new internal tab");
-                // Якщо немає жодної вкладки — створюємо нову внутрішню вкладку з Vetale Search
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] No active tab - creating new internal вкладку з Vetale Search");
                 CreateInternalPageTab(vetaleSearchUrl);
                 Activate();
                 Focus();

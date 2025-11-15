@@ -29,6 +29,22 @@ public partial class NormalModePage : UserControl
     public Button? ClsBtn => _closeButton;
     public Grid? TabBar => _tabBarRow;
 
+    /// <summary>
+    /// Повертає активний контент вкладки (якщо це внутрішня сторінка),
+    /// який відображається всередині контейнера WebViewContainer.
+    /// Використовується MainWindow для визначення, чи показується зараз VetaleSearchResultsPage.
+    /// </summary>
+    public UserControl? GetActiveTabContent()
+    {
+        if (_webViewContainer == null)
+            return null;
+
+        if (_webViewContainer.Children.Count == 1 && _webViewContainer.Children[0] is UserControl uc)
+            return uc;
+
+        return null;
+    }
+
     public NormalModePage()
     {
         try

@@ -168,19 +168,28 @@
 
     <!-- Основний макет: градієнтна шапка + картка результатів -->
     <Grid RowDefinitions="Auto,*">
-        <!-- Шапка з градієнтом і пошуком як на домашній сторінці -->
-        <Border Grid.Row="0" Classes="results-gradient-header" Padding="24,16">
-            <Grid ColumnDefinitions="Auto,*" MaxWidth="1100" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <!-- Логотип/назва, зміщений лівіше -->
-                <StackPanel Orientation="Vertical" Spacing="0" Margin="0,0,16,0" HorizontalAlignment="Left">
-                    <TextBlock Text="Vetale" FontSize="28" FontWeight="Bold" Foreground="White"/>
-                    <TextBlock Text="Search" FontSize="16" Foreground="White" Opacity="0.9"/>
+        <!-- Шапка з градієнтом і пошуком на всю ширину -->
+        <Border Grid.Row="0" Classes="results-gradient-header" Padding="16,12">
+            <Grid ColumnDefinitions="Auto,*" HorizontalAlignment="Stretch">
+                <!-- Логотип/назва, притиснутий до лівого краю -->
+                <StackPanel Grid.Column="0"
+                            Orientation="Vertical"
+                            Spacing="0"
+                            Margin="24,0,24,0"
+                            HorizontalAlignment="Left">
+                    <TextBlock Text="Vetale" FontSize="24" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock Text="Search" FontSize="14" Foreground="White" Opacity="0.9"/>
                 </StackPanel>
 
-                <!-- Пошуковий рядок + всі кнопки в одному рядку -->
-                <Grid Grid.Column="1" ColumnDefinitions="*,Auto" HorizontalAlignment="Stretch">
+                <!-- Пошуковий рядок + всі кнопки в одному рядку, розтягнутий на всю ширину -->
+                <Grid Grid.Column="1" ColumnDefinitions="*,Auto" Margin="0,0,24,0" HorizontalAlignment="Stretch">
                     <!-- Поле пошуку -->
-                    <Border Grid.Column="0" Background="White" CornerRadius="24" Padding="0" BoxShadow="0 4 16 #26000000" HorizontalAlignment="Stretch">
+                    <Border Grid.Column="0"
+                            Background="White"
+                            CornerRadius="24"
+                            Padding="0"
+                            BoxShadow="0 4 16 #26000000"
+                            HorizontalAlignment="Stretch">
                         <Grid ColumnDefinitions="*,Auto" HorizontalAlignment="Stretch">
                             <TextBox x:Name="SearchInput"
                                      Grid.Column="0"
