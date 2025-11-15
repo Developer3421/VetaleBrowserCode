@@ -2,10 +2,13 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
 using VetaleBrowser.VetaleBrowser.Database.Services;
 using VetaleBrowser.VetaleBrowser.UI.Services;
+using VetaleBrowser.VetaleBrowser.Search.Models;
+using VetaleBrowser.VetaleBrowser.Search.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Еlements;
 
@@ -33,6 +36,11 @@ public class NavigationBar : TemplatedControl
     private TextBox? _addressBar;
     private WebViewManager? _webViewManager;
     private ISettingsService? _settingsService;
+    private Popup? _suggestionsPopup;
+    private ItemsControl? _suggestionsList;
+    private readonly System.Collections.ObjectModel.ObservableCollection<SearchSuggestion> _suggestions = new();
+    private ISuggestionsService? _suggestionsService;
+    private System.Threading.CancellationTokenSource? _suggestionsCts;
 
     // Подія навігації для vetale://
     public event EventHandler<string>? NavigateRequested;
@@ -84,6 +92,11 @@ public class NavigationBar : TemplatedControl
         System.Diagnostics.Trace.WriteLine("NavigationBar: Settings service set");
     }
 
+    public void SetSuggestionsService(ISuggestionsService service)
+    {
+        _suggestionsService = service;
+    }
+
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
@@ -104,7 +117,10 @@ public class NavigationBar : TemplatedControl
         if (_settingsButton != null)
             _settingsButton.Click -= OnSettingsButtonClick;
         if (_addressBar != null)
+        {
             _addressBar.KeyDown -= OnAddressBarKeyDown;
+            _addressBar.TextChanged -= OnAddressBarTextChanged;
+        }
 
         // Get new buttons
         _backButton = e.NameScope.Find<Button>("PART_BackButton");
@@ -115,6 +131,13 @@ public class NavigationBar : TemplatedControl
         _toolsButton = e.NameScope.Find<Button>("PART_ToolsButton");
         _settingsButton = e.NameScope.Find<Button>("PART_SettingsButton");
         _addressBar = e.NameScope.Find<TextBox>("PART_AddressBar");
+        _suggestionsPopup = e.NameScope.Find<Popup>("PART_SuggestionsPopup");
+        _suggestionsList = e.NameScope.Find<ItemsControl>("PART_SuggestionsList");
+        if (_suggestionsList != null)
+        {
+            _suggestionsList.ItemsSource = _suggestions;
+            _suggestionsList.AddHandler(InputElement.PointerPressedEvent, OnSuggestionsPointerPressed, handledEventsToo: false);
+        }
 
         // Subscribe to new buttons
         if (_backButton != null)
@@ -132,7 +155,10 @@ public class NavigationBar : TemplatedControl
         if (_settingsButton != null)
             _settingsButton.Click += OnSettingsButtonClick;
         if (_addressBar != null)
+        {
             _addressBar.KeyDown += OnAddressBarKeyDown;
+            _addressBar.TextChanged += OnAddressBarTextChanged;
+        }
 
         UpdateButtonStates();
     }
@@ -218,6 +244,90 @@ public class NavigationBar : TemplatedControl
 
             await _webViewManager.NavigateAsync(url);
             System.Diagnostics.Trace.WriteLine($"NavigationBar: Navigate to {url}");
+        }
+    }
+
+    private void OnAddressBarTextChanged(object? sender, Avalonia.Controls.TextChangedEventArgs e)
+    {
+        _ = LoadAddressSuggestionsAsync();
+    }
+
+    private async System.Threading.Tasks.Task LoadAddressSuggestionsAsync()
+    {
+        if (_suggestionsService == null || _addressBar == null)
+        {
+            if (_suggestionsPopup != null) _suggestionsPopup.IsOpen = false;
+            return;
+        }
+
+        _suggestionsCts?.Cancel();
+        _suggestionsCts = new System.Threading.CancellationTokenSource();
+        var token = _suggestionsCts.Token;
+        try
+        {
+            await System.Threading.Tasks.Task.Delay(250, token); // debounce
+            var query = _addressBar.Text ?? string.Empty;
+            if (token.IsCancellationRequested) return;
+
+            if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
+            {
+                _suggestions.Clear();
+                if (_suggestionsPopup != null) _suggestionsPopup.IsOpen = false;
+                return;
+            }
+            // Якщо схоже на повний URL або внутрішній vetale:// - не показуємо підказки
+            if (query.Contains("://") || query.StartsWith("vetale://", StringComparison.OrdinalIgnoreCase))
+            {
+                _suggestions.Clear();
+                if (_suggestionsPopup != null) _suggestionsPopup.IsOpen = false;
+                return;
+            }
+
+            var results = await _suggestionsService.GetSuggestionsAsync(query, 8);
+            if (token.IsCancellationRequested) return;
+
+            _suggestions.Clear();
+            foreach (var s in results) _suggestions.Add(s);
+
+            if (_suggestionsPopup != null)
+                _suggestionsPopup.IsOpen = _suggestions.Count > 0;
+        }
+        catch (System.OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[NavigationBar] Suggestions error: {ex.Message}");
+            _suggestions.Clear();
+            if (_suggestionsPopup != null) _suggestionsPopup.IsOpen = false;
+        }
+    }
+
+    private async void OnSuggestionsPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        try
+        {
+            // Шукаємо Border із DataContext SearchSuggestion
+            if (e.Source is Border b && b.DataContext is SearchSuggestion sug && _addressBar != null)
+            {
+                _addressBar.Text = sug.Text;
+                if (_suggestionsPopup != null) _suggestionsPopup.IsOpen = false;
+                if (_webViewManager != null)
+                {
+                    var url = sug.Text;
+                    if (!url.Contains("://"))
+                    {
+                        var searchTemplate = await GetSearchEngineUrlAsync();
+                        url = string.Format(searchTemplate, Uri.EscapeDataString(url));
+                    }
+                    if (InternalUrlHandler.IsInternalUrl(url))
+                        NavigateRequested?.Invoke(this, url);
+                    else
+                        await _webViewManager.NavigateAsync(url);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[NavigationBar] Suggestions click error: {ex.Message}");
         }
     }
 
