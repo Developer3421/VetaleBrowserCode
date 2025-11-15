@@ -8,12 +8,12 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages;
 
 public partial class VetaleSearchHomePage : UserControl
 {
-    private TextBox? _searchInput;
-    private ComboBox? _searchEngineSelector;
-    
-    // Подія для створення нової вкладки
     public event EventHandler<string>? NavigateRequested;
 
+    private TextBox? _searchInput;
+    private ComboBox? _searchEngineSelector;
+    private Button? _searchButton;
+    
     public VetaleSearchHomePage()
     {
         InitializeComponent();
@@ -29,11 +29,25 @@ public partial class VetaleSearchHomePage : UserControl
     {
         _searchInput = this.FindControl<TextBox>("SearchInput");
         _searchEngineSelector = this.FindControl<ComboBox>("SearchEngineSelector");
+        _searchButton = this.FindControl<Button>("SearchButton");
 
         // Focus search input when page loads
         if (_searchInput != null)
         {
             _searchInput.Focus();
+        }
+
+        if (_searchButton != null)
+        {
+            _searchButton.IsEnabled = !string.IsNullOrWhiteSpace(_searchInput?.Text);
+        }
+    }
+
+    private void SearchInput_TextChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (_searchButton != null)
+        {
+            _searchButton.IsEnabled = !string.IsNullOrWhiteSpace(_searchInput?.Text);
         }
     }
 

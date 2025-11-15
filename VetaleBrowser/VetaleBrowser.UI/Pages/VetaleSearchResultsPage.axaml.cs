@@ -2,16 +2,22 @@ using System;
 using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
 
 public partial class VetaleSearchResultsPage : UserControl
 {
+    private string? _currentQuery;
     public event EventHandler<string>? NavigateRequested;
     
     private TextBlock? _searchStats;
     private StackPanel? _resultsPanel;
+    private TextBlock? _queryHeading;
+    private TextBox? _searchInput;
+    private ComboBox? _searchEngineSelector;
+    private Button? _searchButton;
 
     public VetaleSearchResultsPage()
     {
@@ -28,6 +34,20 @@ public partial class VetaleSearchResultsPage : UserControl
     {
         _searchStats = this.FindControl<TextBlock>("SearchStats");
         _resultsPanel = this.FindControl<StackPanel>("ResultsPanel");
+        _queryHeading = this.FindControl<TextBlock>("QueryHeading");
+        _searchInput = this.FindControl<TextBox>("SearchInput");
+        _searchEngineSelector = this.FindControl<ComboBox>("SearchEngineSelector");
+        _searchButton = this.FindControl<Button>("SearchButton");
+
+        if (_searchInput != null)
+        {
+            _searchInput.Focus();
+        }
+
+        if (_searchButton != null)
+        {
+            _searchButton.IsEnabled = !string.IsNullOrWhiteSpace(_searchInput?.Text);
+        }
     }
 
     /// <summary>
@@ -36,6 +56,20 @@ public partial class VetaleSearchResultsPage : UserControl
     public void SetSearchQuery(string query)
     {
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] SetSearchQuery called with: '{query}'");
+        _currentQuery = query;
+
+        if (_searchInput != null)
+        {
+            _searchInput.Text = query;
+        }
+
+        if (_queryHeading != null)
+        {
+            _queryHeading.Text = string.IsNullOrWhiteSpace(query)
+                ? "Локальний пошук Vetale"
+                : $"Результати для: \"{query}\"";
+        }
+
         LoadSearchResults(query);
     }
 
@@ -60,8 +94,60 @@ public partial class VetaleSearchResultsPage : UserControl
 
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Loading results for: {query}");
 
-        // TODO: Тут має бути інтеграція з реальним пошуком
-        // Поки що відображаються статичні результати з XAML
+        // TODO: інтеграція з реальним пошуком
+
+        if (_searchStats != null)
+        {
+            _searchStats.Text = $"Показуємо попередні результати для запиту \"{query}\"";
+        }
+    }
+
+    // --- Обробники подій пошуку (як на домашній сторінці) ---
+
+    private void SearchInput_TextChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (_searchButton != null)
+        {
+            _searchButton.IsEnabled = !string.IsNullOrWhiteSpace(_searchInput?.Text);
+        }
+    }
+
+    private void SearchInput_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            PerformSearch();
+        }
+    }
+
+    private void Search_Click(object? sender, RoutedEventArgs e)
+    {
+        PerformSearch();
+    }
+
+    private void LuckySearch_Click(object? sender, RoutedEventArgs e)
+    {
+        PerformSearch(isLucky: true);
+    }
+
+    private void SearchEngineSelector_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        // Поки що просто лог для діагностики
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Search engine changed to index: {_searchEngineSelector?.SelectedIndex}");
+    }
+
+    private void PerformSearch(bool isLucky = false)
+    {
+        if (_searchInput == null || string.IsNullOrWhiteSpace(_searchInput.Text))
+        {
+            return;
+        }
+
+        string query = _searchInput.Text.Trim();
+        _currentQuery = query;
+
+        // Для локального пошуку просто оновлюємо результати на цій сторінці
+        LoadSearchResults(query);
     }
 
     /// <summary>
@@ -266,11 +352,15 @@ public partial class VetaleSearchResultsPage : UserControl
     public void ClearResults()
     {
         _resultsPanel?.Children.Clear();
+        if (_searchStats != null)
+        {
+            _searchStats.Text = "Немає результатів";
+        }
     }
 }
 
 /// <summary>
-/// Модель результату пошуку
+/// Мо��ель результату пошуку
 /// </summary>
 public class SearchResult
 {
@@ -282,4 +372,3 @@ public class SearchResult
     public double? Rating { get; set; }
     public int? ReviewCount { get; set; }
 }
-

@@ -124,10 +124,13 @@
                                  Grid.Column="0"
                                  Classes="search-input"
                                  Watermark="Введіть пошуковий запит..."
-                                 KeyDown="SearchInput_KeyDown"/>
-                        
-                        <StackPanel Grid.Column="1" 
-                                    Orientation="Horizontal" 
+                                 KeyDown="SearchInput_KeyDown"
+                                 TextChanged="SearchInput_TextChanged"
+                                 TextWrapping="NoWrap"
+                                 MaxLength="256"/>
+
+                        <StackPanel Grid.Column="1"
+                                    Orientation="Horizontal"
                                     Spacing="4"
                                     Margin="0,0,8,0">
                             <Button Classes="icon-button"
@@ -145,13 +148,13 @@
                 <!-- Search engine selector and buttons -->
                 <StackPanel Spacing="16">
                     <!-- Engine selector -->
-                    <Border Background="White" 
-                            CornerRadius="12" 
+                    <Border Background="White"
+                            CornerRadius="12"
                             Padding="16"
                             BoxShadow="0 2 8 #1A000000"
                             HorizontalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <TextBlock Text="Пошукова система:" 
+                            <TextBlock Text="Пошукова система:"
                                        VerticalAlignment="Center"
                                        FontWeight="SemiBold"
                                        Foreground="#333"/>
@@ -195,11 +198,13 @@
                     </Border>
 
                     <!-- Search buttons -->
-                    <StackPanel Orientation="Horizontal" 
-                                HorizontalAlignment="Center" 
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center"
                                 Spacing="12">
                         <Button Classes="search-button"
-                                Click="Search_Click">
+                                x:Name="SearchButton"
+                                Click="Search_Click"
+                                IsDefault="True">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock Text="🔍"/>
                                 <TextBlock Text="Пошук"/>
@@ -218,24 +223,24 @@
 
             <!-- Footer info -->
             <StackPanel Spacing="12" HorizontalAlignment="Center">
-                <TextBlock Text="Швидкі посилання" 
-                           Foreground="White" 
+                <TextBlock Text="Швидкі посилання"
+                           Foreground="White"
                            FontSize="16"
                            FontWeight="SemiBold"
                            HorizontalAlignment="Center"
                            Margin="0,20,0,0"/>
                 <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
-                    <Button Content="📚 Закладки" 
+                    <Button Content="📚 Закладки"
                             Classes="search-button"
                             Padding="20,10"/>
-                    <Button Content="📜 Історія" 
+                    <Button Content="📜 Історія"
                             Classes="search-button"
                             Padding="20,10"/>
-                    <Button Content="🔍 Налаштування пошуку" 
+                    <Button Content="🔍 Налаштування пошуку"
                             Classes="search-button"
                             Padding="20,10"
                             Click="SearchSettings_Click"/>
-                    <Button Content="⚙️ Налаштування" 
+                    <Button Content="⚙️ Налаштування"
                             Classes="search-button"
                             Padding="20,10"/>
                 </StackPanel>
@@ -243,4 +248,3 @@
         </StackPanel>
     </Grid>
 </UserControl>
-

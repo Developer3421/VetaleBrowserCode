@@ -4,43 +4,71 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="900"
              x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.VetaleSearchResultsPage"
-             Background="#FFFFFF">
+             Background="#F5F5F7">
 
     <UserControl.Styles>
-        <!-- Stats text -->
-        <Style Selector="TextBlock.search-stats">
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Foreground" Value="#70757A"/>
-            <Setter Property="Margin" Value="0,0,0,20"/>
+        <!-- Верхній градієнт як на домашній сторінці -->
+        <Style Selector="Border.results-gradient-header">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                        <GradientStop Color="#FF8A00" Offset="0"/>
+                        <GradientStop Color="#9C27B0" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
         </Style>
 
-        <!-- Result item - simple, clean -->
+        <!-- Витончена картка для основного контенту -->
+        <Style Selector="Border.results-card">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="24"/>
+            <Setter Property="Padding" Value="24"/>
+            <Setter Property="BoxShadow" Value="0 8 24 #26000000"/>
+        </Style>
+
+        <!-- Стилі зі старої версії, адаптовані під нову кольорову схему -->
+        <!-- Stats text -->
+        <Style Selector="TextBlock.search-stats">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#70757A"/>
+            <Setter Property="Margin" Value="0,4,0,20"/>
+        </Style>
+
+        <!-- Result item - картковий стиль -->
         <Style Selector="Border.result-item">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="0,0,0,28"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="BoxShadow" Value="0 2 8 #14000000"/>
+        </Style>
+
+        <Style Selector="Border.result-item:pointerover">
+            <Setter Property="BoxShadow" Value="0 4 16 #26000000"/>
         </Style>
 
         <!-- Breadcrumb -->
         <Style Selector="TextBlock.breadcrumb-text">
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Foreground" Value="#202124"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#5F6368"/>
         </Style>
 
         <Style Selector="TextBlock.breadcrumb-sep">
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Foreground" Value="#70757A"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#9AA0A6"/>
             <Setter Property="Margin" Value="4,0"/>
         </Style>
 
-        <!-- Title - Google style -->
+        <!-- Title -->
         <Style Selector="TextBlock.result-title">
-            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontSize" Value="18"/>
             <Setter Property="Foreground" Value="#1A0DAB"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="LineHeight" Value="26"/>
-            <Setter Property="Margin" Value="0,0,0,3"/>
+            <Setter Property="LineHeight" Value="24"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
 
         <Style Selector="TextBlock.result-title:pointerover">
@@ -50,7 +78,7 @@
         <!-- Description -->
         <Style Selector="TextBlock.result-description">
             <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Foreground" Value="#4D5156"/>
+            <Setter Property="Foreground" Value="#202124"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="LineHeight" Value="22"/>
         </Style>
@@ -64,16 +92,16 @@
         <Style Selector="Button.page-number">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Padding" Value="10,6"/>
             <Setter Property="Margin" Value="4,0"/>
             <Setter Property="Foreground" Value="#1A0DAB"/>
             <Setter Property="FontSize" Value="14"/>
-            <Setter Property="MinWidth" Value="40"/>
+            <Setter Property="MinWidth" Value="32"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
 
         <Style Selector="Button.page-number:pointerover">
-            <Setter Property="Background" Value="#F8F9FA"/>
+            <Setter Property="Background" Value="#F1F3F4"/>
         </Style>
 
         <Style Selector="Button.page-number.active">
@@ -84,7 +112,7 @@
         <Style Selector="Button.page-nav">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="Padding" Value="14,6"/>
             <Setter Property="Margin" Value="8,0"/>
             <Setter Property="Foreground" Value="#1A0DAB"/>
             <Setter Property="FontSize" Value="14"/>
@@ -92,21 +120,22 @@
         </Style>
 
         <Style Selector="Button.page-nav:pointerover">
-            <Setter Property="Background" Value="#F8F9FA"/>
+            <Setter Property="Background" Value="#F1F3F4"/>
         </Style>
 
         <!-- Related searches -->
         <Style Selector="TextBlock.related-title">
-            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontSize" Value="18"/>
             <Setter Property="Foreground" Value="#202124"/>
-            <Setter Property="Margin" Value="0,0,0,16"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
 
         <Style Selector="Button.related-query">
             <Setter Property="Background" Value="#F1F3F4"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="20"/>
-            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="Padding" Value="16,8"/>
             <Setter Property="Margin" Value="0,0,12,12"/>
             <Setter Property="Foreground" Value="#202124"/>
             <Setter Property="FontSize" Value="14"/>
@@ -119,7 +148,7 @@
 
         <!-- Date -->
         <Style Selector="TextBlock.result-date">
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="Foreground" Value="#70757A"/>
             <Setter Property="Margin" Value="0,0,0,4"/>
         </Style>
@@ -137,222 +166,322 @@
         </Style>
     </UserControl.Styles>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <Grid MaxWidth="652" Margin="180,28,0,0" HorizontalAlignment="Left">
-            <StackPanel>
-                <!-- Stats -->
-                <TextBlock x:Name="SearchStats" 
-                           Classes="search-stats"
-                           Text="Приблизно 1 234 567 результатів (0.45 секунди)"/>
-
-                <!-- Results -->
-                <StackPanel x:Name="ResultsPanel">
-                    <!-- Result 1 -->
-                    <Border Classes="result-item">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock Classes="breadcrumb-text" Text="https://example.com"/>
-                                <TextBlock Classes="breadcrumb-sep" Text="›"/>
-                                <TextBlock Classes="breadcrumb-text" Text="docs"/>
-                            </StackPanel>
-                            <TextBlock Classes="result-title" 
-                                       Text="Introduction to Web Development - Complete Guide 2025"
-                                       PointerPressed="ResultTitle_Click"/>
-                            <TextBlock Classes="result-description">
-                                <Run Text="Learn the fundamentals of "/>
-                                <Run Classes="highlight" Text="web development"/>
-                                <Run Text=" with our comprehensive guide covering HTML, CSS, JavaScript and modern frameworks..."/>
-                            </TextBlock>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Result 2 -->
-                    <Border Classes="result-item">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock Classes="breadcrumb-text" Text="www.techblog.org"/>
-                                <TextBlock Classes="breadcrumb-sep" Text="›"/>
-                                <TextBlock Classes="breadcrumb-text" Text="articles"/>
-                            </StackPanel>
-                            <TextBlock Classes="result-title" 
-                                       Text="Modern JavaScript: Essential Concepts Every Developer Should Know"
-                                       PointerPressed="ResultTitle_Click"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,4">
-                                <TextBlock Classes="star" Text="★"/><TextBlock Classes="star" Text="★"/><TextBlock Classes="star" Text="★"/><TextBlock Classes="star" Text="★"/><TextBlock Classes="star" Text="★"/>
-                                <TextBlock Classes="rating-count" Text="4.8 · 234 відгуки"/>
-                            </StackPanel>
-                            <TextBlock Classes="result-description" 
-                                       Text="Explore advanced JavaScript patterns including async/await, promises, closures, and prototypal inheritance..."/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Result 3 -->
-                    <Border Classes="result-item">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock Classes="breadcrumb-text" Text="devnews.io"/>
-                                <TextBlock Classes="breadcrumb-sep" Text="›"/>
-                                <TextBlock Classes="breadcrumb-text" Text="2025"/>
-                            </StackPanel>
-                            <TextBlock Classes="result-title" 
-                                       Text="Top 10 Frontend Frameworks in 2025"
-                                       PointerPressed="ResultTitle_Click"/>
-                            <TextBlock Classes="result-date" Text="15 січ. 2025"/>
-                            <TextBlock Classes="result-description" 
-                                       Text="Comprehensive comparison of the most popular frontend frameworks including React, Vue, Angular, and Svelte..."/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Result 4 -->
-                    <Border Classes="result-item">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock Classes="breadcrumb-text" Text="programming-tutorials.net"/>
-                            </StackPanel>
-                            <TextBlock Classes="result-title" 
-                                       Text="Complete Python Programming Course: From Beginner to Advanced"
-                                       PointerPressed="ResultTitle_Click"/>
-                            <TextBlock Classes="result-description" 
-                                       Text="Master Python programming with 50+ hours of video content, hands-on projects, and coding exercises..."/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Result 5 -->
-                    <Border Classes="result-item">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock Classes="breadcrumb-text" Text="docs.framework.dev"/>
-                                <TextBlock Classes="breadcrumb-sep" Text="›"/>
-                                <TextBlock Classes="breadcrumb-text" Text="api"/>
-                            </StackPanel>
-                            <TextBlock Classes="result-title" 
-                                       Text="API Reference Documentation - Complete Developer Guide"
-                                       PointerPressed="ResultTitle_Click"/>
-                            <TextBlock Classes="result-date" Text="8 лист. 2024"/>
-                            <TextBlock Classes="result-description" 
-                                       Text="Official API documentation with detailed endpoint descriptions, authentication methods, and code examples..."/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Result 6 -->
-                    <Border Classes="result-item">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock Classes="breadcrumb-text" Text="webdesign.academy"/>
-                            </StackPanel>
-                            <TextBlock Classes="result-title" 
-                                       Text="Responsive Web Design: Best Practices 2025"
-                                       PointerPressed="ResultTitle_Click"/>
-                            <TextBlock Classes="result-description" 
-                                       Text="Learn how to create responsive websites that work perfectly on all devices using modern CSS techniques..."/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Result 7 -->
-                    <Border Classes="result-item">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock Classes="breadcrumb-text" Text="stackoverflow.blog"/>
-                            </StackPanel>
-                            <TextBlock Classes="result-title" 
-                                       Text="Developer Survey Results 2025: Trends and Insights"
-                                       PointerPressed="ResultTitle_Click"/>
-                            <TextBlock Classes="result-date" Text="22 верес. 2024"/>
-                            <TextBlock Classes="result-description" 
-                                       Text="Analysis of responses from over 90,000 developers worldwide about languages, frameworks, and tools..."/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Result 8 -->
-                    <Border Classes="result-item">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock Classes="breadcrumb-text" Text="github.com"/>
-                                <TextBlock Classes="breadcrumb-sep" Text="›"/>
-                                <TextBlock Classes="breadcrumb-text" Text="awesome-lists"/>
-                            </StackPanel>
-                            <TextBlock Classes="result-title" 
-                                       Text="Awesome Web Development Resources - Curated List"
-                                       PointerPressed="ResultTitle_Click"/>
-                            <TextBlock Classes="result-description" 
-                                       Text="A carefully curated collection of the best web development resources, tools, libraries and learning materials..."/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Result 9 -->
-                    <Border Classes="result-item">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock Classes="breadcrumb-text" Text="css-tricks.com"/>
-                            </StackPanel>
-                            <TextBlock Classes="result-title" 
-                                       Text="A Complete Guide to CSS Flexbox and Grid Layouts"
-                                       PointerPressed="ResultTitle_Click"/>
-                            <TextBlock Classes="result-description" 
-                                       Text="Visual guide to modern CSS layout systems with detailed explanations and interactive examples..."/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Result 10 -->
-                    <Border Classes="result-item">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock Classes="breadcrumb-text" Text="mdn.webdocs.mozilla.org"/>
-                            </StackPanel>
-                            <TextBlock Classes="result-title" 
-                                       Text="MDN Web Docs - Resources for Developers"
-                                       PointerPressed="ResultTitle_Click"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,4">
-                                <TextBlock Classes="star" Text="★"/><TextBlock Classes="star" Text="★"/><TextBlock Classes="star" Text="★"/><TextBlock Classes="star" Text="★"/><TextBlock Classes="star" Text="★"/>
-                                <TextBlock Classes="rating-count" Text="4.9 · 15K відгуків"/>
-                            </StackPanel>
-                            <TextBlock Classes="result-description" 
-                                       Text="The most comprehensive source of web technology documentation covering HTML, CSS, JavaScript, and Web APIs..."/>
-                        </StackPanel>
-                    </Border>
+    <!-- Основний макет: градієнтна шапка + картка результатів -->
+    <Grid RowDefinitions="Auto,*">
+        <!-- Шапка з градієнтом і пошуком як на домашній сторінці -->
+        <Border Grid.Row="0" Classes="results-gradient-header" Padding="24,16">
+            <Grid ColumnDefinitions="Auto,*" MaxWidth="1100" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <!-- Логотип/назва, зміщений лівіше -->
+                <StackPanel Orientation="Vertical" Spacing="0" Margin="0,0,16,0" HorizontalAlignment="Left">
+                    <TextBlock Text="Vetale" FontSize="28" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock Text="Search" FontSize="16" Foreground="White" Opacity="0.9"/>
                 </StackPanel>
 
-                <!-- Related searches -->
-                <Border BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="0,32,0,0" Margin="0,32,0,0">
+                <!-- Пошуковий рядок + всі кнопки в одному рядку -->
+                <Grid Grid.Column="1" ColumnDefinitions="*,Auto" HorizontalAlignment="Stretch">
+                    <!-- Поле пошуку -->
+                    <Border Grid.Column="0" Background="White" CornerRadius="24" Padding="0" BoxShadow="0 4 16 #26000000" HorizontalAlignment="Stretch">
+                        <Grid ColumnDefinitions="*,Auto" HorizontalAlignment="Stretch">
+                            <TextBox x:Name="SearchInput"
+                                     Grid.Column="0"
+                                     Classes="search-input"
+                                     Watermark="Введіть пошуковий запит..."
+                                     KeyDown="SearchInput_KeyDown"
+                                     TextChanged="SearchInput_TextChanged"
+                                     TextWrapping="NoWrap"
+                                     MaxLength="256"/>
+
+                            <!-- Всі інструменти пошуку в одному ряду -->
+                            <StackPanel Grid.Column="1"
+                                        Orientation="Horizontal"
+                                        Spacing="4"
+                                        Margin="0,0,8,0">
+                                <Button Classes="icon-button" ToolTip.Tip="Пошук по голосу">
+                                    <TextBlock Text="🎤" FontSize="18"/>
+                                </Button>
+                                <Button Classes="icon-button" ToolTip.Tip="Пошук за зображенням">
+                                    <TextBlock Text="📷" FontSize="18"/>
+                                </Button>
+                                <Button Classes="icon-button" ToolTip.Tip="Пошук по відео">
+                                    <TextBlock Text="📹" FontSize="18"/>
+                                </Button>
+                                <Button Classes="icon-button" ToolTip.Tip="Пошук по геолокації">
+                                    <TextBlock Text="📍" FontSize="18"/>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Основна кнопка пошуку справа, без напису "Пошук" -->
+                    <Button Grid.Column="1"
+                            x:Name="SearchButton"
+                            Click="Search_Click"
+                            IsDefault="True"
+                            Padding="20,10"
+                            Margin="8,0,0,0"
+                            HorizontalAlignment="Right">
+                        <Button.Background>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                <GradientStop Color="#FF8A00" Offset="0"/>
+                                <GradientStop Color="#9C27B0" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Button.Background>
+                        <Button.Foreground>White</Button.Foreground>
+                        <Button.CornerRadius>24</Button.CornerRadius>
+                        <TextBlock Text="🔍" FontSize="18"/>
+                    </Button>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- Зона результатів -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid Margin="0,16,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="280"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Основний контент -->
+                <Border Grid.Column="0" Classes="results-card" Margin="32,0,16,0" HorizontalAlignment="Stretch" MaxWidth="900">
                     <StackPanel>
-                        <TextBlock Classes="related-title" Text="Пов'язані запити"/>
-                        <WrapPanel>
-                            <Button Classes="related-query" Content="web development tutorial"/>
-                            <Button Classes="related-query" Content="learn programming online"/>
-                            <Button Classes="related-query" Content="frontend vs backend"/>
-                            <Button Classes="related-query" Content="best coding bootcamps"/>
-                            <Button Classes="related-query" Content="javascript frameworks"/>
-                            <Button Classes="related-query" Content="responsive design"/>
-                            <Button Classes="related-query" Content="developer roadmap"/>
-                            <Button Classes="related-query" Content="html css tutorial"/>
-                        </WrapPanel>
+                        <TextBlock x:Name="QueryHeading"
+                                   Text="Локальний пошук Vetale"
+                                   FontSize="22"
+                                   FontWeight="SemiBold"
+                                   Foreground="#202124"
+                                   Margin="0,0,0,4"/>
+                        <!-- Stats -->
+                        <TextBlock x:Name="SearchStats"
+                                   Classes="search-stats"
+                                   Text="Введіть запит, щоб побачити локальні результати."/>
+
+                        <!-- Results -->
+                        <StackPanel x:Name="ResultsPanel" Margin="0,12,0,0">
+                            <!-- Result 1 -->
+                            <Border Classes="result-item">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Classes="breadcrumb-text" Text="https://example.com"/>
+                                        <TextBlock Classes="breadcrumb-sep" Text="›"/>
+                                        <TextBlock Classes="breadcrumb-text" Text="docs"/>
+                                    </StackPanel>
+                                    <TextBlock Classes="result-title" 
+                                               Text="Introduction to Web Development - Complete Guide 2025"
+                                               PointerPressed="ResultTitle_Click"/>
+                                    <TextBlock Classes="result-description">
+                                        <Run Text="Learn the fundamentals of "/>
+                                        <Run Classes="highlight" Text="web development"/>
+                                        <Run Text=" with our comprehensive guide covering HTML, CSS, JavaScript and modern frameworks..."/>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Result 2 -->
+                            <Border Classes="result-item">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Classes="breadcrumb-text" Text="www.techblog.org"/>
+                                        <TextBlock Classes="breadcrumb-sep" Text="›"/>
+                                        <TextBlock Classes="breadcrumb-text" Text="articles"/>
+                                    </StackPanel>
+                                    <TextBlock Classes="result-title" 
+                                               Text="Modern JavaScript: Essential Concepts Every Developer Should Know"
+                                               PointerPressed="ResultTitle_Click"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4">
+                                        <TextBlock Classes="star" Text="★"/><TextBlock Classes="star" Text="★"/><TextBlock Classes="star" Text="★"/><TextBlock Classes="star" Text="★"/><TextBlock Classes="star" Text="★"/>
+                                        <TextBlock Classes="rating-count" Text="4.8 · 234 відгуки"/>
+                                    </StackPanel>
+                                    <TextBlock Classes="result-description" 
+                                               Text="Explore advanced JavaScript patterns including async/await, promises, closures, and prototypal inheritance..."/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Result 3 -->
+                            <Border Classes="result-item">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Classes="breadcrumb-text" Text="devnews.io"/>
+                                        <TextBlock Classes="breadcrumb-sep" Text="›"/>
+                                        <TextBlock Classes="breadcrumb-text" Text="2025"/>
+                                    </StackPanel>
+                                    <TextBlock Classes="result-title" 
+                                               Text="Top 10 Frontend Frameworks in 2025"
+                                               PointerPressed="ResultTitle_Click"/>
+                                    <TextBlock Classes="result-date" Text="15 січ. 2025"/>
+                                    <TextBlock Classes="result-description" 
+                                               Text="Comprehensive comparison of the most popular frontend frameworks including React, Vue, Angular, and Svelte..."/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Result 4 -->
+                            <Border Classes="result-item">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Classes="breadcrumb-text" Text="programming-tutorials.net"/>
+                                    </StackPanel>
+                                    <TextBlock Classes="result-title" 
+                                               Text="Complete Python Programming Course: From Beginner to Advanced"
+                                               PointerPressed="ResultTitle_Click"/>
+                                    <TextBlock Classes="result-description" 
+                                               Text="Master Python programming with 50+ hours of video content, hands-on projects, and coding exercises..."/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Result 5 -->
+                            <Border Classes="result-item">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Classes="breadcrumb-text" Text="docs.framework.dev"/>
+                                        <TextBlock Classes="breadcrumb-sep" Text="›"/>
+                                        <TextBlock Classes="breadcrumb-text" Text="api"/>
+                                    </StackPanel>
+                                    <TextBlock Classes="result-title" 
+                                               Text="API Reference Documentation - Complete Developer Guide"
+                                               PointerPressed="ResultTitle_Click"/>
+                                    <TextBlock Classes="result-date" Text="8 лист. 2024"/>
+                                    <TextBlock Classes="result-description" 
+                                               Text="Official API documentation with detailed endpoint descriptions, authentication methods, and code examples..."/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Result 6 -->
+                            <Border Classes="result-item">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Classes="breadcrumb-text" Text="webdesign.academy"/>
+                                    </StackPanel>
+                                    <TextBlock Classes="result-title" 
+                                               Text="Responsive Web Design: Best Practices 2025"
+                                               PointerPressed="ResultTitle_Click"/>
+                                    <TextBlock Classes="result-description" 
+                                               Text="Learn how to create responsive websites that work perfectly on all devices using modern CSS techniques..."/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Result 7 -->
+                            <Border Classes="result-item">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Classes="breadcrumb-text" Text="stackoverflow.blog"/>
+                                    </StackPanel>
+                                    <TextBlock Classes="result-title" 
+                                               Text="Developer Survey Results 2025: Trends and Insights"
+                                               PointerPressed="ResultTitle_Click"/>
+                                    <TextBlock Classes="result-date" Text="22 верес. 2024"/>
+                                    <TextBlock Classes="result-description" 
+                                               Text="Analysis of responses from over 90,000 developers worldwide about languages, frameworks, and tools..."/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Result 8 -->
+                            <Border Classes="result-item">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Classes="breadcrumb-text" Text="github.com"/>
+                                        <TextBlock Classes="breadcrumb-sep" Text="›"/>
+                                        <TextBlock Classes="breadcrumb-text" Text="awesome-lists"/>
+                                    </StackPanel>
+                                    <TextBlock Classes="result-title" 
+                                               Text="Awesome Web Development Resources - Curated List"
+                                               PointerPressed="ResultTitle_Click"/>
+                                    <TextBlock Classes="result-description" 
+                                               Text="A carefully curated collection of the best web development resources, tools, libraries and learning materials..."/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Result 9 -->
+                            <Border Classes="result-item">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Classes="breadcrumb-text" Text="css-tricks.com"/>
+                                    </StackPanel>
+                                    <TextBlock Classes="result-title" 
+                                               Text="A Complete Guide to CSS Flexbox and Grid Layouts"
+                                               PointerPressed="ResultTitle_Click"/>
+                                    <TextBlock Classes="result-description" 
+                                               Text="Visual guide to modern CSS layout systems with detailed explanations and interactive examples..."/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Result 10 -->
+                            <Border Classes="result-item">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Classes="breadcrumb-text" Text="mdn.webdocs.mozilla.org"/>
+                                    </StackPanel>
+                                    <TextBlock Classes="result-title" 
+                                               Text="MDN Web Docs - Resources for Developers"
+                                               PointerPressed="ResultTitle_Click"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4">
+                                        <TextBlock Classes="star" Text="★"/><TextBlock Classes="star" Text="★"/><TextBlock Classes="star" Text="★"/><TextBlock Classes="star" Text="★"/><TextBlock Classes="star" Text="★"/>
+                                        <TextBlock Classes="rating-count" Text="4.9 · 15K відгуків"/>
+                                    </StackPanel>
+                                    <TextBlock Classes="result-description" 
+                                               Text="The most comprehensive source of web technology documentation covering HTML, CSS, JavaScript, and Web APIs..."/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Related searches -->
+                        <Border BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="0,24,0,0" Margin="0,24,0,0">
+                            <StackPanel>
+                                <TextBlock Classes="related-title" Text="Пов'язані запити"/>
+                                <WrapPanel>
+                                    <Button Classes="related-query" Content="web development tutorial"/>
+                                    <Button Classes="related-query" Content="learn programming online"/>
+                                    <Button Classes="related-query" Content="frontend vs backend"/>
+                                    <Button Classes="related-query" Content="best coding bootcamps"/>
+                                    <Button Classes="related-query" Content="javascript frameworks"/>
+                                    <Button Classes="related-query" Content="responsive design"/>
+                                    <Button Classes="related-query" Content="developer roadmap"/>
+                                    <Button Classes="related-query" Content="html css tutorial"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Pagination -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,24,0,8">
+                            <Button Classes="page-nav" Content="« Попередня" IsEnabled="False"/>
+                            <Button Classes="page-number active" Content="1"/>
+                            <Button Classes="page-number" Content="2"/>
+                            <Button Classes="page-number" Content="3"/>
+                            <Button Classes="page-number" Content="4"/>
+                            <Button Classes="page-number" Content="5"/>
+                            <Button Classes="page-number" Content="6"/>
+                            <Button Classes="page-number" Content="7"/>
+                            <Button Classes="page-number" Content="8"/>
+                            <Button Classes="page-number" Content="9"/>
+                            <Button Classes="page-number" Content="10"/>
+                            <Button Classes="page-nav" Content="Наступна »"/>
+                        </StackPanel>
+
+                        <!-- Footer -->
+                        <TextBlock FontSize="12"
+                                   Foreground="#70757A"
+                                   TextAlignment="Center"
+                                   Margin="0,8,0,0"
+                                   Text="Vetale Search · Локальний пошук · Конфіденційність"/>
                     </StackPanel>
                 </Border>
 
-                <!-- Pagination -->
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,36,0,40">
-                    <Button Classes="page-nav" Content="« Попередня" IsEnabled="False"/>
-                    <Button Classes="page-number active" Content="1"/>
-                    <Button Classes="page-number" Content="2"/>
-                    <Button Classes="page-number" Content="3"/>
-                    <Button Classes="page-number" Content="4"/>
-                    <Button Classes="page-number" Content="5"/>
-                    <Button Classes="page-number" Content="6"/>
-                    <Button Classes="page-number" Content="7"/>
-                    <Button Classes="page-number" Content="8"/>
-                    <Button Classes="page-number" Content="9"/>
-                    <Button Classes="page-number" Content="10"/>
-                    <Button Classes="page-nav" Content="Наступна »"/>
+                <!-- Права колонка: фільтри / додаткова інформація -->
+                <StackPanel Grid.Column="1" Margin="16,0,32,0" Spacing="12" VerticalAlignment="Stretch">
+                    <Border Background="White" CornerRadius="16" Padding="16" BoxShadow="0 4 16 #14000000">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Фільтри" FontSize="16" FontWeight="SemiBold" Foreground="#202124"/>
+                            <TextBlock Text="(в майбутньому тут будуть параметри пошуку)" FontSize="12" Foreground="#70757A" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="White" CornerRadius="16" Padding="16" BoxShadow="0 4 16 #14000000">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Порада" FontSize="14" FontWeight="SemiBold" Foreground="#202124"/>
+                            <TextBlock Text="Використовуйте конкретні ключові слова, щоб швидше знаходити потрібні закладки, історію та локальні документи." FontSize="12" Foreground="#70757A" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
-
-                <!-- Footer -->
-                <TextBlock FontSize="12" 
-                           Foreground="#70757A" 
-                           TextAlignment="Center"
-                           Margin="0,24,0,40"
-                           Text="Vetale Search · Локальний пошук · Конфіденційність"/>
-            </StackPanel>
-        </Grid>
-    </ScrollViewer>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
 </UserControl>
-
