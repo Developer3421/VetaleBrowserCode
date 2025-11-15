@@ -3,6 +3,9 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Controls.Primitives;
+using VetaleBrowser.VetaleBrowser.Search.Models;
+using VetaleBrowser.VetaleBrowser.Search.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
 
@@ -13,7 +16,12 @@ public partial class VetaleSearchHomePage : UserControl
     private TextBox? _searchInput;
     private ComboBox? _searchEngineSelector;
     private Button? _searchButton;
-    
+    private Popup? _suggestionsPopup;
+    private ItemsControl? _suggestionsList;
+    private readonly System.Collections.ObjectModel.ObservableCollection<SearchSuggestion> _suggestions = new();
+    private ISuggestionsService? _suggestionsService;
+    private System.Threading.CancellationTokenSource? _suggestionsCts;
+
     public VetaleSearchHomePage()
     {
         InitializeComponent();
@@ -25,11 +33,23 @@ public partial class VetaleSearchHomePage : UserControl
         AvaloniaXamlLoader.Load(this);
     }
 
+    public void SetSuggestionsService(ISuggestionsService service)
+    {
+        _suggestionsService = service;
+    }
+
     private void InitializeControls()
     {
         _searchInput = this.FindControl<TextBox>("SearchInput");
         _searchEngineSelector = this.FindControl<ComboBox>("SearchEngineSelector");
         _searchButton = this.FindControl<Button>("SearchButton");
+        _suggestionsPopup = this.FindControl<Popup>("SuggestionsPopup");
+        _suggestionsList = this.FindControl<ItemsControl>("SuggestionsList");
+        if (_suggestionsList != null)
+        {
+            _suggestionsList.ItemsSource = _suggestions;
+            _suggestionsList.AddHandler(InputElement.PointerPressedEvent, OnSuggestionPointerPressed, handledEventsToo: false);
+        }
 
         // Focus search input when page loads
         if (_searchInput != null)
@@ -48,6 +68,54 @@ public partial class VetaleSearchHomePage : UserControl
         if (_searchButton != null)
         {
             _searchButton.IsEnabled = !string.IsNullOrWhiteSpace(_searchInput?.Text);
+        }
+        _ = LoadSuggestionsAsync();
+    }
+
+    private async System.Threading.Tasks.Task LoadSuggestionsAsync()
+    {
+        if (_suggestionsService == null || _searchInput == null)
+        {
+            if (_suggestionsPopup != null) _suggestionsPopup.IsOpen = false;
+            return;
+        }
+        _suggestionsCts?.Cancel();
+        _suggestionsCts = new System.Threading.CancellationTokenSource();
+        var token = _suggestionsCts.Token;
+        try
+        {
+            await System.Threading.Tasks.Task.Delay(300, token); // debounce
+            var query = _searchInput.Text ?? string.Empty;
+            if (token.IsCancellationRequested) return;
+            if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
+            {
+                _suggestions.Clear();
+                if (_suggestionsPopup != null) _suggestionsPopup.IsOpen = false;
+                return;
+            }
+            var results = await _suggestionsService.GetSuggestionsAsync(query, 8);
+            if (token.IsCancellationRequested) return;
+            _suggestions.Clear();
+            foreach (var s in results) _suggestions.Add(s);
+            if (_suggestionsPopup != null)
+                _suggestionsPopup.IsOpen = _suggestions.Count > 0;
+        }
+        catch (System.OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] Suggestions error: {ex.Message}");
+            _suggestions.Clear();
+            if (_suggestionsPopup != null) _suggestionsPopup.IsOpen = false;
+        }
+    }
+
+    private void OnSuggestionPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is Border b && b.DataContext is SearchSuggestion sug && _searchInput != null)
+        {
+            _searchInput.Text = sug.Text;
+            if (_suggestionsPopup != null) _suggestionsPopup.IsOpen = false;
+            PerformSearch();
         }
     }
 

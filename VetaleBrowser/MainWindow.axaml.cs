@@ -1786,6 +1786,7 @@ public partial class MainWindow : Window
 
             // Явно створюємо новий екземпляр VetaleSearchHomePage
             var searchHomePage = new VetaleSearchHomePage();
+            searchHomePage.SetSuggestionsService(_globalSuggestions); // inject suggestions service
             System.Diagnostics.Debug.WriteLine($"[MainWindow] Created new VetaleSearchHomePage instance: {searchHomePage != null}");
             
             searchHomePage.NavigateRequested += OnInternalPageNavigateRequested;
