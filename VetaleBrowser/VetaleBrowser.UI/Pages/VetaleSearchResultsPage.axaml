@@ -2,6 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:search="clr-namespace=VetaleBrowser.VetaleBrowser.Search.Models"
+             xmlns:models="clr-namespace:VetaleBrowser.VetaleBrowser.Search.Models"
              mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="900"
              x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.VetaleSearchResultsPage"
              Background="#F5F5F7">
@@ -19,66 +21,86 @@
             </Setter>
         </Style>
 
-        <!-- Витончена картка для основного контенту -->
+        <!-- Витончена картка для основного контенту з градієнтним бордером -->
         <Style Selector="Border.results-card">
             <Setter Property="Background" Value="White"/>
             <Setter Property="CornerRadius" Value="24"/>
-            <Setter Property="Padding" Value="24"/>
-            <Setter Property="BoxShadow" Value="0 8 24 #26000000"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="BoxShadow" Value="0 8 32 #40000000"/>
+        </Style>
+
+        <!-- Внутрішня картка з бежевим фоном -->
+        <Style Selector="Border.results-inner-card">
+            <Setter Property="Background" Value="Beige"/>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="Padding" Value="20"/>
         </Style>
 
         <!-- Стилі зі старої версії, адаптовані під нову кольорову схему -->
         <!-- Stats text -->
         <Style Selector="TextBlock.search-stats">
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="#70757A"/>
+            <Setter Property="Foreground" Value="#8B4513"/>
             <Setter Property="Margin" Value="0,4,0,20"/>
+            <Setter Property="FontWeight" Value="Medium"/>
         </Style>
 
-        <!-- Result item - картковий стиль -->
+        <!-- Result item - картковий стиль з бежевим фоном -->
         <Style Selector="Border.result-item">
-            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Background" Value="Beige"/>
             <Setter Property="Padding" Value="16"/>
             <Setter Property="Margin" Value="0,0,0,16"/>
             <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="BoxShadow" Value="0 2 8 #14000000"/>
+            <Setter Property="BoxShadow" Value="0 2 12 #30FF8A00"/>
+            <Setter Property="BorderBrush">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                        <GradientStop Color="#FFAA00" Offset="0"/>
+                        <GradientStop Color="#B040C0" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderThickness" Value="2"/>
         </Style>
 
         <Style Selector="Border.result-item:pointerover">
-            <Setter Property="BoxShadow" Value="0 4 16 #26000000"/>
+            <Setter Property="BoxShadow" Value="0 6 20 #50FF8A00"/>
+            <Setter Property="BorderThickness" Value="3"/>
         </Style>
 
         <!-- Breadcrumb -->
         <Style Selector="TextBlock.breadcrumb-text">
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="#5F6368"/>
+            <Setter Property="Foreground" Value="#8B4513"/>
+            <Setter Property="FontWeight" Value="Medium"/>
         </Style>
 
         <Style Selector="TextBlock.breadcrumb-sep">
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="#9AA0A6"/>
+            <Setter Property="Foreground" Value="#CD853F"/>
             <Setter Property="Margin" Value="4,0"/>
         </Style>
 
-        <!-- Title -->
+        <!-- Title з градієнтним ефектом -->
         <Style Selector="TextBlock.result-title">
             <Setter Property="FontSize" Value="18"/>
-            <Setter Property="Foreground" Value="#1A0DAB"/>
+            <Setter Property="Foreground" Value="#9C27B0"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="LineHeight" Value="24"/>
             <Setter Property="Margin" Value="0,0,0,4"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontWeight" Value="Bold"/>
         </Style>
 
         <Style Selector="TextBlock.result-title:pointerover">
             <Setter Property="TextDecorations" Value="Underline"/>
+            <Setter Property="Foreground" Value="#FF8A00"/>
         </Style>
 
         <!-- Description -->
         <Style Selector="TextBlock.result-description">
             <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Foreground" Value="#202124"/>
+            <Setter Property="Foreground" Value="#3E2723"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="LineHeight" Value="22"/>
         </Style>
@@ -164,6 +186,55 @@
             <Setter Property="Foreground" Value="#70757A"/>
             <Setter Property="Margin" Value="8,0,0,0"/>
         </Style>
+
+        <!-- Стилі для випадаючого списку підказок -->
+        <Style Selector="Border.suggestion-popup">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="BoxShadow" Value="0 8 24 #40000000"/>
+            <Setter Property="MaxHeight" Value="400"/>
+        </Style>
+
+        <Style Selector="Border.suggestion-popup-inner">
+            <Setter Property="Background" Value="Beige"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="8"/>
+        </Style>
+
+        <Style Selector="Border.suggestion-item">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Border.suggestion-item:pointerover">
+            <Setter Property="Background" Value="Beige"/>
+            <Setter Property="BorderBrush">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                        <GradientStop Color="#FFAA00" Offset="0"/>
+                        <GradientStop Color="#B040C0" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BoxShadow" Value="0 2 8 #30FF8A00"/>
+        </Style>
+
+        <Style Selector="TextBlock.suggestion-text">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="#3E2723"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style Selector="TextBlock.suggestion-icon">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
     </UserControl.Styles>
 
     <!-- Основний макет: градієнтна шапка + картка результатів -->
@@ -183,43 +254,74 @@
 
                 <!-- Пошуковий рядок + всі кнопки в одному рядку, розтягнутий на всю ширину -->
                 <Grid Grid.Column="1" ColumnDefinitions="*,Auto" Margin="0,0,24,0" HorizontalAlignment="Stretch">
-                    <!-- Поле пошуку -->
-                    <Border Grid.Column="0"
-                            Background="White"
-                            CornerRadius="24"
-                            Padding="0"
-                            BoxShadow="0 4 16 #26000000"
-                            HorizontalAlignment="Stretch">
-                        <Grid ColumnDefinitions="*,Auto" HorizontalAlignment="Stretch">
-                            <TextBox x:Name="SearchInput"
-                                     Grid.Column="0"
-                                     Classes="search-input"
-                                     Watermark="Введіть пошуковий запит..."
-                                     KeyDown="SearchInput_KeyDown"
-                                     TextChanged="SearchInput_TextChanged"
-                                     TextWrapping="NoWrap"
-                                     MaxLength="256"/>
+                    <!-- Поле пошуку з підказками -->
+                    <Grid Grid.Column="0">
+                        <Border Background="White"
+                                CornerRadius="24"
+                                Padding="0"
+                                BoxShadow="0 4 16 #26000000"
+                                HorizontalAlignment="Stretch">
+                            <Grid ColumnDefinitions="*,Auto" HorizontalAlignment="Stretch">
+                                <TextBox x:Name="SearchInput"
+                                         Grid.Column="0"
+                                         Classes="search-input"
+                                         Watermark="Введіть пошуковий запит..."
+                                         KeyDown="SearchInput_KeyDown"
+                                         TextChanged="SearchInput_TextChanged"
+                                         TextWrapping="NoWrap"
+                                         MaxLength="256"/>
 
-                            <!-- Всі інструменти пошуку в одному ряду -->
-                            <StackPanel Grid.Column="1"
-                                        Orientation="Horizontal"
-                                        Spacing="4"
-                                        Margin="0,0,8,0">
-                                <Button Classes="icon-button" ToolTip.Tip="Пошук по голосу">
-                                    <TextBlock Text="🎤" FontSize="18"/>
-                                </Button>
-                                <Button Classes="icon-button" ToolTip.Tip="Пошук за зображенням">
-                                    <TextBlock Text="📷" FontSize="18"/>
-                                </Button>
-                                <Button Classes="icon-button" ToolTip.Tip="Пошук по відео">
-                                    <TextBlock Text="📹" FontSize="18"/>
-                                </Button>
-                                <Button Classes="icon-button" ToolTip.Tip="Пошук по геолокації">
-                                    <TextBlock Text="📍" FontSize="18"/>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
-                    </Border>
+                                <!-- Всі інструменти пошуку в одному ряду -->
+                                <StackPanel Grid.Column="1"
+                                            Orientation="Horizontal"
+                                            Spacing="4"
+                                            Margin="0,0,8,0">
+                                    <Button Classes="icon-button" ToolTip.Tip="Пошук по голосу">
+                                        <TextBlock Text="🎤" FontSize="18"/>
+                                    </Button>
+                                    <Button Classes="icon-button" ToolTip.Tip="Пошук за зображенням">
+                                        <TextBlock Text="📷" FontSize="18"/>
+                                    </Button>
+                                    <Button Classes="icon-button" ToolTip.Tip="Пошук по відео">
+                                        <TextBlock Text="📹" FontSize="18"/>
+                                    </Button>
+                                    <Button Classes="icon-button" ToolTip.Tip="Пошук по геолокації">
+                                        <TextBlock Text="📍" FontSize="18"/>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Popup з підказками -->
+                        <Popup x:Name="SuggestionsPopup"
+                               Placement="Bottom"
+                               PlacementTarget="{Binding #SearchInput}"
+                               IsLightDismissEnabled="True"
+                               IsOpen="False"
+                               MaxWidth="600">
+                            <Border Classes="suggestion-popup">
+                                <Border Classes="suggestion-popup-inner">
+                                    <ScrollViewer MaxHeight="400" VerticalScrollBarVisibility="Auto">
+                                        <ItemsControl x:Name="SuggestionsListBox">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="models:SearchSuggestion">
+                                                    <Border Classes="suggestion-item"
+                                                            PointerPressed="SuggestionItem_Click">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Classes="suggestion-icon"
+                                                                       Text="{Binding Icon}"/>
+                                                            <TextBlock Classes="suggestion-text"
+                                                                       Text="{Binding Text}"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Border>
+                            </Border>
+                        </Popup>
+                    </Grid>
 
                     <!-- Основна кнопка пошуку справа, без напису "Пошук" -->
                     <Button Grid.Column="1"
@@ -253,20 +355,21 @@
 
                 <!-- Основний контент -->
                 <Border Grid.Column="0" Classes="results-card" Margin="32,0,16,0" HorizontalAlignment="Stretch" MaxWidth="900">
-                    <StackPanel>
-                        <TextBlock x:Name="QueryHeading"
-                                   Text="Локальний пошук Vetale"
-                                   FontSize="22"
-                                   FontWeight="SemiBold"
-                                   Foreground="#202124"
-                                   Margin="0,0,0,4"/>
-                        <!-- Stats -->
-                        <TextBlock x:Name="SearchStats"
-                                   Classes="search-stats"
-                                   Text="Введіть запит, щоб побачити локальні результати."/>
+                    <Border Classes="results-inner-card">
+                        <StackPanel>
+                            <TextBlock x:Name="QueryHeading"
+                                       Text="Локальний пошук Vetale"
+                                       FontSize="22"
+                                       FontWeight="SemiBold"
+                                       Foreground="#8B4513"
+                                       Margin="0,0,0,4"/>
+                            <!-- Stats -->
+                            <TextBlock x:Name="SearchStats"
+                                       Classes="search-stats"
+                                       Text="Введіть запит, щоб побачити локальні результати."/>
 
-                        <!-- Results -->
-                        <StackPanel x:Name="ResultsPanel" Margin="0,12,0,0">
+                            <!-- Results -->
+                            <StackPanel x:Name="ResultsPanel" Margin="0,12,0,0">
                             <!-- Result 1 -->
                             <Border Classes="result-item">
                                 <StackPanel>
@@ -467,11 +570,12 @@
 
                         <!-- Footer -->
                         <TextBlock FontSize="12"
-                                   Foreground="#70757A"
+                                   Foreground="#8B4513"
                                    TextAlignment="Center"
                                    Margin="0,8,0,0"
                                    Text="Vetale Search · Локальний пошук · Конфіденційність"/>
                     </StackPanel>
+                    </Border>
                 </Border>
 
                 <!-- Права колонка: фільтри / додаткова інформація -->

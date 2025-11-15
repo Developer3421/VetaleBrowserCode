@@ -1,9 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
+using VetaleBrowser.VetaleBrowser.Search.Models;
+using VetaleBrowser.VetaleBrowser.Search.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
 
@@ -18,9 +24,16 @@ public partial class VetaleSearchResultsPage : UserControl
     private TextBox? _searchInput;
     private ComboBox? _searchEngineSelector;
     private Button? _searchButton;
+    private Popup? _suggestionsPopup;
+    private ItemsControl? _suggestionsListBox;
+
+    private readonly ISuggestionsService _suggestionsService;
+    private CancellationTokenSource? _suggestionsCts;
 
     public VetaleSearchResultsPage()
     {
+        _suggestionsService = new GoogleSuggestionsService();
+        
         InitializeComponent();
         InitializeControls();
     }
@@ -38,6 +51,8 @@ public partial class VetaleSearchResultsPage : UserControl
         _searchInput = this.FindControl<TextBox>("SearchInput");
         _searchEngineSelector = this.FindControl<ComboBox>("SearchEngineSelector");
         _searchButton = this.FindControl<Button>("SearchButton");
+        _suggestionsPopup = this.FindControl<Popup>("SuggestionsPopup");
+        _suggestionsListBox = this.FindControl<ItemsControl>("SuggestionsListBox");
 
         if (_searchInput != null)
         {
@@ -109,6 +124,95 @@ public partial class VetaleSearchResultsPage : UserControl
         if (_searchButton != null)
         {
             _searchButton.IsEnabled = !string.IsNullOrWhiteSpace(_searchInput?.Text);
+        }
+
+        // Завантажуємо підказки з дебаунсом
+        _ = LoadSuggestionsAsync();
+    }
+
+    private async Task LoadSuggestionsAsync()
+    {
+        // Скасовуємо попередній запит
+        _suggestionsCts?.Cancel();
+        _suggestionsCts = new CancellationTokenSource();
+        var token = _suggestionsCts.Token;
+
+        try
+        {
+            // Дебаунс 300мс
+            await Task.Delay(300, token);
+
+            var query = _searchInput?.Text ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
+            {
+                // Ховаємо попап якщо запит короткий
+                if (_suggestionsPopup != null)
+                {
+                    _suggestionsPopup.IsOpen = false;
+                }
+                return;
+            }
+
+            // Завантажуємо підказки
+            var suggestions = await _suggestionsService.GetSuggestionsAsync(query, 8);
+
+            if (token.IsCancellationRequested)
+                return;
+
+            // Оновлюємо UI
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (_suggestionsListBox != null)
+                {
+                    _suggestionsListBox.ItemsSource = suggestions;
+                }
+
+                if (_suggestionsPopup != null && suggestions.Count > 0)
+                {
+                    _suggestionsPopup.IsOpen = true;
+                }
+                else if (_suggestionsPopup != null)
+                {
+                    _suggestionsPopup.IsOpen = false;
+                }
+            });
+        }
+        catch (TaskCanceledException)
+        {
+            // Нормальна ситуація при скасуванні
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] LoadSuggestionsAsync error: {ex.Message}");
+        }
+    }
+
+    private void SuggestionItem_Click(object? sender, PointerPressedEventArgs e)
+    {
+        try
+        {
+            if (sender is Border border && border.DataContext is SearchSuggestion suggestion)
+            {
+                // Встановлюємо текст у поле пошуку
+                if (_searchInput != null)
+                {
+                    _searchInput.Text = suggestion.Text;
+                }
+
+                // Ховаємо попап
+                if (_suggestionsPopup != null)
+                {
+                    _suggestionsPopup.IsOpen = false;
+                }
+
+                // Виконуємо пошук
+                PerformSearch();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] SuggestionItem_Click error: {ex.Message}");
         }
     }
 
