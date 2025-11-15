@@ -5,6 +5,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
 using VetaleBrowser.VetaleBrowser.Database.Services;
+using VetaleBrowser.VetaleBrowser.UI.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Еlements;
 
@@ -32,6 +33,9 @@ public class NavigationBar : TemplatedControl
     private TextBox? _addressBar;
     private WebViewManager? _webViewManager;
     private ISettingsService? _settingsService;
+
+    // Подія навігації для vetale://
+    public event EventHandler<string>? NavigateRequested;
 
     public string Url
     {
@@ -156,6 +160,11 @@ public class NavigationBar : TemplatedControl
         if (_webViewManager != null)
         {
             var home = await GetSearchHomePageAsync();
+            if (InternalUrlHandler.IsInternalUrl(home))
+            {
+                NavigateRequested?.Invoke(this, home);
+                return;
+            }
             await _webViewManager.NavigateAsync(home);
             System.Diagnostics.Trace.WriteLine("NavigationBar: Home button clicked");
         }
@@ -187,20 +196,24 @@ public class NavigationBar : TemplatedControl
             if (string.IsNullOrWhiteSpace(url))
                 return;
 
-            // Check if it's a URL or search query
             if (!url.Contains("://"))
             {
                 if (url.Contains(".") && !url.Contains(" "))
                 {
-                    // Looks like a domain
                     url = "https://" + url;
                 }
                 else
                 {
-                    // Search query - use saved search engine
                     var searchUrl = await GetSearchEngineUrlAsync();
                     url = string.Format(searchUrl, Uri.EscapeDataString(url));
                 }
+            }
+
+            if (InternalUrlHandler.IsInternalUrl(url))
+            {
+                NavigateRequested?.Invoke(this, url);
+                System.Diagnostics.Trace.WriteLine($"NavigationBar: Internal navigate to {url}");
+                return;
             }
 
             await _webViewManager.NavigateAsync(url);

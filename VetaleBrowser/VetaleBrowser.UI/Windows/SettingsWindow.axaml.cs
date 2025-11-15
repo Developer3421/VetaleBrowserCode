@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -314,6 +315,7 @@ public partial class SettingsWindow : Window
             var searchEnginePage = new SearchEngineSettingsPage(_settingsService);
             searchEnginePage.BackRequested += OnSearchEngineBackRequested;
             searchEnginePage.SettingsSaved += OnSearchEngineSettingsSaved;
+            searchEnginePage.NavigateRequested += OnSearchEngineNavigateRequested;
 
             if (_contentHost != null)
             {
@@ -329,12 +331,46 @@ public partial class SettingsWindow : Window
         }
     }
 
+    private void OnSearchEngineNavigateRequested(object? sender, string url)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"SettingsWindow: Navigate requested to: {url}");
+            
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                var mainWindow = desktop.Windows.OfType<MainWindow>().FirstOrDefault();
+                if (mainWindow != null)
+                {
+                    // Якщо явно просять відкрити домашню сторінку Vetale Search — використовуємо спеціальний метод
+                    if (string.Equals(url, "vetale://search", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(url, "vetale://search/home", StringComparison.OrdinalIgnoreCase))
+                    {
+                        mainWindow.OpenVetaleSearchInCurrentTab();
+                    }
+                    else
+                    {
+                        // Для інших URL (у т.ч. vetale://search/results) використовуємо стандартну навігацію поточної вкладки
+                        mainWindow.NavigateCurrentTabToUrl(url);
+                    }
+
+                    // Закрити вікно налаштувань
+                    Close();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"SettingsWindow: Error navigating: {ex}");
+        }
+    }
+
     private void OnSearchEngineBackRequested(object? sender, EventArgs e)
     {
         LoadMainPage();
     }
 
-    private void OnSearchEngineSettingsSaved(object? sender, EventArgs e)
+    private async void OnSearchEngineSettingsSaved(object? sender, EventArgs e)
     {
         System.Diagnostics.Debug.WriteLine("SettingsWindow: Search engine settings saved successfully");
         
@@ -348,7 +384,14 @@ public partial class SettingsWindow : Window
                 {
                     if (w is MainWindow main)
                     {
-                        _ = main.NavigateToSelectedSearchHomeAsync();
+                        await main.NavigateToSelectedSearchHomeAsync();
+                        
+                        // Активувати головне вікно
+                        main.Activate();
+                        main.Focus();
+                        
+                        // Закрити вікно налаштувань після успішного оновлення
+                        Close();
                         break;
                     }
                 }

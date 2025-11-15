@@ -11,7 +11,9 @@ public partial class SearchEngineSettingsPage : UserControl
 {
     public event EventHandler? BackRequested;
     public event EventHandler? SettingsSaved;
+    public event EventHandler<string>? NavigateRequested; // Нова подія для навігації
 
+    private RadioButton? _vetaleRadio;
     private RadioButton? _googleRadio;
     private RadioButton? _bingRadio;
     private RadioButton? _yahooRadio;
@@ -21,6 +23,9 @@ public partial class SearchEngineSettingsPage : UserControl
 
     private readonly ISettingsService _settingsService;
     private bool _isLoading = true;
+
+    private const string VetaleSearchName = "Vetale Search";
+    private const string VetaleSearchUrl = ""; // маркер локального пошуку, без зовнішнього URL
 
     private readonly Dictionary<string, string> _searchEngines = new()
     {
@@ -49,6 +54,7 @@ public partial class SearchEngineSettingsPage : UserControl
 
     private async void OnLoaded(object? sender, RoutedEventArgs e)
     {
+        _vetaleRadio = this.FindControl<RadioButton>("VetaleRadio");
         _googleRadio = this.FindControl<RadioButton>("GoogleRadio");
         _bingRadio = this.FindControl<RadioButton>("BingRadio");
         _yahooRadio = this.FindControl<RadioButton>("YahooRadio");
@@ -71,10 +77,19 @@ public partial class SearchEngineSettingsPage : UserControl
             var currentName = await _settingsService.GetSearchEngineNameAsync();
             var currentUrl = await _settingsService.GetSearchEngineUrlAsync();
 
-            // Знаходимо відповідний RadioButton
+            // Спеціальний випадок: Vetale Search як локальний пошук
+            if (string.Equals(currentName, VetaleSearchName, StringComparison.OrdinalIgnoreCase))
+            {
+                if (_vetaleRadio != null)
+                {
+                    _vetaleRadio.IsChecked = true;
+                }
+                return;
+            }
+
+            // Знаходимо відповідний RadioButton для вбудованих веб-пошукових систем
             if (_searchEngines.TryGetValue(currentName, out var url) && url == currentUrl)
             {
-                // Це одна з предустановлених пошукових систем
                 var radio = currentName switch
                 {
                     "Google" => _googleRadio,
@@ -136,7 +151,13 @@ public partial class SearchEngineSettingsPage : UserControl
             string searchEngineName;
             string searchEngineUrl;
 
-            if (_googleRadio?.IsChecked == true)
+            if (_vetaleRadio?.IsChecked == true)
+            {
+                // Вибрано Vetale Search як локальний пошук
+                searchEngineName = VetaleSearchName;
+                searchEngineUrl = VetaleSearchUrl;
+            }
+            else if (_googleRadio?.IsChecked == true)
             {
                 searchEngineName = "Google";
                 searchEngineUrl = _searchEngines["Google"];
@@ -164,14 +185,12 @@ public partial class SearchEngineSettingsPage : UserControl
                 // Валідація кастомного URL
                 if (string.IsNullOrWhiteSpace(searchEngineUrl))
                 {
-                    // TODO: Показати повідомлення про помилку
                     System.Diagnostics.Debug.WriteLine("SearchEngineSettingsPage: Custom URL is empty");
                     return;
                 }
 
                 if (!searchEngineUrl.Contains("{0}"))
                 {
-                    // TODO: Показати повідомлення про помилку
                     System.Diagnostics.Debug.WriteLine("SearchEngineSettingsPage: Custom URL must contain {0}");
                     return;
                 }
@@ -187,11 +206,8 @@ public partial class SearchEngineSettingsPage : UserControl
             
             System.Diagnostics.Debug.WriteLine($"SearchEngineSettingsPage: Saved {searchEngineName} - {searchEngineUrl}");
             
-            // Повідомляємо про успішне збереження
+            // Повідомляємо про успішне збереження (SettingsWindow сам закриється після навігації)
             SettingsSaved?.Invoke(this, EventArgs.Empty);
-            
-            // Повертаємось назад
-            OnBackClick(sender, e);
         }
         catch (Exception ex)
         {
@@ -203,5 +219,11 @@ public partial class SearchEngineSettingsPage : UserControl
     {
         BackRequested?.Invoke(this, EventArgs.Empty);
     }
-}
 
+    private void OnOpenVetaleSearch(object? sender, RoutedEventArgs e)
+    {
+        var homeUrl = "vetale://search";
+        System.Diagnostics.Debug.WriteLine($"SearchEngineSettingsPage: Opening Vetale Search home page: {homeUrl}");
+        NavigateRequested?.Invoke(this, homeUrl);
+    }
+}

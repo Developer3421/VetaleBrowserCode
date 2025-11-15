@@ -21,7 +21,6 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
     private StackPanel? _messagesPanel;
     private TextBox? _messageInput;
     private Button? _sendButton;
-    private ToggleButton? _reasoningToggle;
     private ComboBox? _languageSelector;
     private Button? _scrollToBottomButton;
     private Button? _stopButton;
@@ -34,6 +33,7 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
     private Task? _ongoingResponseTask;
 
     private static readonly Regex TrailingUserCueRegex = new(@"(?:\s|:|#|\[|\])*(\*{0,2}\s*)?(User|Human|Assistant|AI|Q|A)(\s*\*{0,2})?(?:\s*:)?\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex HtmlCodeBlockRegex = new(@"```html[\r\n]+([\s\S]*?)```", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     public VetaleAIChatPage()
     {
@@ -53,7 +53,6 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
         _messagesPanel = this.FindControl<StackPanel>("MessagesPanel");
         _messageInput = this.FindControl<TextBox>("MessageInput");
         _sendButton = this.FindControl<Button>("SendButton");
-        _reasoningToggle = this.FindControl<ToggleButton>("ReasoningToggle");
         _languageSelector = this.FindControl<ComboBox>("LanguageSelector");
         _scrollToBottomButton = this.FindControl<Button>("ScrollToBottomButton");
         _stopButton = this.FindControl<Button>("StopButton");
@@ -176,28 +175,64 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
     {
         if (_messagesPanel == null) return;
 
+        // Парсимо HTML-код із markdown-блоку ```html ... ```
+        string? codePart = null;
+        string descriptionPart = text;
+
+        var match = HtmlCodeBlockRegex.Match(text);
+        if (match.Success && match.Groups.Count > 1)
+        {
+            codePart = match.Groups[1].Value.Trim('\r', '\n');
+            // Все, що до і після блока коду
+            var before = text.Substring(0, match.Index).Trim();
+            var after = text[(match.Index + match.Length)..].Trim();
+            descriptionPart = string.Join("\n\n", new[] { before, after }.Where(s => !string.IsNullOrWhiteSpace(s)));
+        }
+
         var contentStack = new StackPanel
         {
             Classes = { "message-content" },
-            Spacing = 6,
-            Children =
-            {
-                new TextBlock
-                {
-                    Text = Application.Current?.FindResource("VetaleAI.Assistant") as string ?? "Vetale AI",
-                    FontWeight = FontWeight.SemiBold,
-                    FontSize = 13,
-                    Foreground = new SolidColorBrush(Color.Parse("#4CAF50"))
-                },
-                new TextBlock
-                {
-                    Text = text,
-                    TextWrapping = TextWrapping.Wrap,
-                    FontSize = 15,
-                    LineHeight = 24
-                }
-            }
+            Spacing = 6
         };
+
+        // Заголовок "Vetale AI"
+        contentStack.Children.Add(new TextBlock
+        {
+            Text = Application.Current?.FindResource("VetaleAI.Assistant") as string ?? "Vetale AI",
+            FontWeight = FontWeight.SemiBold,
+            FontSize = 13,
+            Foreground = new SolidColorBrush(Color.Parse("#4CAF50"))
+        });
+
+        // Описова частина (якщо є)
+        if (!string.IsNullOrWhiteSpace(descriptionPart))
+        {
+            contentStack.Children.Add(new TextBlock
+            {
+                Text = descriptionPart,
+                TextWrapping = TextWrapping.Wrap,
+                FontSize = 15,
+                LineHeight = 24
+            });
+        }
+
+        // HTML-код у окремому контейнері (якщо є)
+        if (!string.IsNullOrWhiteSpace(codePart))
+        {
+            var codeTextBlock = new TextBlock
+            {
+                Text = codePart,
+                Classes = { "code-text" }
+            };
+
+            var codeBorder = new Border
+            {
+                Classes = { "code-container" },
+                Child = codeTextBlock
+            };
+
+            contentStack.Children.Add(codeBorder);
+        }
 
         var messageBorder = new Border
         {
@@ -318,7 +353,6 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
                 return;
             }
 
-            var enableReasoning = _reasoningToggle?.IsChecked ?? false;
             var languageIndex = _languageSelector?.SelectedIndex ?? 0;
             string? language = languageIndex switch
             {
@@ -379,7 +413,6 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
                 finalText = await _aiService.GenerateResponseStreamAsync(
                     userMessage,
                     language,
-                    enableReasoning,
                     progress,
                     ct);
             }
@@ -449,7 +482,6 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
         {
             try
             {
-                var enableReasoning = _reasoningToggle?.IsChecked ?? false;
                 var languageIndex = _languageSelector?.SelectedIndex ?? 0;
 
                 string? language = languageIndex switch
@@ -463,7 +495,7 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
                     _ => null // Auto-detect
                 };
 
-                System.Diagnostics.Trace.WriteLine($"VetaleAIChatPage: Calling AI service (attempt {attempt + 1}) with language={language}, reasoning={enableReasoning}");
+                System.Diagnostics.Trace.WriteLine($"VetaleAIChatPage: Calling AI service (attempt {attempt + 1}) with language={language}");
 
                 _cancellationTokenSource = new CancellationTokenSource();
                 if (_stopButton != null)
@@ -474,7 +506,6 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
                 var response = await _aiService.GenerateResponseAsync(
                     prompt, 
                     language, 
-                    enableReasoning,
                     _cancellationTokenSource.Token);
 
                 System.Diagnostics.Trace.WriteLine($"VetaleAIChatPage: Response received, length={response.Length}");
@@ -671,6 +702,7 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
             return new TextBlock { Text = initialText };
         }
 
+        // Для стрімінгу використовуємо простий текст без спец-контейнера коду
         var contentTextBlock = new TextBlock
         {
             Text = initialText,
@@ -705,6 +737,95 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
         _messagesPanel.Children.Add(messageBorder);
         if (_autoScroll) ScrollToBottom();
         return contentTextBlock;
+    }
+
+    private async void CreateWebPage_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_isProcessing)
+            return;
+
+        if (_messageInput == null)
+            return;
+
+        var userPrompt = _messageInput.Text;
+        if (string.IsNullOrWhiteSpace(userPrompt))
+        {
+            userPrompt = "Створи повну HTML-сторінку з базовою версткою (doctype, html, head, body) за власним сюжетом.";
+        }
+
+        _isProcessing = true;
+        UpdateSendButtonState();
+
+        // Додаємо в чат повідомлення користувача з позначкою режиму
+        AddUserMessage(userPrompt + "\n\n[Режим: створення веб-сторінки]");
+
+        // Очищаємо поле вводу
+        _messageInput.Text = string.Empty;
+
+        try
+        {
+            if (_aiService == null)
+            {
+                AddAssistantMessage("AI service is not initialized. Please wait a moment and try again.");
+                return;
+            }
+
+            AddThinkingMessage();
+
+            var languageIndex = _languageSelector?.SelectedIndex ?? 0;
+            string? language = languageIndex switch
+            {
+                1 => "Ukrainian",
+                2 => "English",
+                3 => "Russian",
+                4 => "German",
+                5 => "French",
+                6 => "Spanish",
+                _ => null
+            };
+
+            _cancellationTokenSource = new CancellationTokenSource();
+            var ct = _cancellationTokenSource.Token;
+
+            // Промпт для генерації гарної HTML-сторінки зі стилями та markdown-контейнером коду
+            var webPagePrompt = userPrompt +
+                                "\n\nСтвори повну HTML5 веб-сторінку з такою структурою:" +
+                                "\n- doctype, <html>, <head>, <body>." +
+                                "\n- Використовуй семантичні теги (<header>, <main>, <section>, <footer> за потреби)." +
+                                "\n- Для всього тексту використовуй теги <p> (або заголовки <h1>-<h3> там, де доречно)." +
+                                "\n- Задай фон сторінки і колір тексту через inline-стилі або атрибути class (наприклад, світлий фон і темний текст)." +
+                                "\n- Для ключових блоків додай 'властивості' у вигляді атрибутів class та data-* (наприклад, class='hero-section', data-section='features')." +
+                                "\nПоверни результат у форматі Markdown з блоком коду, як у великих моделях (наприклад, Claude):" +
+                                "\n```html" +
+                                "\n...повний HTML-код сторінки..." +
+                                "\n```" +
+                                "\nПісля блоку коду додай коротке пояснення структури сторінки (2–4 речення звичайним текстом).";
+
+            var htmlResponse = await _aiService.GenerateResponseAsync(
+                webPagePrompt,
+                language,
+                ct);
+
+            RemoveThinkingMessage();
+            AddAssistantMessage(htmlResponse);
+        }
+        catch (OperationCanceledException)
+        {
+            RemoveThinkingMessage();
+            AddAssistantMessage("Створення веб-сторінки було скасовано.");
+        }
+        catch (Exception ex)
+        {
+            RemoveThinkingMessage();
+            AddAssistantMessage($"Помилка при створенні веб-сторінки: {ex.Message}");
+        }
+        finally
+        {
+            _isProcessing = false;
+            UpdateSendButtonState();
+            _cancellationTokenSource?.Dispose();
+            _cancellationTokenSource = null;
+        }
     }
 }
 

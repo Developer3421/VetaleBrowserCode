@@ -75,6 +75,32 @@
             <Setter Property="BorderBrush" Value="#F57C00"/>
             <Setter Property="BorderThickness" Value="0,1,0,0"/>
         </Style>
+
+        <!-- Кнопка відкриття Vetale Search -->
+        <Style Selector="Button.vetale-search-button">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                        <GradientStop Color="#FF8A00" Offset="0"/>
+                        <GradientStop Color="#9C27B0" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Margin" Value="0,10,0,0"/>
+        </Style>
+        <Style Selector="Button.vetale-search-button:pointerover">
+            <Setter Property="Opacity" Value="0.9"/>
+        </Style>
+        <Style Selector="Button.vetale-search-button:pressed">
+            <Setter Property="Opacity" Value="0.8"/>
+        </Style>
     </UserControl.Styles>
 
     <Grid Margin="30" MaxWidth="600">
@@ -98,6 +124,38 @@
                                Foreground="#606060" 
                                Margin="0,0,0,15"/>
                     
+                    <!-- Vetale Search (Локальний пошук) як елемент списку -->
+                    <RadioButton x:Name="VetaleRadio"
+                                 Classes="search-engine"
+                                 GroupName="SearchEngine"
+                                 Click="OnSearchEngineChanged">
+                        <StackPanel Orientation="Vertical" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="🔍" FontSize="20" VerticalAlignment="Center"/>
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Vetale Search"
+                                               FontSize="16"
+                                               FontWeight="Bold"
+                                               Foreground="#9C27B0"/>
+                                    <TextBlock Text="Локальна пошукова система"
+                                               FontSize="12"
+                                               Foreground="#606060"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <TextBlock Text="Швидкий пошук серед відвіданих сторінок у локальній базі даних без використання інтернету."
+                                       FontSize="12"
+                                       Foreground="#505050"
+                                       TextWrapping="Wrap"
+                                       LineHeight="18"/>
+                        </StackPanel>
+                    </RadioButton>
+
+                    <TextBlock Text="Онлайн пошукові системи:" 
+                               FontSize="14" 
+                               FontWeight="SemiBold"
+                               Foreground="#303030" 
+                               Margin="0,15,0,15"/>
+
                     <!-- Engines: proper names & sample URLs left literal -->
                     <RadioButton x:Name="GoogleRadio" 
                                  Classes="search-engine" 

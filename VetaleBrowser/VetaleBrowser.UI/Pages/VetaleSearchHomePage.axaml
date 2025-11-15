@@ -1,0 +1,246 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.VetaleSearchHomePage"
+             Background="White">
+
+    <UserControl.Styles>
+        <!-- Gradient background -->
+        <Style Selector="Border.gradient-background">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                        <GradientStop Color="#FF8A00" Offset="0"/>
+                        <GradientStop Color="#9C27B0" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Logo text -->
+        <Style Selector="TextBlock.logo">
+            <Setter Property="FontSize" Value="72"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+
+        <Style Selector="TextBlock.logo-subtitle">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Opacity" Value="0.9"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Search box -->
+        <Style Selector="Border.search-container">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="24"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="BoxShadow" Value="0 4 16 #26000000"/>
+        </Style>
+
+        <Style Selector="TextBox.search-input">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,16"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style Selector="TextBox.search-input:focus">
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <!-- Search button -->
+        <Style Selector="Button.search-button">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                        <GradientStop Color="#FF8A00" Offset="0"/>
+                        <GradientStop Color="#9C27B0" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="32,12"/>
+            <Setter Property="CornerRadius" Value="24"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="8"/>
+        </Style>
+
+        <Style Selector="Button.search-button:pointerover">
+            <Setter Property="Opacity" Value="0.9"/>
+        </Style>
+
+        <Style Selector="Button.search-button:pressed">
+            <Setter Property="Opacity" Value="0.8"/>
+        </Style>
+
+        <!-- Icon buttons -->
+        <Style Selector="Button.icon-button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="CornerRadius" Value="50"/>
+        </Style>
+
+        <Style Selector="Button.icon-button:pointerover">
+            <Setter Property="Background" Value="#0D000000"/>
+        </Style>
+
+        <!-- Search engine selector -->
+        <Style Selector="ComboBox.engine-selector">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#FF8A00"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid>
+        <!-- Gradient background -->
+        <Border Classes="gradient-background"/>
+
+        <!-- Content -->
+        <StackPanel VerticalAlignment="Center" Spacing="40" Margin="40">
+            <!-- Logo -->
+            <StackPanel Spacing="8">
+                <TextBlock Classes="logo" Text="Vetale Search"/>
+                <TextBlock Classes="logo-subtitle" Text="Локальна пошукова система"/>
+            </StackPanel>
+
+            <!-- Search box -->
+            <StackPanel Spacing="20" MaxWidth="720">
+                <Border Classes="search-container">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox x:Name="SearchInput"
+                                 Grid.Column="0"
+                                 Classes="search-input"
+                                 Watermark="Введіть пошуковий запит..."
+                                 KeyDown="SearchInput_KeyDown"/>
+                        
+                        <StackPanel Grid.Column="1" 
+                                    Orientation="Horizontal" 
+                                    Spacing="4"
+                                    Margin="0,0,8,0">
+                            <Button Classes="icon-button"
+                                    ToolTip.Tip="Голосовий пошук">
+                                <TextBlock Text="🎤" FontSize="20"/>
+                            </Button>
+                            <Button Classes="icon-button"
+                                    ToolTip.Tip="Пошук за зображенням">
+                                <TextBlock Text="📷" FontSize="20"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Search engine selector and buttons -->
+                <StackPanel Spacing="16">
+                    <!-- Engine selector -->
+                    <Border Background="White" 
+                            CornerRadius="12" 
+                            Padding="16"
+                            BoxShadow="0 2 8 #1A000000"
+                            HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <TextBlock Text="Пошукова система:" 
+                                       VerticalAlignment="Center"
+                                       FontWeight="SemiBold"
+                                       Foreground="#333"/>
+                            <ComboBox x:Name="SearchEngineSelector"
+                                      Classes="engine-selector"
+                                      MinWidth="200"
+                                      SelectedIndex="0"
+                                      SelectionChanged="SearchEngineSelector_SelectionChanged">
+                                <ComboBoxItem>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="🔍"/>
+                                        <TextBlock Text="Vetale Search (Локальний)"/>
+                                    </StackPanel>
+                                </ComboBoxItem>
+                                <ComboBoxItem>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="🔍"/>
+                                        <TextBlock Text="Google"/>
+                                    </StackPanel>
+                                </ComboBoxItem>
+                                <ComboBoxItem>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="🔍"/>
+                                        <TextBlock Text="Bing"/>
+                                    </StackPanel>
+                                </ComboBoxItem>
+                                <ComboBoxItem>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="🔍"/>
+                                        <TextBlock Text="DuckDuckGo"/>
+                                    </StackPanel>
+                                </ComboBoxItem>
+                                <ComboBoxItem>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="🔍"/>
+                                        <TextBlock Text="Yandex"/>
+                                    </StackPanel>
+                                </ComboBoxItem>
+                            </ComboBox>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Search buttons -->
+                    <StackPanel Orientation="Horizontal" 
+                                HorizontalAlignment="Center" 
+                                Spacing="12">
+                        <Button Classes="search-button"
+                                Click="Search_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="🔍"/>
+                                <TextBlock Text="Пошук"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Classes="search-button"
+                                Click="LuckySearch_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="⭐"/>
+                                <TextBlock Text="Мені пощастить"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Footer info -->
+            <StackPanel Spacing="12" HorizontalAlignment="Center">
+                <TextBlock Text="Швидкі посилання" 
+                           Foreground="White" 
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center"
+                           Margin="0,20,0,0"/>
+                <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
+                    <Button Content="📚 Закладки" 
+                            Classes="search-button"
+                            Padding="20,10"/>
+                    <Button Content="📜 Історія" 
+                            Classes="search-button"
+                            Padding="20,10"/>
+                    <Button Content="🔍 Налаштування пошуку" 
+                            Classes="search-button"
+                            Padding="20,10"
+                            Click="SearchSettings_Click"/>
+                    <Button Content="⚙️ Налаштування" 
+                            Classes="search-button"
+                            Padding="20,10"/>
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</UserControl>
+

@@ -88,7 +88,6 @@ public class VetaleAIService : IDisposable
     public async Task<string> GenerateResponseAsync(
         string userMessage,
         string? language = null,
-        bool enableReasoning = false,
         CancellationToken cancellationToken = default)
     {
         System.Diagnostics.Trace.WriteLine($"VetaleAIService: GenerateResponseAsync called with message: {userMessage.Substring(0, Math.Min(50, userMessage.Length))}...");
@@ -110,9 +109,9 @@ public class VetaleAIService : IDisposable
         try
         {
             var languageHint = GetLanguageHint(language);
-            System.Diagnostics.Trace.WriteLine($"VetaleAIService: Language: {languageHint ?? "Auto"}, Reasoning: {enableReasoning}");
+            System.Diagnostics.Trace.WriteLine($"VetaleAIService: Language: {languageHint ?? "Auto"}");
             
-            var response = await _agent.GenerateResponseAsync(userMessage, languageHint, enableReasoning, cancellationToken);
+            var response = await _agent.GenerateResponseAsync(userMessage, languageHint, cancellationToken);
             
             System.Diagnostics.Trace.WriteLine($"VetaleAIService: Response generated successfully, length: {response.Length}");
             return response;
@@ -130,7 +129,6 @@ public class VetaleAIService : IDisposable
     public async Task<string> GenerateResponseStreamAsync(
         string userMessage,
         string? language = null,
-        bool enableReasoning = false,
         IProgress<string>? progress = null,
         CancellationToken cancellationToken = default)
     {
@@ -153,7 +151,7 @@ public class VetaleAIService : IDisposable
         try
         {
             var languageHint = GetLanguageHint(language);
-            return await _agent.GenerateResponseStreamAsync(userMessage, languageHint, enableReasoning, progress, cancellationToken);
+            return await _agent.GenerateResponseStreamAsync(userMessage, languageHint, progress, cancellationToken);
         }
         catch (Exception ex)
         {

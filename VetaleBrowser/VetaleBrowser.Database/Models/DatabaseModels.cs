@@ -84,3 +84,48 @@ public class ConsoleLogItem
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 }
 
+/// <summary>
+/// Модель для індексації сторінок для Vetale Search (локальний пошук)
+/// </summary>
+public class SearchIndex
+{
+    public int Id { get; set; }
+    public string Url { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty; // Текстовий вміст сторінки
+    public string Description { get; set; } = string.Empty; // Meta description
+    public string Keywords { get; set; } = string.Empty; // Meta keywords
+    public string? FaviconUrl { get; set; }
+    public byte[]? FaviconData { get; set; }
+    public DateTime IndexedAt { get; set; } = DateTime.UtcNow;
+    public DateTime LastVisitedAt { get; set; } = DateTime.UtcNow;
+    public int VisitCount { get; set; } = 1;
+    public int RelevanceScore { get; set; } = 0; // Оцінка релевантності (базується на частоті відвідувань)
+    public string Language { get; set; } = "uk"; // Мова контенту
+}
+
+/// <summary>
+/// Модель для пошукових запитів користувача (історія пошуків)
+/// </summary>
+public class SearchQuery
+{
+    public int Id { get; set; }
+    public string Query { get; set; } = string.Empty;
+    public string SearchEngine { get; set; } = "Vetale Search"; // Назва використаної пошукової системи
+    public DateTime SearchedAt { get; set; } = DateTime.UtcNow;
+    public int ResultsCount { get; set; } = 0;
+    public int? ClickedResultId { get; set; } // ID результату, на який клікнули (якщо є)
+}
+
+/// <summary>
+/// Модель для ключових слів та їх ваги в пошуковому індексі
+/// </summary>
+public class SearchKeyword
+{
+    public int Id { get; set; }
+    public int SearchIndexId { get; set; } // Зв'язок з SearchIndex
+    public string Keyword { get; set; } = string.Empty;
+    public int Frequency { get; set; } = 1; // Кількість появ слова на сторінці
+    public double Weight { get; set; } = 1.0; // Вага слова (заголовки мають більшу вагу)
+}
+

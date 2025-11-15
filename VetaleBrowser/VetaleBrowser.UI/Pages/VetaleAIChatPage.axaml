@@ -20,6 +20,22 @@
         <Style Selector="Border.assistant-message">
             <Setter Property="Background" Value="White"/>
         </Style>
+
+        <!-- Code container for HTML (orange-purple gradient) -->
+        <Style Selector="Border.code-container">
+            <Setter Property="Background" Value="#FF8A00"/>
+            <Setter Property="BorderBrush" Value="#9C27B0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="Margin" Value="0,8,0,0"/>
+        </Style>
+        <Style Selector="TextBlock.code-text">
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
         
         <!-- Message content wrapper -->
         <Style Selector="StackPanel.message-content">
@@ -52,10 +68,12 @@
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="8"/>
             <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Foreground" Value="#333333"/>
         </Style>
 
         <Style Selector="Button.icon-button:pointerover">
             <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="Foreground" Value="#000000"/>
         </Style>
 
         <Style Selector="Button.send-button">
@@ -181,21 +199,9 @@
                 Padding="20">
             <Grid RowDefinitions="Auto,Auto">
                 <!-- Toolbar above input -->
-                <Grid Grid.Row="0" Margin="0,0,0,10" ColumnDefinitions="Auto,Auto,*">
-                    <!-- Reasoning toggle -->
-                    <ToggleButton x:Name="ReasoningToggle" 
-                                  Grid.Column="0"
-                                  Classes="tool-toggle"
-                                  Margin="0,0,10,0"
-                                  ToolTip.Tip="{DynamicResource VetaleAI.EnableReasoning}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <TextBlock Text="💭"/>
-                            <TextBlock Text="{DynamicResource VetaleAI.EnableReasoning}"/>
-                        </StackPanel>
-                    </ToggleButton>
-
+                <Grid Grid.Row="0" Margin="0,0,0,10" ColumnDefinitions="Auto,*">
                     <!-- Language selector -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
                         <TextBlock Text="🌐" FontSize="16" VerticalAlignment="Center"/>
                         <TextBlock Text="{DynamicResource VetaleAI.ResponseLanguage}" 
                                    VerticalAlignment="Center"
@@ -216,10 +222,19 @@
                     </StackPanel>
 
                     <!-- Right side buttons -->
-                    <StackPanel Grid.Column="2" 
+                    <StackPanel Grid.Column="1" 
                                 Orientation="Horizontal" 
                                 Spacing="8"
                                 HorizontalAlignment="Right">
+                        <Button x:Name="CreateWebPageButton" 
+                                Classes="icon-button"
+                                Click="CreateWebPage_Click"
+                                ToolTip.Tip="Створити веб-сторінку з поточного запиту">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="🌐" FontSize="14"/>
+                                <TextBlock Text="Створити веб сторінку"/>
+                            </StackPanel>
+                        </Button>
                         <Button x:Name="NewChatButton" 
                                 Classes="icon-button"
                                 Click="NewChat_Click"

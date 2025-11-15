@@ -32,16 +32,14 @@ public class VetaleAIAgent : IDisposable
     private static readonly Regex ThaiCharsRegex = new(@"[\u0E00-\u0E7F]+", RegexOptions.Compiled);
     private static readonly Regex ZeroWidthCharsRegex = new(@"[\u200B-\u200D\uFEFF]", RegexOptions.Compiled);
     
-    // Response end markers - strict to prevent infinite generation
+    // Response end markers - мінімальний набір для запобігання критичних проблем
     private static readonly string[] EndMarkers = {
         "<|end|>", "<|im_end|>", "</s>", "[END]", "<end_of_turn>",
-        "<|eot_id|>", "</assistant>", "</assistant_response>",
-        "\nUser:", "\nHuman:", "\n\nUser:", "\n\nHuman:",
-        "User:", "Human:",
-        // Also stop if it tries to restart roles
-        "\nAssistant:", "Assistant:", "\nAI:", "AI:",
-        // Common instruction tags
-        "### Instruction:", "### User:", "<|user|>", "<|assistant|>", "[INST]", "[/INST]"
+        "<|eot_id|>",
+        // М'які маркери для початку нового діалогу — тільки з подвійним переносом
+        "\n\nUser:", "\n\nHuman:",
+        // Common instruction tags в кінці — якщо модель раптом починає новий блок
+        "### Instruction:", "### User:"
     };
 
     public VetaleAIAgent(string modelPath)
@@ -91,12 +89,11 @@ public class VetaleAIAgent : IDisposable
     }
 
     /// <summary>
-    /// Generate a response with character filtering and auto-stop
+    /// Generate a response with character filtering and auto-stop (simple one-pass, no explicit planning)
     /// </summary>
     public async Task<string> GenerateResponseAsync(
-        string prompt, 
-        string? languageHint = null, 
-        bool enableReasoning = false,
+        string prompt,
+        string? languageHint = null,
         CancellationToken cancellationToken = default)
     {
         System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Starting response generation for prompt: {prompt.Substring(0, Math.Min(50, prompt.Length))}...");
@@ -107,18 +104,13 @@ public class VetaleAIAgent : IDisposable
             await InitializeAsync();
         }
 
-        // Ensure only one generation or reset happens at a time
         await _generationLock.WaitAsync(cancellationToken);
         try
         {
             if (_executor == null)
-            {
                 throw new InvalidOperationException("Executor is not initialized");
-            }
 
-            // Build system prompt with language hint
-            var systemPrompt = BuildSystemPrompt(languageHint, enableReasoning);
-            // Switch to instruction/response format to reduce self-dialogue
+            var systemPrompt = BuildSystemPrompt(languageHint);
             var fullPrompt = new StringBuilder();
             fullPrompt.AppendLine(systemPrompt);
             fullPrompt.AppendLine();
@@ -126,55 +118,42 @@ public class VetaleAIAgent : IDisposable
             fullPrompt.AppendLine(prompt);
             fullPrompt.AppendLine();
             fullPrompt.Append("### Response:\n");
-            
-            System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Full prompt length: {fullPrompt.Length} chars");
 
             var inferenceParams = new InferenceParams
             {
-                MaxTokens = 4096,
+                MaxTokens = 8192,
                 AntiPrompts = new List<string>
                 {
-                    // Role markers (various cases)
-                    "\nUser:", "\n\nUser:", "User:", "user:", "USER:",
-                    "\nHuman:", "\n\nHuman:", "Human:", "human:",
-                    "\nAssistant:", "Assistant:", "assistant:",
-                    "\nAI:", "AI:", "ai:",
-                    // Instruction tags
-                    "### Instruction:", "### User:",
-                    // Tokenizer-style roles
-                    "<|user|>", "<|assistant|>",
-                    // Llama chat tags
-                    "[INST]", "[/INST]"
+                    "\n\nUser:", "\n\nHuman:",
+                    "### Instruction:", "### User:"
                 }
             };
 
             var responseBuilder = new StringBuilder();
-            var hasResponse = false;
             var tokenCount = 0;
+            var hasResponse = false;
 
             System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Starting token generation...");
 
             await foreach (var token in _executor.InferAsync(fullPrompt.ToString(), inferenceParams, cancellationToken))
             {
                 tokenCount++;
-                
-                // Filter out unwanted characters
+
                 var filteredToken = FilterCharacters(token);
-                
                 if (string.IsNullOrEmpty(filteredToken))
                     continue;
 
                 responseBuilder.Append(filteredToken);
                 hasResponse = true;
-                
-                // Log first few tokens
+
                 if (tokenCount <= 5 || tokenCount % 20 == 0)
                 {
                     System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Token {tokenCount}, response length: {responseBuilder.Length}");
                 }
 
-                // Check for end markers / self-iteration
                 var currentResponse = responseBuilder.ToString();
+
+                // Пом'якшуємо умови зупинки, щоб не обрізати план/відповідь занадто рано
                 if (ShouldStopGeneration(currentResponse))
                 {
                     System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: End/self-iteration marker at token {tokenCount}");
@@ -182,28 +161,27 @@ public class VetaleAIAgent : IDisposable
                     break;
                 }
 
-                // Check for repetitive text (infinite loop detection)
-                if (currentResponse.Length > 100 && HasRepetitivePattern(currentResponse))
+                // Перевірка патернів тільки для довгих шматків
+                if (currentResponse.Length > 500 && HasRepetitivePattern(currentResponse))
                 {
                     System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Repetitive pattern detected at token {tokenCount}");
                     break;
                 }
 
-                // Check for 3+ identical characters in a row (spam detection)
+                // Більш толерантний детектор повторюваних символів
                 if (HasRepeatingCharacters(currentResponse))
                 {
                     System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Repeating characters detected at token {tokenCount}");
                     break;
                 }
 
-                // Safety limit - allow long detailed responses
-                if (responseBuilder.Length > 12000)
+                // Збільшений safety‑ліміт довжини
+                if (responseBuilder.Length > 24000)
                 {
                     System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Safety limit reached at {responseBuilder.Length} chars");
                     break;
                 }
 
-                // Detect hard looping sequence early (used inline before appending optionally)
                 if (DetectLoopingSequence(currentResponse))
                 {
                     System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Instruction/Response loop detected");
@@ -214,13 +192,11 @@ public class VetaleAIAgent : IDisposable
             System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Generation complete. Total tokens: {tokenCount}, Response length: {responseBuilder.Length}");
 
             var finalResponse = responseBuilder.ToString().Trim();
-            
-            // Final cleanup
             finalResponse = CleanupResponse(finalResponse);
 
-            System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Final response length: {finalResponse.Length}");
-
-            return hasResponse ? finalResponse : "I apologize, but I couldn't generate a proper response. Please try again.";
+            return hasResponse
+                ? finalResponse
+                : "Я не зміг згенерувати коректну відповідь. Спробуйте переформулювати запит.";
         }
         finally
         {
@@ -232,12 +208,11 @@ public class VetaleAIAgent : IDisposable
     }
 
     /// <summary>
-    /// Generate a response and stream tokens via progress callback while building the final text.
+    /// Generate a response and stream tokens via progress callback (simple one-pass streaming)
     /// </summary>
     public async Task<string> GenerateResponseStreamAsync(
         string prompt,
         string? languageHint = null,
-        bool enableReasoning = false,
         IProgress<string>? progress = null,
         CancellationToken cancellationToken = default)
     {
@@ -253,11 +228,9 @@ public class VetaleAIAgent : IDisposable
         try
         {
             if (_executor == null)
-            {
                 throw new InvalidOperationException("Executor is not initialized");
-            }
 
-            var systemPrompt = BuildSystemPrompt(languageHint, enableReasoning);
+            var systemPrompt = BuildSystemPrompt(languageHint);
             var sb = new StringBuilder();
             sb.AppendLine(systemPrompt);
             sb.AppendLine();
@@ -269,16 +242,11 @@ public class VetaleAIAgent : IDisposable
 
             var inferenceParams = new InferenceParams
             {
-                MaxTokens = 4096,
+                MaxTokens = 8192,
                 AntiPrompts = new List<string>
                 {
-                    "\nUser:", "\n\nUser:", "User:", "user:", "USER:",
-                    "\nHuman:", "\n\nHuman:", "Human:", "human:",
-                    "\nAssistant:", "Assistant:", "assistant:",
-                    "\nAI:", "AI:", "ai:",
-                    "### Instruction:", "### User:",
-                    "<|user|>", "<|assistant|>",
-                    "[INST]", "[/INST]"
+                    "\n\nUser:", "\n\nHuman:",
+                    "### Instruction:", "### User:"
                 }
             };
 
@@ -289,50 +257,46 @@ public class VetaleAIAgent : IDisposable
             {
                 tokenCount++;
 
-                // Filter unwanted characters first
-                var filteredToken = FilterCharacters(token);
-                if (string.IsNullOrEmpty(filteredToken))
+                var filtered = FilterCharacters(token);
+                if (string.IsNullOrEmpty(filtered))
                     continue;
 
-                responseBuilder.Append(filteredToken);
+                responseBuilder.Append(filtered);
 
-                // Check for end markers using the current aggregate
                 var current = responseBuilder.ToString();
+
                 if (ShouldStopGeneration(current))
                 {
                     var trimmed = RemoveEndMarkers(current);
                     responseBuilder.Clear();
                     responseBuilder.Append(trimmed);
+                    try { progress?.Report(trimmed); } catch { }
                     break;
                 }
 
-                // Check for repetitive text (infinite loop detection)
-                if (current.Length > 100 && HasRepetitivePattern(current))
+                if (current.Length > 500 && HasRepetitivePattern(current))
                 {
                     System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Repetitive pattern detected at token {tokenCount} (streaming)");
                     break;
                 }
 
-                // Check for 3+ identical characters in a row (spam detection)
                 if (HasRepeatingCharacters(current))
                 {
                     System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Repeating characters detected at token {tokenCount} (streaming)");
                     break;
                 }
 
-                // Safety length guard - allow long detailed responses
-                if (responseBuilder.Length > 12000)
+                if (responseBuilder.Length > 24000)
                 {
                     System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Safety limit reached at {responseBuilder.Length} chars (streaming)");
                     break;
                 }
 
-                // Report this token to UI after validating we didn't hit end markers
                 try
                 {
-                    progress?.Report(filteredToken);
+                    progress?.Report(filtered);
                 }
-                catch { /* swallow progress exceptions to not break generation */ }
+                catch { }
 
                 if (tokenCount <= 5 || tokenCount % 20 == 0)
                 {
@@ -340,11 +304,10 @@ public class VetaleAIAgent : IDisposable
                 }
             }
 
-            var finalResponse = responseBuilder.ToString().Trim();
-            finalResponse = CleanupResponse(finalResponse);
+            var finalResponse = CleanupResponse(responseBuilder.ToString().Trim());
             return finalResponse.Length > 0
                 ? finalResponse
-                : "I apologize, but I couldn't generate a proper response. Please try again.";
+                : "Я не зміг згенерувати коректну відповідь. Спробуйте ще раз.";
         }
         finally
         {
@@ -356,36 +319,16 @@ public class VetaleAIAgent : IDisposable
     }
 
     /// <summary>
-    /// Filter out unwanted characters (Bengali, spam symbols, control chars)
+    /// Filter out unwanted characters (minimal filtering - only critical issues)
     /// </summary>
     private string FilterCharacters(string text)
     {
         if (string.IsNullOrEmpty(text))
             return text;
 
-        // Remove Bengali characters
-        text = BengaliCharsRegex.Replace(text, "");
-        
-        // Remove Arabic characters (often spam)
-        text = ArabicCharsRegex.Replace(text, "");
-        
-        // Remove Chinese characters (if not relevant)
-        text = ChineseCharsRegex.Replace(text, "");
-        
-        // Remove Devanagari characters
-        text = DevanagariCharsRegex.Replace(text, "");
-        
-        // Remove Thai characters
-        text = ThaiCharsRegex.Replace(text, "");
-        
-        // Remove control characters (except newlines and tabs)
-        text = Regex.Replace(text, @"[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]", "");
-        
-        // Remove zero-width characters
-        text = ZeroWidthCharsRegex.Replace(text, "");
-        
-        // Remove excessive special symbols (more than 3 in a row)
-        text = Regex.Replace(text, @"([^\w\s\.,!?;:\-—–()\[\]{}\""'«»„""])\1{2,}", "$1$1");
+        // Лише критичне: контрольні та zero‑width символи
+        text = Regex.Replace(text, "[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]", string.Empty);
+        text = ZeroWidthCharsRegex.Replace(text, string.Empty);
 
         return text;
     }
@@ -395,14 +338,16 @@ public class VetaleAIAgent : IDisposable
     /// </summary>
     private bool ShouldStopGeneration(string text)
     {
-        // Check standard end markers / role restarts
-        if (EndMarkers.Any(marker => text.IndexOf(marker, StringComparison.OrdinalIgnoreCase) >= 0))
+        // Спочатку перевіряємо жорсткі end‑маркери
+        if (EndMarkers.Any(marker => text.Contains(marker, StringComparison.OrdinalIgnoreCase)))
             return true;
 
-        // Broad self-dialogue pattern, tolerant to markup and spacing
-        if (Regex.IsMatch(text, @"(\*\*|\[)?\s*(User|Human|Question|Q)\s*(\*\*|\])?\s*:.*?(\*\*|\[)?\s*(Assistant|AI|Answer|A)\s*(\*\*|\])?\s*:", RegexOptions.IgnoreCase | RegexOptions.Singleline))
+        // Ослаблюємо детектор самодіалогу: лише очевидні великі патерни з обома ролями
+        if (text.Length > 400 && Regex.IsMatch(text,
+                "(User|Human)\\s*:?[\\s\\S]{10,80}(Assistant|AI)\\s*:",
+                RegexOptions.IgnoreCase))
         {
-            System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Detected self-dialogue pattern - stopping");
+            System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Detected strong self-dialogue pattern - stopping");
             return true;
         }
 
@@ -426,69 +371,13 @@ public class VetaleAIAgent : IDisposable
     }
 
     /// <summary>
-    /// Check if text has repetitive pattern (indicates infinite loop)
+    /// Detect hard looping sequence early (Instruction/Response blocks)
     /// </summary>
-    private bool HasRepetitivePattern(string text)
-    {
-        // Strict mode: minimal length threshold; analyze recent window
-        if (string.IsNullOrEmpty(text) || text.Length < 30) return false;
-        var window = text.Length > 800 ? text[^800..] : text;
-
-        // 1. Immediate consecutive chunk repetition (2+ repeats of 5–80 chars)
-        var consecutive = Regex.Match(window, @"(.{5,80})\1+");
-        if (consecutive.Success)
-        {
-            System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: STRICT consecutive repetition '{consecutive.Groups[1].Value.Substring(0, Math.Min(30, consecutive.Groups[1].Value.Length))}...' ");
-            return true;
-        }
-
-        // 2. Tail appears earlier once (last 40–120 chars); ANY previous occurrence triggers stop
-        for (int size = 120; size >= 40; size -= 20)
-        {
-            if (text.Length <= size * 2) continue; // need earlier content
-            var tail = text[^size..];
-            var prior = text.Substring(0, text.Length - size);
-            if (prior.Contains(tail, StringComparison.Ordinal))
-            {
-                System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: STRICT tail duplication size={size}");
-                return true;
-            }
-        }
-
-        // 3. High-frequency n-gram (3–8 chars) repeated ≥5 times (lower tolerance)
-        for (int gram = 3; gram <= 8; gram++)
-        {
-            var counts = new Dictionary<string,int>();
-            for (int i = 0; i <= window.Length - gram; i++)
-            {
-                var g = window.Substring(i, gram);
-                if (!Regex.IsMatch(g, @"[A-Za-z0-9]")) continue; // ignore pure punctuation
-                counts[g] = counts.TryGetValue(g, out var c) ? c + 1 : 1;
-                if (counts[g] >= 5)
-                {
-                    System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: STRICT n-gram '{g}' count={counts[g]}");
-                    return true;
-                }
-            }
-        }
-
-        // 4. Repeated structural markers (multiple Response headers)
-        var respCount = Regex.Matches(text, @"### Response:").Count;
-        if (respCount > 1)
-        {
-            System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: STRICT repeated response headers respCount={respCount}");
-            return true;
-        }
-
-        return false;
-    }
-
-    // Detect hard looping sequence early (used inline before appending optionally)
     private bool DetectLoopingSequence(string aggregate)
     {
-        // If model starts injecting new Instruction/Response blocks repeatedly
-        int instCount = Regex.Matches(aggregate, @"### Instruction:").Count;
-        int respCount = Regex.Matches(aggregate, @"### Response:").Count;
+        // Якщо модель починає друкувати додаткові Instruction/Response блоки, зупиняємося
+        int instCount = Regex.Matches(aggregate, "### Instruction:").Count;
+        int respCount = Regex.Matches(aggregate, "### Response:").Count;
         if (instCount > 1 || respCount > 1)
         {
             System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Repeated instruction/response blocks (inst={instCount}, resp={respCount})");
@@ -497,72 +386,143 @@ public class VetaleAIAgent : IDisposable
         return false;
     }
 
+    /// <summary>
+    /// Допоміжний метод: прибрати дубльований хвіст, якщо модель повторює кінець відповіді
+    /// </summary>
     private string RemoveTrailingRepeatedChunk(string text)
     {
-        if (string.IsNullOrWhiteSpace(text) || text.Length < 200) return text.Trim();
-        // Try to remove duplicated tail: find largest tail (40-200 chars) that appears earlier immediately before
+        if (string.IsNullOrWhiteSpace(text) || text.Length < 200)
+            return text.Trim();
+
         for (int size = Math.Min(200, text.Length / 2); size >= 40; size -= 10)
         {
             var tail = text.Substring(text.Length - size);
             var preceding = text.Substring(0, text.Length - size);
-            if (preceding.EndsWith(tail))
+            if (preceding.EndsWith(tail, StringComparison.Ordinal))
             {
                 System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Trimming duplicated tail size={size}");
                 return preceding.TrimEnd();
             }
         }
+
         return text.Trim();
     }
 
     /// <summary>
-    /// Final cleanup of the response
+    /// Final cleanup of the response (прибирає зайві пробіли та дубльований хвіст, але не чіпає структуру плану)
     /// </summary>
     private string CleanupResponse(string text)
     {
-        // Remove trailing incomplete sentences
+        if (string.IsNullOrEmpty(text))
+            return text;
+
+        // Прибираємо зайві пробіли в кінці
         text = text.TrimEnd();
-        
-        // DON'T modify newlines - preserve formatting for poems and lists
-        // Only remove excessive blank lines (4+ empty lines in a row)
-        text = Regex.Replace(text, @"(\r?\n\s*){4,}", "\n\n\n");
-        
-        // Remove trailing whitespace from each line while preserving empty lines
+
+        // Залишаємо форматування, але зрізаємо 4+ пустих рядків підряд до максимум 3
+        text = Regex.Replace(text, "(\\r?\\n\\s*){4,}", "\n\n\n");
+
+        // Прибираємо пробіли в кінці кожного рядка
         var lines = text.Split('\n');
         for (int i = 0; i < lines.Length; i++)
         {
             lines[i] = lines[i].TrimEnd();
         }
         text = string.Join('\n', lines);
-        
-        // Remove leading/trailing whitespace from entire text
-        text = text.Trim();
 
-        // Remove any trailing repeated chunk that might cause looping
+        // Прибираємо дубльований хвіст, якщо такий є
         text = RemoveTrailingRepeatedChunk(text);
 
-        return text;
+        return text.Trim();
     }
 
     /// <summary>
-    /// Build system prompt with language and reasoning settings
+    /// Check if text has repetitive pattern (indicates infinite loop) - більш толерантна версія
     /// </summary>
-    private string BuildSystemPrompt(string? languageHint, bool enableReasoning)
+    private bool HasRepetitivePattern(string text)
+    {
+        if (string.IsNullOrEmpty(text) || text.Length < 100) return false;
+        var window = text.Length > 1200 ? text[^1200..] : text;
+
+        // Жорсткий тригер тільки при 3+ повторів великих шматків
+        var consecutive = Regex.Match(window, "(.{10,100})\\1{2,}");
+        if (consecutive.Success)
+        {
+            System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Consecutive repetition '{consecutive.Groups[1].Value[..Math.Min(30, consecutive.Groups[1].Value.Length)]}...' ");
+            return true;
+        }
+
+        // Відключено tail duplication
+
+        // N‑gram тільки при дуже частих повтореннях
+        for (int gram = 3; gram <= 8; gram++)
+        {
+            var counts = new Dictionary<string, int>();
+            for (int i = 0; i <= window.Length - gram; i++)
+            {
+                var g = window.Substring(i, gram);
+                if (!Regex.IsMatch(g, "[A-Za-z0-9]")) continue;
+                counts[g] = counts.TryGetValue(g, out var c) ? c + 1 : 1;
+                if (counts[g] >= 8)
+                {
+                    System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: N-gram '{g}' count={counts[g]}");
+                    return true;
+                }
+            }
+        }
+
+        var respCount = Regex.Matches(text, "### Response:").Count;
+        if (respCount > 1)
+        {
+            System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Repeated response headers respCount={respCount}");
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Check if text has 5+ identical characters in a row (spam detection) - більш толерантно
+    /// </summary>
+    private bool HasRepeatingCharacters(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return false;
+        var check = text.Length > 200 ? text[^200..] : text;
+        // 5+ однакових не-пробільних символів
+        if (Regex.IsMatch(check, "([^\\s\\r\\n])\\1{4,}"))
+            return true;
+        // 6+ однакових знаків пунктуації/символів
+        if (Regex.IsMatch(check, "([^\\w\\s])\\1{5,}"))
+            return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Build simple system prompt without explicit planning
+    /// </summary>
+    private string BuildSystemPrompt(string? languageHint)
     {
         var systemPrompt = new StringBuilder();
         systemPrompt.AppendLine("You are Vetale AI, a helpful assistant for Vetale Browser.");
-        systemPrompt.AppendLine("Provide detailed, comprehensive answers with examples and explanations.");
-        systemPrompt.AppendLine("IMPORTANT: Stop generating immediately after completing your answer. Do not continue with follow-up questions or additional dialogue.");
-        systemPrompt.AppendLine("Absolutely never include role prefixes like 'User:', 'Assistant:', 'Human:', 'AI:', 'Q:', or 'A:' in your output.");
-        systemPrompt.AppendLine("Write a direct response only.");
-        
+        systemPrompt.AppendLine("Provide clear, concise and helpful answers to the user's questions.");
+        systemPrompt.AppendLine("Do not simulate dialogues or use role labels like 'User:' or 'Assistant:'.");
+        systemPrompt.AppendLine("Avoid repeating the same text and stop when the answer is complete.");
+
+        // Persona: Vetale based on Indian Vetala
+        systemPrompt.AppendLine();
+        systemPrompt.AppendLine("Persona: You are Vetale — a witty, curious, and benevolent spirit inspired by the Indian Vetala (वेताल). You blend ancient wisdom with modern practicality. You may add a light touch of mystique or a short clever hint when appropriate, but you always keep answers concrete and useful.");
+        systemPrompt.AppendLine("Identity: Refer to yourself as 'Vetale' when needed. Do not claim to be any other character or service.");
+        systemPrompt.AppendLine("Tone: Warm, calm, and respectful; a subtle folklore vibe is okay. Avoid horror or graphic depictions unless explicitly requested and safe to provide (keep it PG‑13).");
+        systemPrompt.AppendLine("Safety: Protect the user. Refuse harmful, explicit, or unsafe instructions. Prefer practical, safe alternatives.");
+        systemPrompt.AppendLine("Lore handling: If asked about your origin, briefly (1–2 sentences) explain that Vetale is a modern reinterpretation of the Vetala from Indian folklore.");
+
         if (!string.IsNullOrEmpty(languageHint))
         {
             systemPrompt.AppendLine($"Respond in {languageHint}.");
         }
-        
-        if (enableReasoning)
+        else
         {
-            systemPrompt.AppendLine("Show your reasoning when answering.");
+            systemPrompt.AppendLine("Respond in the same language as the user's request.");
         }
 
         return systemPrompt.ToString();
@@ -633,22 +593,5 @@ public class VetaleAIAgent : IDisposable
         _generationLock.Dispose();
         
         System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Disposed");
-    }
-
-    /// <summary>
-    /// Check if text has 3+ identical characters in a row (spam detection)
-    /// </summary>
-    private bool HasRepeatingCharacters(string text)
-    {
-        if (string.IsNullOrEmpty(text)) return false;
-        // Limit to recent tail to keep it fast
-        var check = text.Length > 200 ? text.Substring(text.Length - 200) : text;
-        // 3+ identical non-whitespace characters
-        if (Regex.IsMatch(check, @"([^\s\r\n])\1{2,}"))
-            return true;
-        // 4+ identical punctuation/symbols
-        if (Regex.IsMatch(check, @"([^\w\s])\1{3,}"))
-            return true;
-        return false;
     }
 }
