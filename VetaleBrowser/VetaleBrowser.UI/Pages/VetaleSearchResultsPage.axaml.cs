@@ -27,6 +27,9 @@ public partial class VetaleSearchResultsPage : UserControl
     private Popup? _suggestionsPopup;
     private ItemsControl? _suggestionsListBox;
 
+    // Embed Gemini chat panel
+    private GeminiChatPanel? _geminiChat;
+
     private readonly ISuggestionsService _suggestionsService;
     private CancellationTokenSource? _suggestionsCts;
 
@@ -53,6 +56,9 @@ public partial class VetaleSearchResultsPage : UserControl
         _searchButton = this.FindControl<Button>("SearchButton");
         _suggestionsPopup = this.FindControl<Popup>("SuggestionsPopup");
         _suggestionsListBox = this.FindControl<ItemsControl>("SuggestionsListBox");
+
+        // Gemini chat control
+        _geminiChat = this.FindControl<GeminiChatPanel>("GeminiChat");
 
         if (_searchInput != null)
         {
@@ -86,6 +92,9 @@ public partial class VetaleSearchResultsPage : UserControl
         }
 
         LoadSearchResults(query);
+        
+        // Trigger Gemini chat with the query (acts like Copilot)
+        _ = _geminiChat?.AskAsync(query);
     }
 
     /// <summary>
@@ -226,6 +235,7 @@ public partial class VetaleSearchResultsPage : UserControl
 
     private void Search_Click(object? sender, RoutedEventArgs e)
     {
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Search button clicked!");
         PerformSearch();
     }
 
@@ -242,16 +252,26 @@ public partial class VetaleSearchResultsPage : UserControl
 
     private void PerformSearch(bool isLucky = false)
     {
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] PerformSearch called, isLucky={isLucky}");
+        
         if (_searchInput == null || string.IsNullOrWhiteSpace(_searchInput.Text))
         {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] PerformSearch aborted: empty query");
             return;
         }
 
         string query = _searchInput.Text.Trim();
         _currentQuery = query;
 
-        // Для локального пошуку просто оновлюємо результати на цій сторінці
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] PerformSearch query: '{query}'");
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Calling LoadSearchResults...");
+        
         LoadSearchResults(query);
+        
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Triggering GeminiChat AskAsync...");
+        _ = _geminiChat?.AskAsync(query);
+        
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] PerformSearch completed");
     }
 
     /// <summary>
@@ -449,6 +469,7 @@ public partial class VetaleSearchResultsPage : UserControl
 
         _resultsPanel.Children.Add(resultBorder);
     }
+
 
     /// <summary>
     /// Очистити всі результати

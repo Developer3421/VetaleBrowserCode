@@ -85,21 +85,34 @@
                                 Margin="0,0,8,0"
                                 BorderThickness="1"
                                 BorderBrush="#C4B5FD">
-                            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto">
-                                <!-- Lock/Security Icon -->
+                            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,Auto,*,Auto">
+                                <!-- Security Status Icon -->
                                 <Border Grid.Row="0" Grid.Column="0"
+                                        x:Name="PART_SecurityIcon"
                                         Width="20"
                                         Height="20"
-                                        Margin="12,0,8,0">
-                                    <Path Width="12"
+                                        Margin="12,0,4,0"
+                                        ToolTip.Tip="Статус безпеки">
+                                    <!-- Safe - зелений щит -->
+                                    <Path x:Name="PART_SecurityPath"
+                                          Width="12"
                                           Height="12"
                                           Stretch="Uniform"
                                           Fill="#4CAF50"
                                           Data="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
                                 </Border>
 
+                                <!-- Security Status Text -->
+                                <TextBlock Grid.Row="0" Grid.Column="1"
+                                           x:Name="PART_SecurityText"
+                                           Margin="0,0,8,0"
+                                           VerticalAlignment="Center"
+                                           FontSize="11"
+                                           Foreground="#4C1D95"
+                                           Text="Статус: невідомо"/>
+
                                 <!-- URL TextBox -->
-                                <TextBox Grid.Row="0" Grid.Column="1"
+                                <TextBox Grid.Row="0" Grid.Column="2"
                                          x:Name="PART_AddressBar"
                                          BorderThickness="0"
                                          Background="#F3E8FF"
@@ -110,7 +123,7 @@
                                          Padding="0,6"/>
 
                                 <!-- Bookmark/Star Icon -->
-                                <Button Grid.Row="0" Grid.Column="2"
+                                <Button Grid.Row="0" Grid.Column="3"
                                         x:Name="PART_BookmarkButton"
                                         Width="28"
                                         Height="28"

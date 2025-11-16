@@ -29,6 +29,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="AngleSharp" Version="1.4.1-beta.502" />
         <PackageReference Include="Avalonia" Version="11.3.8" />
         <PackageReference Include="Avalonia.Desktop" Version="11.3.8"/>
         <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.8"/>
@@ -38,6 +39,7 @@
             <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
+        <PackageReference Include="Jint" Version="4.4.2" />
         <PackageReference Include="LiteDB" Version="6.0.0-prerelease.73" />
         <PackageReference Include="LLamaSharp" Version="0.25.0" />
         <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.25.0" Condition="'$(LlamaBackendChoice)' == 'cpu-avx2'" />

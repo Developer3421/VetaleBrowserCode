@@ -2,8 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:search="clr-namespace=VetaleBrowser.VetaleBrowser.Search.Models"
              xmlns:models="clr-namespace:VetaleBrowser.VetaleBrowser.Search.Models"
+             xmlns:pages="clr-namespace:VetaleBrowser.VetaleBrowser.UI.Pages"
              mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="900"
              x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.VetaleSearchResultsPage"
              Background="#F5F5F7">
@@ -350,7 +350,7 @@
             <Grid Margin="0,16,0,24">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="280"/>
+                    <ColumnDefinition Width="360"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- Основний контент -->
@@ -578,20 +578,10 @@
                     </Border>
                 </Border>
 
-                <!-- Права колонка: фільтри / додаткова інформація -->
+                <!-- Права колонка: Gemini Chat (замість AI-підсумку) -->
                 <StackPanel Grid.Column="1" Margin="16,0,32,0" Spacing="12" VerticalAlignment="Stretch">
-                    <Border Background="White" CornerRadius="16" Padding="16" BoxShadow="0 4 16 #14000000">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="Фільтри" FontSize="16" FontWeight="SemiBold" Foreground="#202124"/>
-                            <TextBlock Text="(в майбутньому тут будуть параметри пошуку)" FontSize="12" Foreground="#70757A" TextWrapping="Wrap"/>
-                        </StackPanel>
-                    </Border>
-
-                    <Border Background="White" CornerRadius="16" Padding="16" BoxShadow="0 4 16 #14000000">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="Порада" FontSize="14" FontWeight="SemiBold" Foreground="#202124"/>
-                            <TextBlock Text="Використовуйте конкретні ключові слова, щоб швидше знаходити потрібні закладки, історію та локальні документи." FontSize="12" Foreground="#70757A" TextWrapping="Wrap"/>
-                        </StackPanel>
+                    <Border Background="White" CornerRadius="20" Padding="0" BoxShadow="0 4 16 #14000000">
+                        <pages:GeminiChatPanel x:Name="GeminiChat"/>
                     </Border>
                 </StackPanel>
             </Grid>

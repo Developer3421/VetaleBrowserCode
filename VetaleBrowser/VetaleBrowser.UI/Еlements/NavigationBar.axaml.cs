@@ -25,6 +25,9 @@ public class NavigationBar : TemplatedControl
 
     public static readonly StyledProperty<bool> IsSecureProperty =
         AvaloniaProperty.Register<NavigationBar, bool>(nameof(IsSecure));
+    
+    public static readonly StyledProperty<SecurityStatus> SecurityStatusProperty =
+        AvaloniaProperty.Register<NavigationBar, SecurityStatus>(nameof(SecurityStatus), SecurityStatus.Unknown);
 
     private Button? _backButton;
     private Button? _forwardButton;
@@ -41,6 +44,11 @@ public class NavigationBar : TemplatedControl
     private readonly System.Collections.ObjectModel.ObservableCollection<SearchSuggestion> _suggestions = new();
     private ISuggestionsService? _suggestionsService;
     private System.Threading.CancellationTokenSource? _suggestionsCts;
+    private ISecurityCheckService? _securityCheckService;
+    private System.Threading.CancellationTokenSource? _securityCheckCts;
+    private Border? _securityIcon;
+    private Avalonia.Controls.Shapes.Path? _securityPath;
+    private TextBlock? _securityText;
 
     // Подія навігації для vetale://
     public event EventHandler<string>? NavigateRequested;
@@ -67,6 +75,12 @@ public class NavigationBar : TemplatedControl
     {
         get => GetValue(IsSecureProperty);
         set => SetValue(IsSecureProperty, value);
+    }
+    
+    public SecurityStatus SecurityStatus
+    {
+        get => GetValue(SecurityStatusProperty);
+        set => SetValue(SecurityStatusProperty, value);
     }
 
     // Events for functionality that should be handled externally (like bookmarks, settings)
@@ -96,6 +110,11 @@ public class NavigationBar : TemplatedControl
     {
         _suggestionsService = service;
     }
+    
+    public void SetSecurityCheckService(ISecurityCheckService service)
+    {
+        _securityCheckService = service;
+    }
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
@@ -122,7 +141,7 @@ public class NavigationBar : TemplatedControl
             _addressBar.TextChanged -= OnAddressBarTextChanged;
         }
 
-        // Get new buttons
+        // Get new buttons/controls
         _backButton = e.NameScope.Find<Button>("PART_BackButton");
         _forwardButton = e.NameScope.Find<Button>("PART_ForwardButton");
         _reloadButton = e.NameScope.Find<Button>("PART_ReloadButton");
@@ -133,6 +152,10 @@ public class NavigationBar : TemplatedControl
         _addressBar = e.NameScope.Find<TextBox>("PART_AddressBar");
         _suggestionsPopup = e.NameScope.Find<Popup>("PART_SuggestionsPopup");
         _suggestionsList = e.NameScope.Find<ItemsControl>("PART_SuggestionsList");
+        _securityIcon = e.NameScope.Find<Border>("PART_SecurityIcon");
+        _securityPath = e.NameScope.Find<Avalonia.Controls.Shapes.Path>("PART_SecurityPath");
+        _securityText = e.NameScope.Find<TextBlock>("PART_SecurityText");
+        
         if (_suggestionsList != null)
         {
             _suggestionsList.ItemsSource = _suggestions;
@@ -241,6 +264,9 @@ public class NavigationBar : TemplatedControl
                 System.Diagnostics.Trace.WriteLine($"NavigationBar: Internal navigate to {url}");
                 return;
             }
+
+            // Перевірка безпеки перед навігацією
+            await CheckUrlSecurityAsync(url);
 
             await _webViewManager.NavigateAsync(url);
             System.Diagnostics.Trace.WriteLine($"NavigationBar: Navigate to {url}");
@@ -379,6 +405,117 @@ public class NavigationBar : TemplatedControl
         if (_forwardButton != null)
             _forwardButton.IsEnabled = CanGoForward;
     }
+    
+    /// <summary>
+    /// Перевірити безпеку URL
+    /// </summary>
+    private async System.Threading.Tasks.Task CheckUrlSecurityAsync(string url)
+    {
+        if (_securityCheckService == null)
+        {
+            SecurityStatus = SecurityStatus.Unknown;
+            return;
+        }
+        
+        // Скасувати попередню перевірку
+        _securityCheckCts?.Cancel();
+        _securityCheckCts = new System.Threading.CancellationTokenSource();
+        
+        try
+        {
+            // Встановити статус "Перевірка"
+            SecurityStatus = SecurityStatus.Checking;
+            
+            // Виконати перевірку
+            var result = await _securityCheckService.CheckUrlAsync(url);
+            
+            // Оновити статус
+            SecurityStatus = result.Status;
+            
+            // Якщо сайт небезпечний - показати попередження
+            if (result.Status == SecurityStatus.Dangerous)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Security] ⚠️ УВАГА! Фішинговий сайт: {url}");
+                System.Diagnostics.Debug.WriteLine($"[Security] {result.Description}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[Security] ✓ Безпечний: {url} - {result.Description}");
+            }
+        }
+        catch (System.OperationCanceledException)
+        {
+            // Перевірку скасовано
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Security] Помилка перевірки: {ex.Message}");
+            SecurityStatus = SecurityStatus.Error;
+        }
+    }
+    
+    /// <summary>
+    /// Публічний метод для перевірки поточного URL (викликається ззовні)
+    /// </summary>
+    public async System.Threading.Tasks.Task CheckCurrentUrlSecurityAsync()
+    {
+        if (!string.IsNullOrEmpty(Url))
+        {
+            await CheckUrlSecurityAsync(Url);
+        }
+    }
+    
+    /// <summary>
+    /// Оновити іконку безпеки
+    /// </summary>
+    private void UpdateSecurityIcon()
+    {
+        if (_securityPath == null) return;
+
+        switch (SecurityStatus)
+        {
+            case SecurityStatus.Safe:
+                // Зелений щит - безпечно
+                _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#4CAF50"));
+                _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z");
+                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, "✓ Безпечний сайт");
+                if (_securityText != null) _securityText.Text = "Перевірено: безпечно";
+                break;
+
+            case SecurityStatus.Dangerous:
+                // Червоний щит з оклику - небезпечно
+                _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#F44336"));
+                _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z M11 7h2v6h-2V7z M11 15h2v2h-2v-2z");
+                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, "⚠️ НЕБЕЗПЕЧНИЙ САЙТ (фішинг)!");
+                if (_securityText != null) _securityText.Text = "НЕБЕЗПЕЧНО!";
+                break;
+
+            case SecurityStatus.Checking:
+                // Жовтий щит - перевірка
+                _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#FFC107"));
+                _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z");
+                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, "⏳ Перевірка безпеки...");
+                if (_securityText != null) _securityText.Text = "Перевірка…";
+                break;
+
+            case SecurityStatus.Error:
+                // Помаранчевий щит - помилка
+                _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#FF9800"));
+                _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z");
+                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, "⚠ Помилка перевірки");
+                if (_securityText != null) _securityText.Text = "Помилка перевірки";
+                break;
+
+            case SecurityStatus.Unknown:
+            default:
+                // Сірий щит - невідомо
+                _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#9E9E9E"));
+                _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z");
+                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, "? Статус невідомий");
+                if (_securityText != null) _securityText.Text = "Статус невідомий";
+                break;
+        }
+    }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
@@ -391,6 +528,12 @@ public class NavigationBar : TemplatedControl
         else if (change.Property == UrlProperty && _addressBar != null)
         {
             _addressBar.Text = Url;
+            // Перевірити безпеку нового URL
+            _ = CheckUrlSecurityAsync(Url);
+        }
+        else if (change.Property == SecurityStatusProperty)
+        {
+            UpdateSecurityIcon();
         }
     }
 }

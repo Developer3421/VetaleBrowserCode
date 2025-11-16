@@ -1,0 +1,260 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="700"
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.GeminiChatPanel">
+
+    <UserControl.Styles>
+        <!-- Copilot-style colors matching Vetale Browser theme -->
+        <Style Selector="Border.message-container">
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Margin" Value="0,0,0,1"/>
+        </Style>
+        
+        <Style Selector="Border.user-message">
+            <Setter Property="Background" Value="#F5F5F5"/>
+        </Style>
+        
+        <Style Selector="Border.assistant-message">
+            <Setter Property="Background" Value="White"/>
+        </Style>
+
+        <!-- Message content -->
+        <Style Selector="StackPanel.message-content">
+            <Setter Property="Spacing" Value="8"/>
+        </Style>
+
+        <Style Selector="TextBlock.message-header">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+
+        <Style Selector="TextBlock.user-header">
+            <Setter Property="Foreground" Value="#FF6B35"/>
+        </Style>
+
+        <Style Selector="TextBlock.assistant-header">
+            <Setter Property="Foreground" Value="#4CAF50"/>
+        </Style>
+
+        <Style Selector="TextBlock.message-text">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="LineHeight" Value="20"/>
+            <Setter Property="Foreground" Value="#1F1F1F"/>
+        </Style>
+
+        <!-- Input area - Copilot style -->
+        <Style Selector="TextBox.chat-input">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="Padding" Value="16,12,48,12"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="MinHeight" Value="44"/>
+            <Setter Property="MaxHeight" Value="150"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="Watermark" Value="Запитайте Gemini..."/>
+        </Style>
+
+        <Style Selector="TextBox.chat-input:focus">
+            <Setter Property="BorderBrush" Value="#4CAF50"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+
+        <!-- Send button - circular like Copilot -->
+        <Style Selector="Button.send-button">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width" Value="36"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="CornerRadius" Value="18"/>
+            <Setter Property="FontSize" Value="16"/>
+        </Style>
+
+        <Style Selector="Button.send-button:pointerover">
+            <Setter Property="Background" Value="#66BB6A"/>
+        </Style>
+
+        <Style Selector="Button.send-button:pressed">
+            <Setter Property="Background" Value="#43A047"/>
+        </Style>
+
+        <Style Selector="Button.send-button:disabled">
+            <Setter Property="Background" Value="#E0E0E0"/>
+            <Setter Property="Foreground" Value="#9E9E9E"/>
+        </Style>
+
+        <!-- Stop button -->
+        <Style Selector="Button.stop-button">
+            <Setter Property="Background" Value="#FF6B35"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width" Value="36"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="CornerRadius" Value="18"/>
+            <Setter Property="FontSize" Value="16"/>
+        </Style>
+
+        <Style Selector="Button.stop-button:pointerover">
+            <Setter Property="Background" Value="#FF8C5F"/>
+        </Style>
+
+        <!-- Scroll to bottom button -->
+        <Style Selector="Button.scroll-to-bottom">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <!-- Header -->
+        <Style Selector="Border.chat-header">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="BorderBrush" Value="#388E3C"/>
+        </Style>
+
+        <Style Selector="TextBlock.header-title">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style Selector="TextBlock.header-subtitle">
+            <Setter Property="Foreground" Value="#E8F5E9"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Opacity" Value="0.9"/>
+        </Style>
+
+        <!-- Loading indicator -->
+        <Style Selector="Border.loading-indicator">
+            <Setter Property="Background" Value="#F5F5F5"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Margin" Value="16,8"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- Header like Microsoft Copilot -->
+        <Border Grid.Row="0" Classes="chat-header">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <TextBlock Grid.Column="0" 
+                           Text="✨" 
+                           FontSize="20" 
+                           VerticalAlignment="Center"
+                           Margin="0,0,8,0"/>
+                
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Classes="header-title" Text="Gemini Chat"/>
+                    <TextBlock Classes="header-subtitle" Text="Працює на Google AI"/>
+                </StackPanel>
+
+                <Button Grid.Column="2"
+                        x:Name="ClearButton"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Foreground="White"
+                        Padding="8"
+                        ToolTip.Tip="Очистити чат"
+                        Click="ClearButton_Click">
+                    <TextBlock Text="🗑️" FontSize="16"/>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Chat messages area -->
+        <Grid Grid.Row="1">
+            <ScrollViewer x:Name="MessageScrollViewer" 
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          Background="#FAFAFA">
+                <StackPanel x:Name="MessagesPanel" Margin="0,0,0,20">
+                    <!-- Welcome message -->
+                    <Border Padding="24,32">
+                        <StackPanel HorizontalAlignment="Center" Spacing="12">
+                            <TextBlock Text="✨" 
+                                       FontSize="48" 
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Text="Привіт! Я Gemini" 
+                                       FontSize="20" 
+                                       FontWeight="SemiBold"
+                                       HorizontalAlignment="Center"
+                                       Foreground="#1F1F1F"/>
+                            <TextBlock Text="Запитайте мене про що завгодно" 
+                                       FontSize="14" 
+                                       TextAlignment="Center"
+                                       Foreground="#666666"
+                                       TextWrapping="Wrap"
+                                       MaxWidth="300"/>
+                        </StackPanel>
+                    </Border>
+                    <!-- Messages will be added here dynamically -->
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Scroll to bottom button -->
+            <Button x:Name="ScrollToBottomButton"
+                    Classes="scroll-to-bottom"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,0,16"
+                    IsVisible="False"
+                    Click="ScrollToBottomButton_Click">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="↓"/>
+                    <TextBlock Text="До низу"/>
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <!-- Input area at bottom - Copilot style -->
+        <Border Grid.Row="2" 
+                Background="White" 
+                BorderBrush="#E0E0E0" 
+                BorderThickness="0,1,0,0"
+                Padding="12">
+            <Grid>
+                <TextBox x:Name="MessageInput"
+                         Classes="chat-input"
+                         TextChanged="MessageInput_TextChanged"
+                         KeyDown="MessageInput_KeyDown"/>
+
+                <!-- Send button overlay (like Copilot) -->
+                <Button x:Name="SendButton"
+                        Classes="send-button"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Margin="0,0,8,0"
+                        Click="SendButton_Click"
+                        IsEnabled="False"
+                        ToolTip.Tip="Надіслати (Ctrl+Enter)">
+                    <TextBlock Text="➤" FontSize="16"/>
+                </Button>
+
+                <!-- Stop button (appears during generation) -->
+                <Button x:Name="StopButton"
+                        Classes="stop-button"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Margin="0,0,8,0"
+                        Click="StopButton_Click"
+                        IsVisible="False"
+                        ToolTip.Tip="Зупинити генерацію">
+                    <TextBlock Text="■" FontSize="14"/>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
+

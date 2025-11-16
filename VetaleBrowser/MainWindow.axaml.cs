@@ -95,6 +95,7 @@ public partial class MainWindow : Window
     private FullscreenModePage? _fullscreenModePage;
     private ContentControl? _pageContainer;
     private readonly VetaleBrowser.Search.Services.ISuggestionsService _globalSuggestions = new VetaleBrowser.Search.Services.GoogleSuggestionsService();
+    private readonly VetaleBrowser.Search.Services.ISecurityCheckService _securityCheckService = new VetaleBrowser.Search.Services.PhishTankSecurityService();
 
     // Keep track of which worker's WebView we're listening to
     private TabWorker? _subscribedWorker;
@@ -388,6 +389,7 @@ public partial class MainWindow : Window
                 {
                     navigationBar.Initialize(_tabs.Active.Manager);
                     navigationBar.SetSuggestionsService(_globalSuggestions);
+                    navigationBar.SetSecurityCheckService(_securityCheckService);
                     // Підписка на внутрішню навігацію (vetale://) з адресного рядка/Додому
                     navigationBar.NavigateRequested -= OnNavigationBarNavigateRequested;
                     navigationBar.NavigateRequested += OnNavigationBarNavigateRequested;
@@ -854,6 +856,7 @@ public partial class MainWindow : Window
         {
             navigationBar.Initialize(worker.Manager);
             navigationBar.SetSuggestionsService(_globalSuggestions);
+            navigationBar.SetSecurityCheckService(_securityCheckService);
             
             // Set settings service for search engine configuration
             if (_settingsService != null)
