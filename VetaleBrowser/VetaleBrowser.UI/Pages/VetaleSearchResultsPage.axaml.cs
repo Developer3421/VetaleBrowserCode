@@ -572,7 +572,12 @@ public partial class VetaleSearchResultsPage : UserControl
                 System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] SessionId: {_currentSessionId}");
                 System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Query: '{_currentQuery}'");
                 
-                // Викликаємо нову подію з додатковою інформацією
+                // ГОЛОВНЕ: викликаємо NavigateRequested першою (вона точно працює)
+                System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Invoking NavigateRequested with URL: '{result.Url}'");
+                NavigateRequested?.Invoke(this, result.Url);
+                System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] NavigateRequested invoked");
+                
+                // Також викликаємо нову подію для історії
                 var args = new SearchResultNavigationEventArgs
                 {
                     Url = result.Url,
@@ -581,12 +586,9 @@ public partial class VetaleSearchResultsPage : UserControl
                     SourceType = result.SourceType
                 };
                 
-                System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Invoking SearchResultNavigateRequested event...");
+                System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Invoking SearchResultNavigateRequested for history...");
                 SearchResultNavigateRequested?.Invoke(this, args);
                 System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] SearchResultNavigateRequested invoked");
-                
-                // Залишаємо стару подію для сумісності
-                NavigateRequested?.Invoke(this, result.Url);
             }
             else
             {
