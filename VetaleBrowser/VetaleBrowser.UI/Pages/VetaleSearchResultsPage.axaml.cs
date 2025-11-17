@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -7,16 +8,24 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media; // use Avalonia.Media for IImage
 using Avalonia.Threading;
 using VetaleBrowser.VetaleBrowser.Search.Models;
 using VetaleBrowser.VetaleBrowser.Search.Services;
+using VetaleBrowser.VetaleBrowser.UI.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
 
 public partial class VetaleSearchResultsPage : UserControl
 {
     private string? _currentQuery;
+    private Guid _currentSessionId;
+    
     public event EventHandler<string>? NavigateRequested;
+    public event EventHandler<SearchResultNavigationEventArgs>? SearchResultNavigateRequested;
+    
+    public Guid CurrentSessionId => _currentSessionId;
+    public string? CurrentQuery => _currentQuery;
     
     private TextBlock? _searchStats;
     private StackPanel? _resultsPanel;
@@ -31,11 +40,17 @@ public partial class VetaleSearchResultsPage : UserControl
     private GeminiChatPanel? _geminiChat;
 
     private readonly ISuggestionsService _suggestionsService;
+    private readonly IUnifiedSearchService _unifiedSearchService;
+    private readonly IFaviconService _faviconService = new FaviconService();
     private CancellationTokenSource? _suggestionsCts;
+    private CancellationTokenSource? _searchCts;
+
+    private readonly ObservableCollection<string> _relatedQueries = new();
 
     public VetaleSearchResultsPage()
     {
         _suggestionsService = new GoogleSuggestionsService();
+        _unifiedSearchService = new UnifiedSearchService();
         
         InitializeComponent();
         InitializeControls();
@@ -111,24 +126,288 @@ public partial class VetaleSearchResultsPage : UserControl
     /// <summary>
     /// Завантажити результати пошуку
     /// </summary>
-    private void LoadSearchResults(string query)
+    private async void LoadSearchResults(string query)
     {
         if (string.IsNullOrWhiteSpace(query))
             return;
 
-        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Loading results for: {query}");
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Loading unified results for: {query}");
 
-        // TODO: інтеграція з реальним пошуком
+        _searchCts?.Cancel();
+        _searchCts = new CancellationTokenSource();
+        var ct = _searchCts.Token;
 
-        if (_searchStats != null)
+        try
         {
-            _searchStats.Text = $"Показуємо попередні результати для запиту \"{query}\"";
+            _searchStats!.Text = "Шукаємо в Wikipedia, WebArchive, CommonCrawl…";
+            _resultsPanel!.Children.Clear();
+
+            var start = DateTime.UtcNow;
+            var page = await _unifiedSearchService.SearchAsync(query, pageNumber: 1, pageSize: 16, ct);
+            var elapsed = (DateTime.UtcNow - start).TotalSeconds;
+
+            if (ct.IsCancellationRequested)
+                return;
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                RenderUnifiedResults(page);
+                UpdateSearchStats(page.TotalResults, elapsed);
+            });
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] LoadSearchResults error: {ex}");
+            if (_searchStats != null)
+            {
+                _searchStats.Text = "Сталась помилка під час пошуку. Спробуйте ще раз.";
+            }
         }
     }
 
-    // --- Обробники подій пошуку (як на домашній сторінці) ---
+    private void RenderUnifiedResults(UnifiedSearchPage page)
+    {
+        _resultsPanel?.Children.Clear();
 
-    private void SearchInput_TextChanged(object? sender, TextChangedEventArgs e)
+        // Зберігаємо SessionId для відстеження навігації
+        _currentSessionId = page.SearchSessionId;
+
+        if (page.Results == null || page.Results.Length == 0)
+        {
+            if (_searchStats != null)
+            {
+                _searchStats.Text = "Нічого не знайдено";
+            }
+            return;
+        }
+
+        foreach (var result in page.Results)
+        {
+            var searchResult = new SearchResult
+            {
+                Url = result.Url,
+                DisplayUrl = result.DisplayUrl,
+                Title = result.Title,
+                Description = result.Snippet,
+                Date = result.Timestamp,
+                SourceType = result.Source.ToString() // зберігаємо тип джерела
+            };
+            // створюємо картку і отримуємо посилання на Image для фавікона
+            var img = AddSearchResult(searchResult);
+            // асинхронно підвантажуємо фавікон і оновлюємо лише цей контейнер
+            _ = LoadFaviconAsync(searchResult, img);
+        }
+
+        // Після малювання результатів завантажуємо пов'язані запити (Google Suggestions)
+        _ = LoadRelatedQueriesAsync(_currentQuery ?? string.Empty);
+    }
+
+    private async Task LoadRelatedQueriesAsync(string query)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                ToggleRelated(false);
+                return;
+            }
+
+            var suggestions = await _suggestionsService.GetSuggestionsAsync(query, 8);
+            _relatedQueries.Clear();
+            foreach (var s in suggestions)
+            {
+                if (!string.IsNullOrWhiteSpace(s.Text))
+                    _relatedQueries.Add(s.Text);
+            }
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var relatedSection = this.FindControl<StackPanel>("RelatedSection");
+                var list = this.FindControl<ItemsControl>("RelatedQueriesList");
+                if (relatedSection != null && list != null)
+                {
+                    list.ItemsSource = _relatedQueries;
+                    relatedSection.IsVisible = _relatedQueries.Count > 0;
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] LoadRelatedQueriesAsync error: {ex.Message}");
+            ToggleRelated(false);
+        }
+    }
+
+    private void ToggleRelated(bool visible)
+    {
+        var relatedSection = this.FindControl<StackPanel>("RelatedSection");
+        if (relatedSection != null)
+            relatedSection.IsVisible = visible;
+    }
+
+    private async Task LoadFaviconAsync(SearchResult result, Image? imageControl)
+    {
+        try
+        {
+            if (!Uri.TryCreate(result.Url, UriKind.Absolute, out var uri))
+                return;
+
+            var image = await _faviconService.GetFaviconAsync(uri);
+            result.Favicon = image;
+            if (imageControl != null && image != null)
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    imageControl.Source = image;
+                });
+            }
+        }
+        catch
+        {
+            // ігноруємо помилки фавікона
+        }
+    }
+
+    /// <summary>
+    /// Додати результат пошуку програмно
+    /// </summary>
+    public Image? AddSearchResult(SearchResult result)
+    {
+        if (_resultsPanel == null)
+            return null;
+
+        var resultBorder = new Border
+        {
+            Classes = { "result-item" }
+        };
+
+        // верхній ряд: фавікон + URL
+        var headerPanel = new StackPanel
+        {
+            Orientation = Avalonia.Layout.Orientation.Horizontal,
+            Margin = new Avalonia.Thickness(0, 0, 0, 4),
+            Spacing = 6
+        };
+
+        var faviconImage = new Image
+        {
+            Width = 16,
+            Height = 16,
+            Margin = new Avalonia.Thickness(0, 1, 0, 0)
+        };
+        if (result.Favicon != null)
+        {
+            faviconImage.Source = result.Favicon;
+        }
+
+        headerPanel.Children.Add(faviconImage);
+
+        var breadcrumb = new StackPanel
+        {
+            Orientation = Avalonia.Layout.Orientation.Horizontal
+        };
+        var urlParts = result.DisplayUrl.Split(new[] { " › ", "›" }, StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 0; i < urlParts.Length; i++)
+        {
+            breadcrumb.Children.Add(new TextBlock
+            {
+                Classes = { "breadcrumb-text" },
+                Text = urlParts[i].Trim()
+            });
+
+            if (i < urlParts.Length - 1)
+            {
+                breadcrumb.Children.Add(new TextBlock
+                {
+                    Classes = { "breadcrumb-sep" },
+                    Text = "›"
+                });
+            }
+        }
+        headerPanel.Children.Add(breadcrumb);
+
+        var stackPanel = new StackPanel();
+        stackPanel.Children.Add(headerPanel);
+
+        // Title
+        var titleBlock = new TextBlock
+        {
+            Classes = { "result-title" },
+            Text = result.Title
+        };
+        titleBlock.PointerPressed += ResultTitle_Click;
+        stackPanel.Children.Add(titleBlock);
+
+        // Date (optional)
+        if (result.Date.HasValue)
+        {
+            stackPanel.Children.Add(new TextBlock
+            {
+                Classes = { "result-date" },
+                Text = result.Date.Value.ToString("d MMM yyyy")
+            });
+        }
+
+        // Rating (optional)
+        if (result.Rating.HasValue && result.ReviewCount.HasValue)
+        {
+            var ratingPanel = new StackPanel
+            {
+                Orientation = Avalonia.Layout.Orientation.Horizontal,
+                Margin = new Avalonia.Thickness(0, 4)
+            };
+
+            int fullStars = (int)Math.Floor(result.Rating.Value);
+            for (int i = 0; i < fullStars; i++)
+            {
+                ratingPanel.Children.Add(new TextBlock
+                {
+                    Classes = { "star" },
+                    Text = "★"
+                });
+            }
+
+            ratingPanel.Children.Add(new TextBlock
+            {
+                Classes = { "rating-count" },
+                Text = $"{result.Rating.Value:F1} · {result.ReviewCount.Value} відгуків"
+            });
+
+            stackPanel.Children.Add(ratingPanel);
+        }
+
+        // Description
+        var descBlock = new TextBlock
+        {
+            Classes = { "result-description" },
+            Text = result.Description
+        };
+        stackPanel.Children.Add(descBlock);
+
+        resultBorder.Child = stackPanel;
+        resultBorder.DataContext = result;
+
+        _resultsPanel.Children.Add(resultBorder);
+        return faviconImage;
+    }
+
+
+    /// <summary>
+    /// Очистити всі результати
+    /// </summary>
+    public void ClearResults()
+    {
+        _resultsPanel?.Children.Clear();
+        if (_searchStats != null)
+        {
+            _searchStats.Text = "Немає результатів";
+        }
+    }
+
+    public void SearchInput_TextChanged(object? sender, TextChangedEventArgs e)
     {
         if (_searchButton != null)
         {
@@ -139,7 +418,7 @@ public partial class VetaleSearchResultsPage : UserControl
         _ = LoadSuggestionsAsync();
     }
 
-    private async Task LoadSuggestionsAsync()
+    public async Task LoadSuggestionsAsync()
     {
         // Скасовуємо попередній запит
         _suggestionsCts?.Cancel();
@@ -197,7 +476,7 @@ public partial class VetaleSearchResultsPage : UserControl
         }
     }
 
-    private void SuggestionItem_Click(object? sender, PointerPressedEventArgs e)
+    public void SuggestionItem_Click(object? sender, PointerPressedEventArgs e)
     {
         try
         {
@@ -225,7 +504,7 @@ public partial class VetaleSearchResultsPage : UserControl
         }
     }
 
-    private void SearchInput_KeyDown(object? sender, KeyEventArgs e)
+    public void SearchInput_KeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter)
         {
@@ -233,18 +512,18 @@ public partial class VetaleSearchResultsPage : UserControl
         }
     }
 
-    private void Search_Click(object? sender, RoutedEventArgs e)
+    public void Search_Click(object? sender, RoutedEventArgs e)
     {
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Search button clicked!");
         PerformSearch();
     }
 
-    private void LuckySearch_Click(object? sender, RoutedEventArgs e)
+    public void LuckySearch_Click(object? sender, RoutedEventArgs e)
     {
         PerformSearch(isLucky: true);
     }
 
-    private void SearchEngineSelector_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    public void SearchEngineSelector_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         // Поки що просто лог для діагностики
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Search engine changed to index: {_searchEngineSelector?.SelectedIndex}");
@@ -260,37 +539,40 @@ public partial class VetaleSearchResultsPage : UserControl
             return;
         }
 
-        string query = _searchInput.Text.Trim();
+        var query = _searchInput.Text.Trim();
         _currentQuery = query;
 
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] PerformSearch query: '{query}'");
-        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Calling LoadSearchResults...");
-        
         LoadSearchResults(query);
-        
-        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Triggering GeminiChat AskAsync...");
+
+        // опційно: lucky може одразу відкривати перший результат у майбутньому
         _ = _geminiChat?.AskAsync(query);
-        
-        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] PerformSearch completed");
     }
 
-    /// <summary>
-    /// Обробка кліку по заголовку результату
-    /// </summary>
-    private void ResultTitle_Click(object? sender, PointerPressedEventArgs e)
+    public void ResultTitle_Click(object? sender, PointerPressedEventArgs e)
     {
         if (sender is TextBlock titleBlock)
         {
-            // Отримати URL з батьківського Border
             var border = FindParentBorder(titleBlock);
             if (border?.DataContext is SearchResult result)
             {
                 System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Opening result: {result.Url}");
+                
+                // Викликаємо нову подію з додатковою інформацією
+                var args = new SearchResultNavigationEventArgs
+                {
+                    Url = result.Url,
+                    SessionId = _currentSessionId,
+                    Query = _currentQuery ?? string.Empty,
+                    SourceType = result.SourceType
+                };
+                SearchResultNavigateRequested?.Invoke(this, args);
+                
+                // Залишаємо стару подію для сумісності
                 NavigateRequested?.Invoke(this, result.Url);
             }
             else
             {
-                // Для статичних результатів з XAML - витягуємо URL з breadcrumb
                 var stackPanel = titleBlock.Parent as StackPanel;
                 if (stackPanel != null)
                 {
@@ -327,7 +609,6 @@ public partial class VetaleSearchResultsPage : UserControl
         {
             if (child is StackPanel sp && sp.Orientation == Avalonia.Layout.Orientation.Horizontal)
             {
-                // Перевіряємо, чи це панель breadcrumb (містить TextBlock з класом breadcrumb-text)
                 foreach (var grandChild in sp.Children)
                 {
                     if (grandChild is TextBlock tb && tb.Classes.Contains("breadcrumb-text"))
@@ -353,9 +634,8 @@ public partial class VetaleSearchResultsPage : UserControl
 
         if (urlParts.Count > 0)
         {
-            // Перша частина - це домен
             var domain = urlParts[0];
-            if (!domain.StartsWith("http"))
+            if (!domain.StartsWith("http", StringComparison.OrdinalIgnoreCase))
             {
                 domain = "https://" + domain;
             }
@@ -365,127 +645,32 @@ public partial class VetaleSearchResultsPage : UserControl
         return null;
     }
 
-    /// <summary>
-    /// Додати результат пошуку програмно
-    /// </summary>
-    public void AddSearchResult(SearchResult result)
+    public void RelatedQuery_Click(object? sender, RoutedEventArgs e)
     {
-        if (_resultsPanel == null)
-            return;
-
-        var resultBorder = new Border
+        try
         {
-            Classes = { "result-item" }
-        };
-
-        var stackPanel = new StackPanel();
-
-        // Breadcrumb / URL
-        var breadcrumb = new StackPanel
-        {
-            Orientation = Avalonia.Layout.Orientation.Horizontal,
-            Margin = new Avalonia.Thickness(0, 0, 0, 4)
-        };
-
-        var urlParts = result.DisplayUrl.Split(new[] { " › ", "›" }, StringSplitOptions.RemoveEmptyEntries);
-        for (int i = 0; i < urlParts.Length; i++)
-        {
-            breadcrumb.Children.Add(new TextBlock
+            string? query = null;
+            if (sender is Button btn)
             {
-                Classes = { "breadcrumb-text" },
-                Text = urlParts[i].Trim()
-            });
-
-            if (i < urlParts.Length - 1)
-            {
-                breadcrumb.Children.Add(new TextBlock
-                {
-                    Classes = { "breadcrumb-sep" },
-                    Text = "›"
-                });
-            }
-        }
-        stackPanel.Children.Add(breadcrumb);
-
-        // Title
-        var titleBlock = new TextBlock
-        {
-            Classes = { "result-title" },
-            Text = result.Title
-        };
-        titleBlock.PointerPressed += ResultTitle_Click;
-        stackPanel.Children.Add(titleBlock);
-
-        // Date (optional)
-        if (result.Date.HasValue)
-        {
-            stackPanel.Children.Add(new TextBlock
-            {
-                Classes = { "result-date" },
-                Text = result.Date.Value.ToString("d MMM yyyy")
-            });
-        }
-
-        // Rating (optional)
-        if (result.Rating.HasValue && result.ReviewCount.HasValue)
-        {
-            var ratingPanel = new StackPanel
-            {
-                Orientation = Avalonia.Layout.Orientation.Horizontal,
-                Margin = new Avalonia.Thickness(0, 4)
-            };
-
-            // Stars
-            int fullStars = (int)Math.Floor(result.Rating.Value);
-            for (int i = 0; i < fullStars; i++)
-            {
-                ratingPanel.Children.Add(new TextBlock
-                {
-                    Classes = { "star" },
-                    Text = "★"
-                });
+                query = btn.Content as string ?? btn.DataContext?.ToString();
             }
 
-            // Rating text
-            ratingPanel.Children.Add(new TextBlock
+            if (!string.IsNullOrWhiteSpace(query))
             {
-                Classes = { "rating-count" },
-                Text = $"{result.Rating.Value:F1} · {result.ReviewCount.Value} відгуків"
-            });
-
-            stackPanel.Children.Add(ratingPanel);
+                if (_searchInput != null)
+                    _searchInput.Text = query;
+                PerformSearch();
+            }
         }
-
-        // Description
-        var descBlock = new TextBlock
+        catch (Exception ex)
         {
-            Classes = { "result-description" },
-            Text = result.Description
-        };
-        stackPanel.Children.Add(descBlock);
-
-        resultBorder.Child = stackPanel;
-        resultBorder.DataContext = result;
-
-        _resultsPanel.Children.Add(resultBorder);
-    }
-
-
-    /// <summary>
-    /// Очистити всі результати
-    /// </summary>
-    public void ClearResults()
-    {
-        _resultsPanel?.Children.Clear();
-        if (_searchStats != null)
-        {
-            _searchStats.Text = "Немає результатів";
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] RelatedQuery_Click error: {ex.Message}");
         }
     }
 }
 
 /// <summary>
-/// Мо��ель результату пошуку
+/// Модель результату пошуку
 /// </summary>
 public class SearchResult
 {
@@ -496,4 +681,17 @@ public class SearchResult
     public DateTime? Date { get; set; }
     public double? Rating { get; set; }
     public int? ReviewCount { get; set; }
+    public IImage? Favicon { get; set; }
+    public string SourceType { get; set; } = string.Empty; // Wikipedia/WebArchive/YouTube
+}
+
+/// <summary>
+/// Аргументи події навігації з результату пошуку
+/// </summary>
+public class SearchResultNavigationEventArgs : EventArgs
+{
+    public string Url { get; set; } = string.Empty;
+    public Guid SessionId { get; set; }
+    public string Query { get; set; } = string.Empty;
+    public string SourceType { get; set; } = string.Empty;
 }

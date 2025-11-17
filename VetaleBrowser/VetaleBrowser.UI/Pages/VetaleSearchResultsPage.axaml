@@ -535,45 +535,25 @@
                             </Border>
                         </StackPanel>
 
-                        <!-- Related searches -->
-                        <Border BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="0,24,0,0" Margin="0,24,0,0">
-                            <StackPanel>
-                                <TextBlock Classes="related-title" Text="Пов'язані запити"/>
-                                <WrapPanel>
-                                    <Button Classes="related-query" Content="web development tutorial"/>
-                                    <Button Classes="related-query" Content="learn programming online"/>
-                                    <Button Classes="related-query" Content="frontend vs backend"/>
-                                    <Button Classes="related-query" Content="best coding bootcamps"/>
-                                    <Button Classes="related-query" Content="javascript frameworks"/>
-                                    <Button Classes="related-query" Content="responsive design"/>
-                                    <Button Classes="related-query" Content="developer roadmap"/>
-                                    <Button Classes="related-query" Content="html css tutorial"/>
-                                </WrapPanel>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Pagination -->
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,24,0,8">
-                            <Button Classes="page-nav" Content="« Попередня" IsEnabled="False"/>
-                            <Button Classes="page-number active" Content="1"/>
-                            <Button Classes="page-number" Content="2"/>
-                            <Button Classes="page-number" Content="3"/>
-                            <Button Classes="page-number" Content="4"/>
-                            <Button Classes="page-number" Content="5"/>
-                            <Button Classes="page-number" Content="6"/>
-                            <Button Classes="page-number" Content="7"/>
-                            <Button Classes="page-number" Content="8"/>
-                            <Button Classes="page-number" Content="9"/>
-                            <Button Classes="page-number" Content="10"/>
-                            <Button Classes="page-nav" Content="Наступна »"/>
+                        <!-- Related searches section -->
+                        <StackPanel x:Name="RelatedSection" Margin="0,20,0,0" IsVisible="False">
+                            <TextBlock Classes="related-title" Text="Пов'язані запити"/>
+                            <ItemsControl x:Name="RelatedQueriesList">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Classes="related-query"
+                                                Click="RelatedQuery_Click"
+                                                Content="{Binding}"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                         </StackPanel>
-
-                        <!-- Footer -->
-                        <TextBlock FontSize="12"
-                                   Foreground="#8B4513"
-                                   TextAlignment="Center"
-                                   Margin="0,8,0,0"
-                                   Text="Vetale Search · Локальний пошук · Конфіденційність"/>
+                        <!-- end Related searches section -->
                     </StackPanel>
                     </Border>
                 </Border>
