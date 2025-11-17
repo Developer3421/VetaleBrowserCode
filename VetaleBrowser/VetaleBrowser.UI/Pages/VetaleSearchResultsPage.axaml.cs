@@ -389,6 +389,9 @@ public partial class VetaleSearchResultsPage : UserControl
 
         resultBorder.Child = stackPanel;
         resultBorder.DataContext = result;
+        
+        // ВАЖЛИВО: додаємо обробник кліку на сам Border, щоб клік точно спрацював
+        resultBorder.PointerPressed += ResultBorder_Click;
 
         _resultsPanel.Children.Add(resultBorder);
         return faviconImage;
@@ -692,6 +695,50 @@ public partial class VetaleSearchResultsPage : UserControl
         {
             System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] RelatedQuery_Click error: {ex.Message}");
         }
+    }
+
+    public void ResultBorder_Click(object? sender, PointerPressedEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] ===== ResultBorder_Click CALLED =====");
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Sender type: {sender?.GetType().Name ?? "null"}");
+        
+        if (sender is Border border && border.DataContext is SearchResult result)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] *** FOUND SearchResult from Border! ***");
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] URL: '{result.Url}'");
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Title: '{result.Title}'");
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] SourceType: '{result.SourceType}'");
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] SessionId: {_currentSessionId}");
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Query: '{_currentQuery}'");
+            
+            // Викликаємо NavigateRequested
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Invoking NavigateRequested with URL: '{result.Url}'");
+            NavigateRequested?.Invoke(this, result.Url);
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] NavigateRequested invoked");
+            
+            // Також викликаємо подію для історії
+            var args = new SearchResultNavigationEventArgs
+            {
+                Url = result.Url,
+                SessionId = _currentSessionId,
+                Query = _currentQuery ?? string.Empty,
+                SourceType = result.SourceType
+            };
+            
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Invoking SearchResultNavigateRequested for history...");
+            SearchResultNavigateRequested?.Invoke(this, args);
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] SearchResultNavigateRequested invoked");
+            
+            // Позначаємо подію як оброблену, щоб не спливала далі
+            e.Handled = true;
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] ERROR: Border.DataContext is NOT SearchResult!");
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] DataContext type: {border?.DataContext?.GetType().Name ?? "null"}");
+        }
+        
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] ===== ResultBorder_Click END =====");
     }
 }
 
