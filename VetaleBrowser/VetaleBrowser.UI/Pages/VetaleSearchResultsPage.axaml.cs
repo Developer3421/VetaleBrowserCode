@@ -761,7 +761,9 @@ public partial class VetaleSearchResultsPage : UserControl
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] ===== ResultBorder_Click CALLED =====");
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Sender type: {sender?.GetType().Name ?? "null"}");
         
-        if (sender is Border border && border.DataContext is SearchResult result)
+        Border? border = sender as Border;
+        
+        if (border != null && border.DataContext is SearchResult result)
         {
             System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] *** FOUND SearchResult from Border! ***");
             System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] URL: '{result.Url}'");

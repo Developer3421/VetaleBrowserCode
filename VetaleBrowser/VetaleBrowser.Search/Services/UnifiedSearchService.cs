@@ -53,9 +53,9 @@ public sealed class UnifiedSearchService : IUnifiedSearchService
 
         var store = _storeFactory();
 
-        // Паралельно тягнемо Wikipedia (1 результат) і WebArchive (до 10 сьогоднішніх)
+        // Паралельно тягнемо Wikipedia (1 результат) і WebArchive (посилання на пошук)
         var wikiTask = _wikipedia.SearchTopAsync(query, maxResults: 1, ct);
-        var webArchiveTask = _webArchive.SearchTodayAsync(query, maxResults: 10, ct);
+        var webArchiveTask = _webArchive.SearchTodayAsync(query, maxResults: 1, ct);
 
         await Task.WhenAll(wikiTask, webArchiveTask);
 

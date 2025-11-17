@@ -8,9 +8,100 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using VetaleBrowser.VetaleBrowser.Core.Services.Windows;
 using VetaleBrowser.VetaleBrowser.Core.Services;
+using Avalonia.Controls;
+using System.Linq;
 
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 {
+    /// <summary>
+    /// Представляє один запис в історії навігації вкладки
+    /// </summary>
+    public class NavigationEntry
+    {
+        /// <summary>URL сторінки (може бути як http(s):// так і vetale://)</summary>
+        public string Url { get; set; } = string.Empty;
+        
+        /// <summary>Заголовок сторінки</summary>
+        public string? Title { get; set; }
+        
+        /// <summary>Чи є це внутрішня сторінка (vetale://)</summary>
+        public bool IsInternal { get; set; }
+        
+        /// <summary>UserControl для внутрішніх сторінок (VetaleSearchHomePage, тощо)</summary>
+        public UserControl? InternalPageContent { get; set; }
+        
+        /// <summary>Час створення запису</summary>
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Керує історією навігації для вкладки (стек вперед/назад)
+    /// </summary>
+    public class NavigationHistory
+    {
+        private readonly List<NavigationEntry> _entries = new();
+        private int _currentIndex = -1;
+
+        public event EventHandler? HistoryChanged;
+
+        /// <summary>Поточний запис в історії</summary>
+        public NavigationEntry? CurrentEntry => _currentIndex >= 0 && _currentIndex < _entries.Count 
+            ? _entries[_currentIndex] 
+            : null;
+
+        /// <summary>Чи можна повернутися назад</summary>
+        public bool CanGoBack => _currentIndex > 0;
+
+        /// <summary>Чи можна перейти вперед</summary>
+        public bool CanGoForward => _currentIndex >= 0 && _currentIndex < _entries.Count - 1;
+
+        /// <summary>Додає новий запис в історію (видаляє всі "вперед" записи)</summary>
+        public void AddEntry(NavigationEntry entry)
+        {
+            // Видаляємо всі записи після поточного (при новій навігації)
+            if (_currentIndex < _entries.Count - 1)
+            {
+                _entries.RemoveRange(_currentIndex + 1, _entries.Count - _currentIndex - 1);
+            }
+
+            _entries.Add(entry);
+            _currentIndex = _entries.Count - 1;
+            
+            HistoryChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>Переходить на один запис назад</summary>
+        public NavigationEntry? GoBack()
+        {
+            if (!CanGoBack) return null;
+            
+            _currentIndex--;
+            HistoryChanged?.Invoke(this, EventArgs.Empty);
+            return CurrentEntry;
+        }
+
+        /// <summary>Переходить на один запис вперед</summary>
+        public NavigationEntry? GoForward()
+        {
+            if (!CanGoForward) return null;
+            
+            _currentIndex++;
+            HistoryChanged?.Invoke(this, EventArgs.Empty);
+            return CurrentEntry;
+        }
+
+        /// <summary>Очищує всю історію</summary>
+        public void Clear()
+        {
+            _entries.Clear();
+            _currentIndex = -1;
+            HistoryChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>Кількість записів в історії</summary>
+        public int Count => _entries.Count;
+    }
+
     /// <summary>
     /// Represents a browser worker that owns its own WebView (CefGlue-based via WebViewControl) and navigation manager.
     /// </summary>
@@ -20,6 +111,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
         public WebView WebView { get; }
         public GlobalManagers.WebViewManager Manager { get; }
+        public NavigationHistory History { get; } = new NavigationHistory();
 
         private string? _title;
         private string? _address;
@@ -36,6 +128,9 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
         // New: subprocess launched per tab (system-level process)
         private readonly TabSubprocessService _subprocess;
+        
+        // Прапорець для запобігання рекурсивним викликам при навігації
+        private bool _isNavigating;
 
         public string? Title
         {
@@ -72,6 +167,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         public event EventHandler<string?>? TitleChanged;
         public event EventHandler<string?>? AddressChanged;
         public event EventHandler<bool>? FullscreenChanged;
+        public event EventHandler<NavigationEntry>? NavigationChanged;
 
         public TabWorker()
         {
@@ -125,6 +221,9 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
                 // Initialize subprocess title
                 TryUpdateSubprocessTitle();
+                
+                // Підписуємося на зміни історії навігації
+                History.HistoryChanged += (_, __) => OnPropertyChanged(nameof(History));
                 
                 System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Setting up fullscreen events...");
             }
@@ -301,16 +400,190 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             }
         }
 
-        public async void Navigate(string url)
+        /// <summary>
+        /// Навігація на URL (підтримує як звичайні http(s):// так і внутрішні vetale:// URL)
+        /// </summary>
+        public async void Navigate(string url, UserControl? internalPageContent = null)
         {
+            if (_isNavigating) return; // Запобігаємо рекурсії
+            
             try
             {
-                await Manager.NavigateAsync(url);
+                _isNavigating = true;
+                
+                if (string.IsNullOrWhiteSpace(url))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Navigate: empty URL");
+                    return;
+                }
+
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Navigate: {url}");
+
+                // Визначаємо чи це внутрішній URL
+                bool isInternal = url.StartsWith("vetale://", StringComparison.OrdinalIgnoreCase);
+
+                // Створюємо запис в історії
+                var entry = new NavigationEntry
+                {
+                    Url = url,
+                    IsInternal = isInternal,
+                    InternalPageContent = internalPageContent,
+                    Timestamp = DateTime.UtcNow
+                };
+
+                // Додаємо в історію
+                History.AddEntry(entry);
+
+                // Оновлюємо Address
+                Address = url;
+
+                if (isInternal)
+                {
+                    // Для внутрішніх URL не викликаємо WebView.Navigate
+                    System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Internal navigation to: {url}");
+                    
+                    // Заголовок буде встановлено через подію NavigationChanged
+                    Title = GetInternalPageTitle(url);
+                }
+                else
+                {
+                    // Для зовнішніх URL викликаємо WebView
+                    System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] External navigation to: {url}");
+                    await Manager.NavigateAsync(url);
+                }
+
+                // Сповіщаємо про зміну навігації
+                NavigationChanged?.Invoke(this, entry);
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore navigation errors here
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Navigate error: {ex.Message}");
             }
+            finally
+            {
+                _isNavigating = false;
+            }
+        }
+
+        /// <summary>
+        /// Повертається на одну сторінку назад в історії
+        /// </summary>
+        public void GoBack()
+        {
+            if (!History.CanGoBack)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] GoBack: no history");
+                return;
+            }
+
+            var entry = History.GoBack();
+            if (entry != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] GoBack to: {entry.Url}");
+                NavigateToHistoryEntry(entry);
+            }
+        }
+
+        /// <summary>
+        /// Переходить на одну сторінку вперед в історії
+        /// </summary>
+        public void GoForward()
+        {
+            if (!History.CanGoForward)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] GoForward: no history");
+                return;
+            }
+
+            var entry = History.GoForward();
+            if (entry != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] GoForward to: {entry.Url}");
+                NavigateToHistoryEntry(entry);
+            }
+        }
+
+        /// <summary>
+        /// Навігація до існуючого запису з історії (без додавання нового запису)
+        /// </summary>
+        private async void NavigateToHistoryEntry(NavigationEntry entry)
+        {
+            if (_isNavigating) return;
+            
+            try
+            {
+                _isNavigating = true;
+
+                Address = entry.Url;
+                
+                if (entry.IsInternal)
+                {
+                    Title = entry.Title ?? GetInternalPageTitle(entry.Url);
+                }
+                else
+                {
+                    await Manager.NavigateAsync(entry.Url);
+                }
+
+                NavigationChanged?.Invoke(this, entry);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] NavigateToHistoryEntry error: {ex.Message}");
+            }
+            finally
+            {
+                _isNavigating = false;
+            }
+        }
+
+        /// <summary>
+        /// Отримує заголовок для внутрішньої сторінки за URL
+        /// </summary>
+        private string GetInternalPageTitle(string url)
+        {
+            if (url.StartsWith("vetale://search?", StringComparison.OrdinalIgnoreCase))
+            {
+                // Витягуємо запит з URL
+                try
+                {
+                    var uri = new Uri(url);
+                    var queryParams = uri.Query.TrimStart('?').Split('&')
+                        .Select(p => p.Split('='))
+                        .Where(parts => parts.Length == 2)
+                        .ToDictionary(parts => parts[0], parts => Uri.UnescapeDataString(parts[1]));
+                    
+                    if (queryParams.TryGetValue("q", out var q) && !string.IsNullOrWhiteSpace(q))
+                    {
+                        return $"{q} - Vetale Search";
+                    }
+                }
+                catch { }
+                
+                return "Vetale Search";
+            }
+            else if (url.Equals("vetale://search", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Vetale Search";
+            }
+            else if (url.StartsWith("vetale://bookmarks", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Закладки";
+            }
+            else if (url.StartsWith("vetale://history", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Історія";
+            }
+            else if (url.StartsWith("vetale://settings", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Налаштування";
+            }
+            else if (url.StartsWith("vetale://downloads", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Завантаження";
+            }
+            
+            return "Vetale Browser";
         }
 
         public void ToggleMute()

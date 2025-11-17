@@ -5,6 +5,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
+using VetaleBrowser.VetaleBrowser.Core.Scripts.Models;
 using VetaleBrowser.VetaleBrowser.Database.Services;
 using VetaleBrowser.VetaleBrowser.UI.Services;
 using VetaleBrowser.VetaleBrowser.Search.Models;
@@ -38,6 +39,7 @@ public class NavigationBar : TemplatedControl
     private Button? _settingsButton;
     private TextBox? _addressBar;
     private WebViewManager? _webViewManager;
+    private TabWorker? _tabWorker;
     private ISettingsService? _settingsService;
     private Popup? _suggestionsPopup;
     private ItemsControl? _suggestionsList;
@@ -98,6 +100,15 @@ public class NavigationBar : TemplatedControl
     {
         _webViewManager = webViewManager ?? throw new ArgumentNullException(nameof(webViewManager));
         System.Diagnostics.Trace.WriteLine("NavigationBar: Initialized with WebViewManager");
+    }
+    
+    /// <summary>
+    /// Set TabWorker for navigation history support
+    /// </summary>
+    public void SetTabWorker(TabWorker? tabWorker)
+    {
+        _tabWorker = tabWorker;
+        System.Diagnostics.Trace.WriteLine("NavigationBar: TabWorker set");
     }
 
     /// <summary>
@@ -191,14 +202,30 @@ public class NavigationBar : TemplatedControl
 
     private void OnBackButtonClick(object? sender, RoutedEventArgs e)
     {
-        _webViewManager?.GoBack();
-        System.Diagnostics.Trace.WriteLine("NavigationBar: Back button clicked");
+        if (_tabWorker != null)
+        {
+            _tabWorker.GoBack();
+            System.Diagnostics.Trace.WriteLine("NavigationBar: Back button clicked (TabWorker)");
+        }
+        else
+        {
+            _webViewManager?.GoBack();
+            System.Diagnostics.Trace.WriteLine("NavigationBar: Back button clicked (WebViewManager fallback)");
+        }
     }
 
     private void OnForwardButtonClick(object? sender, RoutedEventArgs e)
     {
-        _webViewManager?.GoForward();
-        System.Diagnostics.Trace.WriteLine("NavigationBar: Forward button clicked");
+        if (_tabWorker != null)
+        {
+            _tabWorker.GoForward();
+            System.Diagnostics.Trace.WriteLine("NavigationBar: Forward button clicked (TabWorker)");
+        }
+        else
+        {
+            _webViewManager?.GoForward();
+            System.Diagnostics.Trace.WriteLine("NavigationBar: Forward button clicked (WebViewManager fallback)");
+        }
     }
 
     private void OnReloadButtonClick(object? sender, RoutedEventArgs e)

@@ -581,85 +581,56 @@ public partial class MainWindow : Window
 
     private TabWorker? CreateNewTab(string? initialUrl = null)
     {
-        // Перевірка чи це внутрішній URL
-        if (!string.IsNullOrEmpty(initialUrl) && InternalUrlHandler.IsInternalUrl(initialUrl))
-        {
-            return CreateInternalPageTab(initialUrl);
-        }
-        
         var worker = _tabs.Create(initialUrl);
         AddTabControlForWorker(worker);
+        
+        // Підписуємося на події навігації
+        worker.NavigationChanged += OnWorkerNavigationChanged;
+        
+        // Якщо є початковий URL, навігуємо
+        if (!string.IsNullOrEmpty(initialUrl))
+        {
+            if (InternalUrlHandler.IsInternalUrl(initialUrl))
+            {
+                // Для внутрішніх URL створюємо контент і навігуємо
+                var content = InternalUrlHandler.CreatePageContent(initialUrl);
+                if (content != null)
+                {
+                    // Підписуємося на події від внутрішніх сторінок
+                    SubscribeToInternalPageEvents(content);
+                    worker.Navigate(initialUrl, content);
+                }
+            }
+            // Для зовнішніх URL навігація вже викликана в _tabs.Create()
+        }
+        
         ActivateWorker(worker);
         return worker;
     }
     
     /// <summary>
-    /// Створити вкладку з внутрішньою сторінкою браузера (без WebView)
+    /// Підписується на події навігації від внутрішніх сторінок
     /// </summary>
-    private TabWorker? CreateInternalPageTab(string url)
+    private void SubscribeToInternalPageEvents(UserControl content)
     {
-        var pageContent = InternalUrlHandler.CreatePageContent(url);
-        if (pageContent == null)
-        {
-            System.Diagnostics.Debug.WriteLine($"[MainWindow] Unknown internal URL: {url}");
-            return null;
-        }
-        
-        var pageTitle = InternalUrlHandler.GetPageTitle(url);
-        
-        // Підписуємося на події навігації від внутрішніх сторінок
-        if (pageContent is VetaleSearchHomePage searchHomePage)
+        if (content is VetaleSearchHomePage searchHomePage)
         {
             searchHomePage.NavigateRequested += OnInternalPageNavigateRequested;
         }
-        else if (pageContent is VetaleSearchResultsPage resultsPage)
+        else if (content is VetaleSearchResultsPage resultsPage)
         {
             resultsPage.NavigateRequested += OnInternalPageNavigateRequested;
             resultsPage.SearchResultNavigateRequested += OnSearchResultNavigateRequested;
         }
-        
-        // Створюємо "фіктивний" worker для внутрішньої сторінки
-        var worker = _tabs.Create(url);
-        worker.WebView.Tag = pageContent;
-        
-        AddInternalPageTabControl(worker, pageTitle, url);
-        ActivateWorkerForInternalPage(worker, pageContent);
-        return worker;
     }
     
     /// <summary>
-    /// Додати контрол вкладки для внутрішньої сторінки
+    /// Створити вкладку з внутрішньою сторінкою браузера (DEPRECATED - використовується CreateNewTab)
     /// </summary>
-    private void AddInternalPageTabControl(TabWorker worker, string title, string url)
+    private TabWorker? CreateInternalPageTab(string url)
     {
-        var tabsHost = _normalModePage?.TabsHostPanel;
-        if (tabsHost == null) return;
-
-        var tab = new Tab
-        {
-            Title = title,
-            IsActive = worker.IsActive,
-            IsCloseButtonVisible = true,
-            IsMuted = false, // Внутрішні сторінки не мають звуку
-            Width = _tabWidth
-        };
-
-        tab.Clicked += (_, __) => 
-        {
-            var content = worker.WebView.Tag as UserControl;
-            if (content != null)
-            {
-                ActivateWorkerForInternalPage(worker, content);
-            }
-        };
-        
-        tab.CloseRequested += (_, __) =>
-        {
-            tabsHost.Children.Remove(tab);
-            _tabs.Close(worker);
-        };
-
-        tabsHost.Children.Add(tab);
+        // Ця функція тепер делегує до CreateNewTab
+        return CreateNewTab(url);
     }
     
     /// <summary>
@@ -869,6 +840,7 @@ public partial class MainWindow : Window
         if (navigationBar != null)
         {
             navigationBar.Initialize(worker.Manager);
+            navigationBar.SetTabWorker(worker); // Додаємо підтримку TabWorker
             navigationBar.SetSuggestionsService(_globalSuggestions);
             navigationBar.SetSecurityCheckService(_securityCheckService);
             
@@ -879,8 +851,8 @@ public partial class MainWindow : Window
             }
             
             navigationBar.Url = worker.Address ?? string.Empty;
-            navigationBar.CanGoBack = worker.WebView.CanGoBack;
-            navigationBar.CanGoForward = worker.WebView.CanGoForward;
+            navigationBar.CanGoBack = worker.History.CanGoBack;
+            navigationBar.CanGoForward = worker.History.CanGoForward;
         }
 
         WireActiveWebViewPropertyChanged(worker);
@@ -1710,30 +1682,87 @@ public partial class MainWindow : Window
                 resultsPage.SearchResultNavigateRequested += OnSearchResultNavigateRequested;
             }
 
-            // Зберігаємо контент у Tag та показуємо його
-            _tabs.Active.WebView.Tag = content;
-            System.Diagnostics.Debug.WriteLine($"[MainWindow] Calling ActivateWorkerForInternalPage");
-            ActivateWorkerForInternalPage(_tabs.Active, content, url);
-
-            // Оновлюємо заголовок вкладки під внутрішню сторінку
-            var title = InternalUrlHandler.GetPageTitle(url);
-            System.Diagnostics.Debug.WriteLine($"[MainWindow] Page title: {title}");
-            var tabsHost = _normalModePage?.TabsHostPanel;
-            if (tabsHost != null)
-            {
-                var idx = _tabs.Workers.ToList().IndexOf(_tabs.Active);
-                var childIdx = idx + 1; // враховуючи кнопку додавання
-                if (idx >= 0 && childIdx < tabsHost.Children.Count && tabsHost.Children[childIdx] is Tab tab)
-                {
-                    tab.Title = title;
-                    tab.FaviconSource = null;
-                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Tab title updated to: {title}");
-                }
-            }
+            // Використовуємо нову систему навігації через TabWorker
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Navigating through TabWorker to: {url}");
+            _tabs.Active.Navigate(url, content);
+            
+            // Підписуємося на подію NavigationChanged для оновлення UI
+            _tabs.Active.NavigationChanged -= OnWorkerNavigationChanged;
+            _tabs.Active.NavigationChanged += OnWorkerNavigationChanged;
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"MainWindow: HandleInternalNavigation error: {ex}");
+        }
+    }
+
+    /// <summary>
+    /// Обробник зміни навігації у TabWorker (оновлює UI)
+    /// </summary>
+    private void OnWorkerNavigationChanged(object? sender, NavigationEntry entry)
+    {
+        try
+        {
+            if (sender is not TabWorker worker) return;
+            
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] OnWorkerNavigationChanged: {entry.Url}, IsInternal: {entry.IsInternal}");
+            
+            if (entry.IsInternal && entry.InternalPageContent != null)
+            {
+                // Показуємо внутрішню сторінку
+                ActivateWorkerForInternalPage(worker, entry.InternalPageContent, entry.Url);
+            }
+            else
+            {
+                // Показуємо WebView для зовнішніх URL
+                ActivateWorker(worker);
+            }
+            
+            // Оновлюємо заголовок вкладки
+            UpdateTabTitle(worker, entry.Title ?? worker.Title);
+            
+            // Оновлюємо адресний рядок
+            UpdateNavigationBar(entry.Url);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] OnWorkerNavigationChanged error: {ex}");
+        }
+    }
+    
+    /// <summary>
+    /// Оновлює заголовок вкладки
+    /// </summary>
+    private void UpdateTabTitle(TabWorker worker, string? title)
+    {
+        var tabsHost = _normalModePage?.TabsHostPanel;
+        if (tabsHost == null) return;
+        
+        var idx = _tabs.Workers.ToList().IndexOf(worker);
+        var childIdx = idx + 1; // враховуючи кнопку додавання
+        if (idx >= 0 && childIdx < tabsHost.Children.Count && tabsHost.Children[childIdx] is Tab tab)
+        {
+            tab.Title = title ?? "New Tab";
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Tab title updated to: {tab.Title}");
+        }
+    }
+    
+    /// <summary>
+    /// Оновлює адресний рядок
+    /// </summary>
+    private void UpdateNavigationBar(string? url)
+    {
+        var navBar = _normalModePage?.NavBar;
+        if (navBar != null && !string.IsNullOrWhiteSpace(url))
+        {
+            navBar.Url = url;
+            
+            // Оновлюємо стан кнопок назад/вперед
+            if (_tabs.Active != null)
+            {
+                navBar.CanGoBack = _tabs.Active.History.CanGoBack;
+                navBar.CanGoForward = _tabs.Active.History.CanGoForward;
+            }
         }
     }
 
