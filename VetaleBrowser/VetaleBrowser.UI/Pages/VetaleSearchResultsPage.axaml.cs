@@ -551,12 +551,26 @@ public partial class VetaleSearchResultsPage : UserControl
 
     public void ResultTitle_Click(object? sender, PointerPressedEventArgs e)
     {
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] ===== ResultTitle_Click CALLED =====");
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Sender type: {sender?.GetType().Name ?? "null"}");
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Event args: {e != null}");
+        
         if (sender is TextBlock titleBlock)
         {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Sender is TextBlock, text: '{titleBlock.Text}'");
+            
             var border = FindParentBorder(titleBlock);
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Parent border found: {border != null}");
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Border.DataContext type: {border?.DataContext?.GetType().Name ?? "null"}");
+            
             if (border?.DataContext is SearchResult result)
             {
-                System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Opening result: {result.Url}");
+                System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] *** FOUND SearchResult! ***");
+                System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] URL: '{result.Url}'");
+                System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Title: '{result.Title}'");
+                System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] SourceType: '{result.SourceType}'");
+                System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] SessionId: {_currentSessionId}");
+                System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Query: '{_currentQuery}'");
                 
                 // Викликаємо нову подію з додатковою інформацією
                 var args = new SearchResultNavigationEventArgs
@@ -566,13 +580,17 @@ public partial class VetaleSearchResultsPage : UserControl
                     Query = _currentQuery ?? string.Empty,
                     SourceType = result.SourceType
                 };
+                
+                System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Invoking SearchResultNavigateRequested event...");
                 SearchResultNavigateRequested?.Invoke(this, args);
+                System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] SearchResultNavigateRequested invoked");
                 
                 // Залишаємо стару подію для сумісності
                 NavigateRequested?.Invoke(this, result.Url);
             }
             else
             {
+                System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Border.DataContext is NOT SearchResult, trying breadcrumb fallback");
                 var stackPanel = titleBlock.Parent as StackPanel;
                 if (stackPanel != null)
                 {
@@ -589,6 +607,12 @@ public partial class VetaleSearchResultsPage : UserControl
                 }
             }
         }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] ERROR: Sender is NOT TextBlock!");
+        }
+        
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] ===== ResultTitle_Click END =====");
     }
 
     private Border? FindParentBorder(Control control)

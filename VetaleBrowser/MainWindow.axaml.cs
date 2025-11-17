@@ -1811,7 +1811,7 @@ public partial class MainWindow : Window
         try
         {
             System.Diagnostics.Debug.WriteLine($"[MainWindow] ===== OnSearchResultNavigateRequested =====");
-            System.Diagnostics.Debug.WriteLine($"[MainWindow] URL: {e.Url}, SessionId: {e.SessionId}, Query: {e.Query}, Source: {e.SourceType}");
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] URL: '{e.Url}', SessionId: {e.SessionId}, Query: '{e.Query}', Source: {e.SourceType}");
             
             // Зберігаємо в історію пошуку
             _searchHistoryService?.AddSearchClick(e.SessionId, e.Query, e.Url, e.SourceType);
@@ -1819,57 +1819,80 @@ public partial class MainWindow : Window
             var currentWorker = _tabs.Active;
             if (currentWorker == null)
             {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] No active worker, creating new tab");
                 var w = _tabs.Create(e.Url);
                 AddTabControlForWorker(w);
                 ActivateWorker(w);
-                System.Diagnostics.Debug.WriteLine("[MainWindow] No active worker, created new tab for result");
                 return;
             }
 
-            // Валідація URL (лише http/https)
-            if (!Uri.TryCreate(e.Url, UriKind.Absolute, out var uri) ||
-                !(uri.Scheme.Equals("http", StringComparison.OrdinalIgnoreCase) || uri.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase)))
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Active worker found, WebView exists: {currentWorker.WebView != null}");
+
+            // Нормалізація URL
+            var normalizedUrl = e.Url?.Trim();
+            if (string.IsNullOrWhiteSpace(normalizedUrl))
             {
-                System.Diagnostics.Debug.WriteLine($"[MainWindow] Invalid result URL, skip navigate: '{e.Url}'");
+                System.Diagnostics.Debug.WriteLine("[MainWindow] ERROR: URL is null or empty!");
                 return;
             }
 
-            var parentTabId = currentWorker.Address ?? Guid.NewGuid().ToString();
+            // Додаємо https:// якщо потрібно
+            if (!normalizedUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+                !normalizedUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                normalizedUrl = "https://" + normalizedUrl;
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Normalized URL to: '{normalizedUrl}'");
+            }
 
-            _searchNavigationService.OpenResultInCurrentWorker(
-                e.SessionId,
-                e.Query,
-                parentTabId,
-                currentWorker,
-                e.Url,
-                showWebViewInUi: worker =>
-                {
-                    worker.WebView.Tag = null;
-                    var navBar = _normalModePage?.NavBar;
-                    if (navBar != null)
-                    {
-                        navBar.Url = e.Url;
-                        navBar.CanGoBack = worker.WebView.CanGoBack;
-                        navBar.CanGoForward = worker.WebView.CanGoForward;
-                    }
-                    var targetContainer = _isFullscreen ? _fullscreenModePage?.FullscreenGrid : _normalModePage?.WebViewGrid;
-                    if (targetContainer != null)
-                    {
-                        MoveActiveWebViewTo(targetContainer);
-                    }
-                },
-                navigateInWorker: (worker, url) =>
-                {
-                    // was: _ = worker.Manager.NavigateAsync(url);
-                    worker.Navigate(url);
-                });
+            // Валідація
+            if (!Uri.TryCreate(normalizedUrl, UriKind.Absolute, out var uri))
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] ERROR: Invalid URL after normalization: '{normalizedUrl}'");
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Final URL for navigation: '{normalizedUrl}'");
+
+            // ВАЖЛИВО: прибираємо внутрішню сторінку ПЕРЕД навігацією
+            currentWorker.WebView.Tag = null;
+            System.Diagnostics.Debug.WriteLine("[MainWindow] Cleared WebView.Tag");
+
+            // Оновлюємо адресний рядок
+            var navBar = _normalModePage?.NavBar;
+            if (navBar != null)
+            {
+                navBar.Url = normalizedUrl;
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Updated NavBar.Url to: '{normalizedUrl}'");
+            }
+
+            // Повертаємо WebView у контейнер
+            var targetContainer = _isFullscreen ? _fullscreenModePage?.FullscreenGrid : _normalModePage?.WebViewGrid;
+            if (targetContainer != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Moving WebView to container (children before: {targetContainer.Children.Count})");
+                MoveActiveWebViewTo(targetContainer);
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] WebView moved (children after: {targetContainer.Children.Count})");
+            }
+
+            // ГОЛОВНЕ: навігація
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] CALLING worker.Navigate('{normalizedUrl}')...");
+            try
+            {
+                currentWorker.Navigate(normalizedUrl);
+                System.Diagnostics.Debug.WriteLine("[MainWindow] worker.Navigate() completed successfully");
+            }
+            catch (Exception navEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] ERROR in worker.Navigate(): {navEx.Message}");
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Stack: {navEx.StackTrace}");
+            }
             
-            System.Diagnostics.Debug.WriteLine("[MainWindow] Switched current tab from search results to WebView and navigated to result URL");
             System.Diagnostics.Debug.WriteLine($"[MainWindow] ===== OnSearchResultNavigateRequested END =====");
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[MainWindow] OnSearchResultNavigateRequested ERROR: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Stack: {ex.StackTrace}");
         }
     }
 
