@@ -68,6 +68,36 @@
             <Setter Property="BorderThickness" Value="3"/>
         </Style>
 
+        <!-- Спеціальний стиль для прямого URL результату -->
+        <Style Selector="Border.result-item-direct">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%" Opacity="0.15">
+                        <GradientStop Color="#FF8A00" Offset="0"/>
+                        <GradientStop Color="#9C27B0" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,0,20"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="BoxShadow" Value="0 4 20 #40FF8A00"/>
+            <Setter Property="BorderBrush">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                        <GradientStop Color="#FF8A00" Offset="0"/>
+                        <GradientStop Color="#9C27B0" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderThickness" Value="3"/>
+        </Style>
+
+        <Style Selector="Border.result-item-direct:pointerover">
+            <Setter Property="BoxShadow" Value="0 8 28 #60FF8A00"/>
+            <Setter Property="BorderThickness" Value="4"/>
+        </Style>
+
         <!-- Breadcrumb -->
         <Style Selector="TextBlock.breadcrumb-text">
             <Setter Property="FontSize" Value="13"/>

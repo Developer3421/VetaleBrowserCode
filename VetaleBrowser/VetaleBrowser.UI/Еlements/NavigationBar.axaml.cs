@@ -49,6 +49,9 @@ public class NavigationBar : TemplatedControl
     private Border? _securityIcon;
     private Avalonia.Controls.Shapes.Path? _securityPath;
     private TextBlock? _securityText;
+    private System.Threading.CancellationTokenSource? _autoNavigateCts; // для debounce автонавігації
+    private string? _lastAutoNavigatedUrl; // останній URL щоб не навігувати повторно
+    private bool _suppressTextChanged; // блокувати перезапуск автонавігації при програмній зміні
 
     // Подія навігації для vetale://
     public event EventHandler<string>? NavigateRequested;
@@ -275,7 +278,9 @@ public class NavigationBar : TemplatedControl
 
     private void OnAddressBarTextChanged(object? sender, Avalonia.Controls.TextChangedEventArgs e)
     {
+        if (_suppressTextChanged) return; // запобігання рекурсії коли ми самі оновлюємо Url
         _ = LoadAddressSuggestionsAsync();
+        _ = AutoNavigateDebouncedAsync();
     }
 
     private async System.Threading.Tasks.Task LoadAddressSuggestionsAsync()
@@ -517,18 +522,114 @@ public class NavigationBar : TemplatedControl
         }
     }
 
+    private async System.Threading.Tasks.Task AutoNavigateDebouncedAsync()
+    {
+        if (_addressBar == null || _webViewManager == null) return;
+        _autoNavigateCts?.Cancel();
+        _autoNavigateCts = new System.Threading.CancellationTokenSource();
+        var token = _autoNavigateCts.Token;
+        try
+        {
+            await System.Threading.Tasks.Task.Delay(500, token); // debounce
+            if (token.IsCancellationRequested) return;
+            var raw = _addressBar.Text?.Trim() ?? string.Empty;
+            if (string.IsNullOrEmpty(raw)) return;
+
+            // Перевірка на внутрішній vetale://
+            if (InternalUrlHandler.IsInternalUrl(raw))
+            {
+                if (!string.Equals(_lastAutoNavigatedUrl, raw, StringComparison.Ordinal))
+                {
+                    _lastAutoNavigatedUrl = raw;
+                    System.Diagnostics.Debug.WriteLine($"[NavigationBar] Auto internal navigate: {raw}");
+                    NavigateRequested?.Invoke(this, raw);
+                }
+                return;
+            }
+
+            var normalized = ValidateAndNormalizeUrl(raw);
+            if (normalized == null) return; // не валідний URL, нічого не робимо
+            if (string.Equals(_lastAutoNavigatedUrl, normalized, StringComparison.Ordinal)) return; // вже там
+            _lastAutoNavigatedUrl = normalized;
+
+            System.Diagnostics.Debug.WriteLine($"[NavigationBar] Auto navigating to: {normalized}");
+            await CheckUrlSecurityAsync(normalized);
+            await _webViewManager.NavigateAsync(normalized);
+
+            // Оновити Url властивість без повторного авто запуску
+            _suppressTextChanged = true;
+            try
+            {
+                Url = normalized;
+            }
+            finally
+            {
+                _suppressTextChanged = false;
+            }
+        }
+        catch (System.OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[NavigationBar] AutoNavigate error: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Публічний хелпер: спробувати нормалізувати користувацький ввід до валідного http(s) URL.
+    /// Повертає true, якщо це схоже на прямий URL (домен без пробілів), і повертає нормалізований URL.
+    /// </summary>
+    public static bool TryNormalizeUserUrl(string? input, out string normalized)
+    {
+        normalized = string.Empty;
+        if (string.IsNullOrWhiteSpace(input)) return false;
+        var n = ValidateAndNormalizeUrl(input.Trim());
+        if (n == null) return false;
+        normalized = n;
+        return true;
+    }
+
+    private static string? ValidateAndNormalizeUrl(string input)
+    {
+        // Відкидати очевидно неповні префікси
+        if (input.Equals("http://", StringComparison.OrdinalIgnoreCase) || input.Equals("https://", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        string work = input;
+        // Додати https якщо немає схеми але виглядає як домен
+        if (!work.Contains("://"))
+        {
+            // Якщо містить пробіли — це не прямий URL
+            if (work.Contains(' ')) return null;
+            // Повинен містити хоча б одну крапку (domain.tld)
+            if (work.Contains('.'))
+            {
+                work = "https://" + work;
+            }
+            else
+            {
+                return null; // це пошуковий запит, не URL
+            }
+        }
+        // Перевірка валідності
+        if (!Uri.TryCreate(work, UriKind.Absolute, out var uri)) return null;
+        if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) return null;
+        // Повинно бути хоч якесь ім'я хоста
+        if (string.IsNullOrWhiteSpace(uri.Host)) return null;
+        return uri.ToString();
+    }
+
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-
         if (change.Property == CanGoBackProperty || change.Property == CanGoForwardProperty)
         {
             UpdateButtonStates();
         }
         else if (change.Property == UrlProperty && _addressBar != null)
         {
-            _addressBar.Text = Url;
-            // Перевірити безпеку нового URL
+            // при зміні Url оновлюємо текст бокс але не тригеримо автонавігацію
+            _suppressTextChanged = true;
+            try { _addressBar.Text = Url; } finally { _suppressTextChanged = false; }
             _ = CheckUrlSecurityAsync(Url);
         }
         else if (change.Property == SecurityStatusProperty)

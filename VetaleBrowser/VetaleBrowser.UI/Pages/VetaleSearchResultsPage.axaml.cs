@@ -10,6 +10,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media; // use Avalonia.Media for IImage
 using Avalonia.Threading;
+using VetaleBrowser.VetaleBrowser.UI.Еlements; // NavigationBar
 using VetaleBrowser.VetaleBrowser.Search.Models;
 using VetaleBrowser.VetaleBrowser.Search.Services;
 using VetaleBrowser.VetaleBrowser.UI.Services;
@@ -175,6 +176,29 @@ public partial class VetaleSearchResultsPage : UserControl
         // Зберігаємо SessionId для відстеження навігації
         _currentSessionId = page.SearchSessionId;
 
+        // 1) Якщо початковий запит схожий на прямий URL — додаємо його першим елементом
+        var query = _currentQuery ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(query) && NavigationBar.TryNormalizeUserUrl(query, out var directUrl))
+        {
+            try
+            {
+                string displayUrl = BuildDisplayUrl(directUrl);
+                string domain = ExtractDomain(directUrl);
+                var direct = new SearchResult
+                {
+                    Url = directUrl,
+                    DisplayUrl = displayUrl,
+                    Title = $"🌐 Перейти на {domain}",
+                    Description = $"Відкрити сайт: {directUrl}",
+                    Date = null,
+                    SourceType = "DirectUrl"
+                };
+                var img = AddSearchResult(direct);
+                _ = LoadFaviconAsync(direct, img);
+            }
+            catch { }
+        }
+
         if (page.Results == null || page.Results.Length == 0)
         {
             if (_searchStats != null)
@@ -195,14 +219,42 @@ public partial class VetaleSearchResultsPage : UserControl
                 Date = result.Timestamp,
                 SourceType = result.Source.ToString() // зберігаємо тип джерела
             };
-            // створюємо картку і отримуємо посилання на Image для фавікона
             var img = AddSearchResult(searchResult);
-            // асинхронно підвантажуємо фавікон і оновлюємо лише цей контейнер
             _ = LoadFaviconAsync(searchResult, img);
         }
 
         // Після малювання результатів завантажуємо пов'язані запити (Google Suggestions)
         _ = LoadRelatedQueriesAsync(_currentQuery ?? string.Empty);
+    }
+
+    private static string BuildDisplayUrl(string url)
+    {
+        try
+        {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return url;
+            var host = uri.Host;
+            var path = uri.AbsolutePath?.Trim('/') ?? string.Empty;
+            if (string.IsNullOrEmpty(path)) return host;
+            var parts = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            // Формат: host › part1 › part2 (не більше 2 частин)
+            var sb = new System.Text.StringBuilder(host);
+            for (int i = 0; i < Math.Min(parts.Length, 2); i++)
+            {
+                sb.Append(" › ").Append(parts[i]);
+            }
+            return sb.ToString();
+        }
+        catch { return url; }
+    }
+
+    private static string ExtractDomain(string url)
+    {
+        try
+        {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return url;
+            return uri.Host;
+        }
+        catch { return url; }
     }
 
     private async Task LoadRelatedQueriesAsync(string query)
@@ -279,10 +331,17 @@ public partial class VetaleSearchResultsPage : UserControl
         if (_resultsPanel == null)
             return null;
 
-        var resultBorder = new Border
+        var resultBorder = new Border();
+        
+        // Застосувати спеціальний клас для прямих URL
+        if (result.SourceType == "DirectUrl")
         {
-            Classes = { "result-item" }
-        };
+            resultBorder.Classes.Add("result-item-direct");
+        }
+        else
+        {
+            resultBorder.Classes.Add("result-item");
+        }
 
         // верхній ряд: фавікон + URL
         var headerPanel = new StackPanel
