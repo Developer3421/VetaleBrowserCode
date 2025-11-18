@@ -21,6 +21,7 @@ public partial class ToolsMainPage : UserControl
     private static Windows.ConsoleWindow? _consoleWindowInstance;
     private static Windows.DevToolsWindow? _devToolsWindowInstance;
     private static Windows.VetaleAIWindow? _vetaleAiWindowInstance;
+    private static Windows.DownloadsWindow? _downloadsWindowInstance;
 
     public event EventHandler<ToolNavigationEventArgs>? NavigateInWebView;
     public event EventHandler<string>? NavigateInMainTab;
@@ -92,6 +93,14 @@ public partial class ToolsMainPage : UserControl
                 IconUrl = null,
                 IconEmoji = "🔧",
                 Action = () => OpenVetaleDevTools()
+            },
+            new ToolItem
+            {
+                NameKey = "Tools.Downloads.Name",
+                DescriptionKey = "Tools.Downloads.Description",
+                IconUrl = null,
+                IconEmoji = "⬇️",
+                Action = () => OpenDownloads()
             },
             new ToolItem
             {
@@ -523,6 +532,52 @@ public partial class ToolsMainPage : UserControl
         }
     }
 
+    private void OpenDownloads()
+    {
+        System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Opening Downloads...");
+        
+        try
+        {
+            // Перевіряємо, чи існує вже відкрите вікно
+            if (_downloadsWindowInstance != null)
+            {
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Reusing existing DownloadsWindow");
+                    _downloadsWindowInstance.Activate();
+                    _downloadsWindowInstance.WindowState = WindowState.Normal;
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Downloads window activated");
+                    return;
+                }
+                catch
+                {
+                    // Вікно закрите, очищаємо посилання
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Previous Downloads window was closed, creating new one");
+                    _downloadsWindowInstance = null;
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Creating new DownloadsWindow instance...");
+            _downloadsWindowInstance = new Windows.DownloadsWindow();
+            
+            // Підписуємося на закриття вікна для очищення посилання
+            _downloadsWindowInstance.Closed += (s, e) =>
+            {
+                System.Diagnostics.Debug.WriteLine("[ToolsMainPage] DownloadsWindow closed, clearing reference");
+                _downloadsWindowInstance = null;
+            };
+            
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Showing Downloads window...");
+            _downloadsWindowInstance.Show();
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Downloads window opened successfully");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] ERROR opening Downloads: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Stack trace: {ex.StackTrace}");
+            _downloadsWindowInstance = null;
+        }
+    }
 
     private void OpenInWebView(string toolName, string url)
     {

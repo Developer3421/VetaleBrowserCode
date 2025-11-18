@@ -190,4 +190,17 @@ public partial class VetaleSearchHomePage : UserControl
             NavigateRequested?.Invoke(this, searchUrls[selectedEngine]);
         }
     }
+
+    public void SetQuery(string query)
+    {
+        if (_searchInput != null)
+        {
+            _searchInput.Text = query;
+            // оновити стан кнопки пошуку
+            if (_searchButton != null)
+            {
+                _searchButton.IsEnabled = !string.IsNullOrWhiteSpace(_searchInput.Text);
+            }
+        }
+    }
 }

@@ -1,3 +1,4 @@
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -78,6 +79,40 @@ public partial class App : Application
                         System.Diagnostics.Trace.WriteLine($"App: Error during DevTools database shutdown: {ex.Message}");
                     }
                 };
+            }
+
+            // Initialize download folder watcher (monitor OS-level Downloads)
+            try
+            {
+                VetaleBrowser.Core.Scripts.Services.DownloadFolderWatcherService.Initialize();
+                var dlPath = VetaleBrowser.Core.Scripts.Services.DownloadFolderWatcherService.MonitoredPath;
+                System.Diagnostics.Trace.WriteLine($"App: DownloadFolderWatcher initialized at '{dlPath}'");
+
+                // Auto-open Downloads window on first active download
+                VetaleBrowser.Core.Scripts.GlobalManagers.DownloadManager.StatusChanged += (s, item) =>
+                {
+                    try
+                    {
+                        if (item.Status == "Downloading" && ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+                        {
+                            var existing = lifetime.Windows.FirstOrDefault(w => w is VetaleBrowser.UI.Windows.DownloadsWindow);
+                            if (existing is VetaleBrowser.UI.Windows.DownloadsWindow dw)
+                            {
+                                dw.Activate();
+                            }
+                            else
+                            {
+                                var wnd = new VetaleBrowser.UI.Windows.DownloadsWindow();
+                                wnd.Show();
+                            }
+                        }
+                    }
+                    catch { }
+                };
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"App: Failed to init DownloadFolderWatcher: {ex.Message}");
             }
 
             base.OnFrameworkInitializationCompleted();

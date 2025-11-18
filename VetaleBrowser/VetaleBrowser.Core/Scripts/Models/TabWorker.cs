@@ -10,6 +10,9 @@ using VetaleBrowser.VetaleBrowser.Core.Services.Windows;
 using VetaleBrowser.VetaleBrowser.Core.Services;
 using Avalonia.Controls;
 using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.IO;
 
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 {
@@ -131,6 +134,10 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         
         // Прапорець для запобігання рекурсивним викликам при навігації
         private bool _isNavigating;
+
+        private string? _prevAddress;
+        private bool _blockingDownloadNav;
+        private static readonly HttpClient _httpHead = new HttpClient() { Timeout = TimeSpan.FromSeconds(10) };
 
         public string? Title
         {
@@ -259,70 +266,28 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
         private void WebViewOnPropertyChanged(object? sender, Avalonia.AvaloniaPropertyChangedEventArgs e)
         {
-            var name = e.Property.Name;
-            if (string.IsNullOrEmpty(name)) return;
-
-            if (name == "Address")
+            if (e.Property?.Name == "Address")
             {
-                var newAddress = WebView.Address;
-                
-                // Перевіряємо чи це нова адреса (не програмна навігація через Navigate)
-                if (!_isNavigating && !string.IsNullOrWhiteSpace(newAddress) && newAddress != Address)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] WebView navigated to: {newAddress}");
-                    
-                    // Додаємо в історію (це користувацька навігація всередині WebView)
-                    var entry = new NavigationEntry
-                    {
-                        Url = newAddress,
-                        IsInternal = false,
-                        InternalPageContent = null,
-                        Timestamp = DateTime.UtcNow
-                    };
-                    
-                    History.AddEntry(entry);
-                    Address = newAddress;
-                    
-                    // Сповіщаємо про зміну навігації
-                    NavigationChanged?.Invoke(this, entry);
-                }
-                else
-                {
-                    Address = newAddress;
-                }
-                
-                // Re-inject guards and fullscreen listener on new pages
-                InjectNavigationGuards();
-                InjectFullscreenListener();
-
-                // Kick a short PID refresh burst after navigation
-                SchedulePidRefreshBurst();
-
-                // Update subprocess title on navigation
-                TryUpdateSubprocessTitle();
-
-                // Re-apply mute state on navigation to ensure it persists across page loads
-                if (IsMuted)
-                {
-                    ApplyMuteState();
-                }
+                var newAddr = WebView.Address;
+                var prev = _prevAddress;
+                _prevAddress = newAddr;
+                // Перехват https-загрузок отключен: CefGlue открывает системный диалог сохранения, который не идет через HTTP-скачивания
+                // и отслеживается через системный монитор папки Загрузки (DownloadFolderWatcherService)
+                // _ = TryInterceptDownloadAsync(newAddr, prev);
             }
-            else if (name == "Title")
+            else if (e.Property.Name == "Title")
             {
-                // Direct access to Title property
                 var t = WebView.Title;
                 if (!string.IsNullOrWhiteSpace(t))
                 {
-                    // Prefix with Tab: requested
                     Title = $"Tab: {t}";
                     TryUpdateSubprocessTitle();
                 }
             }
-            else if (name == "CanGoBack" || name == "CanGoForward")
+            else if (e.Property.Name == "CanGoBack" || e.Property.Name == "CanGoForward")
             {
-                // No-op here; consumers can read from WebView
+                // no-op
             }
-            // Note: WebViewControl may not expose fullscreen as a property - polling handles this
         }
 
         private void SchedulePidRefreshBurst()
@@ -806,6 +771,80 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 _subprocess.UpdateTitle($"Tab: {siteTitle}");
             }
             catch { }
+        }
+
+        private async Task TryInterceptDownloadAsync(string? url, string? previous)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(url)) return;
+                if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return;
+                if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) return;
+
+                if (!ShouldTreatAsDownloadByExtension(uri))
+                {
+                    try
+                    {
+                        using var req = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Head, uri);
+                        using var resp = await _httpHead.SendAsync(req);
+                        if (!resp.IsSuccessStatusCode) return;
+                        var cd = resp.Content.Headers.ContentDisposition;
+                        var isAttachment = cd != null && string.Equals(cd.DispositionType, "attachment", StringComparison.OrdinalIgnoreCase);
+                        if (!isAttachment) return;
+                    }
+                    catch { return; }
+                }
+
+                var suggested = System.IO.Path.GetFileName(uri.LocalPath);
+                _ = VetaleBrowser.Core.Scripts.GlobalManagers.DownloadManager.StartDownloadAsync(url, suggested);
+
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    try
+                    {
+                        _blockingDownloadNav = true;
+                        if (WebView.CanGoBack)
+                        {
+                            WebView.GoBack();
+                        }
+                        else if (!string.IsNullOrWhiteSpace(previous))
+                        {
+                            WebView.Address = previous!;
+                        }
+                    }
+                    finally
+                    {
+                        _blockingDownloadNav = false;
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TabWorker] TryInterceptDownloadAsync error: {ex.Message}");
+            }
+        }
+
+        private static bool ShouldTreatAsDownloadByExtension(Uri uri)
+        {
+            try
+            {
+                var path = uri.LocalPath.ToLowerInvariant();
+                string[] exts = new[]
+                {
+                    ".zip", ".7z", ".rar", ".tar", ".gz", ".bz2",
+                    ".exe", ".msi", ".iso",
+                    ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+                    ".mp3", ".mp4", ".mkv", ".avi", ".mov",
+                    ".png", ".jpg", ".jpeg", ".gif", ".webp",
+                    ".apk"
+                };
+                foreach (var ext in exts)
+                {
+                    if (path.EndsWith(ext)) return true;
+                }
+                return false;
+            }
+            catch { return false; }
         }
 
         public void Dispose()

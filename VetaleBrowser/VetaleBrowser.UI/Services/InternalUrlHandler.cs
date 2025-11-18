@@ -64,7 +64,7 @@ public static class InternalUrlHandler
         
         return pageType switch
         {
-            InternalPageType.VetaleSearch => new VetaleSearchHomePage(),
+            InternalPageType.VetaleSearch => CreateSearchHomePage(url),
             InternalPageType.VetaleSearchResults => CreateSearchResultsPage(url),
             InternalPageType.Bookmarks => new BookmarksPage(),
             InternalPageType.History => new HistoryPage(),
@@ -72,6 +72,17 @@ public static class InternalUrlHandler
             InternalPageType.Tools => new ToolsMainPage(),
             _ => null
         };
+    }
+
+    private static VetaleSearchHomePage CreateSearchHomePage(string url)
+    {
+        var page = new VetaleSearchHomePage();
+        var q = GetQueryParameter(url, "q");
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            page.SetQuery(q);
+        }
+        return page;
     }
     
     /// <summary>

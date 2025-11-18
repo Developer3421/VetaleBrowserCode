@@ -129,3 +129,24 @@ public class SearchKeyword
     public double Weight { get; set; } = 1.0; // Вага слова (заголовки мають більшу вагу)
 }
 
+/// <summary>
+/// Модель для завантажень файлів (менеджер завантажень)
+/// </summary>
+public class DownloadItem
+{
+    public int Id { get; set; }
+    public string Url { get; set; } = string.Empty; // encrypted
+    public string FileName { get; set; } = string.Empty; // encrypted
+    public string TargetPath { get; set; } = string.Empty; // encrypted full path
+    public string Status { get; set; } = "Pending"; // Pending, Downloading, Completed, Error, Cancelled
+    public long BytesReceived { get; set; }
+    public long TotalBytes { get; set; } = -1; // -1 если неизвестно
+    public DateTime StartTime { get; set; } = DateTime.UtcNow;
+    public DateTime? EndTime { get; set; }
+    public string? ErrorMessage { get; set; } // encrypted
+    public string? ContentType { get; set; } // encrypted
+    public double LastMeasuredSpeedBytesPerSec { get; set; } // последнее измерение скорости
+    public double AverageSpeedBytesPerSec { get; set; } // скользящее среднее
+    public double EstimatedRemainingSeconds { get; set; } // оценка времени до завершения
+    public bool IsArchived { get; set; } // для очистки старих записів
+}

@@ -179,6 +179,9 @@
   <x:String x:Key="Tools.DevTools.Name">Vetale DevTools</x:String>
   <x:String x:Key="Tools.DevTools.Description">Developer tools</x:String>
   
+  <x:String x:Key="Tools.Downloads.Name">Downloads Manager</x:String>
+  <x:String x:Key="Tools.Downloads.Description">Manage your downloads</x:String>
+  
   <x:String x:Key="Tools.History.Name">History</x:String>
   <x:String x:Key="Tools.History.Description">Browsing history</x:String>
   
@@ -322,4 +325,20 @@
   <x:String x:Key="VetaleAI.ModelLoading">Loading AI model...</x:String>
   <x:String x:Key="VetaleAI.ModelLoaded">Model loaded successfully</x:String>
   <x:String x:Key="VetaleAI.ModelError">Error loading model</x:String>
+
+  <!-- Downloads -->
+  <x:String x:Key="Downloads.Title">Downloads — Vetale Browser</x:String>
+  <x:String x:Key="Downloads.Search">Search downloads…</x:String>
+  <x:String x:Key="Downloads.Empty">No downloads yet</x:String>
+  <x:String x:Key="Downloads.Empty.Hint">Start downloading a file to see progress here</x:String>
+  <x:String x:Key="Downloads.OpenFile">Open file</x:String>
+  <x:String x:Key="Downloads.OpenFolder">Open folder</x:String>
+  <x:String x:Key="Downloads.Cancel">Cancel</x:String>
+  <x:String x:Key="Downloads.Retry">Retry</x:String>
+  <x:String x:Key="Downloads.ClearCompleted">Archive old</x:String>
+  <x:String x:Key="Downloads.Status.Pending">Pending</x:String>
+  <x:String x:Key="Downloads.Status.Downloading">Downloading</x:String>
+  <x:String x:Key="Downloads.Status.Completed">Completed</x:String>
+  <x:String x:Key="Downloads.Status.Error">Error</x:String>
+  <x:String x:Key="Downloads.Status.Cancelled">Cancelled</x:String>
 </ResourceDictionary>

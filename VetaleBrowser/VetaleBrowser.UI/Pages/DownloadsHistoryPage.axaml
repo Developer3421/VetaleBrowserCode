@@ -1,0 +1,50 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:VetaleBrowser.VetaleBrowser.UI.Pages"
+             mc:Ignorable="d" d:DesignWidth="740" d:DesignHeight="540"
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.DownloadsHistoryPage">
+  <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="8">
+    <!-- Header path row -->
+    <StackPanel Orientation="Horizontal" Spacing="8" Grid.Row="0">
+      <TextBlock Text="Папка завантажень:" FontWeight="SemiBold"/>
+      <TextBlock x:Name="DownloadsPathText"/>
+      <Button Content="Відкрити" x:Name="OpenDownloadsFolderButton"/>
+    </StackPanel>
+    <!-- Filters row -->
+    <StackPanel Orientation="Horizontal" Spacing="8" Grid.Row="1">
+      <TextBox x:Name="SearchTextBox" Width="260" Watermark="{DynamicResource Downloads.Search}"/>
+      <Button Content="{DynamicResource Common.Refresh}" x:Name="RefreshButton"/>
+      <Button Content="{DynamicResource Downloads.ClearCompleted}" x:Name="ClearOldButton"/>
+    </StackPanel>
+
+    <Border Grid.Row="2" Height="1" Background="#FFE0E0E0" Margin="0,6,0,6"/>
+
+    <!-- List -->
+    <ScrollViewer Grid.Row="3">
+      <ItemsControl x:Name="DownloadsList">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="pages:DownloadHistoryItemViewModel">
+            <Border Margin="4" Padding="10" Background="#FFFFFF" BorderBrush="#DDD" BorderThickness="1" CornerRadius="6">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Spacing="4" Orientation="Horizontal">
+                  <Image Source="{Binding IconBitmap}" Width="24" Height="24" Margin="0,0,8,0"/>
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="{Binding FileName}" FontWeight="SemiBold" FontSize="14"/>
+                    <TextBlock Text="{Binding CompletedAtDisplay}" FontSize="11" Foreground="#666"/>
+                    <TextBlock Text="{Binding SizeDisplay}" FontSize="11" Foreground="#555"/>
+                  </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Right" VerticalAlignment="Center">
+                  <Button Content="{DynamicResource Downloads.OpenFile}" Command="{Binding OpenFileCommand}" IsVisible="{Binding CanOpen}" Width="90" Height="26"/>
+                  <Button Content="{DynamicResource Downloads.OpenFolder}" Command="{Binding OpenFolderCommand}" IsVisible="{Binding CanOpen}" Width="90" Height="26"/>
+                </StackPanel>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </Grid>
+</UserControl>
