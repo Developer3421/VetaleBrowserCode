@@ -72,23 +72,38 @@ public class DownloadDatabaseService : IDisposable
     {
         try
         {
-            // Шифруем строки
-            item.Url = _encryption.EncryptString(item.Url);
-            item.FileName = _encryption.EncryptString(item.FileName);
-            item.TargetPath = _encryption.EncryptString(item.TargetPath);
-            if (!string.IsNullOrEmpty(item.ErrorMessage))
-                item.ErrorMessage = _encryption.EncryptString(item.ErrorMessage);
-            if (!string.IsNullOrEmpty(item.ContentType))
-                item.ContentType = _encryption.EncryptString(item.ContentType);
-
-            if (item.Id == 0)
+            // Створюємо окрему копію для БД, щоб не мутувати оригінал (який використовується в UI)
+            var doc = new DownloadItem
             {
-                _downloads.Insert(item);
+                Id = item.Id,
+                Url = _encryption.EncryptString(item.Url),
+                FileName = _encryption.EncryptString(item.FileName),
+                TargetPath = _encryption.EncryptString(item.TargetPath),
+                Status = item.Status,
+                BytesReceived = item.BytesReceived,
+                TotalBytes = item.TotalBytes,
+                StartTime = item.StartTime,
+                EndTime = item.EndTime,
+                ErrorMessage = string.IsNullOrEmpty(item.ErrorMessage) ? null : _encryption.EncryptString(item.ErrorMessage),
+                ContentType = string.IsNullOrEmpty(item.ContentType) ? null : _encryption.EncryptString(item.ContentType),
+                LastMeasuredSpeedBytesPerSec = item.LastMeasuredSpeedBytesPerSec,
+                AverageSpeedBytesPerSec = item.AverageSpeedBytesPerSec,
+                EstimatedRemainingSeconds = item.EstimatedRemainingSeconds,
+                IsArchived = item.IsArchived,
+                ImportedAt = item.ImportedAt
+            };
+
+            if (doc.Id == 0)
+            {
+                _downloads.Insert(doc);
+                // Після Insert авто-ID ставиться у doc.Id — переносимо назад в оригінал
+                item.Id = doc.Id;
             }
             else
             {
-                _downloads.Update(item);
+                _downloads.Update(doc);
             }
+
             CheckSize();
             return item.Id;
         }
@@ -119,6 +134,21 @@ public class DownloadDatabaseService : IDisposable
     private List<DownloadItem> DecryptList(IEnumerable<DownloadItem> items)
     {
         return items.Select(x => Decrypt(x)!).ToList();
+    }
+
+    public DownloadItem? GetByTargetPath(string fullPath)
+    {
+        try
+        {
+            var encryptedPath = _encryption.EncryptString(fullPath);
+            var item = _downloads.FindOne(x => x.TargetPath == encryptedPath);
+            return Decrypt(item);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DownloadDatabaseService] GetByTargetPath error: {ex.Message}");
+            return null;
+        }
     }
 
     public DownloadItem? GetById(int id)
@@ -206,4 +236,3 @@ public class DownloadDatabaseService : IDisposable
         _database?.Dispose();
     }
 }
-

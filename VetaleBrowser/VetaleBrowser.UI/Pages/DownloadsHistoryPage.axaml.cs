@@ -2,29 +2,31 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media.Imaging;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.Services;
 using VetaleBrowser.VetaleBrowser.Database.Models;
+using VetaleBrowser.VetaleBrowser.Database.Services;
 using VetaleBrowser.VetaleBrowser.UI.Services;
 using System.Windows.Input;
+using Avalonia;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages
 {
     public partial class DownloadsHistoryPage : UserControl
     {
         private TextBox? _searchTextBox;
-        private ItemsControl? _list;
         private readonly ObservableCollection<DownloadHistoryItemViewModel> _items = new();
 
         public DownloadsHistoryPage()
         {
             InitializeComponent();
             _searchTextBox = this.FindControl<TextBox>("SearchTextBox");
-            _list = this.FindControl<ItemsControl>("DownloadsList");
-            if (_list != null) _list.ItemsSource = _items;
+            var list = this.FindControl<ItemsControl>("DownloadsList");
+            if (list != null) list.ItemsSource = _items;
 
             var refreshButton = this.FindControl<Button>("RefreshButton");
             var clearOldButton = this.FindControl<Button>("ClearOldButton");
@@ -47,65 +49,103 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
                     catch { }
                 };
 
-            refreshButton!.Click += (_, __) => Reload();
-            clearOldButton!.Click += (_, __) => ClearOld();
+            if (refreshButton != null)
+                refreshButton.Click += async (_, __) => await ReloadAsync(forceFullRescan: true);
+            if (clearOldButton != null)
+                clearOldButton.Click += async (_, __) =>
+                {
+                    DownloadManager.ArchiveOld(DateTime.UtcNow.AddDays(-30));
+                    await ReloadAsync(forceFullRescan: true);
+                };
 
-            // Лише завершені файли – немає підписок на прогрес
+            if (_searchTextBox != null)
+                _searchTextBox.TextChanged += async (_, __) => await ReloadAsync(forceFullRescan: false);
+
             DownloadManager.StatusChanged += OnStatus;
-            DownloadManager.ProgressChanged += OnProgress;
 
-            Reload();
+            _ = ReloadAsync(forceFullRescan: false);
         }
 
         private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 
-        private void Reload()
+        private async Task ReloadAsync(bool forceFullRescan)
         {
             DownloadManager.Initialize();
             _items.Clear();
-            var all = DownloadManager.GetRecent(2000); // беремо більше, показуємо тільки Completed
+
+            // 1. Показуємо все, що вже є в БД
+            var all = DownloadManager.GetRecent(2000);
             var completed = all.Where(d => d.Status == "Completed");
             var term = _searchTextBox?.Text;
             if (!string.IsNullOrWhiteSpace(term))
             {
                 term = term.Trim();
-                completed = completed.Where(d => d.FileName.Contains(term, StringComparison.OrdinalIgnoreCase) || d.Url.Contains(term, StringComparison.OrdinalIgnoreCase));
+                completed = completed.Where(d => d.FileName.Contains(term, StringComparison.OrdinalIgnoreCase)
+                    || (!string.IsNullOrEmpty(d.Url) && d.Url.Contains(term, StringComparison.OrdinalIgnoreCase)));
             }
+
             foreach (var d in completed.OrderByDescending(x => x.EndTime ?? x.StartTime))
                 _items.Add(new DownloadHistoryItemViewModel(d));
-        }
 
-        private void ClearOld()
-        {
-            DownloadManager.ArchiveOld(DateTime.UtcNow.AddDays(-30));
-            Reload();
+            // 2. Асинхронно скануємо головну папку завантажень (без підпапок)
+            try
+            {
+                var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                var dataDir = System.IO.Path.Combine(appData, "VetaleBrowser", "Data");
+                var settingsPath = System.IO.Path.Combine(dataDir, "settings.db");
+                var key = $"VetaleBrowser_Settings_{Environment.MachineName}_{Environment.UserName}_AES256";
+                using var settings = new SettingsService(settingsPath, key);
+
+                if (forceFullRescan)
+                {
+                    // Примусовий повний скан: беремо дуже стару дату як fromUtc
+                    var newItems = await DownloadManager.ScanDownloadsFolderAsync(DateTime.UtcNow.AddYears(-5));
+                    foreach (var e in newItems)
+                        Upsert(e);
+                    await settings.SetLastDownloadsScanUtcAsync(DateTime.UtcNow);
+                }
+                else
+                {
+                    var newItems = await DownloadManager.ScanAndSyncDownloadsAsync(settings);
+                    foreach (var e in newItems)
+                        Upsert(e);
+                }
+            }
+            catch
+            {
+                // Якщо не вдалося ініціалізувати SettingsService або просканувати, просто залишаємо список як є
+            }
         }
 
         private void OnStatus(object? sender, DownloadItem e)
         {
-            if (e.Status == "Completed" || e.Status == "Pending" || e.Status == "Downloading")
+            if (e.Status == "Completed")
             {
                 Upsert(e);
             }
         }
-        private void OnProgress(object? sender, DownloadItem e)
-        {
-            Upsert(e);
-        }
+
         private void Upsert(DownloadItem e)
         {
-            if (e.Status == "Completed" || e.Status == "Pending" || e.Status == "Downloading")
+            var term = _searchTextBox?.Text;
+            if (!string.IsNullOrWhiteSpace(term))
             {
-                var term = _searchTextBox?.Text;
-                if (!string.IsNullOrWhiteSpace(term))
+                if (!e.FileName.Contains(term, StringComparison.OrdinalIgnoreCase) && !(!string.IsNullOrEmpty(e.Url) && e.Url.Contains(term, StringComparison.OrdinalIgnoreCase)))
+                    return;
+            }
+            var existing = _items.FirstOrDefault(x => x.Id == e.Id);
+            if (existing == null)
+            {
+                _items.Insert(0, new DownloadHistoryItemViewModel(e));
+            }
+            else
+            {
+                var index = _items.IndexOf(existing);
+                // Якщо змінився шлях або ім'я — замінюємо елемент, щоб оновити іконку/текст
+                if (!string.Equals(existing.TargetPath, e.TargetPath, StringComparison.OrdinalIgnoreCase)
+                    || !string.Equals(existing.FileName, e.FileName, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (!e.FileName.Contains(term, StringComparison.OrdinalIgnoreCase) && !e.Url.Contains(term, StringComparison.OrdinalIgnoreCase))
-                        return;
-                }
-                var existing = _items.FirstOrDefault(x => x.Id == e.Id);
-                if (existing == null)
-                {
-                    _items.Insert(0, new DownloadHistoryItemViewModel(e));
+                    _items[index] = new DownloadHistoryItemViewModel(e);
                 }
                 else
                 {
@@ -121,6 +161,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         public Bitmap? IconBitmap { get; }
         public int Id => _item.Id;
         public string FileName => _item.FileName;
+        public string TargetPath => _item.TargetPath;
         public bool CanOpen => File.Exists(_item.TargetPath);
         public string SizeDisplay => _item.TotalBytes > 0 ? FormatSize(_item.TotalBytes) : (_item.BytesReceived > 0 ? FormatSize(_item.BytesReceived) : "");
         public string CompletedAtDisplay => _item.EndTime.HasValue ? _item.EndTime.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm") : "";
@@ -133,6 +174,8 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
             _item.BytesReceived = updated.BytesReceived;
             _item.TotalBytes = updated.TotalBytes;
             _item.EndTime = updated.EndTime;
+            _item.FileName = updated.FileName;
+            _item.TargetPath = updated.TargetPath;
         }
         public DownloadHistoryItemViewModel(DownloadItem item) { _item = item; IconBitmap = FileIconService.GetFileIcon(item.TargetPath); }
 

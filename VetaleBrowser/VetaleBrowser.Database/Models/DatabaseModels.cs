@@ -149,4 +149,5 @@ public class DownloadItem
     public double AverageSpeedBytesPerSec { get; set; } // скользящее среднее
     public double EstimatedRemainingSeconds { get; set; } // оценка времени до завершения
     public bool IsArchived { get; set; } // для очистки старих записів
+    public DateTime? ImportedAt { get; set; } // дата першого імпорту зі сканування папки завантажень
 }

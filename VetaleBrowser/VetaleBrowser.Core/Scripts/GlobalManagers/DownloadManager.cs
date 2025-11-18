@@ -6,13 +6,14 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using VetaleBrowser.VetaleBrowser.Core.Scripts.Services;
 using VetaleBrowser.VetaleBrowser.Database.Models;
-using VetaleBrowser.VetaleBrowser.Database.Services; // убран using ServicesAccessor
+using VetaleBrowser.VetaleBrowser.Database.Services; // уже є
 
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
 
 /// <summary>
-/// Глобальный менеджер загрузок: очередь, прогресс, отмена, повтор.
+/// Глобальний менеджер загрузок: черга, прогрес, скасування, повтор.
 /// </summary>
 public static class DownloadManager
 {
@@ -262,9 +263,96 @@ public static class DownloadManager
     private static readonly Dictionary<string,int> _externalByPath = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string,int> _pendingByName = new(StringComparer.OrdinalIgnoreCase);
 
+    public static async Task<List<DownloadItem>> ScanDownloadsFolderAsync(DateTime fromUtc)
+    {
+        Initialize();
+        var result = new List<DownloadItem>();
+        if (_db == null) return result;
+
+        try
+        {
+            var downloadsPath = DownloadFolderWatcherService.MonitoredPath;
+            if (string.IsNullOrWhiteSpace(downloadsPath) || !Directory.Exists(downloadsPath))
+            {
+                var userDownloads = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+                if (!Directory.Exists(userDownloads)) return result;
+                downloadsPath = userDownloads;
+            }
+
+            // Ефективний старт: не раніше ніж 3 місяці тому
+            var threeMonthsAgo = DateTime.UtcNow.AddMonths(-3);
+            var effectiveFrom = fromUtc < threeMonthsAgo ? threeMonthsAgo : fromUtc;
+
+            var files = Directory.EnumerateFiles(downloadsPath, "*", SearchOption.TopDirectoryOnly)
+                .Select(path => new FileInfo(path))
+                .Where(fi => !fi.Name.Equals("desktop.ini", StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(fi => fi.LastWriteTimeUtc);
+
+            foreach (var fi in files)
+            {
+                var modified = fi.LastWriteTimeUtc;
+                if (modified <= effectiveFrom) continue;
+
+                var existing = _db.GetByTargetPath(fi.FullName);
+                if (existing != null)
+                {
+                    var beforeBytes = existing.BytesReceived;
+                    existing.TargetPath = fi.FullName;
+                    existing.BytesReceived = fi.Length;
+                    if (existing.TotalBytes <= 0) existing.TotalBytes = fi.Length;
+                    if (existing.Status != "Completed")
+                    {
+                        existing.Status = "Completed";
+                        existing.EndTime ??= fi.LastWriteTimeUtc;
+                    }
+                    existing.ImportedAt ??= DateTime.UtcNow;
+                    _db.AddOrUpdate(existing);
+                    if (existing.BytesReceived != beforeBytes || existing.Status == "Completed")
+                        result.Add(existing);
+                }
+                else
+                {
+                    var item = new DownloadItem
+                    {
+                        Url = string.Empty,
+                        FileName = fi.Name,
+                        TargetPath = fi.FullName,
+                        Status = "Completed",
+                        BytesReceived = fi.Length,
+                        TotalBytes = fi.Length,
+                        StartTime = fi.CreationTimeUtc,
+                        EndTime = fi.LastWriteTimeUtc,
+                        ImportedAt = DateTime.UtcNow
+                    };
+                    _db.AddOrUpdate(item);
+                    result.Add(item);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DownloadManager] ScanDownloadsFolderAsync error: {ex.Message}");
+        }
+
+        // Повертаємо у порядку від нових до старих
+        return result.OrderByDescending(x => x.EndTime ?? x.StartTime).ToList();
+    }
+
+    public static async Task<List<DownloadItem>> ScanAndSyncDownloadsAsync(SettingsService settings)
+    {
+        Initialize();
+        var lastScan = await settings.GetLastDownloadsScanUtcAsync() ?? DateTime.UtcNow.AddDays(-30);
+        // Невелика поправка, щоб не пропускати файли на межі часу
+        var adjustedFrom = lastScan.AddSeconds(-5);
+        var list = await ScanDownloadsFolderAsync(adjustedFrom);
+        await settings.SetLastDownloadsScanUtcAsync(DateTime.UtcNow);
+        return list;
+    }
+
     public static int RegisterPendingExternal(string url, string fileName)
     {
         Initialize();
+        if (fileName.Equals("desktop.ini", StringComparison.OrdinalIgnoreCase)) return 0;
         fileName = SanitizeFileName(fileName);
         if (_pendingByName.ContainsKey(fileName)) return _pendingByName[fileName];
         var item = new DownloadItem
@@ -288,6 +376,7 @@ public static class DownloadManager
     {
         Initialize();
         var name = Path.GetFileName(fullPath);
+        if (name.Equals("desktop.ini", StringComparison.OrdinalIgnoreCase)) return;
         if (!_pendingByName.TryGetValue(name, out var id)) return;
         var item = _db?.GetById(id);
         if (item == null) return;
@@ -295,7 +384,7 @@ public static class DownloadManager
         {
             item.TargetPath = fullPath;
         }
-        item.Status = "Downloading"; // уже почав писатися
+        item.Status = "Downloading"; // вже почав писатися
         _db?.SetStatus(item.Id, item.Status);
         StatusChanged?.Invoke(null, item);
         // запускаємо монітор як зовнішнє
@@ -306,6 +395,7 @@ public static class DownloadManager
     {
         Initialize();
         var name = Path.GetFileName(fullPath);
+        if (name.Equals("desktop.ini", StringComparison.OrdinalIgnoreCase)) return 0;
         if (_pendingByName.TryGetValue(name, out var pendingId))
         {
             // оновлюємо існуючий pending замість створення нового

@@ -2,8 +2,8 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Reflection;
 using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Services
 {
@@ -22,29 +22,53 @@ namespace VetaleBrowser.VetaleBrowser.UI.Services
             if (_cache.TryGetValue(ext, out var bmp)) return bmp;
             try
             {
-#if WINDOWS
-                var shgfi = new SHFILEINFO();
-                uint flags = SHGFI_ICON | SHGFI_USEFILEATTRIBUTES | (large ? SHGFI_LARGEICON : SHGFI_SMALLICON);
-                IntPtr hImg = SHGetFileInfo(path, FILE_ATTRIBUTE_NORMAL, ref shgfi, (uint)Marshal.SizeOf(shgfi), flags);
-                if (hImg != IntPtr.Zero && shgfi.hIcon != IntPtr.Zero)
+                if (OperatingSystem.IsWindows())
                 {
-                    using var icon = System.Drawing.Icon.FromHandle(shgfi.hIcon);
-                    using var ms = new MemoryStream();
-                    icon.ToBitmap().Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                    ms.Position = 0;
-                    var avaloniaBmp = new Bitmap(ms);
-                    _cache[ext] = avaloniaBmp;
-                    DestroyIcon(shgfi.hIcon);
-                    return avaloniaBmp;
+                    var shgfi = new SHFILEINFO();
+                    uint flags = SHGFI_ICON | SHGFI_USEFILEATTRIBUTES | (large ? SHGFI_LARGEICON : SHGFI_SMALLICON);
+                    IntPtr hImg = SHGetFileInfo(path, FILE_ATTRIBUTE_NORMAL, ref shgfi, (uint)Marshal.SizeOf(shgfi), flags);
+                    if (hImg != IntPtr.Zero && shgfi.hIcon != IntPtr.Zero)
+                    {
+                        using var ms = new MemoryStream();
+
+                        // Рефлексивно викликаємо System.Drawing.Icon.FromHandle(hIcon) та зберігаємо у PNG через System.Drawing.Bitmap.Save
+                        var iconType = Type.GetType("System.Drawing.Icon, System.Drawing.Common", throwOnError: false);
+                        var imageFormatType = Type.GetType("System.Drawing.Imaging.ImageFormat, System.Drawing.Common", throwOnError: false);
+                        if (iconType != null && imageFormatType != null)
+                        {
+                            var fromHandle = iconType.GetMethod("FromHandle", BindingFlags.Public | BindingFlags.Static, binder: null, types: new Type[] { typeof(IntPtr) }, modifiers: null);
+                            var iconObj = fromHandle?.Invoke(null, new object[] { shgfi.hIcon });
+                            if (iconObj != null)
+                            {
+                                var toBitmap = iconType.GetMethod("ToBitmap", BindingFlags.Public | BindingFlags.Instance, binder: null, types: Type.EmptyTypes, modifiers: null);
+                                var bmpObj = toBitmap?.Invoke(iconObj, null);
+                                if (bmpObj != null)
+                                {
+                                    var pngProp = imageFormatType.GetProperty("Png", BindingFlags.Public | BindingFlags.Static);
+                                    var png = pngProp?.GetValue(null);
+                                    var save = bmpObj.GetType().GetMethod("Save", BindingFlags.Public | BindingFlags.Instance, binder: null, types: new Type[] { typeof(Stream), imageFormatType }, modifiers: null);
+                                    save?.Invoke(bmpObj, new object[] { ms, png! });
+                                    ms.Position = 0;
+                                    var avaloniaBmp = new Bitmap(ms);
+                                    _cache[ext] = avaloniaBmp;
+                                    (bmpObj as IDisposable)?.Dispose();
+                                    (iconObj as IDisposable)?.Dispose();
+                                    DestroyIcon(shgfi.hIcon);
+                                    return avaloniaBmp;
+                                }
+                                (iconObj as IDisposable)?.Dispose();
+                            }
+                        }
+
+                        DestroyIcon(shgfi.hIcon);
+                    }
                 }
-#endif
             }
             catch { }
             _cache[ext] = null;
             return null;
         }
 
-#if WINDOWS
         [StructLayout(LayoutKind.Sequential)]
         private struct SHFILEINFO
         {
@@ -63,7 +87,5 @@ namespace VetaleBrowser.VetaleBrowser.UI.Services
         private const uint SHGFI_SMALLICON = 0x1;
         private const uint SHGFI_LARGEICON = 0x0;
         private const uint FILE_ATTRIBUTE_NORMAL = 0x80;
-#endif
     }
 }
-

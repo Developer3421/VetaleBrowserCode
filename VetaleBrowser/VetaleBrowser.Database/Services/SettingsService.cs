@@ -164,6 +164,45 @@ public class SettingsService : ISettingsService, IDisposable
         });
     }
 
+    public async Task<DateTime?> GetLastDownloadsScanUtcAsync()
+    {
+        return await Task.Run(() =>
+        {
+            var setting = _settingsCollection.FindOne(x => x.Key == "LastDownloadsScanUtc");
+            if (setting == null) return (DateTime?)null;
+            var decrypted = _encryptionService.DecryptString(setting.EncryptedValue);
+            if (DateTime.TryParse(decrypted, out var dt))
+                return dt;
+            return (DateTime?)null;
+        });
+    }
+
+    public async Task SetLastDownloadsScanUtcAsync(DateTime utc)
+    {
+        await Task.Run(() =>
+        {
+            var value = utc.ToString("o"); // ISO 8601
+            var encryptedValue = _encryptionService.EncryptString(value);
+            var existing = _settingsCollection.FindOne(x => x.Key == "LastDownloadsScanUtc");
+            if (existing != null)
+            {
+                existing.EncryptedValue = encryptedValue;
+                existing.UpdatedAt = DateTime.UtcNow;
+                _settingsCollection.Update(existing);
+            }
+            else
+            {
+                var setting = new SettingItem
+                {
+                    Key = "LastDownloadsScanUtc",
+                    EncryptedValue = encryptedValue,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _settingsCollection.Insert(setting);
+            }
+        });
+    }
+
     public void Dispose()
     {
         _database.Dispose();
