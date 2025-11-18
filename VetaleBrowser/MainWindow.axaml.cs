@@ -581,18 +581,19 @@ public partial class MainWindow : Window
 
     private TabWorker? CreateNewTab(string? initialUrl = null)
     {
-        var worker = _tabs.Create(initialUrl);
+        // Створюємо worker БЕЗ початкової навігації (передаємо null)
+        var worker = _tabs.Create(null);
         AddTabControlForWorker(worker);
         
         // Підписуємося на події навігації
         worker.NavigationChanged += OnWorkerNavigationChanged;
         
-        // Якщо є початковий URL, навігуємо
+        // Якщо є початковий URL, навігуємо ОДИН РАЗ з правильним content
         if (!string.IsNullOrEmpty(initialUrl))
         {
             if (InternalUrlHandler.IsInternalUrl(initialUrl))
             {
-                // Для внутрішніх URL створюємо контент і навігуємо
+                // Для внутрішніх URL створюємо контент і навігаємо
                 var content = InternalUrlHandler.CreatePageContent(initialUrl);
                 if (content != null)
                 {
@@ -601,7 +602,11 @@ public partial class MainWindow : Window
                     worker.Navigate(initialUrl, content);
                 }
             }
-            // Для зовнішніх URL навігація вже викликана в _tabs.Create()
+            else
+            {
+                // Для зовнішніх URL навігуємо без content
+                worker.Navigate(initialUrl);
+            }
         }
         
         ActivateWorker(worker);
@@ -673,9 +678,9 @@ public partial class MainWindow : Window
         if (navBar != null)
         {
             navBar.Url = finalUrl;
-            navBar.CanGoBack = false;
-            navBar.CanGoForward = false;
-            System.Diagnostics.Debug.WriteLine($"[MainWindow] NavBar updated: Url={navBar.Url}");
+            navBar.CanGoBack = worker.History.CanGoBack;
+            navBar.CanGoForward = worker.History.CanGoForward;
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] NavBar updated: Url={navBar.Url}, CanGoBack={navBar.CanGoBack}, CanGoForward={navBar.CanGoForward}");
         }
     }
 
@@ -867,29 +872,25 @@ public partial class MainWindow : Window
         {
             var active = _tabs.Active;
             if (active == null) return;
-            
-            // Перевірка чи це внутрішня сторінка
-            if (active.WebView.Tag is UserControl internalPage)
+
+            // Визначаємо що показувати за History.CurrentEntry
+            var current = active.History.CurrentEntry;
+            if (current != null && current.IsInternal && current.InternalPageContent != null)
             {
-                // Відобразити внутрішню сторінку замість WebView
                 target.Children.Clear();
-                target.Children.Add(internalPage);
-                System.Diagnostics.Debug.WriteLine($"[MainWindow] Internal page moved to container");
+                target.Children.Add(current.InternalPageContent);
+                System.Diagnostics.Debug.WriteLine("[MainWindow] Internal page (from History) moved to container");
                 return;
             }
-            
+
             var webView = active.WebView;
 
-            // Remove from previous parent if necessary
-            if (webView.Parent is Panel prev)
+            // Вилучити з попереднього контейнера якщо потрібно
+            if (webView.Parent is Panel prev && !ReferenceEquals(prev, target))
             {
-                if (!ReferenceEquals(prev, target))
-                {
-                    prev.Children.Remove(webView);
-                }
+                prev.Children.Remove(webView);
             }
 
-            // Clear target and add webview
             target.Children.Clear();
             target.Children.Add(webView);
 
@@ -978,16 +979,17 @@ public partial class MainWindow : Window
     {
         try
         {
-            // Для внутрішніх сторінок ми зберігаємо UserControl у WebView.Tag
-            var active = _tabs.Active;
-            if (active?.WebView?.Tag is VetaleSearchResultsPage)
-                return true;
+            var entry = _tabs.Active?.History.CurrentEntry;
+            if (entry == null) return false;
+            if (entry.IsInternal)
+            {
+                // Перевіряємо тип або URL
+                if (entry.InternalPageContent is VetaleSearchResultsPage) return true;
+                var url = entry.Url ?? string.Empty;
+                if (url.StartsWith("vetale://search?", StringComparison.OrdinalIgnoreCase)) return true;
+            }
         }
-        catch
-        {
-            // Якщо щось пішло не так, не блокуємо гарячі клавіші
-        }
-
+        catch { }
         return false;
     }
 
@@ -995,16 +997,18 @@ public partial class MainWindow : Window
     {
         try
         {
-            var active = _tabs.Active;
-            // Для внутрішніх сторінок Vetale Search ми зберігаємо UserControl у WebView.Tag
-            if (active?.WebView?.Tag is VetaleSearchHomePage || active?.WebView?.Tag is VetaleSearchResultsPage)
-                return true;
+            var entry = _tabs.Active?.History.CurrentEntry;
+            if (entry == null) return false;
+            if (entry.IsInternal)
+            {
+                if (entry.InternalPageContent is VetaleSearchHomePage || entry.InternalPageContent is VetaleSearchResultsPage)
+                    return true;
+                var url = entry.Url ?? string.Empty;
+                if (url.Equals("vetale://search", StringComparison.OrdinalIgnoreCase) || url.StartsWith("vetale://search?", StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
         }
-        catch
-        {
-            // Якщо щось пішло не так, не блокуємо гарячі клавіші
-        }
-
+        catch { }
         return false;
     }
 
@@ -1028,21 +1032,21 @@ public partial class MainWindow : Window
                     if (nav != null)
                     {
                         nav.Url = url ?? string.Empty;
-                        nav.CanGoBack = vw.CanGoBack;
-                        nav.CanGoForward = vw.CanGoForward;
+                        // ВАЖЛИВО: стан кнопок з History, а не з WebView
+                        nav.CanGoBack = _tabs.Active.History.CanGoBack;
+                        nav.CanGoForward = _tabs.Active.History.CanGoForward;
                     }
                 });
 
                 await UpdateFaviconAsync(url);
                 await UpdateTabTitleAsync(null, url);
-                
-                // Зберігаємо в історію
+
+                // Збереження в історію БД
                 try
                 {
                     if (!string.IsNullOrWhiteSpace(url))
                     {
                         var title = vw.Title ?? url;
-                        System.Diagnostics.Debug.WriteLine($"[MainWindow] Adding to history: {url} - {title}");
                         DatabaseManager.HistoryInstance.AddOrUpdateHistoryItem(
                             url: url,
                             title: title,
@@ -1061,10 +1065,10 @@ public partial class MainWindow : Window
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     var nav = _normalModePage?.NavBar;
-                    if (nav != null)
+                    if (nav != null && _tabs.Active != null)
                     {
-                        nav.CanGoBack = vw.CanGoBack;
-                        nav.CanGoForward = vw.CanGoForward;
+                        nav.CanGoBack = _tabs.Active.History.CanGoBack;
+                        nav.CanGoForward = _tabs.Active.History.CanGoForward;
                     }
                 });
             }
@@ -1388,7 +1392,7 @@ public partial class MainWindow : Window
         _preFullscreenWindowState = WindowState;
 
         System.Diagnostics.Debug.WriteLine("[MainWindow] === ENTERING FULLSCREEN ===");
-        
+
         // Switch to fullscreen page
         if (_pageContainer != null && _fullscreenModePage != null)
         {
@@ -1404,11 +1408,11 @@ public partial class MainWindow : Window
 
         // Remove window padding
         Padding = new Thickness(0);
-        
+
         // Enter fullscreen mode
         WindowState = WindowState.FullScreen;
         SystemDecorations = SystemDecorations.None;
-        
+
         System.Diagnostics.Debug.WriteLine("[MainWindow] === FULLSCREEN ENTERED ===");
     }
 
@@ -1435,11 +1439,11 @@ public partial class MainWindow : Window
 
         // Restore padding
         Padding = new Thickness(8);
-        
+
         // Exit fullscreen mode
         SystemDecorations = SystemDecorations.BorderOnly;
         WindowState = _preFullscreenWindowState;
-        
+
         System.Diagnostics.Debug.WriteLine("[MainWindow] === FULLSCREEN EXITED ===");
 
         // Ask page to exit document fullscreen if any (best-effort)
@@ -1485,11 +1489,11 @@ public partial class MainWindow : Window
         try
         {
             System.Diagnostics.Debug.WriteLine($"[MainWindow] ===== NavigateToSelectedSearchHomeAsync STARTED =====");
-            
+
             var home = await GetSearchHomePageAsync();
             System.Diagnostics.Debug.WriteLine($"[MainWindow] Home page URL: {home}");
 
-            // Якщо це Vetale Search (внутрішня домашня сторінка) 
+            // Якщо це Vetale Search (внутрішня домашня сторінка)
             if (string.Equals(home, "vetale://search", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(home, "vetale://search/home", StringComparison.OrdinalIgnoreCase))
             {
@@ -1501,7 +1505,7 @@ public partial class MainWindow : Window
                 System.Diagnostics.Debug.WriteLine($"[MainWindow] Regular URL - calling NavigateUrlInActiveTab()");
                 NavigateUrlInActiveTab(home, openInNewTabIfNone: true);
             }
-            
+
             System.Diagnostics.Debug.WriteLine($"[MainWindow] ===== NavigateToSelectedSearchHomeAsync COMPLETED =====");
         }
         catch (Exception ex)
@@ -1518,7 +1522,7 @@ public partial class MainWindow : Window
             System.Diagnostics.Debug.WriteLine($"[MainWindow] GetSearchHomePageAsync STARTED");
             const string vetaleSearchName = "Vetale Search";
 
-            // Якщо налаштовано Vetale Search як локальний пошук 
+            // Якщо налаштовано Vetale Search як локальний пошук
             if (_settingsService != null)
             {
                 try
@@ -1526,7 +1530,7 @@ public partial class MainWindow : Window
                     System.Diagnostics.Debug.WriteLine($"[MainWindow] Getting search engine name and URL from settings...");
                     var name = await _settingsService.GetSearchEngineNameAsync();
                     var url = await _settingsService.GetSearchEngineUrlAsync();
-                    
+
                     System.Diagnostics.Debug.WriteLine($"[MainWindow] Settings: Name='{name}', URL='{url}'");
 
                     if (string.Equals(name, vetaleSearchName, StringComparison.OrdinalIgnoreCase) &&
@@ -1536,7 +1540,7 @@ public partial class MainWindow : Window
                         System.Diagnostics.Debug.WriteLine($"[MainWindow] Detected Vetale Search! Returning vetale://search");
                         return "vetale://search";
                     }
-                    
+
                     System.Diagnostics.Debug.WriteLine($"[MainWindow] Not Vetale Search, proceeding with web search engine logic");
                 }
                 catch (Exception ex)
@@ -1633,6 +1637,28 @@ public partial class MainWindow : Window
         {
             if (InternalUrlHandler.IsInternalUrl(url))
             {
+                // Якщо з Home йдемо на Results — зберігаємо query у поточному записі Home і UI
+                try
+                {
+                    var active = _tabs.Active;
+                    var entry = active?.History.CurrentEntry;
+                    if (active != null && entry != null && entry.IsInternal && entry.InternalPageContent is VetaleSearchHomePage homePage)
+                    {
+                        // Переходимо саме на результати пошуку?
+                        if (url.StartsWith("vetale://search/results", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var q = InternalUrlHandler.GetQueryParameter(url, "q");
+                            if (!string.IsNullOrWhiteSpace(q))
+                            {
+                                var qSafe = q ?? string.Empty;
+                                entry.Url = $"vetale://search?q={Uri.EscapeDataString(qSafe)}";
+                                homePage.SetQuery(qSafe);
+                            }
+                        }
+                    }
+                }
+                catch { }
+
                 HandleInternalNavigation(url);
             }
             else
@@ -1651,7 +1677,7 @@ public partial class MainWindow : Window
         try
         {
             System.Diagnostics.Debug.WriteLine($"[MainWindow] HandleInternalNavigation called with URL: {url}");
-            
+
             if (_tabs.Active == null)
             {
                 System.Diagnostics.Debug.WriteLine($"[MainWindow] No active tab, creating new tab");
@@ -1685,7 +1711,7 @@ public partial class MainWindow : Window
             // Використовуємо нову систему навігації через TabWorker
             System.Diagnostics.Debug.WriteLine($"[MainWindow] Navigating through TabWorker to: {url}");
             _tabs.Active.Navigate(url, content);
-            
+
             // Підписуємося на подію NavigationChanged для оновлення UI
             _tabs.Active.NavigationChanged -= OnWorkerNavigationChanged;
             _tabs.Active.NavigationChanged += OnWorkerNavigationChanged;
@@ -1704,9 +1730,9 @@ public partial class MainWindow : Window
         try
         {
             if (sender is not TabWorker worker) return;
-            
+
             System.Diagnostics.Debug.WriteLine($"[MainWindow] OnWorkerNavigationChanged: {entry.Url}, IsInternal: {entry.IsInternal}");
-            
+
             if (entry.IsInternal && entry.InternalPageContent != null)
             {
                 // Показуємо внутрішню сторінку
@@ -1717,10 +1743,10 @@ public partial class MainWindow : Window
                 // Показуємо WebView для зовнішніх URL
                 ActivateWorker(worker);
             }
-            
+
             // Оновлюємо заголовок вкладки
             UpdateTabTitle(worker, entry.Title ?? worker.Title);
-            
+
             // Оновлюємо адресний рядок
             UpdateNavigationBar(entry.Url);
         }
@@ -1729,7 +1755,7 @@ public partial class MainWindow : Window
             System.Diagnostics.Debug.WriteLine($"[MainWindow] OnWorkerNavigationChanged error: {ex}");
         }
     }
-    
+
     /// <summary>
     /// Оновлює заголовок вкладки
     /// </summary>
@@ -1737,7 +1763,7 @@ public partial class MainWindow : Window
     {
         var tabsHost = _normalModePage?.TabsHostPanel;
         if (tabsHost == null) return;
-        
+
         var idx = _tabs.Workers.ToList().IndexOf(worker);
         var childIdx = idx + 1; // враховуючи кнопку додавання
         if (idx >= 0 && childIdx < tabsHost.Children.Count && tabsHost.Children[childIdx] is Tab tab)
@@ -1746,7 +1772,7 @@ public partial class MainWindow : Window
             System.Diagnostics.Debug.WriteLine($"[MainWindow] Tab title updated to: {tab.Title}");
         }
     }
-    
+
     /// <summary>
     /// Оновлює адресний рядок
     /// </summary>
@@ -1756,7 +1782,7 @@ public partial class MainWindow : Window
         if (navBar != null && !string.IsNullOrWhiteSpace(url))
         {
             navBar.Url = url;
-            
+
             // Оновлюємо стан кнопок назад/вперед
             if (_tabs.Active != null)
             {
@@ -1776,19 +1802,39 @@ public partial class MainWindow : Window
             System.Diagnostics.Debug.WriteLine($"[MainWindow] ===== OnInternalPageNavigateRequested =====");
             System.Diagnostics.Debug.WriteLine($"[MainWindow] URL: {url}");
             System.Diagnostics.Debug.WriteLine($"[MainWindow] Sender: {sender?.GetType().Name ?? "null"}");
-            
+
             if (InternalUrlHandler.IsInternalUrl(url))
             {
-                System.Diagnostics.Debug.WriteLine($"[MainWindow] URL is internal, calling HandleInternalNavigation");
+                // Якщо з Home йдемо на Results — зберігаємо query у поточному записі Home і UI
+                try
+                {
+                    var active = _tabs.Active;
+                    var entry = active?.History.CurrentEntry;
+                    if (active != null && entry != null && entry.IsInternal && entry.InternalPageContent is VetaleSearchHomePage homePage)
+                    {
+                        // Переходимо саме на результати пошуку?
+                        if (url.StartsWith("vetale://search/results", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var q = InternalUrlHandler.GetQueryParameter(url, "q");
+                            if (!string.IsNullOrWhiteSpace(q))
+                            {
+                                var qSafe = q ?? string.Empty;
+                                entry.Url = $"vetale://search?q={Uri.EscapeDataString(qSafe)}";
+                                homePage.SetQuery(qSafe);
+                            }
+                        }
+                    }
+                }
+                catch { }
+
                 HandleInternalNavigation(url);
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine($"[MainWindow] URL is external, navigating in current WebView and hiding internal page");
                 var activeWorker = _tabs.Active;
                 if (activeWorker != null)
                 {
-                    // Валідація URL (лише http/https)
+                    // Валідний лише http/https
                     if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
                         !(uri.Scheme.Equals("http", StringComparison.OrdinalIgnoreCase) || uri.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase)))
                     {
@@ -1796,33 +1842,15 @@ public partial class MainWindow : Window
                         return;
                     }
 
-                    // Прибрати внутрішню сторінку
-                    activeWorker.WebView.Tag = null;
-
-                    // Оновити адресний рядок миттєво
-                    var navBar = _normalModePage?.NavBar;
-                    if (navBar != null)
-                    {
-                        navBar.Url = url;
-                        navBar.CanGoBack = activeWorker.WebView.CanGoBack;
-                        navBar.CanGoForward = activeWorker.WebView.CanGoForward;
-                    }
-
-                    // Повернути WebView у контейнер і навігувати
-                    var targetContainer = _isFullscreen ? _fullscreenModePage?.FullscreenGrid : _normalModePage?.WebViewGrid;
-                    if (targetContainer != null)
-                    {
-                        MoveActiveWebViewTo(targetContainer);
-                    }
-                    // was: _ = activeWorker.Manager.NavigateAsync(url);
+                    // Навігація: далі OnWorkerNavigationChanged сам оновить UI/адресний рядок/кнопки
                     activeWorker.Navigate(url);
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"[MainWindow] No active worker!");
+                    CreateNewTab(url);
                 }
             }
-            
+
             System.Diagnostics.Debug.WriteLine($"[MainWindow] ===== OnInternalPageNavigateRequested END =====");
         }
         catch (Exception ex)
@@ -1841,81 +1869,31 @@ public partial class MainWindow : Window
         {
             System.Diagnostics.Debug.WriteLine($"[MainWindow] ===== OnSearchResultNavigateRequested =====");
             System.Diagnostics.Debug.WriteLine($"[MainWindow] URL: '{e.Url}', SessionId: {e.SessionId}, Query: '{e.Query}', Source: {e.SourceType}");
-            
-            // Зберігаємо в історію пошуку
+
             _searchHistoryService?.AddSearchClick(e.SessionId, e.Query, e.Url, e.SourceType);
-            
+
             var currentWorker = _tabs.Active;
+            var url = e.Url?.Trim();
+            if (string.IsNullOrWhiteSpace(url)) return;
+            if (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) && !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                url = "https://" + url;
+            }
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var _))
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Invalid URL after normalization: '{url}'");
+                return;
+            }
+
             if (currentWorker == null)
             {
-                System.Diagnostics.Debug.WriteLine("[MainWindow] No active worker, creating new tab");
-                var w = _tabs.Create(e.Url);
-                AddTabControlForWorker(w);
-                ActivateWorker(w);
-                return;
+                CreateNewTab(url);
             }
-
-            System.Diagnostics.Debug.WriteLine($"[MainWindow] Active worker found, WebView exists: {currentWorker.WebView != null}");
-
-            // Нормалізація URL
-            var normalizedUrl = e.Url?.Trim();
-            if (string.IsNullOrWhiteSpace(normalizedUrl))
+            else
             {
-                System.Diagnostics.Debug.WriteLine("[MainWindow] ERROR: URL is null or empty!");
-                return;
+                currentWorker.Navigate(url);
             }
 
-            // Додаємо https:// якщо потрібно
-            if (!normalizedUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
-                !normalizedUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-            {
-                normalizedUrl = "https://" + normalizedUrl;
-                System.Diagnostics.Debug.WriteLine($"[MainWindow] Normalized URL to: '{normalizedUrl}'");
-            }
-
-            // Валідація
-            if (!Uri.TryCreate(normalizedUrl, UriKind.Absolute, out var uri))
-            {
-                System.Diagnostics.Debug.WriteLine($"[MainWindow] ERROR: Invalid URL after normalization: '{normalizedUrl}'");
-                return;
-            }
-
-            System.Diagnostics.Debug.WriteLine($"[MainWindow] Final URL for navigation: '{normalizedUrl}'");
-
-            // ВАЖЛИВО: прибираємо внутрішню сторінку ПЕРЕД навігацією
-            currentWorker.WebView.Tag = null;
-            System.Diagnostics.Debug.WriteLine("[MainWindow] Cleared WebView.Tag");
-
-            // Оновлюємо адресний рядок
-            var navBar = _normalModePage?.NavBar;
-            if (navBar != null)
-            {
-                navBar.Url = normalizedUrl;
-                System.Diagnostics.Debug.WriteLine($"[MainWindow] Updated NavBar.Url to: '{normalizedUrl}'");
-            }
-
-            // Повертаємо WebView у контейнер
-            var targetContainer = _isFullscreen ? _fullscreenModePage?.FullscreenGrid : _normalModePage?.WebViewGrid;
-            if (targetContainer != null)
-            {
-                System.Diagnostics.Debug.WriteLine($"[MainWindow] Moving WebView to container (children before: {targetContainer.Children.Count})");
-                MoveActiveWebViewTo(targetContainer);
-                System.Diagnostics.Debug.WriteLine($"[MainWindow] WebView moved (children after: {targetContainer.Children.Count})");
-            }
-
-            // ГОЛОВНЕ: навігація
-            System.Diagnostics.Debug.WriteLine($"[MainWindow] CALLING worker.Navigate('{normalizedUrl}')...");
-            try
-            {
-                currentWorker.Navigate(normalizedUrl);
-                System.Diagnostics.Debug.WriteLine("[MainWindow] worker.Navigate() completed successfully");
-            }
-            catch (Exception navEx)
-            {
-                System.Diagnostics.Debug.WriteLine($"[MainWindow] ERROR in worker.Navigate(): {navEx.Message}");
-                System.Diagnostics.Debug.WriteLine($"[MainWindow] Stack: {navEx.StackTrace}");
-            }
-            
             System.Diagnostics.Debug.WriteLine($"[MainWindow] ===== OnSearchResultNavigateRequested END =====");
         }
         catch (Exception ex)
@@ -1927,58 +1905,26 @@ public partial class MainWindow : Window
 
     public void OpenVetaleSearchInCurrentTab()
     {
-        // Виконуємо в UI-потоці
         Dispatcher.UIThread.Post(() =>
         {
             const string vetaleSearchUrl = "vetale://search";
             var activeWorker = _tabs.Active;
             if (activeWorker == null)
             {
-                CreateInternalPageTab(vetaleSearchUrl);
+                CreateNewTab(vetaleSearchUrl);
                 Activate();
                 Focus();
                 return;
             }
 
-            // Створюємо нову домашню сторінку пошуку
             var home = new VetaleSearchHomePage();
             home.SetSuggestionsService(_globalSuggestions);
-            home.NavigateRequested += OnInternalPageNavigateRequested;
+            SubscribeToInternalPageEvents(home);
 
-            // Зберігаємо у Tag і відображаємо замість WebView
-            activeWorker.WebView.Tag = home;
-            var target = _isFullscreen ? _fullscreenModePage?.FullscreenGrid : _normalModePage?.WebViewGrid;
-            if (target != null)
-            {
-                target.Children.Clear();
-                target.Children.Add(home);
-            }
-
-            // Оновлюємо заголовок вкладки та панель навігації
-            var title = InternalUrlHandler.GetPageTitle(vetaleSearchUrl);
-            var tabsHost = _normalModePage?.TabsHostPanel;
-            if (tabsHost != null)
-            {
-                var idx = _tabs.Workers.ToList().IndexOf(activeWorker);
-                var childIdx = idx + 1;
-                if (idx >= 0 && childIdx < tabsHost.Children.Count && tabsHost.Children[childIdx] is Tab tab)
-                {
-                    tab.Title = title;
-                    tab.FaviconSource = null;
-                    tab.IsActive = true;
-                }
-            }
-            var nav = _normalModePage?.NavBar;
-            if (nav != null)
-            {
-                nav.Url = vetaleSearchUrl;
-                nav.CanGoBack = false;
-                nav.CanGoForward = false;
-            }
-
-            _tabs.Activate(activeWorker);
-            Activate();
-            Focus();
+            // Навігуємо через History/TabWorker: подія OnWorkerNavigationChanged виставить UI
+            activeWorker.Navigate(vetaleSearchUrl, home);
         });
     }
 }
+
+

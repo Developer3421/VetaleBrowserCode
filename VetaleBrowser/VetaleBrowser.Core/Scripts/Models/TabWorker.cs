@@ -264,7 +264,32 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
             if (name == "Address")
             {
-                Address = WebView.Address;
+                var newAddress = WebView.Address;
+                
+                // Перевіряємо чи це нова адреса (не програмна навігація через Navigate)
+                if (!_isNavigating && !string.IsNullOrWhiteSpace(newAddress) && newAddress != Address)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] WebView navigated to: {newAddress}");
+                    
+                    // Додаємо в історію (це користувацька навігація всередині WebView)
+                    var entry = new NavigationEntry
+                    {
+                        Url = newAddress,
+                        IsInternal = false,
+                        InternalPageContent = null,
+                        Timestamp = DateTime.UtcNow
+                    };
+                    
+                    History.AddEntry(entry);
+                    Address = newAddress;
+                    
+                    // Сповіщаємо про зміну навігації
+                    NavigationChanged?.Invoke(this, entry);
+                }
+                else
+                {
+                    Address = newAddress;
+                }
                 
                 // Re-inject guards and fullscreen listener on new pages
                 InjectNavigationGuards();
