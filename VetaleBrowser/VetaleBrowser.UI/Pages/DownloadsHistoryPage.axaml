@@ -16,7 +16,6 @@
     <StackPanel Orientation="Horizontal" Spacing="8" Grid.Row="1">
       <TextBox x:Name="SearchTextBox" Width="260" Watermark="{DynamicResource Downloads.Search}"/>
       <Button Content="{DynamicResource Common.Refresh}" x:Name="RefreshButton"/>
-      <Button Content="{DynamicResource Downloads.ClearCompleted}" x:Name="ClearOldButton"/>
     </StackPanel>
 
     <Border Grid.Row="2" Height="1" Background="#FFE0E0E0" Margin="0,6,0,6"/>

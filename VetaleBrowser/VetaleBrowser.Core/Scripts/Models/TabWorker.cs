@@ -697,9 +697,38 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         {
             try
             {
-                bool appliedAtSystemLevel = false;
+                bool appliedAtCefLevel = false;
 
-                // Try to mute per related OS process using Windows audio sessions (system level)
+                // Try to use CEFGlue native API first (best method - affects all audio from this browser instance)
+                try
+                {
+                    var cefBrowserHost = TryGetCefBrowserHost();
+                    if (cefBrowserHost != null)
+                    {
+                        // Use reflection to call SetAudioMuted on CefBrowserHost
+                        var setAudioMutedMethod = cefBrowserHost.GetType().GetMethod("SetAudioMuted", 
+                            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                        
+                        if (setAudioMutedMethod != null)
+                        {
+                            setAudioMutedMethod.Invoke(cefBrowserHost, new object[] { _isMuted });
+                            appliedAtCefLevel = true;
+                            Debug.WriteLine($"[TabWorker] Audio {(_isMuted ? "muted" : "unmuted")} via CEF native API");
+                        }
+                    }
+                }
+                catch (Exception cefEx)
+                {
+                    Debug.WriteLine($"[TabWorker] CEF native mute failed: {cefEx.Message}");
+                }
+
+                if (appliedAtCefLevel)
+                {
+                    return; // CEF API worked, we're done
+                }
+
+                // Fallback 1: Try to mute per related OS process using Windows audio sessions (system level)
+                bool appliedAtSystemLevel = false;
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && _relatedPids.Count > 0)
                 {
                     foreach (var pid in _relatedPids)
@@ -717,30 +746,105 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
                 if (appliedAtSystemLevel)
                 {
-                    Debug.WriteLine($"[TabWorker] Audio {( _isMuted ? "muted" : "unmuted" )} at system level for PIDs: {string.Join(",", _relatedPids)}");
+                    Debug.WriteLine($"[TabWorker] Audio {(_isMuted ? "muted" : "unmuted")} at system level for PIDs: {string.Join(",", _relatedPids)}");
                     return;
                 }
 
-                // WebViewControl (CefGlue) doesn't expose direct AudioMuted properties
-                // Use JavaScript fallback to control media elements
+                // Fallback 2: JavaScript to control media elements
                 try
                 {
                     var js = _isMuted
                         ? "(function(){try{document.querySelectorAll('video,audio').forEach(m=>{m.muted=true; m.volume=0;});}catch(e){}})();"
                         : "(function(){try{document.querySelectorAll('video,audio').forEach(m=>{m.muted=false; if(m.volume===0) m.volume=1.0;});}catch(e){}})();";
                     
-                    // Use direct EvaluateScript from WebViewControl (async) with explicit type
                     await WebView.EvaluateScript<object>(js);
-                    System.Diagnostics.Debug.WriteLine($"[TabWorker] Audio state applied via JavaScript: {_isMuted}");
+                    System.Diagnostics.Debug.WriteLine($"[TabWorker] Audio state applied via JavaScript fallback: {_isMuted}");
                 }
                 catch (Exception jsEx)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[TabWorker] JS mute failed: {jsEx.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[TabWorker] JS mute fallback failed: {jsEx.Message}");
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[TabWorker] Failed to apply mute state: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Спроба отримати CefBrowserHost через рефлексію з WebViewControl
+        /// </summary>
+        private object? TryGetCefBrowserHost()
+        {
+            try
+            {
+                // WebView -> potentially has internal CefGlue browser
+                var webViewType = WebView.GetType();
+                
+                // Шукаємо поле/властивість Browser або BrowserHost
+                var browserProperty = webViewType.GetProperty("Browser", 
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                
+                if (browserProperty == null)
+                {
+                    browserProperty = webViewType.GetProperty("CefBrowser", 
+                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                }
+
+                var browserField = webViewType.GetField("_browser", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                
+                if (browserField == null)
+                {
+                    browserField = webViewType.GetField("browser", 
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                }
+
+                object? browser = null;
+                if (browserProperty != null)
+                {
+                    browser = browserProperty.GetValue(WebView);
+                }
+                else if (browserField != null)
+                {
+                    browser = browserField.GetValue(WebView);
+                }
+
+                if (browser == null)
+                {
+                    return null;
+                }
+
+                // Тепер отримуємо Host з browser
+                var browserType = browser.GetType();
+                var hostProperty = browserType.GetProperty("Host", 
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                
+                if (hostProperty == null)
+                {
+                    hostProperty = browserType.GetProperty("BrowserHost", 
+                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                }
+
+                var hostMethod = browserType.GetMethod("GetHost", 
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+                object? host = null;
+                if (hostProperty != null)
+                {
+                    host = hostProperty.GetValue(browser);
+                }
+                else if (hostMethod != null)
+                {
+                    host = hostMethod.Invoke(browser, null);
+                }
+
+                return host;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[TabWorker] TryGetCefBrowserHost failed: {ex.Message}");
+                return null;
             }
         }
 
