@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:models="clr-namespace:VetaleBrowser.VetaleBrowser.Search.Models"
              xmlns:pages="clr-namespace:VetaleBrowser.VetaleBrowser.UI.Pages"
+             xmlns:controls="clr-namespace:VetaleBrowser.VetaleBrowser.UI.Controls"
              mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="900"
              x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.VetaleSearchResultsPage"
              Background="#F5F5F7">
@@ -306,7 +307,7 @@
                                             Orientation="Horizontal"
                                             Spacing="4"
                                             Margin="0,0,8,0">
-                                    <Button Classes="icon-button" ToolTip.Tip="Пошук по голосу">
+                                    <Button x:Name="VoiceButton" Classes="icon-button" ToolTip.Tip="Пошук по голосу" Click="VoiceButton_Click">
                                         <TextBlock Text="🎤" FontSize="18"/>
                                     </Button>
                                     <Button Classes="icon-button" ToolTip.Tip="Пошук за зображенням">
@@ -315,7 +316,7 @@
                                     <Button Classes="icon-button" ToolTip.Tip="Пошук по відео">
                                         <TextBlock Text="📹" FontSize="18"/>
                                     </Button>
-                                    <Button Classes="icon-button" ToolTip.Tip="Пошук по геолокації">
+                                    <Button Classes="icon-button" ToolTip.Tip="Пошук по геолокації" Click="GeoSearch_Click">
                                         <TextBlock Text="📍" FontSize="18"/>
                                     </Button>
                                 </StackPanel>
@@ -387,6 +388,12 @@
                 <Border Grid.Column="0" Classes="results-card" Margin="32,0,16,0" HorizontalAlignment="Stretch" MaxWidth="900">
                     <Border Classes="results-inner-card">
                         <StackPanel>
+                            <!-- Перемикач режимів пошуку -->
+                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
+                                <Button x:Name="ModeSitesButton" Classes="page-number active" Click="ModeSites_Click">Сайти</Button>
+                                <Button x:Name="ModeImagesButton" Classes="page-number" Click="ModeImages_Click">Зображення</Button>
+                            </StackPanel>
+
                             <TextBlock x:Name="QueryHeading"
                                        Text="Локальний пошук Vetale"
                                        FontSize="22"

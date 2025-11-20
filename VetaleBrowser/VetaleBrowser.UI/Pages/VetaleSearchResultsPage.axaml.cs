@@ -14,13 +14,21 @@ using VetaleBrowser.VetaleBrowser.UI.Еlements; // NavigationBar
 using VetaleBrowser.VetaleBrowser.Search.Models;
 using VetaleBrowser.VetaleBrowser.Search.Services;
 using VetaleBrowser.VetaleBrowser.UI.Services;
+using VetaleBrowser.VetaleBrowser.VoiceRecognition.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
+
+public enum SearchMode
+{
+    Sites,
+    Images
+}
 
 public partial class VetaleSearchResultsPage : UserControl
 {
     private string? _currentQuery;
     private Guid _currentSessionId;
+    private SearchMode _currentMode = SearchMode.Sites;
     
     public event EventHandler<string>? NavigateRequested;
     public event EventHandler<SearchResultNavigationEventArgs>? SearchResultNavigateRequested;
@@ -30,10 +38,13 @@ public partial class VetaleSearchResultsPage : UserControl
     
     private TextBlock? _searchStats;
     private StackPanel? _resultsPanel;
+    private StackPanel? _imageResultsHost;
+    private Controls.ImageSearchResultsView? _imageResultsView;
     private TextBlock? _queryHeading;
     private TextBox? _searchInput;
     private ComboBox? _searchEngineSelector;
     private Button? _searchButton;
+    private Button? _voiceButton;
     private Popup? _suggestionsPopup;
     private ItemsControl? _suggestionsListBox;
 
@@ -43,6 +54,7 @@ public partial class VetaleSearchResultsPage : UserControl
     private readonly ISuggestionsService _suggestionsService;
     private readonly IUnifiedSearchService _unifiedSearchService;
     private readonly IFaviconService _faviconService = new FaviconService();
+    private IVoiceRecognitionService? _voiceRecognitionService;
     private CancellationTokenSource? _suggestionsCts;
     private CancellationTokenSource? _searchCts;
 
@@ -66,10 +78,13 @@ public partial class VetaleSearchResultsPage : UserControl
     {
         _searchStats = this.FindControl<TextBlock>("SearchStats");
         _resultsPanel = this.FindControl<StackPanel>("ResultsPanel");
+        _imageResultsHost = this.FindControl<StackPanel>("ImageResultsHost");
+        _imageResultsView = this.FindControl<Controls.ImageSearchResultsView>("ImageResultsView");
         _queryHeading = this.FindControl<TextBlock>("QueryHeading");
         _searchInput = this.FindControl<TextBox>("SearchInput");
         _searchEngineSelector = this.FindControl<ComboBox>("SearchEngineSelector");
         _searchButton = this.FindControl<Button>("SearchButton");
+        _voiceButton = this.FindControl<Button>("VoiceButton");
         _suggestionsPopup = this.FindControl<Popup>("SuggestionsPopup");
         _suggestionsListBox = this.FindControl<ItemsControl>("SuggestionsListBox");
 
@@ -85,15 +100,35 @@ public partial class VetaleSearchResultsPage : UserControl
         {
             _searchButton.IsEnabled = !string.IsNullOrWhiteSpace(_searchInput?.Text);
         }
+
+        if (_imageResultsView != null)
+        {
+            _imageResultsView.SourcePageOpenRequested += (s, url) =>
+            {
+                if (!string.IsNullOrWhiteSpace(url))
+                    NavigateRequested?.Invoke(this, url);
+            };
+        }
     }
 
     /// <summary>
     /// Встановити пошуковий запит та завантажити результати
     /// </summary>
-    public void SetSearchQuery(string query)
+    public void SetSearchQuery(string query, string? mode = null)
     {
-        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] SetSearchQuery called with: '{query}'");
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] SetSearchQuery called with: '{query}', mode='{mode}'");
         _currentQuery = query;
+
+        if (!string.IsNullOrWhiteSpace(mode) && mode.Equals("images", StringComparison.OrdinalIgnoreCase))
+        {
+            _currentMode = SearchMode.Images;
+        }
+        else
+        {
+            _currentMode = SearchMode.Sites;
+        }
+
+        UpdateModeVisuals();
 
         if (_searchInput != null)
         {
@@ -800,6 +835,168 @@ public partial class VetaleSearchResultsPage : UserControl
         }
         
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] ===== ResultBorder_Click END =====");
+    }
+
+    public void SetVoiceRecognitionService(IVoiceRecognitionService service)
+    {
+        _voiceRecognitionService = service;
+        
+        // Підписуємося на події
+        if (_voiceRecognitionService != null)
+        {
+            _voiceRecognitionService.TextRecognized += OnVoiceTextRecognized;
+            _voiceRecognitionService.StateChanged += OnVoiceStateChanged;
+            _voiceRecognitionService.ErrorOccurred += OnVoiceError;
+        }
+    }
+
+    // Обробники подій голосового розпізнавання
+    private async void VoiceButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_voiceRecognitionService == null)
+        {
+            System.Diagnostics.Debug.WriteLine("[VetaleSearchResultsPage] Voice recognition service not initialized");
+            return;
+        }
+
+        try
+        {
+            if (_voiceRecognitionService.CurrentState == VoiceRecognitionState.Listening)
+            {
+                // Якщо вже слухаємо, зупиняємо
+                _voiceRecognitionService.StopListening();
+            }
+            else
+            {
+                // Перевіряємо доступність
+                if (!_voiceRecognitionService.IsAvailable())
+                {
+                    System.Diagnostics.Debug.WriteLine("[VetaleSearchResultsPage] Voice recognition not available");
+                    OnVoiceError(this, "Розпізнавання голосу недоступне на цьому пристрої");
+                    return;
+                }
+
+                // Починаємо слухати
+                await _voiceRecognitionService.StartListeningAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] VoiceButton_Click error: {ex.Message}");
+            OnVoiceError(this, $"Помилка: {ex.Message}");
+        }
+    }
+
+    private void OnVoiceTextRecognized(object? sender, string text)
+    {
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Voice text recognized: {text}");
+        
+        // Оновлюємо UI в UI-потоці
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_searchInput != null)
+            {
+                _searchInput.Text = text;
+                if (_searchButton != null)
+                {
+                    _searchButton.IsEnabled = !string.IsNullOrWhiteSpace(text);
+                }
+            }
+            
+            // Автоматично зупиняємо після розпізнавання
+            _voiceRecognitionService?.StopListening();
+            
+            // Автоматично виконуємо пошук
+            PerformSearch();
+        });
+    }
+
+    private void OnVoiceStateChanged(object? sender, VoiceRecognitionState state)
+    {
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Voice state changed: {state}");
+        
+        // Оновлюємо UI в UI-потоці
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_voiceButton != null)
+            {
+                // Змінюємо вигляд кнопки в залежності від стану
+                var iconText = state switch
+                {
+                    VoiceRecognitionState.Listening => "⏹️", // Зупинити
+                    VoiceRecognitionState.Processing => "⏳", // Обробка
+                    _ => "🎤" // Мікрофон
+                };
+                
+                // Створюємо новий TextBlock
+                _voiceButton.Content = new TextBlock 
+                { 
+                    Text = iconText,
+                    FontSize = 18
+                };
+                
+                _voiceButton.IsEnabled = state != VoiceRecognitionState.Processing;
+            }
+        });
+    }
+
+    private void OnVoiceError(object? sender, string error)
+    {
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Voice error: {error}");
+        
+        // TODO: Показати користувачу повідомлення про помилку
+    }
+
+    public void GeoSearch_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_searchInput == null || string.IsNullOrWhiteSpace(_searchInput.Text)) return;
+        var query = _searchInput.Text.Trim();
+        var mapsUrl = $"https://www.openstreetmap.org/search?query={Uri.EscapeDataString(query)}";
+        NavigateRequested?.Invoke(this, mapsUrl);
+    }
+
+    public void SetMode(SearchMode mode)
+    {
+        _currentMode = mode;
+        UpdateModeVisuals();
+    }
+
+    private void UpdateModeVisuals()
+    {
+        var sitesButton = this.FindControl<Button>("ModeSitesButton");
+        var imagesButton = this.FindControl<Button>("ModeImagesButton");
+        if (sitesButton != null && imagesButton != null)
+        {
+            sitesButton.Classes.Remove("active");
+            imagesButton.Classes.Remove("active");
+            if (_currentMode == SearchMode.Sites)
+                sitesButton.Classes.Add("active");
+            else
+                imagesButton.Classes.Add("active");
+        }
+
+        if (_resultsPanel != null)
+            _resultsPanel.IsVisible = _currentMode == SearchMode.Sites;
+        if (_imageResultsHost != null)
+            _imageResultsHost.IsVisible = _currentMode == SearchMode.Images;
+    }
+
+    private void ModeSites_Click(object? sender, RoutedEventArgs e)
+    {
+        SetMode(SearchMode.Sites);
+        if (_currentQuery != null)
+        {
+            LoadSearchResults(_currentQuery);
+        }
+    }
+
+    private void ModeImages_Click(object? sender, RoutedEventArgs e)
+    {
+        SetMode(SearchMode.Images);
+        if (_currentQuery != null && _imageResultsView != null)
+        {
+            _imageResultsView.SetQuery(_currentQuery);
+        }
     }
 }
 

@@ -1,12 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <ApplicationIcon>DefaultTabItem.ico</ApplicationIcon>
+        <LangVersion>14</LangVersion>
     </PropertyGroup>
 
     <!-- Release configuration: single-file, no PDB -->
@@ -31,9 +32,9 @@
     <ItemGroup>
         <PackageReference Include="AngleSharp" Version="1.4.1-beta.502" />
         <PackageReference Include="Avalonia" Version="11.3.8" />
-        <PackageReference Include="Avalonia.Desktop" Version="11.3.8"/>
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.8"/>
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.8"/>
+        <PackageReference Include="Avalonia.Desktop" Version="11.3.8" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.8" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.8" />
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Include="Avalonia.Diagnostics" Version="11.3.8">
             <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
@@ -46,13 +47,20 @@
         <PackageReference Include="LLamaSharp.Backend.Vulkan" Version="0.25.0" Condition="'$(LlamaBackendChoice)' == 'vulkan'" />
         <PackageReference Include="Microsoft.Agents.AI.Abstractions" Version="1.0.0-preview.251104.1" />
         <PackageReference Include="Microsoft.Playwright" Version="1.55.0" />
+        <PackageReference Include="NAudio.Core" Version="2.2.1" />
+        <PackageReference Include="NAudio.WinMM" Version="2.2.1" />
         <PackageReference Include="WebViewControl-Avalonia" Version="3.120.9" />
         <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
+        <PackageReference Include="NAudio" Version="2.2.1" />
+        <PackageReference Include="Whisper.net" Version="1.9.0" />
+        <PackageReference Include="Whisper.net.Runtime" Version="1.9.0" />
+
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="VetaleBrowser.AI\Model\" />
       <Folder Include="VetaleBrowser.DevTools\" />
+      <Folder Include="VetaleBrowser.VoiceRecognition\Models\" />
       <Folder Include="VetaleBrowser.WebEngine\" />
     </ItemGroup>
 
@@ -112,11 +120,10 @@
     <!-- Прунінг ResolvedFileToPublish для CPU (не потрібен для Vulkan) -->
     <Target Name="PruneLlamaResolvedFilesToPublish" AfterTargets="ResolvePublishFiles" BeforeTargets="ResolveFileConflicts" Condition="'$(LlamaBackendChoice)' == 'cpu-avx2'">
       <ItemGroup>
-        <_LlamaAnyCpu Include="@(ResolvedFileToPublish)"
-          Condition="$([System.String]::Copy('%(ResolvedFileToPublish.Identity)').ToLower().Contains('llamasharp.backend.cpu') and $([System.String]::Copy('%(ResolvedFileToPublish.Identity)').ToLower().Contains('runtimes\\win-x64\\native\\'))" />
+        <_LlamaAnyCpu Include="@(ResolvedFileToPublish)" Condition="$([System.String]::Copy('%(ResolvedFileToPublish.Identity)').ToLower().Contains('llamasharp.backend.cpu') and $([System.String]::Copy('%(ResolvedFileToPublish.Identity)').ToLower().Contains('runtimes\\win-x64\\native\\'))" />
         <ResolvedFileToPublish Remove="@(_LlamaAnyCpu)" />
       </ItemGroup>
-      <Message Importance="high" Text="[LlamaPruneCPU] Removed $([MSBuild]::ValueOrDefault('@(_LlamaAnyCpu->Count())','0')) llama CPU dlls from ResolvedFileToPublish (we'll copy avx2 via Content)" />
+      <Message Importance="high" Text="[LlamaPruneCPU] Removed $([MSBuild]::ValueOrDefault('@(_LlamaAnyCpu-&gt;Count())','0')) llama CPU dlls from ResolvedFileToPublish (we'll copy avx2 via Content)" />
     </Target>
 
     <!-- Захист від одночасного вибору двох бекендів (якщо хтось вручну додасть обидва) -->
@@ -125,7 +132,7 @@
         <_HasCpuBackend Include="LLamaSharp.Backend.Cpu" Condition="'$(LlamaBackendChoice)' == 'cpu-avx2'" />
         <_HasVulkanBackend Include="LLamaSharp.Backend.Vulkan" Condition="'$(LlamaBackendChoice)' == 'vulkan'" />
       </ItemGroup>
-      <Error Condition="@(_HasCpuBackend->Count()) &gt; 0 and @(_HasVulkanBackend->Count()) &gt; 0" Text="Не можна одночасно мати CPU і Vulkan бекенди LLamaSharp в одному однофайловому білді. Використайте -p:LlamaBackendChoice=cpu-avx2 або -p:LlamaBackendChoice=vulkan." />
+      <Error Condition="@(_HasCpuBackend-&gt;Count()) &gt; 0 and @(_HasVulkanBackend-&gt;Count()) &gt; 0" Text="Не можна одночасно мати CPU і Vulkan бекенди LLamaSharp в одному однофайловому білді. Використайте -p:LlamaBackendChoice=cpu-avx2 або -p:LlamaBackendChoice=vulkan." />
     </Target>
 
     <ItemGroup Condition="'$(LlamaBackendChoice)' == 'vulkan'">
@@ -145,5 +152,15 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <Link>%(FileName)%(Extension)</Link>
       </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <!-- Папка для локальних моделей Whisper у проекті -->
+      <Folder Include="VetaleBrowser.VoiceRecognition\Models\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <!-- Копіювати всі моделі Whisper (.bin) до вихідної директорії -->
+      <None Include="VetaleBrowser.VoiceRecognition\Models\*.bin" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 </Project>

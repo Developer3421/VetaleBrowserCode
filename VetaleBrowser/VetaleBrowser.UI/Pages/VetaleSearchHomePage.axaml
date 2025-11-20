@@ -161,11 +161,14 @@
                                     Orientation="Horizontal"
                                     Spacing="4"
                                     Margin="0,0,8,0">
-                            <Button Classes="icon-button" ToolTip.Tip="Голосовий пошук">
+                            <Button x:Name="VoiceButton" Classes="icon-button" ToolTip.Tip="Голосовий пошук" Click="VoiceButton_Click">
                                 <TextBlock Text="🎤" FontSize="20"/>
                             </Button>
-                            <Button Classes="icon-button" ToolTip.Tip="Пошук за зображенням">
+                            <Button x:Name="ImageSearchButton" Classes="icon-button" ToolTip.Tip="Пошук за зображенням" Click="ImageSearch_Click">
                                 <TextBlock Text="📷" FontSize="20"/>
+                            </Button>
+                            <Button x:Name="GeoSearchButton" Classes="icon-button" ToolTip.Tip="Пошук по геолокації" Click="GeoSearch_Click">
+                                <TextBlock Text="📍" FontSize="20"/>
                             </Button>
                         </StackPanel>
 
@@ -243,6 +246,12 @@
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <TextBlock Text="🔍"/>
                                         <TextBlock Text="Yandex"/>
+                                    </StackPanel>
+                                </ComboBoxItem>
+                                <ComboBoxItem>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="🗺️"/>
+                                        <TextBlock Text="Карти (OpenStreetMap)"/>
                                     </StackPanel>
                                 </ComboBoxItem>
                             </ComboBox>

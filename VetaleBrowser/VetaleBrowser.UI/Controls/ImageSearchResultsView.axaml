@@ -1,0 +1,73 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:VetaleBrowser.VetaleBrowser.Search.Models;assembly=VetaleBrowser"
+             mc:Ignorable="d"
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Controls.ImageSearchResultsView">
+    <UserControl.Styles>
+        <Style Selector="Border.image-card">
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Margin" Value="0,0,12,12"/>
+            <Setter Property="BoxShadow" Value="0 2 12 #30000000"/>
+        </Style>
+        <Style Selector="Border.image-card:pointerover">
+            <Setter Property="BoxShadow" Value="0 4 20 #50000000"/>
+        </Style>
+    </UserControl.Styles>
+    <ScrollViewer x:Name="PART_ScrollViewer" VerticalScrollBarVisibility="Auto">
+        <ItemsControl x:Name="ItemsHost">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Horizontal" ItemWidth="220"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="models:ImageSearchResult">
+                    <Border Classes="image-card" Cursor="Hand" PointerPressed="ImageCard_Click">
+                        <StackPanel>
+                            <!-- Зображення -->
+                            <Border CornerRadius="8" ClipToBounds="True" Height="180" Background="#F0F0F0">
+                                <Image Source="{Binding Urls.RegularUrl}" 
+                                       Stretch="UniformToFill"
+                                       Width="200" Height="180"/>
+                            </Border>
+                            
+                            <!-- Інформація -->
+                            <StackPanel Margin="8">
+                                <TextBlock Text="{Binding Title}" 
+                                           FontSize="12" 
+                                           FontWeight="SemiBold"
+                                           TextWrapping="Wrap"
+                                           MaxHeight="36"
+                                           TextTrimming="CharacterEllipsis"
+                                           Margin="0,0,0,4"/>
+                                
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <TextBlock Text="📷" FontSize="10"/>
+                                    <TextBlock Text="{Binding PhotographerName}" 
+                                               FontSize="10" 
+                                               Foreground="#666"
+                                               TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                                
+                                <Border Background="{Binding Color}" 
+                                        Height="3" 
+                                        CornerRadius="2"
+                                        Margin="0,4,0,0"/>
+                                
+                                <TextBlock Text="{Binding Provider}" 
+                                           FontSize="9" 
+                                           Foreground="#999"
+                                           HorizontalAlignment="Right"
+                                           Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </ScrollViewer>
+</UserControl>
+

@@ -1,6 +1,8 @@
 using System;
 using Avalonia.Controls;
 using VetaleBrowser.VetaleBrowser.UI.Pages;
+using VetaleBrowser.VetaleBrowser.Search.Services;
+using VetaleBrowser.VetaleBrowser.VoiceRecognition.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Services;
 
@@ -10,6 +12,10 @@ namespace VetaleBrowser.VetaleBrowser.UI.Services;
 public static class InternalUrlHandler
 {
     public const string InternalProtocol = "vetale://";
+    
+    // Статичні сервіси для налаштування створюваних сторінок
+    public static ISuggestionsService? GlobalSuggestionsService { get; set; }
+    public static IVoiceRecognitionService? GlobalVoiceRecognitionService { get; set; }
     
     /// <summary>
     /// Перевірити чи є URL внутрішнім
@@ -76,12 +82,34 @@ public static class InternalUrlHandler
 
     private static VetaleSearchHomePage CreateSearchHomePage(string url)
     {
+        System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] CreateSearchHomePage called for: {url}");
         var page = new VetaleSearchHomePage();
+        System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] VetaleSearchHomePage instance created");
+        
+        // Налаштовуємо сервіси якщо вони доступні
+        System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] GlobalSuggestionsService null? {GlobalSuggestionsService == null}");
+        if (GlobalSuggestionsService != null)
+            page.SetSuggestionsService(GlobalSuggestionsService);
+        
+        System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] GlobalVoiceRecognitionService null? {GlobalVoiceRecognitionService == null}");
+        if (GlobalVoiceRecognitionService != null)
+        {
+            System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] Calling SetVoiceRecognitionService...");
+            page.SetVoiceRecognitionService(GlobalVoiceRecognitionService);
+            System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] SetVoiceRecognitionService called");
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] WARNING: GlobalVoiceRecognitionService is NULL!");
+        }
+        
         var q = GetQueryParameter(url, "q");
         if (!string.IsNullOrWhiteSpace(q))
         {
             page.SetQuery(q);
         }
+        
+        System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] Returning configured VetaleSearchHomePage");
         return page;
     }
     
@@ -92,6 +120,10 @@ public static class InternalUrlHandler
     {
         System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] CreateSearchResultsPage: {url}");
         var page = new VetaleSearchResultsPage();
+        
+        // Налаштовуємо сервіси якщо вони доступні
+        if (GlobalVoiceRecognitionService != null)
+            page.SetVoiceRecognitionService(GlobalVoiceRecognitionService);
         
         // Витягуємо query параметр з URL
         var query = GetQueryParameter(url, "q");
