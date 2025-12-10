@@ -13,6 +13,7 @@ using WebViewControl;
 using Avalonia.Threading;
 using Avalonia;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.Models;
+using VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers;
 using System.Linq;
 using VetaleBrowser.VetaleBrowser.UI.Pages;
 using VetaleBrowser.VetaleBrowser.UI.Windows; // added for SettingsWindow and ToolsWindow
@@ -607,6 +608,9 @@ public partial class MainWindow : Window
         
         // Підписуємося на події навігації
         worker.NavigationChanged += OnWorkerNavigationChanged;
+        
+        // Підписуємося на події помилок для локалізованих сторінок помилок
+        worker.ErrorOccurred += OnWorkerErrorOccurred;
         
         // Якщо є початковий URL, навігуємо ОДИН РАЗ з правильним content
         if (!string.IsNullOrEmpty(initialUrl))
@@ -1773,6 +1777,95 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[MainWindow] OnWorkerNavigationChanged error: {ex}");
+        }
+    }
+    
+    /// <summary>
+    /// Обробник помилок браузера у TabWorker (показує локалізовану сторінку помилки)
+    /// </summary>
+    private void OnWorkerErrorOccurred(object? sender, BrowserErrorEventArgs e)
+    {
+        try
+        {
+            if (sender is not TabWorker worker) return;
+            if (_tabs.Active != worker) return; // Показуємо помилку тільки для активної вкладки
+            
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Browser error: {e.Error.Title} ({e.Error.ErrorName}) for {e.Error.FailedUrl}");
+            
+            // Створюємо сторінку помилки
+            var errorPage = e.CreateErrorPage();
+            
+            // Підписуємося на дії користувача
+            errorPage.RetryRequested += (_, _) =>
+            {
+                // Перезавантажуємо сторінку
+                if (!string.IsNullOrEmpty(e.Error.FailedUrl))
+                {
+                    worker.Navigate(e.Error.FailedUrl);
+                }
+                else
+                {
+                    worker.Manager.Reload();
+                }
+            };
+            
+            errorPage.GoBackRequested += (_, _) =>
+            {
+                if (worker.History.CanGoBack)
+                {
+                    worker.GoBack();
+                }
+                else
+                {
+                    // Якщо немає історії, переходимо на домашню сторінку
+                    worker.Navigate("vetale://search");
+                }
+            };
+            
+            errorPage.GoHomeRequested += (_, _) =>
+            {
+                worker.Navigate("vetale://search");
+            };
+            
+            errorPage.SearchRequested += (_, query) =>
+            {
+                // Навігуємо до Vetale Search з запитом
+                var searchUrl = $"vetale://search?q={Uri.EscapeDataString(query)}";
+                var content = InternalUrlHandler.CreatePageContent(searchUrl);
+                if (content != null)
+                {
+                    SubscribeToInternalPageEvents(content);
+                    worker.Navigate(searchUrl, content);
+                }
+            };
+            
+            // Показуємо сторінку помилки в контейнері
+            Dispatcher.UIThread.Post(() =>
+            {
+                try
+                {
+                    var targetContainer = _isFullscreen 
+                        ? _fullscreenModePage?.FullscreenGrid 
+                        : _normalModePage?.WebViewGrid;
+                    
+                    if (targetContainer != null)
+                    {
+                        targetContainer.Children.Clear();
+                        targetContainer.Children.Add(errorPage);
+                        System.Diagnostics.Debug.WriteLine($"[MainWindow] Error page displayed: {e.Error.Title}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Failed to display error page: {ex.Message}");
+                }
+            });
+            
+            e.Handled = true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] OnWorkerErrorOccurred error: {ex}");
         }
     }
 

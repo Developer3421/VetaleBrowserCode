@@ -342,4 +342,133 @@
   <x:String x:Key="Downloads.Status.Completed">Completed</x:String>
   <x:String x:Key="Downloads.Status.Error">Error</x:String>
   <x:String x:Key="Downloads.Status.Cancelled">Cancelled</x:String>
+
+  <!-- Browser Error Pages -->
+  <!-- Network Errors -->
+  <x:String x:Key="BrowserError.NameNotResolved.Title">Site not found</x:String>
+  <x:String x:Key="BrowserError.NameNotResolved.Description">Could not find the server IP address for this domain name. The site may not exist or there may be a typo.</x:String>
+  <x:String x:Key="BrowserError.NameNotResolved.Tip1">Check the address spelling</x:String>
+  <x:String x:Key="BrowserError.NameNotResolved.Tip2">Make sure you are connected to the Internet</x:String>
+  <x:String x:Key="BrowserError.NameNotResolved.Tip3">Try clearing DNS cache: ipconfig /flushdns</x:String>
+
+  <x:String x:Key="BrowserError.InternetDisconnected.Title">No Internet connection</x:String>
+  <x:String x:Key="BrowserError.InternetDisconnected.Description">Your device is not connected to the Internet. Check your connection and try again.</x:String>
+  <x:String x:Key="BrowserError.InternetDisconnected.Tip1">Check if Wi-Fi is enabled or cable is connected</x:String>
+  <x:String x:Key="BrowserError.InternetDisconnected.Tip2">Restart your router or modem</x:String>
+  <x:String x:Key="BrowserError.InternetDisconnected.Tip3">Contact your Internet service provider</x:String>
+
+  <x:String x:Key="BrowserError.ConnectionRefused.Title">Connection refused</x:String>
+  <x:String x:Key="BrowserError.ConnectionRefused.Description">The server actively refused the connection attempt. The server may not be running or the port is closed.</x:String>
+  <x:String x:Key="BrowserError.ConnectionRefused.Tip1">Make sure the server is running</x:String>
+  <x:String x:Key="BrowserError.ConnectionRefused.Tip2">Check firewall settings</x:String>
+  <x:String x:Key="BrowserError.ConnectionRefused.Tip3">Try again later</x:String>
+
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Title">Connection timed out</x:String>
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Description">The server took too long to respond. This could be due to slow connection or server overload.</x:String>
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Tip1">Check your Internet speed</x:String>
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Tip2">Try refreshing the page</x:String>
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Tip3">Try again later when server is less busy</x:String>
+
+  <x:String x:Key="BrowserError.ConnectionReset.Title">Connection reset</x:String>
+  <x:String x:Key="BrowserError.ConnectionReset.Description">The connection to the server was unexpectedly interrupted. This may be a temporary issue.</x:String>
+  <x:String x:Key="BrowserError.ConnectionReset.Tip1">Refresh the page</x:String>
+  <x:String x:Key="BrowserError.ConnectionReset.Tip2">Check your Internet connection</x:String>
+  <x:String x:Key="BrowserError.ConnectionReset.Tip3">Disable VPN or proxy if using one</x:String>
+
+  <!-- Security Errors -->
+  <x:String x:Key="BrowserError.SSLError.Title">Insecure connection</x:String>
+  <x:String x:Key="BrowserError.SSLError.Description">The security certificate of this site is invalid or expired. Your data may be at risk.</x:String>
+  <x:String x:Key="BrowserError.SSLError.Tip1">Do not enter personal data on this site</x:String>
+  <x:String x:Key="BrowserError.SSLError.Tip2">Check the date and time on your device</x:String>
+  <x:String x:Key="BrowserError.SSLError.Tip3">Contact the site administrator</x:String>
+
+  <!-- Server Errors -->
+  <x:String x:Key="BrowserError.EmptyResponse.Title">Empty response</x:String>
+  <x:String x:Key="BrowserError.EmptyResponse.Description">The server did not send any data. The server may be overloaded or malfunctioning.</x:String>
+  <x:String x:Key="BrowserError.EmptyResponse.Tip1">Try refreshing the page</x:String>
+  <x:String x:Key="BrowserError.EmptyResponse.Tip2">Try again later</x:String>
+  <x:String x:Key="BrowserError.EmptyResponse.Tip3">Check server status</x:String>
+
+  <x:String x:Key="BrowserError.TooManyRedirects.Title">Too many redirects</x:String>
+  <x:String x:Key="BrowserError.TooManyRedirects.Description">The page created a redirect loop. The server is incorrectly configured.</x:String>
+  <x:String x:Key="BrowserError.TooManyRedirects.Tip1">Clear cookies for this site</x:String>
+  <x:String x:Key="BrowserError.TooManyRedirects.Tip2">Try a different browser</x:String>
+  <x:String x:Key="BrowserError.TooManyRedirects.Tip3">Contact site support</x:String>
+
+  <!-- General Errors -->
+  <x:String x:Key="BrowserError.BlockedByClient.Title">Blocked</x:String>
+  <x:String x:Key="BrowserError.BlockedByClient.Description">Loading of this resource was blocked by the browser or an extension.</x:String>
+  <x:String x:Key="BrowserError.BlockedByClient.Tip1">Check ad blocker settings</x:String>
+  <x:String x:Key="BrowserError.BlockedByClient.Tip2">Temporarily disable security extensions</x:String>
+  <x:String x:Key="BrowserError.BlockedByClient.Tip3">Add the site to exceptions list</x:String>
+
+  <x:String x:Key="BrowserError.InvalidUrl.Title">Invalid address</x:String>
+  <x:String x:Key="BrowserError.InvalidUrl.Description">The entered address has an incorrect format and cannot be processed.</x:String>
+  <x:String x:Key="BrowserError.InvalidUrl.Tip1">Check URL spelling</x:String>
+  <x:String x:Key="BrowserError.InvalidUrl.Tip2">Make sure URL starts with http:// or https://</x:String>
+  <x:String x:Key="BrowserError.InvalidUrl.Tip3">Try finding the site through search</x:String>
+
+  <x:String x:Key="BrowserError.FileNotFound.Title">File not found</x:String>
+  <x:String x:Key="BrowserError.FileNotFound.Description">The requested file does not exist at the specified address.</x:String>
+  <x:String x:Key="BrowserError.FileNotFound.Tip1">Check the file path</x:String>
+  <x:String x:Key="BrowserError.FileNotFound.Tip2">Make sure the file exists</x:String>
+  <x:String x:Key="BrowserError.FileNotFound.Tip3">Try navigating to the site's home page</x:String>
+
+  <x:String x:Key="BrowserError.AccessDenied.Title">Access denied</x:String>
+  <x:String x:Key="BrowserError.AccessDenied.Description">You do not have permission to view this resource.</x:String>
+  <x:String x:Key="BrowserError.AccessDenied.Tip1">Log in to your account</x:String>
+  <x:String x:Key="BrowserError.AccessDenied.Tip2">Contact administrator for access</x:String>
+  <x:String x:Key="BrowserError.AccessDenied.Tip3">Check permission settings</x:String>
+
+  <x:String x:Key="BrowserError.Unknown.Title">Loading error</x:String>
+  <x:String x:Key="BrowserError.Unknown.Description">Failed to load the page.</x:String>
+  <x:String x:Key="BrowserError.Unknown.Tip1">Try refreshing the page</x:String>
+  <x:String x:Key="BrowserError.Unknown.Tip2">Check your Internet connection</x:String>
+  <x:String x:Key="BrowserError.Unknown.Tip3">Try again later</x:String>
+
+  <!-- HTTP Error Pages -->
+  <x:String x:Key="BrowserError.Http400.Title">Bad request</x:String>
+  <x:String x:Key="BrowserError.Http400.Description">The server cannot process your request due to a syntax error.</x:String>
+
+  <x:String x:Key="BrowserError.Http401.Title">Authorization required</x:String>
+  <x:String x:Key="BrowserError.Http401.Description">You need to log in to access this page.</x:String>
+
+  <x:String x:Key="BrowserError.Http403.Title">Access forbidden</x:String>
+  <x:String x:Key="BrowserError.Http403.Description">You do not have permission to view this page.</x:String>
+
+  <x:String x:Key="BrowserError.Http404.Title">Page not found</x:String>
+  <x:String x:Key="BrowserError.Http404.Description">The requested page does not exist on this server. It may have been removed or moved.</x:String>
+
+  <x:String x:Key="BrowserError.Http408.Title">Request timeout</x:String>
+  <x:String x:Key="BrowserError.Http408.Description">The server closed the connection due to long waiting.</x:String>
+
+  <x:String x:Key="BrowserError.Http429.Title">Too many requests</x:String>
+  <x:String x:Key="BrowserError.Http429.Description">You have sent too many requests. Wait and try again.</x:String>
+
+  <x:String x:Key="BrowserError.Http500.Title">Internal server error</x:String>
+  <x:String x:Key="BrowserError.Http500.Description">An unexpected error occurred on the server. This is a site problem, not your connection.</x:String>
+
+  <x:String x:Key="BrowserError.Http502.Title">Bad gateway</x:String>
+  <x:String x:Key="BrowserError.Http502.Description">The proxy server received an invalid response from another server.</x:String>
+
+  <x:String x:Key="BrowserError.Http503.Title">Service unavailable</x:String>
+  <x:String x:Key="BrowserError.Http503.Description">The server is temporarily unavailable due to maintenance or overload.</x:String>
+
+  <x:String x:Key="BrowserError.Http504.Title">Gateway timeout</x:String>
+  <x:String x:Key="BrowserError.Http504.Description">The proxy server did not receive a response in time from another server.</x:String>
+
+  <x:String x:Key="BrowserError.HttpUnknown.Title">Server error</x:String>
+  <x:String x:Key="BrowserError.HttpUnknown.Description">The server returned an error.</x:String>
+
+  <!-- Error Page UI Elements -->
+  <x:String x:Key="BrowserError.Retry">Try again</x:String>
+  <x:String x:Key="BrowserError.GoBack">Back</x:String>
+  <x:String x:Key="BrowserError.GoHome">Home</x:String>
+  <x:String x:Key="BrowserError.Search">Search</x:String>
+  <x:String x:Key="BrowserError.SearchPlaceholder">Enter search query...</x:String>
+  <x:String x:Key="BrowserError.Tips">What you can try:</x:String>
+  <x:String x:Key="BrowserError.Category.Network">Network problem</x:String>
+  <x:String x:Key="BrowserError.Category.Server">Server problem</x:String>
+  <x:String x:Key="BrowserError.Category.Security">Security problem</x:String>
+  <x:String x:Key="BrowserError.Category.General">General error</x:String>
 </ResourceDictionary>

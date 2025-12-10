@@ -323,4 +323,133 @@
   <x:String x:Key="VetaleAI.ModelLoading">Завантаження AI моделі...</x:String>
   <x:String x:Key="VetaleAI.ModelLoaded">Модель успішно завантажено</x:String>
   <x:String x:Key="VetaleAI.ModelError">Помилка завантаження моделі</x:String>
+
+  <!-- Browser Error Pages -->
+  <!-- Network Errors -->
+  <x:String x:Key="BrowserError.NameNotResolved.Title">Сайт не знайдено</x:String>
+  <x:String x:Key="BrowserError.NameNotResolved.Description">Не вдалося знайти IP-адресу сервера для цього доменного імені. Можливо, сайт не існує або написано з помилкою.</x:String>
+  <x:String x:Key="BrowserError.NameNotResolved.Tip1">Перевірте правильність написання адреси</x:String>
+  <x:String x:Key="BrowserError.NameNotResolved.Tip2">Переконайтеся, що ви підключені до Інтернету</x:String>
+  <x:String x:Key="BrowserError.NameNotResolved.Tip3">Спробуйте очистити кеш DNS: ipconfig /flushdns</x:String>
+
+  <x:String x:Key="BrowserError.InternetDisconnected.Title">Немає підключення до Інтернету</x:String>
+  <x:String x:Key="BrowserError.InternetDisconnected.Description">Ваш пристрій не підключено до Інтернету. Перевірте з'єднання та спробуйте знову.</x:String>
+  <x:String x:Key="BrowserError.InternetDisconnected.Tip1">Перевірте, чи увімкнено Wi-Fi або під'єднано кабель</x:String>
+  <x:String x:Key="BrowserError.InternetDisconnected.Tip2">Перезавантажте роутер або модем</x:String>
+  <x:String x:Key="BrowserError.InternetDisconnected.Tip3">Зверніться до вашого інтернет-провайдера</x:String>
+
+  <x:String x:Key="BrowserError.ConnectionRefused.Title">З'єднання відхилено</x:String>
+  <x:String x:Key="BrowserError.ConnectionRefused.Description">Сервер активно відхилив спробу підключення. Можливо, сервер не запущено або порт закритий.</x:String>
+  <x:String x:Key="BrowserError.ConnectionRefused.Tip1">Переконайтеся, що сервер запущено</x:String>
+  <x:String x:Key="BrowserError.ConnectionRefused.Tip2">Перевірте налаштування брандмауера</x:String>
+  <x:String x:Key="BrowserError.ConnectionRefused.Tip3">Спробуйте пізніше</x:String>
+
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Title">Час очікування вичерпано</x:String>
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Description">Сервер занадто довго не відповідає. Це може бути через повільне з'єднання або перевантаження сервера.</x:String>
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Tip1">Перевірте швидкість вашого Інтернету</x:String>
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Tip2">Спробуйте оновити сторінку</x:String>
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Tip3">Спробуйте пізніше, коли сервер буде менш завантажений</x:String>
+
+  <x:String x:Key="BrowserError.ConnectionReset.Title">З'єднання перервано</x:String>
+  <x:String x:Key="BrowserError.ConnectionReset.Description">З'єднання з сервером було несподівано перервано. Це може бути тимчасовою проблемою.</x:String>
+  <x:String x:Key="BrowserError.ConnectionReset.Tip1">Оновіть сторінку</x:String>
+  <x:String x:Key="BrowserError.ConnectionReset.Tip2">Перевірте з'єднання з Інтернетом</x:String>
+  <x:String x:Key="BrowserError.ConnectionReset.Tip3">Вимкніть VPN або проксі, якщо використовуєте</x:String>
+
+  <!-- Security Errors -->
+  <x:String x:Key="BrowserError.SSLError.Title">Небезпечне з'єднання</x:String>
+  <x:String x:Key="BrowserError.SSLError.Description">Сертифікат безпеки цього сайту недійсний або прострочений. Ваші дані можуть бути під загрозою.</x:String>
+  <x:String x:Key="BrowserError.SSLError.Tip1">Не вводьте особисті дані на цьому сайті</x:String>
+  <x:String x:Key="BrowserError.SSLError.Tip2">Перевірте дату та час на вашому пристрої</x:String>
+  <x:String x:Key="BrowserError.SSLError.Tip3">Зверніться до адміністратора сайту</x:String>
+
+  <!-- Server Errors -->
+  <x:String x:Key="BrowserError.EmptyResponse.Title">Порожня відповідь</x:String>
+  <x:String x:Key="BrowserError.EmptyResponse.Description">Сервер не надіслав жодних даних. Можливо, сервер перевантажений або несправний.</x:String>
+  <x:String x:Key="BrowserError.EmptyResponse.Tip1">Спробуйте оновити сторінку</x:String>
+  <x:String x:Key="BrowserError.EmptyResponse.Tip2">Спробуйте пізніше</x:String>
+  <x:String x:Key="BrowserError.EmptyResponse.Tip3">Перевірте статус сервера</x:String>
+
+  <x:String x:Key="BrowserError.TooManyRedirects.Title">Забагато перенаправлень</x:String>
+  <x:String x:Key="BrowserError.TooManyRedirects.Description">Сторінка створила цикл перенаправлень. Сервер неправильно налаштований.</x:String>
+  <x:String x:Key="BrowserError.TooManyRedirects.Tip1">Очистіть cookies для цього сайту</x:String>
+  <x:String x:Key="BrowserError.TooManyRedirects.Tip2">Спробуйте інший браузер</x:String>
+  <x:String x:Key="BrowserError.TooManyRedirects.Tip3">Зверніться до підтримки сайту</x:String>
+
+  <!-- General Errors -->
+  <x:String x:Key="BrowserError.BlockedByClient.Title">Заблоковано</x:String>
+  <x:String x:Key="BrowserError.BlockedByClient.Description">Завантаження цього ресурсу заблоковано браузером або розширенням.</x:String>
+  <x:String x:Key="BrowserError.BlockedByClient.Tip1">Перевірте налаштування блокувальника реклами</x:String>
+  <x:String x:Key="BrowserError.BlockedByClient.Tip2">Вимкніть розширення безпеки тимчасово</x:String>
+  <x:String x:Key="BrowserError.BlockedByClient.Tip3">Додайте сайт до списку винятків</x:String>
+
+  <x:String x:Key="BrowserError.InvalidUrl.Title">Недійсна адреса</x:String>
+  <x:String x:Key="BrowserError.InvalidUrl.Description">Введена адреса має неправильний формат і не може бути оброблена.</x:String>
+  <x:String x:Key="BrowserError.InvalidUrl.Tip1">Перевірте правильність написання URL</x:String>
+  <x:String x:Key="BrowserError.InvalidUrl.Tip2">Переконайтеся, що URL починається з http:// або https://</x:String>
+  <x:String x:Key="BrowserError.InvalidUrl.Tip3">Спробуйте знайти сайт через пошук</x:String>
+
+  <x:String x:Key="BrowserError.FileNotFound.Title">Файл не знайдено</x:String>
+  <x:String x:Key="BrowserError.FileNotFound.Description">Запитаний файл не існує за вказаною адресою.</x:String>
+  <x:String x:Key="BrowserError.FileNotFound.Tip1">Перевірте правильність шляху до файлу</x:String>
+  <x:String x:Key="BrowserError.FileNotFound.Tip2">Переконайтеся, що файл існує</x:String>
+  <x:String x:Key="BrowserError.FileNotFound.Tip3">Спробуйте перейти на головну сторінку сайту</x:String>
+
+  <x:String x:Key="BrowserError.AccessDenied.Title">Доступ заборонено</x:String>
+  <x:String x:Key="BrowserError.AccessDenied.Description">У вас немає дозволу на перегляд цього ресурсу.</x:String>
+  <x:String x:Key="BrowserError.AccessDenied.Tip1">Увійдіть до свого облікового запису</x:String>
+  <x:String x:Key="BrowserError.AccessDenied.Tip2">Зверніться до адміністратора для отримання доступу</x:String>
+  <x:String x:Key="BrowserError.AccessDenied.Tip3">Перевірте налаштування дозволів</x:String>
+
+  <x:String x:Key="BrowserError.Unknown.Title">Помилка завантаження</x:String>
+  <x:String x:Key="BrowserError.Unknown.Description">Не вдалося завантажити сторінку.</x:String>
+  <x:String x:Key="BrowserError.Unknown.Tip1">Спробуйте оновити сторінку</x:String>
+  <x:String x:Key="BrowserError.Unknown.Tip2">Перевірте з'єднання з Інтернетом</x:String>
+  <x:String x:Key="BrowserError.Unknown.Tip3">Спробуйте пізніше</x:String>
+
+  <!-- HTTP Error Pages -->
+  <x:String x:Key="BrowserError.Http400.Title">Поганий запит</x:String>
+  <x:String x:Key="BrowserError.Http400.Description">Сервер не може обробити ваш запит через синтаксичну помилку.</x:String>
+
+  <x:String x:Key="BrowserError.Http401.Title">Потрібна авторизація</x:String>
+  <x:String x:Key="BrowserError.Http401.Description">Для доступу до цієї сторінки потрібно увійти до облікового запису.</x:String>
+
+  <x:String x:Key="BrowserError.Http403.Title">Доступ заборонено</x:String>
+  <x:String x:Key="BrowserError.Http403.Description">У вас немає дозволу на перегляд цієї сторінки.</x:String>
+
+  <x:String x:Key="BrowserError.Http404.Title">Сторінку не знайдено</x:String>
+  <x:String x:Key="BrowserError.Http404.Description">Запитана сторінка не існує на цьому сервері. Можливо, її видалено або переміщено.</x:String>
+
+  <x:String x:Key="BrowserError.Http408.Title">Час запиту вичерпано</x:String>
+  <x:String x:Key="BrowserError.Http408.Description">Сервер закрив з'єднання через тривале очікування.</x:String>
+
+  <x:String x:Key="BrowserError.Http429.Title">Забагато запитів</x:String>
+  <x:String x:Key="BrowserError.Http429.Description">Ви надіслали занадто багато запитів. Зачекайте та спробуйте знову.</x:String>
+
+  <x:String x:Key="BrowserError.Http500.Title">Внутрішня помилка сервера</x:String>
+  <x:String x:Key="BrowserError.Http500.Description">На сервері сталася неочікувана помилка. Це проблема сайту, а не вашого з'єднання.</x:String>
+
+  <x:String x:Key="BrowserError.Http502.Title">Поганий шлюз</x:String>
+  <x:String x:Key="BrowserError.Http502.Description">Проксі-сервер отримав недійсну відповідь від іншого сервера.</x:String>
+
+  <x:String x:Key="BrowserError.Http503.Title">Сервіс недоступний</x:String>
+  <x:String x:Key="BrowserError.Http503.Description">Сервер тимчасово недоступний через технічне обслуговування або перевантаження.</x:String>
+
+  <x:String x:Key="BrowserError.Http504.Title">Час очікування шлюзу</x:String>
+  <x:String x:Key="BrowserError.Http504.Description">Проксі-сервер не отримав відповідь вчасно від іншого сервера.</x:String>
+
+  <x:String x:Key="BrowserError.HttpUnknown.Title">Помилка сервера</x:String>
+  <x:String x:Key="BrowserError.HttpUnknown.Description">Сервер повернув помилку.</x:String>
+
+  <!-- Error Page UI Elements -->
+  <x:String x:Key="BrowserError.Retry">Спробувати знову</x:String>
+  <x:String x:Key="BrowserError.GoBack">Назад</x:String>
+  <x:String x:Key="BrowserError.GoHome">На головну</x:String>
+  <x:String x:Key="BrowserError.Search">Шукати</x:String>
+  <x:String x:Key="BrowserError.SearchPlaceholder">Введіть запит для пошуку...</x:String>
+  <x:String x:Key="BrowserError.Tips">Що можна спробувати:</x:String>
+  <x:String x:Key="BrowserError.Category.Network">Мережева проблема</x:String>
+  <x:String x:Key="BrowserError.Category.Server">Проблема сервера</x:String>
+  <x:String x:Key="BrowserError.Category.Security">Проблема безпеки</x:String>
+  <x:String x:Key="BrowserError.Category.General">Загальна помилка</x:String>
 </ResourceDictionary>

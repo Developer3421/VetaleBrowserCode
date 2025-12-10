@@ -1,0 +1,225 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.BrowserErrorPage"
+             x:Name="ErrorPageRoot"
+             Background="#FF9800">
+
+    <UserControl.Styles>
+        <!-- Стиль карточки помилки (як tool-item у ToolsMainPage) -->
+        <Style Selector="Border.error-card">
+            <Setter Property="Background" Value="#F8F8F8"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="30,25"/>
+            <Setter Property="Margin" Value="0,0,0,20"/>
+        </Style>
+        
+        <!-- Стиль підказок -->
+        <Style Selector="Border.tip-item">
+            <Setter Property="Background" Value="#FAFAFA"/>
+            <Setter Property="BorderBrush" Value="#E8E8E8"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+        
+        <!-- Основна кнопка дії -->
+        <Style Selector="Button.primary-button">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style Selector="Button.primary-button:pointerover">
+            <Setter Property="Background" Value="#43A047"/>
+        </Style>
+        <Style Selector="Button.primary-button:pressed">
+            <Setter Property="Background" Value="#388E3C"/>
+        </Style>
+        
+        <!-- Вторинна кнопка -->
+        <Style Selector="Button.secondary-button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="#4CAF50"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#4CAF50"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Button.secondary-button:pointerover">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        
+        <!-- Поле пошуку -->
+        <Style Selector="TextBox.search-box">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style Selector="TextBox.search-box:focus">
+            <Setter Property="BorderBrush" Value="#4CAF50"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Заголовок з категорією помилки -->
+        <Grid Grid.Row="0" Margin="30,30,30,10">
+            <StackPanel Orientation="Horizontal" Spacing="15">
+                <TextBlock x:Name="ErrorIconText"
+                           Text="🌐" 
+                           FontSize="48" 
+                           VerticalAlignment="Center"/>
+                <StackPanel VerticalAlignment="Center" Spacing="4">
+                    <TextBlock x:Name="ErrorTitleText"
+                               Text="Помилка з'єднання" 
+                               FontSize="28" 
+                               FontWeight="Bold" 
+                               Foreground="#303030"/>
+                    <TextBlock x:Name="ErrorCategoryText"
+                               Text="Мережева проблема"
+                               FontSize="14"
+                               Foreground="#606060"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <!-- Основний контент -->
+        <ScrollViewer Grid.Row="1" 
+                      Padding="30,10,30,30"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel MaxWidth="700" HorizontalAlignment="Center">
+                
+                <!-- Карточка з описом помилки -->
+                <Border Classes="error-card">
+                    <StackPanel Spacing="15">
+                        <TextBlock x:Name="ErrorDescriptionText"
+                                   Text="Не вдалося завантажити сторінку..."
+                                   FontSize="16"
+                                   TextWrapping="Wrap"
+                                   Foreground="#424242"/>
+                        
+                        <!-- URL що не вдалося завантажити -->
+                        <Border Background="#F5F5F5" 
+                                CornerRadius="4" 
+                                Padding="12,8">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="URL:" 
+                                           FontSize="12" 
+                                           Foreground="#757575"/>
+                                <TextBlock x:Name="FailedUrlText"
+                                           Text="https://example.com"
+                                           FontSize="12"
+                                           Foreground="#1976D2"
+                                           TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Код помилки (для технічної підтримки) -->
+                        <TextBlock x:Name="ErrorCodeText"
+                                   Text="Код: ERR_NAME_NOT_RESOLVED (-105)"
+                                   FontSize="11"
+                                   Foreground="#9E9E9E"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Поради для вирішення -->
+                <TextBlock Text="💡 Що можна спробувати:"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Foreground="#303030"
+                           Margin="0,10,0,15"/>
+                
+                <StackPanel x:Name="TipsPanel" Spacing="0">
+                    <!-- Підказки будуть додані програмно -->
+                </StackPanel>
+
+                <!-- Секція пошуку (для 404 та подібних помилок) -->
+                <Border x:Name="SearchSection"
+                        Classes="error-card"
+                        IsVisible="False"
+                        Margin="0,20,0,0">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="🔍 Пошук в Інтернеті"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="#303030"/>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox x:Name="SearchTextBox"
+                                     Classes="search-box"
+                                     Watermark="Введіть запит для пошуку..."
+                                     Grid.Column="0"/>
+                            <Button x:Name="SearchButton"
+                                    Classes="primary-button"
+                                    Content="Шукати"
+                                    Grid.Column="1"
+                                    Margin="10,0,0,0"
+                                    Click="OnSearchClicked"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Кнопки дій -->
+                <StackPanel Orientation="Horizontal" 
+                            Spacing="12" 
+                            Margin="0,25,0,0"
+                            HorizontalAlignment="Center">
+                    <Button x:Name="RetryButton"
+                            Classes="primary-button"
+                            Click="OnRetryClicked">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="🔄" FontSize="16"/>
+                            <TextBlock Text="Спробувати знову"/>
+                        </StackPanel>
+                    </Button>
+                    
+                    <Button x:Name="GoBackButton"
+                            Classes="secondary-button"
+                            Click="OnGoBackClicked">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="←" FontSize="14"/>
+                            <TextBlock Text="Назад"/>
+                        </StackPanel>
+                    </Button>
+                    
+                    <Button x:Name="GoHomeButton"
+                            Classes="secondary-button"
+                            Click="OnGoHomeClicked">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="🏠" FontSize="14"/>
+                            <TextBlock Text="На головну"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+                
+                <!-- Час помилки -->
+                <TextBlock x:Name="TimestampText"
+                           Text="Час: 12:00:00"
+                           FontSize="11"
+                           Foreground="#BDBDBD"
+                           HorizontalAlignment="Center"
+                           Margin="0,20,0,0"/>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
+

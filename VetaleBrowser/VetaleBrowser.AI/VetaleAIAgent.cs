@@ -7,8 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using LLama;
 using LLama.Common;
-using LLama.Sampling;
-using Microsoft.Agents.AI.Abstractions;
 
 namespace VetaleBrowser.VetaleBrowser.AI;
 
@@ -16,7 +14,7 @@ namespace VetaleBrowser.VetaleBrowser.AI;
 /// AI Agent for Vetale Browser implementing Microsoft Agents AI Framework with LlamaSharp backend.
 /// Based on Vetala (वेताल) - a wise spirit from Indian mythology.
 /// </summary>
-public class VetaleAIAgent : IDisposable, IChatClient
+public class VetaleAIAgent : IDisposable 
 {
     private LLamaWeights? _model;
     private LLamaContext? _context;
@@ -118,7 +116,7 @@ public class VetaleAIAgent : IDisposable, IChatClient
 
             var inferenceParams = new InferenceParams
             {
-                MaxTokens = 2048,  // Shorter for more focused responses
+                MaxTokens = 4096,
                 AntiPrompts = VetalePersona.GetAntiPrompts()
             };
 
@@ -228,7 +226,7 @@ public class VetaleAIAgent : IDisposable, IChatClient
 
             var inferenceParams = new InferenceParams
             {
-                MaxTokens = 2048,  // Shorter for more focused responses
+                MaxTokens = 4096,
                 AntiPrompts = VetalePersona.GetAntiPrompts()
             };
 

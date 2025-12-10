@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using VetaleBrowser.VetaleBrowser.Core.Services.Windows;
 using VetaleBrowser.VetaleBrowser.Core.Services;
+using VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers;
 using Avalonia.Controls;
 using System.Linq;
 using System.Net.Http;
@@ -136,6 +137,11 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         public WebView WebView { get; }
         public GlobalManagers.WebViewManager Manager { get; }
         public NavigationHistory History { get; } = new NavigationHistory();
+        
+        /// <summary>
+        /// Обробник помилок WebView для локалізації CefGlue помилок
+        /// </summary>
+        public WebViewErrorHandler ErrorHandler { get; }
 
         private string? _title;
         private string? _address;
@@ -196,6 +202,11 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         public event EventHandler<string?>? AddressChanged;
         public event EventHandler<bool>? FullscreenChanged;
         public event EventHandler<NavigationEntry>? NavigationChanged;
+        
+        /// <summary>
+        /// Подія виникнення помилки з локалізованим контентом
+        /// </summary>
+        public event EventHandler<BrowserErrorEventArgs>? ErrorOccurred;
 
         public TabWorker()
         {
@@ -240,6 +251,13 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Initializing Manager...");
                 Manager.Initialize(WebView);
                 System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Manager initialized");
+                
+                // Initialize error handler for localized error pages
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Creating ErrorHandler...");
+                ErrorHandler = new WebViewErrorHandler(WebView);
+                ErrorHandler.ErrorOccurred += OnErrorHandlerError;
+                ErrorHandler.Attach();
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] ErrorHandler initialized");
 
                 // Forward manager-initiated navigations to Address property
                 Manager.Navigated += (_, url) => Address = url;
@@ -438,6 +456,9 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 // Визначаємо чи це внутрішній URL
                 bool isInternal = url.StartsWith("vetale://", StringComparison.OrdinalIgnoreCase);
 
+                // Встановлюємо pending URL для error handler
+                ErrorHandler?.SetPendingNavigation(url);
+
                 // Створюємо запис в історії
                 var entry = new NavigationEntry
                 {
@@ -463,9 +484,12 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 }
                 else
                 {
-                    // Для зовнішніх URL викликаємо WebView
+                    // Для зовнішніх URL - опціонально перевіряємо доступність через HTTP pre-check
+                    // Це дає швидку детекцію помилок DNS та недоступних серверів
                     System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] External navigation to: {url}");
-                    await Manager.NavigateAsync(url);
+                    
+                    // Pre-check для швидкої детекції помилок (не блокуємо навігацію)
+                    _ = PreCheckAndNavigateAsync(url);
                 }
 
                 // Сповіщаємо про зміну навігації
@@ -482,6 +506,81 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             {
                 _isNavigating = false;
             }
+        }
+        
+        /// <summary>
+        /// Асинхронна перевірка URL та навігація
+        /// </summary>
+        private async Task PreCheckAndNavigateAsync(string url)
+        {
+            try
+            {
+                // Перевіряємо доступність URL через HTTP HEAD request
+                if (ErrorHandler != null)
+                {
+                    var (isSuccess, errorCode, errorMessage) = await ErrorHandler.PreCheckUrlAsync(url);
+                    
+                    if (!isSuccess)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] PreCheck failed: {errorCode} - {errorMessage}");
+                        
+                        // Повідомляємо про помилку через ErrorHandler
+                        // Це покаже сторінку помилки швидше ніж WebView
+                        if (errorCode >= 400)
+                        {
+                            ErrorHandler.ReportHttpError(errorCode, url);
+                        }
+                        else
+                        {
+                            ErrorHandler.ReportError(errorCode, url, errorMessage);
+                        }
+                        return; // Не навігуємо в WebView
+                    }
+                }
+                
+                // Якщо pre-check пройшов - навігуємо в WebView
+                await Manager.NavigateAsync(url);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] PreCheckAndNavigateAsync error: {ex.Message}");
+                // Fallback - навігуємо в WebView напряму
+                await Manager.NavigateAsync(url);
+            }
+        }
+        
+        /// <summary>
+        /// Обробник помилок від WebViewErrorHandler
+        /// Пересилає подію підписникам TabWorker
+        /// </summary>
+        private void OnErrorHandlerError(object? sender, BrowserErrorEventArgs e)
+        {
+            try
+            {
+                Debug.WriteLine($"[TabWorker {Id}] Error received: {e.Error.Title}");
+                ErrorOccurred?.Invoke(this, e);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[TabWorker {Id}] OnErrorHandlerError failed: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// Повідомляє про помилку CefGlue вручну
+        /// Може бути викликаний ззовні при виявленні помилки
+        /// </summary>
+        public void ReportError(int errorCode, string failedUrl, string? errorText = null)
+        {
+            ErrorHandler?.ReportError(errorCode, failedUrl, errorText);
+        }
+        
+        /// <summary>
+        /// Повідомляє про HTTP помилку сервера
+        /// </summary>
+        public void ReportHttpError(int httpStatusCode, string failedUrl)
+        {
+            ErrorHandler?.ReportHttpError(httpStatusCode, failedUrl);
         }
         
         /// <summary>
@@ -1009,6 +1108,14 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             try
             {
                 WebView.PropertyChanged -= WebViewOnPropertyChanged;
+                
+                // Dispose error handler
+                if (ErrorHandler != null)
+                {
+                    ErrorHandler.ErrorOccurred -= OnErrorHandlerError;
+                    ErrorHandler.Dispose();
+                }
+                
                 Manager.Dispose();
                 WebView.Dispose();
                 _fullscreenPollTimer.Stop();
