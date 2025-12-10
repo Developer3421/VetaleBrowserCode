@@ -79,7 +79,7 @@ public partial class ImageSearchResultsView : UserControl
         try
         {
             var nextPage = _currentPage + 1;
-            var page = await ImageSearchService.SearchAsync(_query, nextPage, 50, ct);
+            var page = await ImageSearchService.SearchAsync(_query, nextPage, 50, null, ct);
             if (ct.IsCancellationRequested)
                 return;
 

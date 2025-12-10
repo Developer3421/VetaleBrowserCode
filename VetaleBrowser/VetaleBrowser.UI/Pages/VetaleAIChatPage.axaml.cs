@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
@@ -362,6 +361,7 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
                 4 => "German",
                 5 => "French",
                 6 => "Spanish",
+                7 => "Turkish",
                 _ => null // Auto-detect
             };
 

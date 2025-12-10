@@ -7,13 +7,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using LLama;
 using LLama.Common;
+using LLama.Sampling;
+using Microsoft.Agents.AI.Abstractions;
 
 namespace VetaleBrowser.VetaleBrowser.AI;
 
 /// <summary>
-/// AI Agent for Vetale Browser using Microsoft Agents Framework and LlamaSharp
+/// AI Agent for Vetale Browser implementing Microsoft Agents AI Framework with LlamaSharp backend.
+/// Based on Vetala (वेताल) - a wise spirit from Indian mythology.
 /// </summary>
-public class VetaleAIAgent : IDisposable
+public class VetaleAIAgent : IDisposable, IChatClient
 {
     private LLamaWeights? _model;
     private LLamaContext? _context;
@@ -110,23 +113,13 @@ public class VetaleAIAgent : IDisposable
             if (_executor == null)
                 throw new InvalidOperationException("Executor is not initialized");
 
-            var systemPrompt = BuildSystemPrompt(languageHint);
-            var fullPrompt = new StringBuilder();
-            fullPrompt.AppendLine(systemPrompt);
-            fullPrompt.AppendLine();
-            fullPrompt.AppendLine("### Instruction:");
-            fullPrompt.AppendLine(prompt);
-            fullPrompt.AppendLine();
-            fullPrompt.Append("### Response:\n");
+            // Build prompt using VetalePersona with Gemma-3 format
+            var fullPrompt = BuildGemmaPrompt(prompt, languageHint);
 
             var inferenceParams = new InferenceParams
             {
-                MaxTokens = 8192,
-                AntiPrompts = new List<string>
-                {
-                    "\n\nUser:", "\n\nHuman:",
-                    "### Instruction:", "### User:"
-                }
+                MaxTokens = 2048,  // Shorter for more focused responses
+                AntiPrompts = VetalePersona.GetAntiPrompts()
             };
 
             var responseBuilder = new StringBuilder();
@@ -135,7 +128,7 @@ public class VetaleAIAgent : IDisposable
 
             System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Starting token generation...");
 
-            await foreach (var token in _executor.InferAsync(fullPrompt.ToString(), inferenceParams, cancellationToken))
+            await foreach (var token in _executor.InferAsync(fullPrompt, inferenceParams, cancellationToken))
             {
                 tokenCount++;
 
@@ -230,24 +223,13 @@ public class VetaleAIAgent : IDisposable
             if (_executor == null)
                 throw new InvalidOperationException("Executor is not initialized");
 
-            var systemPrompt = BuildSystemPrompt(languageHint);
-            var sb = new StringBuilder();
-            sb.AppendLine(systemPrompt);
-            sb.AppendLine();
-            sb.AppendLine("### Instruction:");
-            sb.AppendLine(prompt);
-            sb.AppendLine();
-            sb.Append("### Response:\n");
-            var fullPrompt = sb.ToString();
+            // Build prompt using VetalePersona with Gemma-3 format
+            var fullPrompt = BuildGemmaPrompt(prompt, languageHint);
 
             var inferenceParams = new InferenceParams
             {
-                MaxTokens = 8192,
-                AntiPrompts = new List<string>
-                {
-                    "\n\nUser:", "\n\nHuman:",
-                    "### Instruction:", "### User:"
-                }
+                MaxTokens = 2048,  // Shorter for more focused responses
+                AntiPrompts = VetalePersona.GetAntiPrompts()
             };
 
             var responseBuilder = new StringBuilder();
@@ -342,13 +324,55 @@ public class VetaleAIAgent : IDisposable
         if (EndMarkers.Any(marker => text.Contains(marker, StringComparison.OrdinalIgnoreCase)))
             return true;
 
-        // Ослаблюємо детектор самодіалогу: лише очевидні великі патерни з обома ролями
-        if (text.Length > 400 && Regex.IsMatch(text,
-                "(User|Human)\\s*:?[\\s\\S]{10,80}(Assistant|AI)\\s*:",
+        // === ДЕТЕКЦІЯ САМОІТЕРАЦІЇ ===
+        
+        // Перевірка на нумеровані питання/запити (Запит 2, Question 2, etc.)
+        if (Regex.IsMatch(text, @"(Запит|Питання|Question|Запрос|Вопрос|Frage|Pregunta|Soru|Demande)\s*[2-9]", RegexOptions.IgnoreCase))
+        {
+            System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Detected numbered question pattern - stopping");
+            return true;
+        }
+        
+        // Перевірка на ### маркери з номерами
+        if (Regex.IsMatch(text, @"###\s*(Запит|Питання|Question|Запрос|Instruction|Anfrage|Demande|Solicitud|İstek)\s*[2-9]?:", RegexOptions.IgnoreCase))
+        {
+            System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Detected repeated instruction block - stopping");
+            return true;
+        }
+        
+        // Детектор самодіалогу
+        if (text.Length > 300 && Regex.IsMatch(text,
+                "(User|Human|Користувач|Пользователь|Benutzer|Utilisateur|Usuario|Kullanıcı)\\s*:?[\\s\\S]{10,80}(Assistant|AI|Vetale|Відповідь|Ответ)\\s*:",
                 RegexOptions.IgnoreCase))
         {
-            System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Detected strong self-dialogue pattern - stopping");
+            System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Detected self-dialogue pattern - stopping");
             return true;
+        }
+        
+        // Перевірка на повторення запитів про програмування тощо
+        if (Regex.IsMatch(text, @"\n\n\*\*?(Як|What|How|Що|Напиши|Write|Create|Створи|Explain|Поясни)", RegexOptions.IgnoreCase))
+        {
+            System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Detected new question in response - stopping");
+            return true;
+        }
+        
+        // Детекція витоку промпту / внутрішніх інструкцій
+        if (Regex.IsMatch(text, @"(Пожалуйста|Please|Будь ласка),?\s*(ответь|відповідь|answer|respond|предоставь)", RegexOptions.IgnoreCase))
+        {
+            System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Detected prompt leak - stopping");
+            return true;
+        }
+        
+        // Детекція повторення контенту (той самий текст двічі)
+        if (text.Length > 200)
+        {
+            var halfLen = text.Length / 2;
+            var firstHalf = text.Substring(0, Math.Min(150, halfLen));
+            if (text.Substring(halfLen).Contains(firstHalf.Substring(0, Math.Min(50, firstHalf.Length))))
+            {
+                System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Detected content repetition - stopping");
+                return true;
+            }
         }
 
         return false;
@@ -376,9 +400,36 @@ public class VetaleAIAgent : IDisposable
     private bool DetectLoopingSequence(string aggregate)
     {
         // Якщо модель починає друкувати додаткові Instruction/Response блоки, зупиняємося
-        int instCount = Regex.Matches(aggregate, "### Instruction:").Count;
-        int respCount = Regex.Matches(aggregate, "### Response:").Count;
-        if (instCount > 1 || respCount > 1)
+        
+        // English
+        int instCount = Regex.Matches(aggregate, "### (Instruction|Question|User):").Count;
+        int respCount = Regex.Matches(aggregate, "### (Response|Answer|Assistant):").Count;
+        
+        // Ukrainian
+        instCount += Regex.Matches(aggregate, "### (Запит|Питання):").Count;
+        respCount += Regex.Matches(aggregate, "### Відповідь:").Count;
+        
+        // Russian  
+        instCount += Regex.Matches(aggregate, "### (Запрос|Вопрос):").Count;
+        respCount += Regex.Matches(aggregate, "### Ответ:").Count;
+        
+        // German
+        instCount += Regex.Matches(aggregate, "### (Anfrage|Frage):").Count;
+        respCount += Regex.Matches(aggregate, "### Antwort:").Count;
+        
+        // French
+        instCount += Regex.Matches(aggregate, "### (Demande|Question):").Count;
+        respCount += Regex.Matches(aggregate, "### Réponse:").Count;
+        
+        // Spanish
+        instCount += Regex.Matches(aggregate, "### (Solicitud|Pregunta):").Count;
+        respCount += Regex.Matches(aggregate, "### Respuesta:").Count;
+        
+        // Turkish
+        instCount += Regex.Matches(aggregate, "### (İstek|Soru):").Count;
+        respCount += Regex.Matches(aggregate, "### Yanıt:").Count;
+        
+        if (instCount > 0 || respCount > 1)
         {
             System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Repeated instruction/response blocks (inst={instCount}, resp={respCount})");
             return true;
@@ -416,11 +467,19 @@ public class VetaleAIAgent : IDisposable
         if (string.IsNullOrEmpty(text))
             return text;
 
+        // === ОБРІЗАННЯ САМОІТЕРАЦІЇ ===
+        // Видаляємо все після нового запиту/питання
+        text = TruncateAtSelfIteration(text);
+
         // Прибираємо зайві пробіли в кінці
         text = text.TrimEnd();
 
-        // Залишаємо форматування, але зрізаємо 4+ пустих рядків підряд до максимум 3
-        text = Regex.Replace(text, "(\\r?\\n\\s*){4,}", "\n\n\n");
+        // === ВИПРАВЛЕННЯ ПРОБІЛІВ ===
+        // Виправляємо склеєні слова (латиниця та кирилиця)
+        text = FixWordSpacing(text);
+
+        // Залишаємо форматування, але зрізаємо 4+ пустих рядків підряд до максимум 2
+        text = Regex.Replace(text, "(\\r?\\n\\s*){4,}", "\n\n");
 
         // Прибираємо пробіли в кінці кожного рядка
         var lines = text.Split('\n');
@@ -433,7 +492,89 @@ public class VetaleAIAgent : IDisposable
         // Прибираємо дубльований хвіст, якщо такий є
         text = RemoveTrailingRepeatedChunk(text);
 
+        // Видаляємо випадкові символи та сміття на початку/кінці
+        text = Regex.Replace(text, @"^[\s\*\#\-\:]+", ""); // Зайві символи на початку
+        text = Regex.Replace(text, @"[\s\*\#\-\:]+$", ""); // Зайві символи в кінці
+
         return text.Trim();
+    }
+
+    /// <summary>
+    /// Обрізає відповідь при виявленні самоітерації (нового питання/запиту)
+    /// </summary>
+    private string TruncateAtSelfIteration(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+            return text;
+
+        // Патерни самоітерації - обрізаємо все після них
+        var iterationPatterns = new[]
+        {
+            // === ВИТІК ПРОМПТУ / ВНУТРІШНІ ІНСТРУКЦІЇ ===
+            @"---+\s*\*{0,2}(Пожалуйста|Please|Будь ласка)",
+            @"\*{0,2}(Пожалуйста|Please|Будь ласка),?\s*(ответь|відповідь|answer|respond|предоставь)",
+            @"предоставь\s+ответ\s+на\s+запрос",
+            @"ответь\s+на\s+(этот\s+)?запрос",
+            
+            // === ПОВТОРЕННЯ ЗАПИТУ ===
+            @"\*{2}(Склади|Напиши|Создай|Write|Create)",
+            
+            // Нумеровані запити
+            @"\n\n?\*{0,2}(Запит|Питання|Question|Запрос|Вопрос|Frage|Pregunta|Soru|Demande)\s*[2-9]\s*[:\*]",
+            // ### маркери
+            @"\n\n?###\s*(Запит|Питання|Question|Instruction|Запрос|Anfrage|Demande|Solicitud|İstek)\s*[2-9]?\s*:",
+            // User/Human маркери
+            @"\n\n?(User|Human|Користувач|Пользователь|Benutzer|Utilisateur|Usuario|Kullanıcı)\s*:",
+            // Нові питання про програмування
+            @"\n\n?\*{0,2}(Як|What|How|Що|Напиши|Write|Create|Створи)\s+(можна|to|do|is|написати|створити|зробити)",
+            // Розділювачі
+            @"\n---+\s*\n",
+            @"\n\*{3,}\s*\n"
+        };
+
+        int minIndex = text.Length;
+        
+        foreach (var pattern in iterationPatterns)
+        {
+            var match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
+            if (match.Success && match.Index > 30 && match.Index < minIndex)
+            {
+                minIndex = match.Index;
+                System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Truncating at pattern at index {match.Index}");
+            }
+        }
+
+        if (minIndex < text.Length)
+        {
+            return text.Substring(0, minIndex).TrimEnd();
+        }
+
+        return text;
+    }
+
+    /// <summary>
+    /// Виправляє проблеми з відступами між словами
+    /// </summary>
+    private string FixWordSpacing(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+            return text;
+
+        // Додаємо пробіл після крапки/коми/знаку питання, якщо його немає (і наступна - велика літера або літера)
+        text = Regex.Replace(text, @"([.!?,:;])([A-ZА-ЯЄІЇҐa-zа-яєіїґ])", "$1 $2");
+        
+        // Виправляємо випадок коли мала літера прилипає до великої (camelCase -> окремі слова в тексті)
+        // Тільки якщо це не скорочення і в контексті речення
+        text = Regex.Replace(text, @"([a-zа-яєіїґ])([A-ZА-ЯЄІЇҐ][a-zа-яєіїґ])", "$1 $2");
+        
+        // Видаляємо подвійні та більше пробілів
+        text = Regex.Replace(text, @"  +", " ");
+        
+        // Пробіл після дужок якщо далі слово
+        text = Regex.Replace(text, @"\)([A-Za-zА-Яа-яЄІЇҐєіїґ])", ") $1");
+        text = Regex.Replace(text, @"([A-Za-zА-Яа-яЄІЇҐєіїґ])\(", "$1 (");
+
+        return text;
     }
 
     /// <summary>
@@ -498,34 +639,120 @@ public class VetaleAIAgent : IDisposable
     }
 
     /// <summary>
-    /// Build simple system prompt without explicit planning
+    /// Build comprehensive anti-prompts list to prevent self-iteration
+    /// </summary>
+    private List<string> BuildAntiPrompts(string instructionLabel, string responseLabel)
+    {
+        return new List<string>
+        {
+            // === END MARKERS ===
+            "<|end|>", "<|im_end|>", "</s>", "[END]", "<end_of_turn>", "<|eot_id|>",
+            
+            // === PROMPT LEAK / INTERNAL INSTRUCTIONS ===
+            "Пожалуйста, ответь", "Пожалуйста, предоставь",
+            "Please answer", "Please respond", "Please provide",
+            "Будь ласка, відповідь", "Будь ласка, надай",
+            "ответь на этот запрос", "ответь на запрос",
+            "предоставь ответ на запрос",
+            "---**Пожалуйста", "---*Пожалуйста", "---Пожалуйста",
+            "**Склади", "**Напиши", "**Создай", "**Write", "**Create",
+            
+            // === ENGLISH DIALOGUE MARKERS ===
+            "\n\nUser:", "\n\nHuman:", "\n\nAssistant:", "\n\nAI:",
+            "\nUser:", "\nHuman:", "\nAssistant:", "\nAI:",
+            "User:", "Human:",
+            "### Instruction:", "### User:", "### Question:",
+            
+            // === LOCALIZED INSTRUCTION/RESPONSE ===
+            $"### {instructionLabel}:",
+            $"\n\n### {instructionLabel}:",
+            $"\n### {instructionLabel}:",
+            
+            // === UKRAINIAN ===
+            "### Запит:", "### Питання:", "### Користувач:",
+            "\n\nЗапит:", "\nЗапит:", "\n\nПитання:", "\nПитання:",
+            "Запит:", "Питання:", "Користувач:",
+            
+            // === RUSSIAN ===
+            "### Запрос:", "### Вопрос:", "### Пользователь:",
+            "\n\nЗапрос:", "\nЗапрос:", "\n\nВопрос:", "\nВопрос:",
+            "Запрос:", "Вопрос:", "Пользователь:",
+            
+            // === GERMAN ===
+            "### Anfrage:", "### Frage:", "### Benutzer:",
+            "\n\nAnfrage:", "\nAnfrage:", "\n\nFrage:", "\nFrage:",
+            "Anfrage:", "Frage:", "Benutzer:",
+            
+            // === FRENCH ===
+            "### Demande:", "### Question:", "### Utilisateur:",
+            "\n\nDemande:", "\nDemande:", "\n\nQuestion:", "\nQuestion:",
+            "Demande:", "Question:", "Utilisateur:",
+            
+            // === SPANISH ===
+            "### Solicitud:", "### Pregunta:", "### Usuario:",
+            "\n\nSolicitud:", "\nSolicitud:", "\n\nPregunta:", "\nPregunta:",
+            "Solicitud:", "Pregunta:", "Usuario:",
+            
+            // === TURKISH ===
+            "### İstek:", "### Soru:", "### Kullanıcı:",
+            "\n\nİstek:", "\nİstek:", "\n\nSoru:", "\nSoru:",
+            "İstek:", "Soru:", "Kullanıcı:",
+            
+            // === NUMBERED QUESTIONS ===
+            "\n\n1.", "\n\n2.", "\n\n#1", "\n\n#2",
+            "**Запит 2", "**Питання 2", "**Question 2", "**Запрос 2",
+            "Запит 2:", "Питання 2:", "Question 2:", "Запрос 2:",
+            
+            // === SELF-DIALOGUE PATTERNS ===
+            "\n\n**User", "\n\n**Human", "\n\n**Запит", "\n\n**Питання",
+            "\n\n---\n", "\n\n***\n", "\n---\n", "\n***\n"
+        };
+    }
+
+    /// <summary>
+    /// Build Gemma-3 compatible prompt using VetalePersona
+    /// </summary>
+    private string BuildGemmaPrompt(string userMessage, string? languageHint)
+    {
+        var sb = new StringBuilder();
+        
+        // System prompt with Vetale persona
+        var systemPrompt = VetalePersona.BuildSystemPrompt(languageHint);
+        
+        // Gemma-3 chat format
+        sb.AppendLine("<start_of_turn>user");
+        sb.AppendLine(systemPrompt);
+        sb.AppendLine();
+        sb.AppendLine(userMessage);
+        sb.AppendLine("<end_of_turn>");
+        sb.Append("<start_of_turn>model\n");
+        
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Get instruction/response labels in the target language (legacy, kept for compatibility)
+    /// </summary>
+    private (string Instruction, string Response) GetPromptLabels(string? languageHint)
+    {
+        return languageHint switch
+        {
+            "Ukrainian" => ("Запит", "Відповідь"),
+            "Russian" => ("Запрос", "Ответ"),
+            "German" => ("Anfrage", "Antwort"),
+            "French" => ("Demande", "Réponse"),
+            "Spanish" => ("Solicitud", "Respuesta"),
+            "Turkish" => ("İstek", "Yanıt"),
+            _ => ("Instruction", "Response")
+        };
+    }
+
+    /// <summary>
+    /// Build system prompt (legacy, now uses VetalePersona)
     /// </summary>
     private string BuildSystemPrompt(string? languageHint)
     {
-        var systemPrompt = new StringBuilder();
-        systemPrompt.AppendLine("You are Vetale AI, a helpful assistant for Vetale Browser.");
-        systemPrompt.AppendLine("Provide clear, concise and helpful answers to the user's questions.");
-        systemPrompt.AppendLine("Do not simulate dialogues or use role labels like 'User:' or 'Assistant:'.");
-        systemPrompt.AppendLine("Avoid repeating the same text and stop when the answer is complete.");
-
-        // Persona: Vetale based on Indian Vetala
-        systemPrompt.AppendLine();
-        systemPrompt.AppendLine("Persona: You are Vetale — a witty, curious, and benevolent spirit inspired by the Indian Vetala (वेताल). You blend ancient wisdom with modern practicality. You may add a light touch of mystique or a short clever hint when appropriate, but you always keep answers concrete and useful.");
-        systemPrompt.AppendLine("Identity: Refer to yourself as 'Vetale' when needed. Do not claim to be any other character or service.");
-        systemPrompt.AppendLine("Tone: Warm, calm, and respectful; a subtle folklore vibe is okay. Avoid horror or graphic depictions unless explicitly requested and safe to provide (keep it PG‑13).");
-        systemPrompt.AppendLine("Safety: Protect the user. Refuse harmful, explicit, or unsafe instructions. Prefer practical, safe alternatives.");
-        systemPrompt.AppendLine("Lore handling: If asked about your origin, briefly (1–2 sentences) explain that Vetale is a modern reinterpretation of the Vetala from Indian folklore.");
-
-        if (!string.IsNullOrEmpty(languageHint))
-        {
-            systemPrompt.AppendLine($"Respond in {languageHint}.");
-        }
-        else
-        {
-            systemPrompt.AppendLine("Respond in the same language as the user's request.");
-        }
-
-        return systemPrompt.ToString();
+        return VetalePersona.BuildSystemPrompt(languageHint);
     }
 
     /// <summary>

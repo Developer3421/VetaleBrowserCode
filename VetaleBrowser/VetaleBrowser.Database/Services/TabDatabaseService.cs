@@ -19,12 +19,12 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
     private readonly ILiteCollection<Bookmark> _bookmarksCollection;
     private readonly string _databasePath;
     
-    // Обмеження для запобігання переповнення
-    private const int MaxTabsPerSession = 1000;
-    private const int MaxTotalTabs = 10000;
-    private const int MaxSessions = 100;
-    private const int MaxBookmarks = 50000;
-    private const long MaxDatabaseSizeBytes = 500 * 1024 * 1024; // 500 MB
+    // MEMORY OPTIMIZATION: Зменшені ліміти
+    private const int MaxTabsPerSession = 100; // Зменшено з 1000
+    private const int MaxTotalTabs = 500;      // Зменшено з 10000
+    private const int MaxSessions = 20;        // Зменшено з 100
+    private const int MaxBookmarks = 5000;     // Зменшено з 50000
+    private const long MaxDatabaseSizeBytes = 50 * 1024 * 1024; // 50 MB замість 500 MB
 
     public TabDatabaseService(string databasePath, string encryptionKey)
     {
@@ -38,26 +38,26 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
             Directory.CreateDirectory(directory);
         }
 
-        // Ініціалізуємо базу даних з шифруванням
+        // MEMORY OPTIMIZATION: Direct mode замість Shared
         var connectionString = new ConnectionString
         {
             Filename = databasePath,
-            Connection = ConnectionType.Shared
+            Connection = ConnectionType.Direct // Менше RAM
         };
 
         _database = new LiteDatabase(connectionString);
+        
+        // MEMORY OPTIMIZATION: Checkpoint для звільнення пам'яті
+        try { _database.Checkpoint(); } catch { }
         
         // Отримуємо колекції
         _tabsCollection = _database.GetCollection<TabModel>("tabs");
         _sessionsCollection = _database.GetCollection<BrowserSession>("sessions");
         _bookmarksCollection = _database.GetCollection<Bookmark>("bookmarks");
         
-        // Створюємо індекси для оптимізації
+        // MEMORY OPTIMIZATION: Мінімальна кількість індексів
         _tabsCollection.EnsureIndex(x => x.SessionId);
-        _tabsCollection.EnsureIndex(x => x.IsActive);
-        _tabsCollection.EnsureIndex(x => x.LastAccessedAt);
         _sessionsCollection.EnsureIndex(x => x.IsCurrent);
-        _bookmarksCollection.EnsureIndex(x => x.Folder);
         
         // Перевіряємо розмір бази даних
         CheckDatabaseSize();
@@ -76,6 +76,10 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
             
             // Оптимізуємо базу даних
             _database.Rebuild();
+            
+            // MEMORY OPTIMIZATION: Примусовий GC після rebuild
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
     }
 

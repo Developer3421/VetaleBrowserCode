@@ -99,9 +99,21 @@ public partial class MainWindow : Window
     private NormalModePage? _normalModePage;
     private FullscreenModePage? _fullscreenModePage;
     private ContentControl? _pageContainer;
-    private readonly VetaleBrowser.Search.Services.ISuggestionsService _globalSuggestions = new VetaleBrowser.Search.Services.GoogleSuggestionsService();
-    private readonly VetaleBrowser.Search.Services.ISecurityCheckService _securityCheckService = new VetaleBrowser.Search.Services.PhishTankSecurityService();
-    private readonly IVoiceRecognitionService _voiceRecognitionService = new WindowsVoiceRecognitionService();
+    
+    // MEMORY OPTIMIZATION: Lazy initialization of heavy services
+    private VetaleBrowser.Search.Services.ISuggestionsService? _globalSuggestions;
+    private VetaleBrowser.Search.Services.ISecurityCheckService? _securityCheckService;
+    private IVoiceRecognitionService? _voiceRecognitionService;
+    
+    // Lazy getters for services
+    private VetaleBrowser.Search.Services.ISuggestionsService GlobalSuggestions 
+        => _globalSuggestions ??= new VetaleBrowser.Search.Services.GoogleSuggestionsService();
+    
+    private VetaleBrowser.Search.Services.ISecurityCheckService SecurityCheckService 
+        => _securityCheckService ??= new VetaleBrowser.Search.Services.PhishTankSecurityService();
+    
+    private IVoiceRecognitionService VoiceRecognitionService 
+        => _voiceRecognitionService ??= new WindowsVoiceRecognitionService();
 
     // Keep track of which worker's WebView we're listening to
     private TabWorker? _subscribedWorker;
@@ -110,8 +122,8 @@ public partial class MainWindow : Window
     private bool _isFullscreen;
     private WindowState _preFullscreenWindowState;
 
-    // Polling support for robust favicon and title updates
-    private readonly DispatcherTimer _faviconPollTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
+    // Polling support for robust favicon and title updates - MEMORY OPTIMIZATION: longer interval
+    private readonly DispatcherTimer _faviconPollTimer = new() { Interval = TimeSpan.FromMilliseconds(1000) };
     private string? _lastFaviconUrl;
     private string? _lastPageTitle;
 
@@ -379,28 +391,10 @@ public partial class MainWindow : Window
 
         try
         {
-            // Встановлюємо глобальні сервіси для InternalUrlHandler
-            InternalUrlHandler.GlobalSuggestionsService = _globalSuggestions;
-            InternalUrlHandler.GlobalVoiceRecognitionService = _voiceRecognitionService;
-            System.Diagnostics.Debug.WriteLine("═══════════════════════════════════════════════════════");
-            System.Diagnostics.Debug.WriteLine($"[VOICE][MAIN] ✓✓✓ Global services configured ✓✓✓");
-            System.Diagnostics.Debug.WriteLine($"[VOICE][MAIN] VoiceService null? {_voiceRecognitionService == null}");
-            System.Diagnostics.Debug.WriteLine($"[VOICE][MAIN] VoiceService type: {_voiceRecognitionService?.GetType().Name}");
-            System.Diagnostics.Debug.WriteLine("═══════════════════════════════════════════════════════");
-            
-            // ТЕСТ: Перевіряємо, що сервіс працює
-            try
-            {
-                if (_voiceRecognitionService != null)
-                {
-                    var available = _voiceRecognitionService.IsAvailable();
-                    System.Diagnostics.Debug.WriteLine($"[VOICE][MAIN] TEST: IsAvailable = {available}");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[VOICE][MAIN] TEST ERROR: {ex.Message}");
-            }
+            // MEMORY OPTIMIZATION: Set lazy service providers - services created on first use only
+            InternalUrlHandler.SuggestionsServiceProvider = () => GlobalSuggestions;
+            InternalUrlHandler.VoiceRecognitionServiceProvider = () => VoiceRecognitionService;
+            System.Diagnostics.Debug.WriteLine("[MainWindow] Lazy service providers configured");
             
             // Ensure there's at least one tab
             if (_tabs.Active == null)
@@ -408,7 +402,7 @@ public partial class MainWindow : Window
                 try
                 {
                     var home = await GetSearchHomePageAsync();
-                    System.Diagnostics.Debug.WriteLine($"[VOICE][MAIN] Creating initial tab with URL: {home}");
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Creating initial tab with URL: {home}");
                     CreateNewTab(home);
                 }
                 catch (Exception ex)
@@ -426,8 +420,8 @@ public partial class MainWindow : Window
                 if (navigationBar != null && _tabs.Active != null)
                 {
                     navigationBar.Initialize(_tabs.Active.Manager);
-                    navigationBar.SetSuggestionsService(_globalSuggestions);
-                    navigationBar.SetSecurityCheckService(_securityCheckService);
+                    navigationBar.SetSuggestionsService(GlobalSuggestions);
+                    navigationBar.SetSecurityCheckService(SecurityCheckService);
                     // Підписка на внутрішню навігацію (vetale://) з адресного рядка/Додому
                     navigationBar.NavigateRequested -= OnNavigationBarNavigateRequested;
                     navigationBar.NavigateRequested += OnNavigationBarNavigateRequested;
@@ -872,8 +866,8 @@ public partial class MainWindow : Window
         {
             navigationBar.Initialize(worker.Manager);
             navigationBar.SetTabWorker(worker); // Додаємо підтримку TabWorker
-            navigationBar.SetSuggestionsService(_globalSuggestions);
-            navigationBar.SetSecurityCheckService(_securityCheckService);
+            navigationBar.SetSuggestionsService(GlobalSuggestions);
+            navigationBar.SetSecurityCheckService(SecurityCheckService);
             
             // Set settings service for search engine configuration
             if (_settingsService != null)
@@ -1944,8 +1938,8 @@ public partial class MainWindow : Window
             }
 
             var home = new VetaleSearchHomePage();
-            home.SetSuggestionsService(_globalSuggestions);
-            home.SetVoiceRecognitionService(_voiceRecognitionService);
+            home.SetSuggestionsService(GlobalSuggestions);
+            home.SetVoiceRecognitionService(VoiceRecognitionService);
             SubscribeToInternalPageEvents(home);
 
             // Навігуємо через History/TabWorker: подія OnWorkerNavigationChanged виставить UI

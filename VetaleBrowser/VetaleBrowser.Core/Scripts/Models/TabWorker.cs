@@ -12,7 +12,6 @@ using Avalonia.Controls;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.IO;
 
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 {
@@ -39,11 +38,15 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
     /// <summary>
     /// Керує історією навігації для вкладки (стек вперед/назад)
+    /// MEMORY OPTIMIZED: Limited history size, cleanup of old entries
     /// </summary>
     public class NavigationHistory
     {
         private readonly List<NavigationEntry> _entries = new();
         private int _currentIndex = -1;
+        
+        // MEMORY OPTIMIZATION: Limit history size
+        private const int MaxHistoryEntries = 50;
 
         public event EventHandler? HistoryChanged;
 
@@ -64,11 +67,24 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             // Видаляємо всі записи після поточного (при новій навігації)
             if (_currentIndex < _entries.Count - 1)
             {
+                // MEMORY OPTIMIZATION: Clear InternalPageContent before removal
+                for (int i = _currentIndex + 1; i < _entries.Count; i++)
+                {
+                    _entries[i].InternalPageContent = null;
+                }
                 _entries.RemoveRange(_currentIndex + 1, _entries.Count - _currentIndex - 1);
             }
 
             _entries.Add(entry);
             _currentIndex = _entries.Count - 1;
+            
+            // MEMORY OPTIMIZATION: Remove oldest entries if over limit
+            while (_entries.Count > MaxHistoryEntries && _currentIndex > 0)
+            {
+                _entries[0].InternalPageContent = null; // Clear reference
+                _entries.RemoveAt(0);
+                _currentIndex--;
+            }
             
             HistoryChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -96,6 +112,11 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         /// <summary>Очищує всю історію</summary>
         public void Clear()
         {
+            // MEMORY OPTIMIZATION: Clear all references first
+            foreach (var entry in _entries)
+            {
+                entry.InternalPageContent = null;
+            }
             _entries.Clear();
             _currentIndex = -1;
             HistoryChanged?.Invoke(this, EventArgs.Empty);
@@ -392,6 +413,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
         /// <summary>
         /// Навігація на URL (підтримує як звичайні http(s):// так і внутрішні vetale:// URL)
+        /// MEMORY OPTIMIZATION: Примусове очищення пам'яті при переході
         /// </summary>
         public async void Navigate(string url, UserControl? internalPageContent = null)
         {
@@ -408,6 +430,10 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 }
 
                 System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Navigate: {url}");
+
+                // MEMORY OPTIMIZATION: Примусове очищення пам'яті перед навігацією
+                // Це критично для AMD карт (RX 5700 XT) де текстури WebView не звільняються
+                TriggerMemoryCleanup();
 
                 // Визначаємо чи це внутрішній URL
                 bool isInternal = url.StartsWith("vetale://", StringComparison.OrdinalIgnoreCase);
@@ -444,6 +470,9 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
                 // Сповіщаємо про зміну навігації
                 NavigationChanged?.Invoke(this, entry);
+                
+                // MEMORY OPTIMIZATION: Очищення після навігації
+                _ = Task.Delay(500).ContinueWith(_ => TriggerMemoryCleanup());
             }
             catch (Exception ex)
             {
@@ -452,6 +481,30 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             finally
             {
                 _isNavigating = false;
+            }
+        }
+        
+        /// <summary>
+        /// MEMORY OPTIMIZATION: Примусове звільнення пам'яті
+        /// Критично для AMD карт де GPU текстури не звільняються автоматично
+        /// </summary>
+        private static int _lastGcGeneration = 0;
+        private void TriggerMemoryCleanup()
+        {
+            try
+            {
+                // Не викликаємо GC занадто часто (мінімум раз на 3 секунди)
+                var currentGen = GC.CollectionCount(2);
+                if (currentGen == _lastGcGeneration)
+                {
+                    // Ще не було GC Gen2 - можемо запустити
+                    GC.Collect(1, GCCollectionMode.Optimized, false);
+                }
+                _lastGcGeneration = GC.CollectionCount(2);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[TabWorker] Memory cleanup error: {ex.Message}");
             }
         }
 

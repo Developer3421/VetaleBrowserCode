@@ -9,6 +9,7 @@ namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
 /// Сервис базы данных для загрузок с AES шифрованием чувствительных полей.
+/// MEMORY OPTIMIZATION: Direct connection mode
 /// </summary>
 public class DownloadDatabaseService : IDisposable
 {
@@ -17,9 +18,9 @@ public class DownloadDatabaseService : IDisposable
     private readonly ILiteCollection<DownloadItem> _downloads;
     private readonly string _databasePath;
 
-    // Лимиты
-    private const int MaxItems = 10000;
-    private const long MaxDatabaseSizeBytes = 300 * 1024 * 1024; // 300MB
+    // MEMORY OPTIMIZATION: Зменшені ліміти
+    private const int MaxItems = 500;  // Зменшено з 10000
+    private const long MaxDatabaseSizeBytes = 20 * 1024 * 1024; // 20MB замість 300MB
 
     public DownloadDatabaseService(string databasePath, string encryptionKey)
     {
@@ -30,13 +31,14 @@ public class DownloadDatabaseService : IDisposable
         if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
             Directory.CreateDirectory(dir);
 
-        var cs = new ConnectionString { Filename = databasePath, Connection = ConnectionType.Shared };
+        // MEMORY OPTIMIZATION: Direct connection
+        var cs = new ConnectionString { Filename = databasePath, Connection = ConnectionType.Direct };
         _database = new LiteDatabase(cs);
+        try { _database.Checkpoint(); } catch { }
 
         _downloads = _database.GetCollection<DownloadItem>("downloads");
-        _downloads.EnsureIndex(x => x.Status);
+        // Тільки один індекс
         _downloads.EnsureIndex(x => x.StartTime);
-        _downloads.EnsureIndex(x => x.EndTime);
 
         CheckSize();
     }

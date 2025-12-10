@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
@@ -43,16 +44,18 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
                     return CreateEmptyPage(query);
                 }
 
-                var results = new ImageSearchResult[pexelsResponse.Photos.Length];
+                var results = new List<ImageSearchResult>();
                 for (int i = 0; i < pexelsResponse.Photos.Length; i++)
                 {
                     var photo = pexelsResponse.Photos[i];
-                    results[i] = new ImageSearchResult
+                    results.Add(new ImageSearchResult
                     {
                         Id = photo.Id.ToString(),
                         Provider = "Pexels",
+                        Source = ImageSource.Pexels,
                         Title = photo.Alt ?? $"Photo by {photo.Photographer}",
                         PhotographerName = photo.Photographer ?? "Unknown",
+                        Photographer = photo.Photographer ?? "Unknown",
                         PhotographerUrl = photo.PhotographerUrl ?? string.Empty,
                         SourcePageUrl = photo.Url ?? string.Empty,
                         Urls = new ImageUrlSet
@@ -64,13 +67,16 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
                         },
                         Width = photo.Width,
                         Height = photo.Height,
-                        Color = photo.AvgColor ?? "#CCCCCC"
-                    };
+                        Color = photo.AvgColor ?? "#CCCCCC",
+                        AverageColor = photo.AvgColor ?? "#CCCCCC"
+                    });
                 }
 
                 return new ImageSearchPage
                 {
                     Query = query.Query,
+                    Page = query.PageNumber,
+                    PerPage = query.PageSize,
                     PageNumber = query.PageNumber,
                     PageSize = query.PageSize,
                     TotalResults = pexelsResponse.TotalResults,
@@ -91,12 +97,14 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
             return new ImageSearchPage
             {
                 Query = query.Query,
+                Page = query.PageNumber,
+                PerPage = query.PageSize,
                 PageNumber = query.PageNumber,
                 PageSize = query.PageSize,
                 TotalResults = 0,
                 HasNextPage = false,
                 Provider = "Pexels",
-                Results = Array.Empty<ImageSearchResult>()
+                Results = new List<ImageSearchResult>()
             };
         }
 

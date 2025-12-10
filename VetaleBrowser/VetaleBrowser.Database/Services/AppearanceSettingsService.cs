@@ -51,14 +51,15 @@ public class AppearanceSettingsService : IAppearanceSettingsService, IDisposable
             Directory.CreateDirectory(directory);
         }
 
-        // Ініціалізуємо базу даних
+        // MEMORY OPTIMIZATION: Direct connection
         var connectionString = new ConnectionString
         {
             Filename = databasePath,
-            Connection = ConnectionType.Shared
+            Connection = ConnectionType.Direct
         };
 
         _database = new LiteDatabase(connectionString);
+        try { _database.Checkpoint(); } catch { }
         
         // Отримуємо колекцію
         _settingsCollection = _database.GetCollection<SettingItem>("appearance_settings");

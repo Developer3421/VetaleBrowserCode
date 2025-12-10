@@ -7,7 +7,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Input;
 using Avalonia.Controls.ApplicationLifetimes; // added for Windows enumeration
-using VetaleBrowser; // for MainWindow
+// for MainWindow
 using VetaleBrowser.VetaleBrowser.UI.Pages;
 using VetaleBrowser.VetaleBrowser.Database;
 using VetaleBrowser.VetaleBrowser.Database.Services;

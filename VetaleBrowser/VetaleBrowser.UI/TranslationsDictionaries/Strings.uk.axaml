@@ -313,6 +313,7 @@
   <x:String x:Key="VetaleAI.Language.German">Німецька</x:String>
   <x:String x:Key="VetaleAI.Language.French">Французька</x:String>
   <x:String x:Key="VetaleAI.Language.Spanish">Іспанська</x:String>
+  <x:String x:Key="VetaleAI.Language.Turkish">Турецька</x:String>
   <x:String x:Key="VetaleAI.WelcomeMessage">Привіт! Я Vetale AI. Як я можу вам допомогти сьогодні?</x:String>
   <x:String x:Key="VetaleAI.Thinking">Міркую...</x:String>
   <x:String x:Key="VetaleAI.User">Ви</x:String>

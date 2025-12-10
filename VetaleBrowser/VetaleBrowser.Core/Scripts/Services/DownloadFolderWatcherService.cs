@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
 
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Services

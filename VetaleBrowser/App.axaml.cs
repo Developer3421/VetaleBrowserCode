@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -18,111 +19,22 @@ public partial class App : Application
     {
         try
         {
-            // Initialize logging
-            try
-            {
-                VetaleBrowser.Core.Scripts.Services.ConsoleLogger.Initialize();
-                System.Diagnostics.Trace.WriteLine("App: ConsoleLogger initialized successfully");
-            }
-            catch (System.Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"App: Failed to initialize ConsoleLogger: {ex.Message}");
-            }
-
-            // Initialize database before reading settings
-            try
-            {
-                DatabaseManager.Initialize();
-                System.Diagnostics.Trace.WriteLine("App: Database initialized successfully");
-            }
-            catch (System.Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"App: Failed to initialize database: {ex.Message}");
-            }
-
-            // Apply UI language from settings after DB init (async is safe here but not awaited to avoid blocking startup)
-            try
-            {
-                _ = LocalizationService.InitializeFromSettingsAsync();
-            }
-            catch (System.Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"App: Failed to apply localization: {ex.Message}");
-            }
-
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                // ALWAYS create the main window - critical for startup
+                // STARTUP OPTIMIZATION: Create and show MainWindow FIRST for immediate visibility
                 desktop.MainWindow = new MainWindow();
-                System.Diagnostics.Trace.WriteLine("App: MainWindow created successfully");
+                System.Diagnostics.Trace.WriteLine("App: MainWindow created (deferred initialization follows)");
                 
-                // Закриваємо базу даних при виході з додатку
-                desktop.ShutdownRequested += (sender, e) =>
-                {
-                    try
-                    {
-                        DatabaseManager.Shutdown();
-                        System.Diagnostics.Trace.WriteLine("App: Database shutdown successfully");
-                    }
-                    catch (System.Exception ex)
-                    {
-                        System.Diagnostics.Trace.WriteLine($"App: Error during database shutdown: {ex.Message}");
-                    }
-
-                    try
-                    {
-                        VetaleBrowser.Database.Services.DevToolsDataService.DisposeAll();
-                        System.Diagnostics.Trace.WriteLine("App: DevTools database shutdown successfully");
-                    }
-                    catch (System.Exception ex)
-                    {
-                        System.Diagnostics.Trace.WriteLine($"App: Error during DevTools database shutdown: {ex.Message}");
-                    }
-                };
-            }
-
-            // Initialize download folder watcher (monitor OS-level Downloads)
-            try
-            {
-                VetaleBrowser.Core.Scripts.Services.DownloadFolderWatcherService.Initialize();
-                var dlPath = VetaleBrowser.Core.Scripts.Services.DownloadFolderWatcherService.MonitoredPath;
-                System.Diagnostics.Trace.WriteLine($"App: DownloadFolderWatcher initialized at '{dlPath}'");
-
-                // Auto-open Downloads window on first active download
-                VetaleBrowser.Core.Scripts.GlobalManagers.DownloadManager.StatusChanged += (s, item) =>
-                {
-                    try
-                    {
-                        if (item.Status == "Downloading" && ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
-                        {
-                            var existing = lifetime.Windows.FirstOrDefault(w => w is VetaleBrowser.UI.Windows.DownloadsWindow);
-                            if (existing is VetaleBrowser.UI.Windows.DownloadsWindow dw)
-                            {
-                                dw.Activate();
-                            }
-                            else
-                            {
-                                var wnd = new VetaleBrowser.UI.Windows.DownloadsWindow();
-                                wnd.Show();
-                            }
-                        }
-                    }
-                    catch { }
-                };
-            }
-            catch (System.Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"App: Failed to init DownloadFolderWatcher: {ex.Message}");
+                // MEMORY OPTIMIZATION: Initialize heavy services in background AFTER window is shown
+                _ = InitializeServicesAsync(desktop);
             }
 
             base.OnFrameworkInitializationCompleted();
         }
         catch (System.Exception ex)
         {
-            // Critical error during initialization - log and try to show main window anyway
             System.Diagnostics.Trace.WriteLine($"App: CRITICAL ERROR during initialization: {ex}");
             
-            // Last resort - ensure window is created
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow == null)
             {
                 try
@@ -132,11 +44,94 @@ public partial class App : Application
                 catch (System.Exception innerEx)
                 {
                     System.Diagnostics.Trace.WriteLine($"App: FATAL - Could not create MainWindow: {innerEx}");
-                    throw; // Re-throw if we can't even create the window
+                    throw;
                 }
             }
             
             base.OnFrameworkInitializationCompleted();
+        }
+    }
+
+    /// <summary>
+    /// STARTUP OPTIMIZATION: Initialize services in background to not block window display
+    /// </summary>
+    private async Task InitializeServicesAsync(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        await Task.Yield(); // Ensure window is shown first
+        
+        // Initialize logging (fast, do first)
+        try
+        {
+            VetaleBrowser.Core.Scripts.Services.ConsoleLogger.Initialize();
+            System.Diagnostics.Trace.WriteLine("App: ConsoleLogger initialized");
+        }
+        catch (System.Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"App: ConsoleLogger failed: {ex.Message}");
+        }
+
+        // Initialize database in background
+        await Task.Run(() =>
+        {
+            try
+            {
+                DatabaseManager.Initialize();
+                System.Diagnostics.Trace.WriteLine("App: Database initialized");
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"App: Database init failed: {ex.Message}");
+            }
+        });
+
+        // Apply localization after DB - MUST await to ensure it completes
+        try
+        {
+            await LocalizationService.InitializeFromSettingsAsync();
+            System.Diagnostics.Trace.WriteLine("App: Localization initialized");
+        }
+        catch (System.Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"App: Localization failed: {ex.Message}");
+        }
+        
+        // Setup shutdown handler
+        desktop.ShutdownRequested += (_, _) =>
+        {
+            try { DatabaseManager.Shutdown(); } catch { }
+            try { VetaleBrowser.Database.Services.DevToolsDataService.DisposeAll(); } catch { }
+            try { VetaleBrowser.Database.Services.DatabaseServiceManager.Shutdown(); } catch { }
+        };
+
+        // Initialize download watcher (can be deferred)
+        await Task.Delay(500); // Wait a bit before starting background services
+        try
+        {
+            VetaleBrowser.Core.Scripts.Services.DownloadFolderWatcherService.Initialize();
+            System.Diagnostics.Trace.WriteLine("App: DownloadFolderWatcher initialized");
+
+            VetaleBrowser.Core.Scripts.GlobalManagers.DownloadManager.StatusChanged += (s, item) =>
+            {
+                try
+                {
+                    if (item.Status == "Downloading" && ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            var existing = lifetime.Windows.FirstOrDefault(w => w is VetaleBrowser.UI.Windows.DownloadsWindow);
+                            if (existing is VetaleBrowser.UI.Windows.DownloadsWindow dw)
+                                dw.Activate();
+                            else
+                                new VetaleBrowser.UI.Windows.DownloadsWindow().Show();
+                        });
+                    }
+                }
+                catch { }
+            };
+        }
+        catch (System.Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"App: DownloadFolderWatcher failed: {ex.Message}");
         }
     }
 }

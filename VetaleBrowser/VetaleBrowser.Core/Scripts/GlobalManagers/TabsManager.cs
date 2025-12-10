@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.Models;
 
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers

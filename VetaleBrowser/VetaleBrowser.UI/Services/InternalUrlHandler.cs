@@ -8,14 +8,32 @@ namespace VetaleBrowser.VetaleBrowser.UI.Services;
 
 /// <summary>
 /// Сервіс для обробки внутрішніх URL браузера (vetale://)
+/// MEMORY OPTIMIZATION: Uses lazy service providers for on-demand creation
 /// </summary>
 public static class InternalUrlHandler
 {
     public const string InternalProtocol = "vetale://";
     
-    // Статичні сервіси для налаштування створюваних сторінок
-    public static ISuggestionsService? GlobalSuggestionsService { get; set; }
-    public static IVoiceRecognitionService? GlobalVoiceRecognitionService { get; set; }
+    // MEMORY OPTIMIZATION: Lazy service providers instead of direct instances
+    // Services will be created only when actually needed
+    public static Func<ISuggestionsService>? SuggestionsServiceProvider { get; set; }
+    public static Func<IVoiceRecognitionService>? VoiceRecognitionServiceProvider { get; set; }
+    
+    // Legacy direct properties (for backward compatibility, marked as obsolete)
+    private static ISuggestionsService? _cachedSuggestionsService;
+    private static IVoiceRecognitionService? _cachedVoiceService;
+    
+    public static ISuggestionsService? GlobalSuggestionsService 
+    { 
+        get => _cachedSuggestionsService ?? SuggestionsServiceProvider?.Invoke();
+        set => _cachedSuggestionsService = value;
+    }
+    
+    public static IVoiceRecognitionService? GlobalVoiceRecognitionService 
+    { 
+        get => _cachedVoiceService ?? VoiceRecognitionServiceProvider?.Invoke();
+        set => _cachedVoiceService = value;
+    }
     
     /// <summary>
     /// Перевірити чи є URL внутрішнім

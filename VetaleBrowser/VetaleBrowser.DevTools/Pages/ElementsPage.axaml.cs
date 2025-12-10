@@ -11,7 +11,6 @@ using VetaleBrowser.VetaleBrowser.Database.Services;
 using Avalonia.Controls.ApplicationLifetimes;
 using VetaleBrowser.VetaleBrowser.DevTools.Services;
 using Avalonia.VisualTree;
-using WebViewControl;
 
 namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
 {

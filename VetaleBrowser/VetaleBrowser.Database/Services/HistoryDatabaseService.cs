@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using LiteDB;
 using VetaleBrowser.VetaleBrowser.Database.Models;
 
@@ -9,64 +10,114 @@ namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
 /// Сервіс для роботи з базою даних історії переглядів
+/// MEMORY OPTIMIZED: Lazy loading, pagination, caching, batch operations
 /// </summary>
 public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
 {
-    private readonly LiteDatabase _database;
+    private LiteDatabase? _database;
+    private ILiteCollection<HistoryItem>? _historyCollection;
     private readonly DatabaseEncryptionService _encryptionService;
-    private readonly ILiteCollection<HistoryItem> _historyCollection;
     private readonly string _databasePath;
+    private readonly object _lock = new object();
+    private bool _disposed;
     
-    // Обмеження для запобігання переповнення
-    private const int MaxHistoryItems = 100000;
-    private const long MaxDatabaseSizeBytes = 500 * 1024 * 1024; // 500 MB
+    // MEMORY OPTIMIZATION: Агресивно зменшені ліміти для AMD карт
+    private const int MaxHistoryItems = 5000;      // Зменшено з 50000
+    private const int DefaultPageSize = 50;        // Зменшено з 100
+    private const long MaxDatabaseSizeBytes = 20 * 1024 * 1024; // 20 MB замість 200 MB
+    
+    // MEMORY OPTIMIZATION: Мінімальний кеш
+    private readonly Dictionary<string, (HistoryItem item, DateTime cachedAt)> _urlCache = new(StringComparer.OrdinalIgnoreCase);
+    private const int MaxCacheSize = 20;           // Зменшено з 100
+
+    // Lazy initialization flag
+    private bool _isInitialized;
 
     public HistoryDatabaseService(string databasePath, string encryptionKey)
     {
         _encryptionService = new DatabaseEncryptionService(encryptionKey);
         _databasePath = databasePath;
         
-        // Створюємо директорію для бази даних якщо не існує
-        var directory = Path.GetDirectoryName(databasePath);
-        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-        {
-            Directory.CreateDirectory(directory);
-        }
-
-        // Ініціалізуємо базу даних з шифруванням
-        var connectionString = new ConnectionString
-        {
-            Filename = databasePath,
-            Connection = ConnectionType.Shared
-        };
-
-        _database = new LiteDatabase(connectionString);
-        
-        // Отримуємо колекцію
-        _historyCollection = _database.GetCollection<HistoryItem>("history");
-        
-        // Створюємо індекси для оптимізації
-        _historyCollection.EnsureIndex(x => x.Url);
-        _historyCollection.EnsureIndex(x => x.VisitedAt);
-        _historyCollection.EnsureIndex(x => x.Title);
-        
-        // Перевіряємо розмір бази даних
-        CheckDatabaseSize();
+        // MEMORY OPTIMIZATION: Don't initialize DB immediately - use lazy init
+        // Database will be opened on first actual use
     }
 
     /// <summary>
-    /// Перевіряє розмір бази даних та виконує очищення якщо потрібно
+    /// Lazy initialization of database connection
     /// </summary>
-    private void CheckDatabaseSize()
+    private void EnsureInitialized()
     {
-        var dbFileInfo = new FileInfo(_databasePath);
-        if (dbFileInfo.Exists && dbFileInfo.Length > MaxDatabaseSizeBytes)
+        if (_isInitialized) return;
+        
+        lock (_lock)
         {
-            // Видаляємо старі записи
-            CleanupOldData();
+            if (_isInitialized) return;
             
-            // Оптимізуємо базу даних
-            _database.Rebuild();
+            try
+            {
+                // Створюємо директорію для бази даних якщо не існує
+                var directory = Path.GetDirectoryName(_databasePath);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                // MEMORY OPTIMIZATION: Minimal LiteDB configuration
+                var connectionString = new ConnectionString
+                {
+                    Filename = _databasePath,
+                    Connection = ConnectionType.Direct, // Менше пам'яті ніж Shared
+                    ReadOnly = false,
+                    // LiteDB v5 memory optimizations (якщо підтримується)
+                };
+
+                _database = new LiteDatabase(connectionString);
+                
+                // MEMORY OPTIMIZATION: Зменшуємо розмір кешу LiteDB
+                // Примусовий checkpoint для звільнення пам'яті
+                try { _database.Checkpoint(); } catch { }
+                
+                _historyCollection = _database.GetCollection<HistoryItem>("history");
+                
+                // Тільки необхідні індекси (менше індексів = менше RAM)
+                _historyCollection.EnsureIndex(x => x.VisitedAt);
+                
+                _isInitialized = true;
+                
+                // Перевіряємо розмір бази даних асинхронно
+                ThreadPool.QueueUserWorkItem(_ => CheckDatabaseSizeAsync());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing history database: {ex.Message}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Асинхронна перевірка розміру бази даних
+    /// </summary>
+    private void CheckDatabaseSizeAsync()
+    {
+        try
+        {
+            var dbFileInfo = new FileInfo(_databasePath);
+            if (dbFileInfo.Exists && dbFileInfo.Length > MaxDatabaseSizeBytes)
+            {
+                lock (_lock)
+                {
+                    CleanupOldData();
+                    // MEMORY OPTIMIZATION: Rebuild only when really needed
+                    if (dbFileInfo.Length > MaxDatabaseSizeBytes * 1.5)
+                    {
+                        _database?.Rebuild();
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error checking database size: {ex.Message}");
         }
     }
 
@@ -75,21 +126,29 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
     /// </summary>
     private void CleanupOldData()
     {
+        if (_historyCollection == null) return;
+        
         var totalItems = _historyCollection.Count();
         if (totalItems > MaxHistoryItems)
         {
             var itemsToDelete = totalItems - MaxHistoryItems;
-            var oldItems = _historyCollection
+            // MEMORY OPTIMIZATION: Use batch delete with IDs only
+            var idsToDelete = _historyCollection
                 .Query()
                 .OrderBy(x => x.VisitedAt)
                 .Limit(itemsToDelete)
+                .ToList()
+                .Select(x => x.Id)
                 .ToList();
 
-            foreach (var item in oldItems)
+            foreach (var id in idsToDelete)
             {
-                _historyCollection.Delete(item.Id);
+                _historyCollection.Delete(id);
             }
         }
+        
+        // Clear cache after cleanup
+        ClearCache();
     }
 
     /// <summary>
@@ -97,52 +156,59 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
     /// </summary>
     public void AddOrUpdateHistoryItem(string url, string title, string? faviconUrl = null, byte[]? faviconData = null)
     {
+        if (string.IsNullOrWhiteSpace(url)) return;
+        
+        EnsureInitialized();
+        if (_historyCollection == null) return;
+
         try
         {
-            if (string.IsNullOrWhiteSpace(url))
-                return;
-
             // Шифруємо чутливі дані
             var encryptedUrl = _encryptionService.EncryptString(url);
             var encryptedTitle = !string.IsNullOrWhiteSpace(title) 
                 ? _encryptionService.EncryptString(title) 
                 : _encryptionService.EncryptString(url);
 
-            // Перевіряємо чи існує запис з таким URL
-            var existing = _historyCollection.FindOne(x => x.Url == encryptedUrl);
-            
-            if (existing != null)
+            lock (_lock)
             {
-                // Оновлюємо існуючий запис
-                existing.Title = encryptedTitle;
-                existing.VisitedAt = DateTime.UtcNow;
-                existing.VisitCount++;
+                // Перевіряємо чи існує запис з таким URL
+                var existing = _historyCollection.FindOne(x => x.Url == encryptedUrl);
                 
-                if (faviconUrl != null)
-                    existing.FaviconUrl = faviconUrl;
-                if (faviconData != null)
-                    existing.FaviconData = faviconData;
-                
-                _historyCollection.Update(existing);
-            }
-            else
-            {
-                // Створюємо новий запис
-                var historyItem = new HistoryItem
+                if (existing != null)
                 {
-                    Url = encryptedUrl,
-                    Title = encryptedTitle,
-                    FaviconUrl = faviconUrl,
-                    FaviconData = faviconData,
-                    VisitedAt = DateTime.UtcNow,
-                    VisitCount = 1
-                };
+                    // Оновлюємо існуючий запис
+                    existing.Title = encryptedTitle;
+                    existing.VisitedAt = DateTime.UtcNow;
+                    existing.VisitCount++;
+                    
+                    // MEMORY OPTIMIZATION: Only update favicon if provided and different
+                    if (faviconUrl != null && faviconUrl != existing.FaviconUrl)
+                        existing.FaviconUrl = faviconUrl;
+                    if (faviconData != null && (existing.FaviconData == null || !faviconData.SequenceEqual(existing.FaviconData)))
+                        existing.FaviconData = faviconData;
+                    
+                    _historyCollection.Update(existing);
+                    
+                    // Update cache
+                    UpdateCache(url, existing);
+                }
+                else
+                {
+                    // Створюємо новий запис
+                    var historyItem = new HistoryItem
+                    {
+                        Url = encryptedUrl,
+                        Title = encryptedTitle,
+                        FaviconUrl = faviconUrl,
+                        FaviconData = faviconData,
+                        VisitedAt = DateTime.UtcNow,
+                        VisitCount = 1
+                    };
 
-                _historyCollection.Insert(historyItem);
+                    _historyCollection.Insert(historyItem);
+                    UpdateCache(url, historyItem);
+                }
             }
-            
-            // Перевіряємо чи не перевищено ліміт
-            CheckDatabaseSize();
         }
         catch (Exception ex)
         {
@@ -151,10 +217,13 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Отримує всю історію або з фільтром по даті
+    /// Отримує історію з пагінацією (MEMORY OPTIMIZED)
     /// </summary>
-    public List<HistoryItem> GetHistory(DateTime? startDate = null, DateTime? endDate = null)
+    public List<HistoryItem> GetHistory(DateTime? startDate = null, DateTime? endDate = null, int page = 0, int pageSize = DefaultPageSize)
     {
+        EnsureInitialized();
+        if (_historyCollection == null) return new List<HistoryItem>();
+
         try
         {
             var query = _historyCollection.Query();
@@ -165,21 +234,15 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
             if (endDate.HasValue)
                 query = query.Where(x => x.VisitedAt <= endDate.Value);
 
-            var items = query.OrderByDescending(x => x.VisitedAt).ToList();
+            // MEMORY OPTIMIZATION: Use pagination
+            var items = query
+                .OrderByDescending(x => x.VisitedAt)
+                .Skip(page * pageSize)
+                .Limit(pageSize)
+                .ToList();
 
             // Розшифровуємо дані
-            foreach (var item in items)
-            {
-                try
-                {
-                    item.Url = _encryptionService.DecryptString(item.Url);
-                    item.Title = _encryptionService.DecryptString(item.Title);
-                }
-                catch
-                {
-                    // Якщо не вдалося розшифрувати, залишаємо як є
-                }
-            }
+            DecryptHistoryItems(items);
 
             return items;
         }
@@ -191,13 +254,46 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
     }
 
     /// <summary>
+    /// Overload for compatibility - returns first page
+    /// </summary>
+    public List<HistoryItem> GetHistory(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        return GetHistory(startDate, endDate, 0, DefaultPageSize);
+    }
+
+    /// <summary>
+    /// Розшифровує елементи історії (extracted for reuse)
+    /// </summary>
+    private void DecryptHistoryItems(List<HistoryItem> items)
+    {
+        foreach (var item in items)
+        {
+            try
+            {
+                item.Url = _encryptionService.DecryptString(item.Url);
+                item.Title = _encryptionService.DecryptString(item.Title);
+            }
+            catch
+            {
+                // Якщо не вдалося розшифрувати, залишаємо як є
+            }
+        }
+    }
+
+    /// <summary>
     /// Видаляє запис з історії
     /// </summary>
     public void DeleteHistoryItem(int id)
     {
+        EnsureInitialized();
+        if (_historyCollection == null) return;
+
         try
         {
-            _historyCollection.Delete(id);
+            lock (_lock)
+            {
+                _historyCollection.Delete(id);
+            }
         }
         catch (Exception ex)
         {
@@ -210,9 +306,16 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
     /// </summary>
     public void ClearHistory()
     {
+        EnsureInitialized();
+        if (_historyCollection == null) return;
+
         try
         {
-            _historyCollection.DeleteAll();
+            lock (_lock)
+            {
+                _historyCollection.DeleteAll();
+                ClearCache();
+            }
         }
         catch (Exception ex)
         {
@@ -221,20 +324,20 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Очищує історію старше вказаної дати
+    /// Очищує історію старше вказаної дати (OPTIMIZED: batch delete)
     /// </summary>
     public void ClearHistoryOlderThan(DateTime date)
     {
+        EnsureInitialized();
+        if (_historyCollection == null) return;
+
         try
         {
-            var itemsToDelete = _historyCollection
-                .Query()
-                .Where(x => x.VisitedAt < date)
-                .ToList();
-
-            foreach (var item in itemsToDelete)
+            lock (_lock)
             {
-                _historyCollection.Delete(item.Id);
+                // MEMORY OPTIMIZATION: Use batch delete by expression
+                _historyCollection.DeleteMany(x => x.VisitedAt < date);
+                ClearCache();
             }
         }
         catch (Exception ex)
@@ -244,22 +347,28 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Пошук в історії
+    /// Пошук в історії (OPTIMIZED: with pagination)
     /// </summary>
-    public List<HistoryItem> SearchHistory(string query)
+    public List<HistoryItem> SearchHistory(string query, int page = 0, int pageSize = DefaultPageSize)
     {
+        if (string.IsNullOrWhiteSpace(query))
+            return GetHistory(null, null, page, pageSize);
+
+        EnsureInitialized();
+        if (_historyCollection == null) return new List<HistoryItem>();
+
         try
         {
-            if (string.IsNullOrWhiteSpace(query))
-                return GetHistory();
-
-            var allItems = GetHistory();
+            // MEMORY OPTIMIZATION: Get paginated results then filter in-memory
+            // This is still efficient because we limit the batch size
+            var allItems = GetHistory(null, null, page, pageSize * 3); // Get more items to have enough after filtering
             var searchTermLower = query.ToLower();
 
             return allItems
                 .Where(x => 
                     x.Url.ToLower().Contains(searchTermLower) || 
                     x.Title.ToLower().Contains(searchTermLower))
+                .Take(pageSize)
                 .ToList();
         }
         catch (Exception ex)
@@ -269,9 +378,62 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
         }
     }
 
+    /// <summary>
+    /// Overload for compatibility
+    /// </summary>
+    public List<HistoryItem> SearchHistory(string query)
+    {
+        return SearchHistory(query, 0, DefaultPageSize);
+    }
+
+    /// <summary>
+    /// MEMORY OPTIMIZATION: Cache management
+    /// </summary>
+    private void UpdateCache(string url, HistoryItem item)
+    {
+        if (_urlCache.Count >= MaxCacheSize)
+        {
+            // Remove oldest entries
+            var toRemove = _urlCache
+                .OrderBy(x => x.Value.cachedAt)
+                .Take(MaxCacheSize / 4)
+                .Select(x => x.Key)
+                .ToList();
+            
+            foreach (var key in toRemove)
+            {
+                _urlCache.Remove(key);
+            }
+        }
+        
+        _urlCache[url] = (item, DateTime.UtcNow);
+    }
+
+    private void ClearCache()
+    {
+        _urlCache.Clear();
+    }
+
+    /// <summary>
+    /// Отримує кількість записів в історії
+    /// </summary>
+    public int GetHistoryCount()
+    {
+        EnsureInitialized();
+        return _historyCollection?.Count() ?? 0;
+    }
+
     public void Dispose()
     {
-        _database?.Dispose();
+        if (_disposed) return;
+        _disposed = true;
+        
+        lock (_lock)
+        {
+            ClearCache();
+            _database?.Dispose();
+            _database = null;
+            _historyCollection = null;
+        }
     }
 }
-

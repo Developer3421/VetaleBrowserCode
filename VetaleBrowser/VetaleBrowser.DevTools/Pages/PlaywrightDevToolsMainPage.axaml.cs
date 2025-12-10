@@ -2,7 +2,6 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using System;
 using System.Diagnostics;
 
 namespace VetaleBrowser.VetaleBrowser.DevTools.Pages

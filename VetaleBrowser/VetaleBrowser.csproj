@@ -8,6 +8,8 @@
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <ApplicationIcon>DefaultTabItem.ico</ApplicationIcon>
         <LangVersion>14</LangVersion>
+        <!-- Explicitly set RuntimeIdentifiers to Windows only -->
+        <RuntimeIdentifiers>win-x64;win-x86;win-arm64</RuntimeIdentifiers>
     </PropertyGroup>
 
     <!-- Release configuration: single-file, no PDB -->
@@ -30,15 +32,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AngleSharp" Version="1.4.1-beta.502" />
-        <PackageReference Include="Avalonia" Version="11.3.8" />
-        <PackageReference Include="Avalonia.Desktop" Version="11.3.8" />
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.8" />
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.8" />
+        <PackageReference Include="Avalonia" Version="11.3.9" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.3.9" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.9" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.9" />
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-        <PackageReference Include="Avalonia.Diagnostics" Version="11.3.8">
+        <PackageReference Include="Avalonia.Diagnostics" Version="11.3.9">
             <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>none</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Jint" Version="4.4.2" />
         <PackageReference Include="LiteDB" Version="6.0.0-prerelease.73" />
@@ -46,11 +49,11 @@
         <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.25.0" Condition="'$(LlamaBackendChoice)' == 'cpu-avx2'" />
         <PackageReference Include="LLamaSharp.Backend.Vulkan" Version="0.25.0" Condition="'$(LlamaBackendChoice)' == 'vulkan'" />
         <PackageReference Include="Microsoft.Agents.AI.Abstractions" Version="1.0.0-preview.251104.1" />
-        <PackageReference Include="Microsoft.Playwright" Version="1.55.0" />
+        <PackageReference Include="Microsoft.Playwright" Version="1.56.0" />
         <PackageReference Include="NAudio.Core" Version="2.2.1" />
         <PackageReference Include="NAudio.WinMM" Version="2.2.1" />
-        <PackageReference Include="WebViewControl-Avalonia" Version="3.120.9" />
-        <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
+        <PackageReference Include="WebViewControl-Avalonia" Version="3.120.10" />
+        <PackageReference Include="System.Drawing.Common" Version="10.0.0" />
         <PackageReference Include="NAudio" Version="2.2.1" />
         <PackageReference Include="Whisper.net" Version="1.9.0" />
         <PackageReference Include="Whisper.net.Runtime" Version="1.9.0" />
@@ -99,6 +102,9 @@
       <!-- Вибір бекенду LLama: cpu-avx2 або vulkan (за замовчуванням cpu-avx2) -->
       <LlamaBackendChoice Condition="'$(LlamaBackendChoice)' == ''">cpu-avx2</LlamaBackendChoice>
       <LlamaPreferredCpuVariant Condition="'$(LlamaBackendChoice)' == 'cpu-avx2'">avx2</LlamaPreferredCpuVariant>
+      <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+      <StartupObject>VetaleBrowser.Program</StartupObject>
+      <NuGetAuditLevel>moderate</NuGetAuditLevel>
     </PropertyGroup>
 
     <!-- Оставляем только вариант avx2 нативних бібліотек LLamaSharp для усунення конфліктів імен при single-file -->
@@ -132,7 +138,7 @@
         <_HasCpuBackend Include="LLamaSharp.Backend.Cpu" Condition="'$(LlamaBackendChoice)' == 'cpu-avx2'" />
         <_HasVulkanBackend Include="LLamaSharp.Backend.Vulkan" Condition="'$(LlamaBackendChoice)' == 'vulkan'" />
       </ItemGroup>
-      <Error Condition="@(_HasCpuBackend-&gt;Count()) &gt; 0 and @(_HasVulkanBackend-&gt;Count()) &gt; 0" Text="Не можна одночасно мати CPU і Vulkan бекенди LLamaSharp в одному однофайловому білді. Використайте -p:LlamaBackendChoice=cpu-avx2 або -p:LlamaBackendChoice=vulkan." />
+      <Error Condition="@(_HasCpuBackend-&gt;Count()) &gt; 0 and @(_HasVulkanBackend-&gt;Count()) &gt; 0" Text="Не можна одночасно мати CPU і Vulkan бекенди LLamaSharp в одному однофайловомуbildungs. Використайте -p:LlamaBackendChoice=cpu-avx2 або -p:LlamaBackendChoice=vulkan." />
     </Target>
 
     <ItemGroup Condition="'$(LlamaBackendChoice)' == 'vulkan'">

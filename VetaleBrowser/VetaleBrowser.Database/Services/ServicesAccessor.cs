@@ -1,6 +1,4 @@
-using VetaleBrowser.VetaleBrowser.Database.Services;
-
-namespace VetaleBrowser.VetaleBrowser.Database.ServicesAccessor
+namespace VetaleBrowser.VetaleBrowser.Database.Services
 {
     public static class ServicesAccessor
     {

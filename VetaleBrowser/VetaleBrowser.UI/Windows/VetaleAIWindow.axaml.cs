@@ -6,7 +6,6 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Input;
 using Avalonia.Controls.ApplicationLifetimes;
-using VetaleBrowser;
 using VetaleBrowser.VetaleBrowser.UI.Pages;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Windows;

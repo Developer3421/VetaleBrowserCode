@@ -29,20 +29,23 @@ public class SettingsService : ISettingsService, IDisposable
             Directory.CreateDirectory(directory);
         }
 
-        // Ініціалізуємо базу даних
+        // MEMORY OPTIMIZATION: Direct mode для мінімального споживання RAM
         var connectionString = new ConnectionString
         {
             Filename = databasePath,
-            Connection = ConnectionType.Shared
+            Connection = ConnectionType.Direct
         };
 
         _database = new LiteDatabase(connectionString);
         
+        // MEMORY OPTIMIZATION: Checkpoint
+        try { _database.Checkpoint(); } catch { }
+        
         // Отримуємо колекцію
         _settingsCollection = _database.GetCollection<SettingItem>("settings");
         
-        // Створюємо індекс для ключа
-        _settingsCollection.EnsureIndex(x => x.Key, true); // true = unique
+        // Один унікальний індекс
+        _settingsCollection.EnsureIndex(x => x.Key, true);
     }
 
     public async Task<string> GetSearchEngineUrlAsync()

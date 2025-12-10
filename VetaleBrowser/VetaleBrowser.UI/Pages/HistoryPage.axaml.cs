@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using Avalonia.Media.Imaging;
 using VetaleBrowser.VetaleBrowser.Database.Models;
 using VetaleBrowser.VetaleBrowser.Database.Services;
 using VetaleBrowser.VetaleBrowser.UI.Services;

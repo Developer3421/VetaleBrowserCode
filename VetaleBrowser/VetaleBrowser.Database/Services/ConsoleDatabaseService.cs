@@ -9,6 +9,7 @@ namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
 /// Сервіс для роботи з базою даних консолі з AES шифруванням
+/// MEMORY OPTIMIZATION: Direct connection mode
 /// </summary>
 public class ConsoleDatabaseService : IDisposable
 {
@@ -17,38 +18,34 @@ public class ConsoleDatabaseService : IDisposable
     private readonly ILiteCollection<ConsoleLogItem> _logsCollection;
     private readonly string _databasePath;
     
-    // Обмеження для запобігання переповнення
-    private const int MaxLogItems = 50000;
-    private const long MaxDatabaseSizeBytes = 100 * 1024 * 1024; // 100 MB
+    // MEMORY OPTIMIZATION: Агресивно зменшені ліміти
+    private const int MaxLogItems = 1000;  // Зменшено з 50000
+    private const long MaxDatabaseSizeBytes = 5 * 1024 * 1024; // 5 MB замість 100 MB
 
     public ConsoleDatabaseService(string databasePath, string encryptionKey)
     {
         _encryptionService = new DatabaseEncryptionService(encryptionKey);
         _databasePath = databasePath;
         
-        // Створюємо директорію для бази даних якщо не існує
         var directory = Path.GetDirectoryName(databasePath);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {
             Directory.CreateDirectory(directory);
         }
 
-        // Ініціалізуємо базу даних з шифруванням
+        // MEMORY OPTIMIZATION: Direct connection
         var connectionString = new ConnectionString
         {
             Filename = databasePath,
-            Connection = ConnectionType.Shared
+            Connection = ConnectionType.Direct
         };
 
         _database = new LiteDatabase(connectionString);
+        try { _database.Checkpoint(); } catch { }
         
-        // Отримуємо колекцію
         _logsCollection = _database.GetCollection<ConsoleLogItem>("console_logs");
-        
-        // Створюємо індекси для оптимізації
+        // Мінімум індексів
         _logsCollection.EnsureIndex(x => x.Timestamp);
-        _logsCollection.EnsureIndex(x => x.Level);
-        _logsCollection.EnsureIndex(x => x.Source);
         
         // Перевіряємо розмір бази даних
         CheckDatabaseSize();

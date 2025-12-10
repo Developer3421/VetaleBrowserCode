@@ -11,6 +11,7 @@ namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
 /// Сервіс для роботи з локальним пошуковим індексом Vetale Search
+/// MEMORY OPTIMIZATION: Direct connection mode, reduced limits
 /// </summary>
 public class SearchIndexService : ISearchIndexService, IDisposable
 {
@@ -20,45 +21,39 @@ public class SearchIndexService : ISearchIndexService, IDisposable
     private readonly ILiteCollection<SearchKeyword> _keywordCollection;
     private readonly string _databasePath;
 
-    private const int MaxIndexItems = 50000;
-    private const long MaxDatabaseSizeBytes = 1024 * 1024 * 1024; // 1 GB
+    // MEMORY OPTIMIZATION: Агресивно зменшені ліміти
+    private const int MaxIndexItems = 500;   // Зменшено з 50000
+    private const long MaxDatabaseSizeBytes = 10 * 1024 * 1024; // 10 MB замість 1 GB
 
     public SearchIndexService(string databasePath)
     {
         _databasePath = databasePath;
 
-        // Створюємо директорію для бази даних якщо не існує
         var directory = Path.GetDirectoryName(databasePath);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {
             Directory.CreateDirectory(directory);
         }
 
-        // Ініціалізуємо базу даних
+        // MEMORY OPTIMIZATION: Direct connection
         var connectionString = new ConnectionString
         {
             Filename = databasePath,
-            Connection = ConnectionType.Shared
+            Connection = ConnectionType.Direct
         };
 
         _database = new LiteDatabase(connectionString);
+        try { _database.Checkpoint(); } catch { }
 
         // Отримуємо колекції
         _indexCollection = _database.GetCollection<SearchIndex>("search_index");
         _queryCollection = _database.GetCollection<SearchQuery>("search_queries");
         _keywordCollection = _database.GetCollection<SearchKeyword>("search_keywords");
 
-        // Створюємо індекси для оптимізації
+        // MEMORY OPTIMIZATION: Мінімальна кількість індексів
         _indexCollection.EnsureIndex(x => x.Url);
-        _indexCollection.EnsureIndex(x => x.Title);
-        _indexCollection.EnsureIndex(x => x.IndexedAt);
-        _indexCollection.EnsureIndex(x => x.RelevanceScore);
-        
-        _queryCollection.EnsureIndex(x => x.Query);
         _queryCollection.EnsureIndex(x => x.SearchedAt);
-        
         _keywordCollection.EnsureIndex(x => x.SearchIndexId);
-        _keywordCollection.EnsureIndex(x => x.Keyword);
     }
 
     public async Task<bool> IndexPageAsync(string url, string title, string content, string description, string keywords)

@@ -184,6 +184,7 @@ public class VetaleAIService : IDisposable
             "de" or "German" => "German",
             "fr" or "French" => "French",
             "es" or "Spanish" => "Spanish",
+            "tr" or "Turkish" => "Turkish",
             _ => null
         };
     }

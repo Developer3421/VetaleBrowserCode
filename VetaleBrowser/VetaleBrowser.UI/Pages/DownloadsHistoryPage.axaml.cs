@@ -12,7 +12,6 @@ using VetaleBrowser.VetaleBrowser.Database.Models;
 using VetaleBrowser.VetaleBrowser.Database.Services;
 using VetaleBrowser.VetaleBrowser.UI.Services;
 using System.Windows.Input;
-using Avalonia;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages
 {

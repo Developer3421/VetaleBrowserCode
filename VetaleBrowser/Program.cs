@@ -2,52 +2,31 @@
 using System;
 using WebViewControl;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading;
 
 namespace VetaleBrowser;
 
 class Program
 {
-    // Initialization code. Don't use any Avalonia, third-party APIs or any
-    // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
-    // yet and stuff might break.
     [STAThread]
     public static void Main(string[] args)
     {
-        // Subprocess mode: spawned per tab to satisfy OS-level process-per-tab requirement
-        if (args is { Length: > 0 } && args.Contains("--tab-helper"))
+        // MEMORY OPTIMIZATION: Set aggressive GC mode for better memory management
+        System.Runtime.GCSettings.LargeObjectHeapCompactionMode = System.Runtime.GCLargeObjectHeapCompactionMode.CompactOnce;
+        
+        // Skip tab-helper mode since we no longer spawn subprocesses (memory optimization)
+        if (args is { Length: > 0 } && Array.Exists(args, a => a == "--tab-helper"))
         {
-            RunTabHelper(args);
+            // Immediately exit - subprocess mode is disabled for memory savings
             return;
         }
 
-        // Ensure GPU rendering and related Chromium features are enabled for CEF (CefGlue) before any WebView is created.
+        // Configure CEF/WebView before any UI is created
         ConfigureWebEngines();
 
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args ?? Array.Empty<string>());
     }
 
-    private static void RunTabHelper(string[] args)
-    {
-        // Expect format: --tab-helper <guid>
-        // We don't need to use the Guid value here; the existence of this process is what matters.
-        var sw = Stopwatch.StartNew();
-        while (true)
-        {
-            try
-            {
-                Thread.Sleep(1000);
-                // Optional max lifetime safety
-                if (sw.Elapsed > TimeSpan.FromHours(24)) break;
-            }
-            catch
-            {
-                break;
-            }
-        }
-    }
 
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
@@ -84,30 +63,85 @@ class Program
             try { System.IO.Directory.CreateDirectory(userDataDir); } catch { }
             try { System.IO.Directory.CreateDirectory(diskCacheDir); } catch { }
 
-            // Define Chromium/CEF switches focused on GPU and performance.
-            // Also provide a modern Chrome-like User-Agent so search engines treat us as a full browser.
+            // Define Chromium/CEF switches for PROFESSIONAL BROWSER performance
+            // Modern Chrome-like User-Agent for full browser recognition
             var userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 VetaleBrowser/1.0";
+            
+            // MEMORY OPTIMIZATION: Calculate cache sizes based on available RAM
+            var availableMemory = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
+            var cacheSizeMB = Math.Min(512, Math.Max(64, (int)(availableMemory / (1024 * 1024 * 8)))); // 1/8 of available RAM, 64-512MB
+            
             var switches = new (string key, string? value)[]
             {
-                ("enable-gpu", null),
-                ("ignore-gpu-blocklist", null),
+                // === GPU ACCELERATION (AMD RX 5700 XT FIX) ===
+                // ВАЖЛИВО: D3D11 ANGLE спричиняє витоки пам'яті на AMD картах!
+                // Використовуємо OpenGL замість D3D11 для AMD
+                ("use-angle", "gl"),  // OpenGL замість d3d11 для AMD
+                ("use-gl", "desktop"), // Примусово desktop OpenGL
+                
+                // Якщо OpenGL не працює, можна спробувати software rendering:
+                // ("disable-gpu", null),
+                // ("disable-gpu-compositing", null),
+                
                 ("enable-gpu-rasterization", null),
-                ("enable-zero-copy", null),
-                ("enable-native-gpu-memory-buffers", null),
                 ("enable-accelerated-video-decode", null),
-                ("enable-accelerated-video-encode", null),
-                ("enable-media-foundation-widevine", null),
-                ("use-angle", "d3d11"),
+                ("enable-accelerated-2d-canvas", null),
+                
+                // === AGGRESSIVE MEMORY OPTIMIZATION (500MB MAX per tab) ===
+                // V8 heap обмежено до 64MB замість 128MB
+                ("js-flags", "--max-old-space-size=64 --optimize-for-size --lite-mode --gc-interval=100"),
+                
+                // CRITICAL: Force single renderer process to limit RAM
+                ("renderer-process-limit", "1"),
+                
+                // Aggressive memory limits
+                ("disable-background-networking", null),
+                ("disable-component-update", null),
+                ("disable-client-side-phishing-detection", null),
+                ("disable-sync", null),
+                ("disable-translate", null),
+                ("disable-background-timer-throttling", null),
+                ("disable-extensions", null),
+                ("disable-plugins", null),
+                ("disable-spell-checking", null),
+                ("disable-preconnect", null),
+                ("disable-domain-reliability", null),
+                ("disable-reading-from-canvas", null),
+                ("disable-databases", null),
+                ("disable-local-storage", null), // Видалити якщо потрібно local storage
+                ("aggressive-cache-discard", null),
+                ("disable-gpu-shader-disk-cache", null),
+                
+                // Memory pressure handling
+                ("memory-pressure-thresholds", "1024,2048,4096"),
+                ("enable-low-end-device-mode", null), // Режим для пристроїв з малою RAM
+                
+                // === DISK CACHE (Мінімальний) ===
                 ("user-data-dir", userDataDir),
                 ("disk-cache-dir", diskCacheDir),
-                ("enable-features", "CanvasOopRasterization,UseSkiaRenderer,PlatformHEVCDecoderSupport,SharedArrayBuffer,AllowContentInitiatedDataUrlNavigations"),
-                ("disable-features", "CalculateNativeWinOcclusion"),
+                ("disk-cache-size", (32 * 1024 * 1024).ToString()), // 32MB max
+                ("media-cache-size", (8 * 1024 * 1024).ToString()),  // 8MB max
+                
+                // === PERFORMANCE ===
+                ("enable-features", "BackForwardCache,LazyFrameLoading,LazyImageLoading"),
+                ("disable-features", "CalculateNativeWinOcclusion,IsolateOrigins,SitePerProcess,AutofillServerCommunication,MediaRouter,Translate,OptimizationHints,GpuMemoryBufferVideoFrames"),
+                
+                // === PROCESS MODEL (Економія RAM) ===
+                ("process-per-site", null),
+                ("disable-site-isolation-trials", null),
+                ("disable-site-isolation-for-policy", null),
+                ("in-process-gpu", null), // GPU в основному процесі для економії RAM
+                
+                // === USER AGENT ===
                 ("user-agent", userAgent),
-                // Try to avoid external protocol handlers and keep handling inside the engine where possible
                 ("disable-external-protocol-handler", null),
                 ("disable-default-apps", null),
-                ("disable-features", "DisableExternalProtocolDialog"),
-                ("disable-pdf-extension", null)
+                ("disable-pdf-extension", null),
+                
+                // === V8 ===
+                ("enable-v8-idle-tasks", null),
+                ("v8-cache-options", "none"), // Вимкнути кеш V8 для економії RAM
+                ("v8-cache-strategies-for-cache-storage", "off")
             };
 
 #if DEBUG

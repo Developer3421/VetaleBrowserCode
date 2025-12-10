@@ -2,7 +2,6 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using VetaleBrowser.VetaleBrowser.UI.Windows;
-using System.Linq;
 using Avalonia.Interactivity;
 
 namespace VetaleBrowser.VetaleBrowser.DevTools.Pages

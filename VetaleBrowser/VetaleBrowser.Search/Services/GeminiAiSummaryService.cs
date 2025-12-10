@@ -15,6 +15,9 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
 {
     private readonly HttpClient _httpClient;
     
+    // Поточна мова для генерації відповідей
+
+    
     // Google Gemini API endpoint
     private const string ApiBaseUrl = "https://generativelanguage.googleapis.com/v1beta/models";
     
@@ -72,6 +75,23 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
         System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Service initialized with Google Gemini");
         System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Model: {ModelName}");
     }
+
+    /// <summary>
+    /// Встановити мову для AI-відповідей
+    /// </summary>
+
+    /// <summary>
+    /// Отримати назву мови для промпта
+    /// </summary>
+    private string GetLanguageName(string code) => code switch
+    {
+        "uk" => "Ukrainian (Українська)",
+        "en" => "English",
+        "de" => "German (Deutsch)",
+        "ru" => "Russian (Русский)",
+        "tr" => "Turkish (Türkçe)",
+        _ => "English"
+    };
 
     /// <summary>
     /// Generate AI summary for search query using Google Gemini

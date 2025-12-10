@@ -316,6 +316,7 @@
   <x:String x:Key="VetaleAI.Language.German">German</x:String>
   <x:String x:Key="VetaleAI.Language.French">French</x:String>
   <x:String x:Key="VetaleAI.Language.Spanish">Spanish</x:String>
+  <x:String x:Key="VetaleAI.Language.Turkish">Turkish</x:String>
   <x:String x:Key="VetaleAI.WelcomeMessage">Hello! I'm Vetale AI. How can I help you today?</x:String>
   <x:String x:Key="VetaleAI.Thinking">Thinking...</x:String>
   <x:String x:Key="VetaleAI.User">You</x:String>

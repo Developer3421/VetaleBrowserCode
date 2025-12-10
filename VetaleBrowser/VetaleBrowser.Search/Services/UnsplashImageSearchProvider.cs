@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
@@ -28,14 +29,14 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
             try
             {
                 var url = $"https://api.unsplash.com/search/photos?client_id={_accessKey}&query={Uri.EscapeDataString(query.Query)}&per_page={query.PageSize}&page={query.PageNumber}";
-                
+
                 var response = await _httpClient.GetAsync(url, ct);
                 response.EnsureSuccessStatusCode();
-                
+
                 var json = await response.Content.ReadAsStringAsync();
-                var unsplashResponse = JsonSerializer.Deserialize<UnsplashResponse>(json, new JsonSerializerOptions 
-                { 
-                    PropertyNameCaseInsensitive = true 
+                var unsplashResponse = JsonSerializer.Deserialize<UnsplashResponse>(json, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
                 });
 
                 if (unsplashResponse == null || unsplashResponse.Results == null)
@@ -43,25 +44,29 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
                     return new ImageSearchPage
                     {
                         Query = query.Query,
+                        Page = query.PageNumber,
+                        PerPage = query.PageSize,
                         PageNumber = query.PageNumber,
                         PageSize = query.PageSize,
                         TotalResults = 0,
                         HasNextPage = false,
                         Provider = "Unsplash",
-                        Results = Array.Empty<ImageSearchResult>()
+                        Results = new List<ImageSearchResult>()
                     };
                 }
 
-                var results = new ImageSearchResult[unsplashResponse.Results.Length];
+                var results = new List<ImageSearchResult>();
                 for (int i = 0; i < unsplashResponse.Results.Length; i++)
                 {
                     var photo = unsplashResponse.Results[i];
-                    results[i] = new ImageSearchResult
+                    results.Add(new ImageSearchResult
                     {
                         Id = photo.Id ?? string.Empty,
                         Provider = "Unsplash",
+                        Source = ImageSource.Unsplash,
                         Title = photo.AltDescription ?? photo.Description ?? $"Photo by {photo.User?.Name}",
                         PhotographerName = photo.User?.Name ?? "Unknown",
+                        Photographer = photo.User?.Name ?? "Unknown",
                         PhotographerUrl = photo.User?.Links?.Html ?? string.Empty,
                         SourcePageUrl = photo.Links?.Html ?? string.Empty,
                         Urls = new ImageUrlSet
@@ -73,13 +78,16 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
                         },
                         Width = photo.Width,
                         Height = photo.Height,
-                        Color = photo.Color ?? "#CCCCCC"
-                    };
+                        Color = photo.Color ?? "#CCCCCC",
+                        AverageColor = photo.Color ?? "#CCCCCC"
+                    });
                 }
 
                 return new ImageSearchPage
                 {
                     Query = query.Query,
+                    Page = query.PageNumber,
+                    PerPage = query.PageSize,
                     PageNumber = query.PageNumber,
                     PageSize = query.PageSize,
                     TotalResults = unsplashResponse.Total,
@@ -94,12 +102,14 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
                 return new ImageSearchPage
                 {
                     Query = query.Query,
+                    Page = query.PageNumber,
+                    PerPage = query.PageSize,
                     PageNumber = query.PageNumber,
                     PageSize = query.PageSize,
                     TotalResults = 0,
                     HasNextPage = false,
                     Provider = "Unsplash",
-                    Results = Array.Empty<ImageSearchResult>()
+                    Results = new List<ImageSearchResult>()
                 };
             }
         }

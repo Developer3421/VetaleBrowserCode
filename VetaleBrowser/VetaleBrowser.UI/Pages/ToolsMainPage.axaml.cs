@@ -6,7 +6,6 @@ using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using Avalonia.Media.Imaging;
 using VetaleBrowser.VetaleBrowser.UI.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;

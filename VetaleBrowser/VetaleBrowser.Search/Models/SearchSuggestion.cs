@@ -1,6 +1,3 @@
-using System;
-using System.Net.Mime;
-
 namespace VetaleBrowser.VetaleBrowser.Search.Models;
 
 /// <summary>
