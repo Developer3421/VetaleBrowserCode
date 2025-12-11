@@ -53,43 +53,57 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
         {
             if (_isInitialized) return;
             
-            try
+            // Retry logic для випадків коли файл тимчасово заблокований
+            const int maxRetries = 3;
+            const int retryDelayMs = 100;
+            
+            for (int attempt = 0; attempt < maxRetries; attempt++)
             {
-                // Створюємо директорію для бази даних якщо не існує
-                var directory = Path.GetDirectoryName(_databasePath);
-                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                try
                 {
-                    Directory.CreateDirectory(directory);
+                    // Створюємо директорію для бази даних якщо не існує
+                    var directory = Path.GetDirectoryName(_databasePath);
+                    if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                    {
+                        Directory.CreateDirectory(directory);
+                    }
+
+                    // FIX: Використовуємо Shared для підтримки кількох підключень
+                    var connectionString = new ConnectionString
+                    {
+                        Filename = _databasePath,
+                        Connection = ConnectionType.Shared, // Дозволяє кілька підключень
+                        ReadOnly = false,
+                    };
+
+                    _database = new LiteDatabase(connectionString);
+                    
+                    // Примусовий checkpoint для звільнення пам'яті
+                    try { _database.Checkpoint(); } catch { }
+                    
+                    _historyCollection = _database.GetCollection<HistoryItem>("history");
+                    
+                    // Тільки необхідні індекси (менше індексів = менше RAM)
+                    _historyCollection.EnsureIndex(x => x.VisitedAt);
+                    
+                    _isInitialized = true;
+                    
+                    // Перевіряємо розмір бази даних асинхронно
+                    ThreadPool.QueueUserWorkItem(_ => CheckDatabaseSizeAsync());
+                    
+                    return; // Успіх - виходимо
                 }
-
-                // MEMORY OPTIMIZATION: Minimal LiteDB configuration
-                var connectionString = new ConnectionString
+                catch (IOException ex) when (attempt < maxRetries - 1)
                 {
-                    Filename = _databasePath,
-                    Connection = ConnectionType.Direct, // Менше пам'яті ніж Shared
-                    ReadOnly = false,
-                    // LiteDB v5 memory optimizations (якщо підтримується)
-                };
-
-                _database = new LiteDatabase(connectionString);
-                
-                // MEMORY OPTIMIZATION: Зменшуємо розмір кешу LiteDB
-                // Примусовий checkpoint для звільнення пам'яті
-                try { _database.Checkpoint(); } catch { }
-                
-                _historyCollection = _database.GetCollection<HistoryItem>("history");
-                
-                // Тільки необхідні індекси (менше індексів = менше RAM)
-                _historyCollection.EnsureIndex(x => x.VisitedAt);
-                
-                _isInitialized = true;
-                
-                // Перевіряємо розмір бази даних асинхронно
-                ThreadPool.QueueUserWorkItem(_ => CheckDatabaseSizeAsync());
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error initializing history database: {ex.Message}");
+                    // Файл заблокований - чекаємо та пробуємо ще раз
+                    Console.WriteLine($"[HistoryDB] Attempt {attempt + 1} failed, retrying: {ex.Message}");
+                    Thread.Sleep(retryDelayMs * (attempt + 1));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error initializing history database: {ex.Message}");
+                    return;
+                }
             }
         }
     }

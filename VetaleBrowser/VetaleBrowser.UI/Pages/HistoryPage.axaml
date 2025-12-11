@@ -5,61 +5,82 @@
              xmlns:pages="using:VetaleBrowser.VetaleBrowser.UI.Pages"
              mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="550"
              x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.HistoryPage"
-             Background="#FF9800">
+             Background="#FAFAFA">
 
     <UserControl.Styles>
+        <!-- Сучасний стиль як в Chrome/Edge -->
         <Style Selector="Border.history-item">
-            <Setter Property="Background" Value="#F8F8F8"/>
-            <Setter Property="BorderBrush" Value="#E0E0E0"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Padding" Value="10"/>
-            <Setter Property="Margin" Value="0,0,0,8"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="Margin" Value="0,2"/>
         </Style>
         <Style Selector="Border.history-item:pointerover">
-            <Setter Property="Background" Value="#F0F0F0"/>
-            <Setter Property="BorderBrush" Value="#4CAF50"/>
+            <Setter Property="Background" Value="#F5F5F5"/>
         </Style>
+        
         <Style Selector="Button.action-button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="6"/>
+            <Setter Property="Padding" Value="8"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="CornerRadius" Value="50"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Opacity" Value="0.7"/>
         </Style>
         <Style Selector="Button.action-button:pointerover">
-            <Setter Property="Background" Value="#E8F5E9"/>
+            <Setter Property="Background" Value="#E8E8E8"/>
+            <Setter Property="Opacity" Value="1"/>
         </Style>
         
-        <!-- Кнопка Clear All - темно-зелена -->
+        <!-- Кнопка Clear All - червоний акцент -->
         <Style Selector="Button#PART_ClearAllButton">
-            <Setter Property="Background" Value="#2E7D32"/>
+            <Setter Property="Background" Value="#DC3545"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#1B5E20"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
         <Style Selector="Button#PART_ClearAllButton:pointerover">
-            <Setter Property="Background" Value="#388E3C"/>
+            <Setter Property="Background" Value="#C82333"/>
         </Style>
         
-        <!-- Кнопки фільтрів - світло-зелені -->
+        <!-- Кнопки фільтрів - pills стиль -->
         <Style Selector="Button.filter-button">
-            <Setter Property="Background" Value="#66BB6A"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#4CAF50"/>
-            <Setter Property="Padding" Value="12,6"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="CornerRadius" Value="16"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
         </Style>
         <Style Selector="Button.filter-button:pointerover">
-            <Setter Property="Background" Value="#81C784"/>
-            <Setter Property="BorderBrush" Value="#66BB6A"/>
+            <Setter Property="Background" Value="#E0E0E0"/>
         </Style>
         <Style Selector="Button.filter-button:pressed">
-            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Background" Value="#D0D0D0"/>
+        </Style>
+        <Style Selector="Button.filter-button.active">
+            <Setter Property="Background" Value="#1A73E8"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        
+        <!-- Пошукове поле -->
+        <Style Selector="TextBox.search-box">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="24"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style Selector="TextBox.search-box:focus">
+            <Setter Property="BorderBrush" Value="#1A73E8"/>
         </Style>
     </UserControl.Styles>
 
@@ -72,55 +93,72 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <Grid Grid.Row="0" Margin="20,20,20,15">
+        <Grid Grid.Row="0" Margin="24,24,24,16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0" 
-                       Text="{DynamicResource History.Header}" 
-                       FontSize="22" 
-                       FontWeight="Bold" 
-                       Foreground="#303030"/>
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="🕒" FontSize="24" VerticalAlignment="Center"/>
+                <TextBlock Text="{DynamicResource History.Header}" 
+                           FontSize="24" 
+                           FontWeight="SemiBold" 
+                           Foreground="#202124"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
                 <Button Name="PART_ClearAllButton"
-                        FontSize="12"
-                        Padding="12,8"
-                        CornerRadius="4"
+                        FontSize="13"
+                        Padding="16,10"
                         Click="ClearAll_Click">
-                    <TextBlock>
-                        <Run Text="🗑️ "/>
-                        <Run Text="{DynamicResource Common.ClearAll}"/>
-                    </TextBlock>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="🗑️" FontSize="14"/>
+                        <TextBlock Text="{DynamicResource Common.ClearAll}"/>
+                    </StackPanel>
                 </Button>
             </StackPanel>
         </Grid>
 
         <!-- Search Box -->
         <Border Grid.Row="1" 
-                Margin="20,0,20,15"
+                Margin="24,0,24,16"
                 Background="White"
-                BorderBrush="#E0E0E0"
+                BorderBrush="#DADCE0"
                 BorderThickness="1"
-                CornerRadius="6"
-                Padding="10">
-            <TextBox Name="PART_SearchBox"
-                     Watermark="{DynamicResource History.Search.Watermark}"
-                     FontSize="13"
-                     BorderThickness="0"
-                     Background="Transparent"
-                     TextChanged="SearchBox_TextChanged"/>
+                CornerRadius="24"
+                Padding="4,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" 
+                           Text="🔍" 
+                           FontSize="16" 
+                           VerticalAlignment="Center" 
+                           Margin="12,0,8,0"
+                           Opacity="0.6"/>
+                <TextBox Name="PART_SearchBox"
+                         Grid.Column="1"
+                         Watermark="{DynamicResource History.Search.Watermark}"
+                         FontSize="14"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         Padding="0,12"
+                         TextChanged="SearchBox_TextChanged"/>
+            </Grid>
         </Border>
 
         <!-- Time Period Filters -->
         <ScrollViewer Grid.Row="2" 
-                     Margin="20,0,20,15"
+                     Margin="24,0,24,16"
                      HorizontalScrollBarVisibility="Auto"
                      VerticalScrollBarVisibility="Disabled">
             <StackPanel Name="PART_FilterPanel" 
-                       Orientation="Horizontal">
+                       Orientation="Horizontal"
+                       Spacing="8">
                 <Button Classes="filter-button" 
                         Content="{DynamicResource History.Filter.All}" 
                         Tag="All"
@@ -152,52 +190,75 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- History List -->
-        <ScrollViewer Grid.Row="3" Margin="20,0,20,20">
-            <ItemsControl Name="PART_HistoryItemsControl">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="pages:HistoryItemViewModel">
-                        <Border Classes="history-item">
-                            <Grid ColumnDefinitions="Auto,*,Auto">
-                                <!-- Favicon -->
-                                <Panel Grid.Column="0"
-                                       Width="18"
-                                       Height="18"
-                                       Margin="0,0,10,0">
+        <!-- History List with Empty State -->
+        <Grid Grid.Row="3" Margin="24,0,24,20">
+            <!-- Empty State Panel -->
+            <Border Name="PART_EmptyState" 
+                    IsVisible="False"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center">
+                <StackPanel Spacing="16" HorizontalAlignment="Center">
+                    <TextBlock Text="📭" 
+                               FontSize="48" 
+                               HorizontalAlignment="Center"
+                               Opacity="0.5"/>
+                    <TextBlock Text="No browsing history" 
+                               FontSize="18" 
+                               Foreground="#5F6368"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="Your browsing history will appear here" 
+                               FontSize="14" 
+                               Foreground="#9AA0A6"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <!-- History Items -->
+            <ScrollViewer>
+                <ItemsControl Name="PART_HistoryItemsControl">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="pages:HistoryItemViewModel">
+                            <Border Classes="history-item" Cursor="Hand">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <!-- Favicon -->
+                                    <Panel Grid.Column="0"
+                                       Width="32"
+                                       Height="32"
+                                       Margin="0,0,14,0"
+                                       VerticalAlignment="Center">
                                     <!-- Background placeholder -->
-                                    <Border Width="18"
-                                            Height="18"
-                                            CornerRadius="2"
-                                            Background="#A78BFA"/>
+                                    <Border Width="32"
+                                            Height="32"
+                                            CornerRadius="4"
+                                            Background="#E8EAED"/>
                                     <!-- Favicon image -->
-                                    <Image Width="18"
-                                           Height="18"
+                                    <Image Width="20"
+                                           Height="20"
                                            Stretch="Uniform"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
                                            Source="{Binding FaviconImage}"/>
                                 </Panel>
 
                                 <!-- Info -->
-                                <StackPanel Grid.Column="1" Spacing="3">
+                                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding Title}" 
-                                               FontSize="12" 
-                                               FontWeight="SemiBold"
-                                               Foreground="#303030"
-                                               TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock Text="{Binding Url}" 
-                                               FontSize="10" 
-                                               Foreground="#606060"
-                                               TextTrimming="CharacterEllipsis"/>
-                                    <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <TextBlock FontSize="9" Foreground="#808080">
-                                            <Run Text="📅"/>
-                                            <Run Text="{Binding VisitedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"/>
+                                               FontSize="14" 
+                                               FontWeight="Normal"
+                                               Foreground="#202124"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxLines="1"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="{Binding Url}" 
+                                                   FontSize="12" 
+                                                   Foreground="#5F6368"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   MaxWidth="400"/>
+                                        <TextBlock FontSize="12" Foreground="#9AA0A6">
+                                            <Run Text="•"/>
                                         </TextBlock>
-                                        <TextBlock FontSize="9" Foreground="#808080">
-                                            <Run Text="🔢"/>
-                                            <Run Text="{Binding VisitCount}"/>
-                                            <Run Text=" "/>
-                                            <Run Text="{DynamicResource History.Visits}"/>
-                                        </TextBlock>
+                                        <TextBlock FontSize="12" Foreground="#5F6368"
+                                                   Text="{Binding VisitedAt, StringFormat='{}{0:dd MMM yyyy, HH:mm}'}"/>
                                     </StackPanel>
                                 </StackPanel>
 
@@ -207,25 +268,24 @@
                                            Spacing="4"
                                            VerticalAlignment="Center">
                                     <Button Classes="action-button"
-                                            Content="🌐"
                                             Tag="{Binding}"
                                             ToolTip.Tip="{DynamicResource Common.Open}"
-                                            Click="OpenHistory_Click"
-                                            Width="28"
-                                            Height="28"/>
+                                            Click="OpenHistory_Click">
+                                        <TextBlock Text="↗️" FontSize="14"/>
+                                    </Button>
                                     <Button Classes="action-button"
-                                            Content="❌"
                                             Tag="{Binding}"
                                             ToolTip.Tip="{DynamicResource Common.Delete}"
-                                            Click="DeleteHistory_Click"
-                                            Width="28"
-                                            Height="28"/>
+                                            Click="DeleteHistory_Click">
+                                        <TextBlock Text="✕" FontSize="12" Foreground="#5F6368"/>
+                                    </Button>
                                 </StackPanel>
                             </Grid>
                         </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-        </ScrollViewer>
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </UserControl>

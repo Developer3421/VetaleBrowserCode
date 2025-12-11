@@ -251,6 +251,18 @@ public static class DatabaseManager
             _instance?.Dispose();
             _instance = null;
         }
+        
+        lock (_historyLock)
+        {
+            _historyInstance?.Dispose();
+            _historyInstance = null;
+        }
+        
+        lock (_consoleLock)
+        {
+            _consoleInstance?.Dispose();
+            _consoleInstance = null;
+        }
     }
 }
 

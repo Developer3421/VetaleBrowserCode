@@ -32,6 +32,7 @@ public partial class HistoryPage : UserControl
     private ItemsControl? _historyItemsControl;
     private TextBox? _searchBox;
     private StackPanel? _filterPanel;
+    private Border? _emptyState;
     private IHistoryDatabaseService? _historyService;
     private readonly IFaviconService _faviconService;
     private string _currentFilter = "All";
@@ -53,6 +54,7 @@ public partial class HistoryPage : UserControl
         _historyItemsControl = this.FindControl<ItemsControl>("PART_HistoryItemsControl");
         _searchBox = this.FindControl<TextBox>("PART_SearchBox");
         _filterPanel = this.FindControl<StackPanel>("PART_FilterPanel");
+        _emptyState = this.FindControl<Border>("PART_EmptyState");
         
         // Встановлюємо перший фільтр активним
         UpdateFilterButtonStyles();
@@ -68,7 +70,10 @@ public partial class HistoryPage : UserControl
     private async void LoadHistory()
     {
         if (_historyItemsControl == null || _historyService == null)
+        {
+            System.Diagnostics.Debug.WriteLine("[HistoryPage] Cannot load history - controls or service not ready");
             return;
+        }
 
         try
         {
@@ -85,6 +90,19 @@ public partial class HistoryPage : UserControl
                 historyItems = _historyService.GetHistory(startDate, endDate);
             }
 
+            System.Diagnostics.Debug.WriteLine($"[HistoryPage] Loaded {historyItems.Count} history items");
+
+            // Перевіряємо на пустий результат
+            if (historyItems.Count == 0)
+            {
+                _historyItemsControl.ItemsSource = new List<HistoryItemViewModel>();
+                if (_emptyState != null) _emptyState.IsVisible = true;
+                return;
+            }
+
+            // Сховуємо empty state коли є дані
+            if (_emptyState != null) _emptyState.IsVisible = false;
+
             // Створюємо ViewModel з завантаженням favicon
             var viewModels = new List<HistoryItemViewModel>();
             foreach (var item in historyItems)
@@ -94,10 +112,9 @@ public partial class HistoryPage : UserControl
                 // Завантажуємо favicon асинхронно
                 try
                 {
-                    if (!string.IsNullOrWhiteSpace(item.Url))
+                    if (!string.IsNullOrWhiteSpace(item.Url) && Uri.TryCreate(item.Url, UriKind.Absolute, out var uri))
                     {
-                        var uri = new Uri(item.Url);
-                        vm.FaviconImage = await _faviconService.GetFaviconAsync(uri, 18);
+                        vm.FaviconImage = await _faviconService.GetFaviconAsync(uri, 20);
                     }
                 }
                 catch (Exception ex)
@@ -112,6 +129,7 @@ public partial class HistoryPage : UserControl
         }
         catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"[HistoryPage] Error loading history: {ex.Message}");
             Console.WriteLine($"Error loading history: {ex.Message}");
         }
     }
@@ -178,9 +196,10 @@ public partial class HistoryPage : UserControl
             if (child is Button btn)
             {
                 var isActive = btn.Tag?.ToString() == _currentFilter;
+                // Використовуємо сучасний стиль як в Chrome
                 btn.Background = isActive 
-                    ? Brush.Parse("#9A1CE8") 
-                    : Brush.Parse("#E0E0E0");
+                    ? Brush.Parse("#1A73E8")  // Google Blue
+                    : Brush.Parse("#F0F0F0");
                 btn.Foreground = isActive 
                     ? Brushes.White 
                     : Brush.Parse("#333333");
