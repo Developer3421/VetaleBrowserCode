@@ -2,6 +2,7 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using VetaleBrowser.VetaleBrowser.Database;
 using VetaleBrowser.VetaleBrowser.Database.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
@@ -19,14 +20,14 @@ public partial class MainWindowAppearanceSettingsPage : UserControl
     private TextBox? _buttonSizeTextBox;
     private TextBox? _buttonIconSizeTextBox;
 
-    private readonly IAppearanceSettingsService _appearanceSettingsService;
+    private readonly IAppearanceSettingsService? _appearanceSettingsService;
     private bool _isLoading = true;
 
-    public MainWindowAppearanceSettingsPage() : this(null!)
+    public MainWindowAppearanceSettingsPage() : this(null)
     {
     }
 
-    public MainWindowAppearanceSettingsPage(IAppearanceSettingsService appearanceSettingsService)
+    public MainWindowAppearanceSettingsPage(IAppearanceSettingsService? appearanceSettingsService)
     {
         _appearanceSettingsService = appearanceSettingsService;
         InitializeComponent();
@@ -60,13 +61,36 @@ public partial class MainWindowAppearanceSettingsPage : UserControl
     {
         try
         {
-            var navBarColor = await _appearanceSettingsService.GetNavigationBarColorAsync();
-            var navBarHeight = await _appearanceSettingsService.GetNavigationBarHeightAsync();
-            var windowWidth = await _appearanceSettingsService.GetMainWindowWidthAsync();
-            var windowHeight = await _appearanceSettingsService.GetMainWindowHeightAsync();
-            var topBarColor = await _appearanceSettingsService.GetTopBarBackgroundColorAsync();
-            var buttonSize = await _appearanceSettingsService.GetButtonSizeAsync();
-            var buttonIconSize = await _appearanceSettingsService.GetButtonIconSizeAsync();
+            // Default values
+            string navBarColor = "";
+            double navBarHeight = 40.0;
+            double windowWidth = 1200.0;
+            double windowHeight = 800.0;
+            string topBarColor = "";
+            double buttonSize = 32.0;
+            double buttonIconSize = 16.0;
+            
+            if (_appearanceSettingsService != null)
+            {
+                try
+                {
+                    navBarColor = await _appearanceSettingsService.GetNavigationBarColorAsync();
+                    navBarHeight = await _appearanceSettingsService.GetNavigationBarHeightAsync();
+                    windowWidth = await _appearanceSettingsService.GetMainWindowWidthAsync();
+                    windowHeight = await _appearanceSettingsService.GetMainWindowHeightAsync();
+                    topBarColor = await _appearanceSettingsService.GetTopBarBackgroundColorAsync();
+                    buttonSize = await _appearanceSettingsService.GetButtonSizeAsync();
+                    buttonIconSize = await _appearanceSettingsService.GetButtonIconSizeAsync();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MainWindowAppearanceSettingsPage] Error loading from DB: {ex.Message}");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindowAppearanceSettingsPage] AppearanceSettingsService is null, using defaults");
+            }
 
             if (_navigationBarColorTextBox != null)
                 _navigationBarColorTextBox.Text = navBarColor;
@@ -91,21 +115,54 @@ public partial class MainWindowAppearanceSettingsPage : UserControl
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading main window appearance settings: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Error loading main window appearance settings: {ex.Message}");
         }
     }
 
     private async void OnSaveClick(object? sender, RoutedEventArgs e)
     {
-        if (_appearanceSettingsService == null || _isLoading)
+        System.Diagnostics.Debug.WriteLine("[MainWindowAppearanceSettingsPage] OnSaveClick called");
+        
+        if (_isLoading)
+        {
+            System.Diagnostics.Debug.WriteLine("[MainWindowAppearanceSettingsPage] Still loading, skipping save");
             return;
+        }
+        
+        // Якщо сервіс null - спробуємо створити свій
+        var service = _appearanceSettingsService;
+        if (service == null)
+        {
+            System.Diagnostics.Debug.WriteLine("[MainWindowAppearanceSettingsPage] _appearanceSettingsService is null, getting from factory...");
+            try
+            {
+                service = DatabaseServicesFactory.GetAppearanceSettingsService();
+                System.Diagnostics.Debug.WriteLine("[MainWindowAppearanceSettingsPage] Got AppearanceSettingsService from factory successfully");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindowAppearanceSettingsPage] ERROR getting service: {ex.Message}");
+                SettingsSaved?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+        }
+        
+        if (service == null)
+        {
+            System.Diagnostics.Debug.WriteLine("[MainWindowAppearanceSettingsPage] ERROR: Service still null");
+            SettingsSaved?.Invoke(this, EventArgs.Empty);
+            return;
+        }
 
         try
         {
+            System.Diagnostics.Debug.WriteLine("[MainWindowAppearanceSettingsPage] Saving settings...");
+            
             // Save Navigation Bar Color
             if (_navigationBarColorTextBox != null && !string.IsNullOrWhiteSpace(_navigationBarColorTextBox.Text))
             {
-                await _appearanceSettingsService.SetNavigationBarColorAsync(_navigationBarColorTextBox.Text);
+                await service.SetNavigationBarColorAsync(_navigationBarColorTextBox.Text);
+                System.Diagnostics.Debug.WriteLine($"[MainWindowAppearanceSettingsPage] Saved NavBarColor: {_navigationBarColorTextBox.Text}");
             }
 
             // Save Navigation Bar Height
@@ -113,7 +170,7 @@ public partial class MainWindowAppearanceSettingsPage : UserControl
             {
                 if (double.TryParse(_navigationBarHeightTextBox.Text, out var height))
                 {
-                    await _appearanceSettingsService.SetNavigationBarHeightAsync(height);
+                    await service.SetNavigationBarHeightAsync(height);
                 }
             }
 
@@ -122,7 +179,7 @@ public partial class MainWindowAppearanceSettingsPage : UserControl
             {
                 if (double.TryParse(_mainWindowWidthTextBox.Text, out var width))
                 {
-                    await _appearanceSettingsService.SetMainWindowWidthAsync(width);
+                    await service.SetMainWindowWidthAsync(width);
                 }
             }
 
@@ -131,14 +188,14 @@ public partial class MainWindowAppearanceSettingsPage : UserControl
             {
                 if (double.TryParse(_mainWindowHeightTextBox.Text, out var height))
                 {
-                    await _appearanceSettingsService.SetMainWindowHeightAsync(height);
+                    await service.SetMainWindowHeightAsync(height);
                 }
             }
 
             // Save Top Bar Background Color
             if (_topBarBackgroundColorTextBox != null && !string.IsNullOrWhiteSpace(_topBarBackgroundColorTextBox.Text))
             {
-                await _appearanceSettingsService.SetTopBarBackgroundColorAsync(_topBarBackgroundColorTextBox.Text);
+                await service.SetTopBarBackgroundColorAsync(_topBarBackgroundColorTextBox.Text);
             }
 
             // Save Button Size
@@ -146,7 +203,7 @@ public partial class MainWindowAppearanceSettingsPage : UserControl
             {
                 if (double.TryParse(_buttonSizeTextBox.Text, out var size))
                 {
-                    await _appearanceSettingsService.SetButtonSizeAsync(size);
+                    await service.SetButtonSizeAsync(size);
                 }
             }
 
@@ -155,15 +212,17 @@ public partial class MainWindowAppearanceSettingsPage : UserControl
             {
                 if (double.TryParse(_buttonIconSizeTextBox.Text, out var iconSize))
                 {
-                    await _appearanceSettingsService.SetButtonIconSizeAsync(iconSize);
+                    await service.SetButtonIconSizeAsync(iconSize);
+                    System.Diagnostics.Debug.WriteLine($"[MainWindowAppearanceSettingsPage] Saved ButtonIconSize: {iconSize}");
                 }
             }
 
+            System.Diagnostics.Debug.WriteLine("[MainWindowAppearanceSettingsPage] All settings saved successfully!");
             SettingsSaved?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error saving main window appearance settings: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[MainWindowAppearanceSettingsPage] ERROR saving settings: {ex.Message}");
         }
     }
 

@@ -40,19 +40,21 @@ public partial class SettingsWindow : Window
     {
         try
         {
-            var config = DatabaseConfiguration.CreateDefault();
-            _settingsService = new SettingsService(config.DatabasePath, config.EncryptionKey);
+            System.Diagnostics.Debug.WriteLine("[SettingsWindow] Initializing services via DatabaseServicesFactory...");
             
-            // Initialize appearance settings service with separate database
-            var appearanceDbPath = Path.Combine(
-                Path.GetDirectoryName(config.DatabasePath) ?? "",
-                "appearance_settings.db"
-            );
-            _appearanceSettingsService = new AppearanceSettingsService(appearanceDbPath, config.EncryptionKey);
+            // Ініціалізуємо через централізовану фабрику
+            DatabaseServicesFactory.Initialize();
+            
+            // Отримуємо сервіси
+            _settingsService = DatabaseServicesFactory.TryGetSettingsService();
+            _appearanceSettingsService = DatabaseServicesFactory.TryGetAppearanceSettingsService();
+            
+            System.Diagnostics.Debug.WriteLine($"[SettingsWindow] SettingsService: {(_settingsService != null ? "OK" : "NULL")}");
+            System.Diagnostics.Debug.WriteLine($"[SettingsWindow] AppearanceSettingsService: {(_appearanceSettingsService != null ? "OK" : "NULL")}");
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Trace.WriteLine($"SettingsWindow: Error initializing settings service: {ex}");
+            System.Diagnostics.Debug.WriteLine($"[SettingsWindow] CRITICAL ERROR in InitializeSettingsService: {ex}");
         }
     }
 
@@ -69,6 +71,7 @@ public partial class SettingsWindow : Window
 
     private void LoadMainPage()
     {
+        System.Diagnostics.Debug.WriteLine("[SettingsWindow] LoadMainPage called");
         _mainPage = new SettingsMainPage();
         _mainPage.LanguageRequested += OnLanguageRequested;
         _mainPage.AppearanceRequested += OnAppearanceRequested;
@@ -77,6 +80,11 @@ public partial class SettingsWindow : Window
         if (_contentHost != null)
         {
             _contentHost.Content = _mainPage;
+            System.Diagnostics.Debug.WriteLine("[SettingsWindow] MainPage set as content");
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("[SettingsWindow] ERROR: _contentHost is null!");
         }
 
         // Resize window to fit main page
@@ -85,6 +93,7 @@ public partial class SettingsWindow : Window
 
     private void OnLanguageRequested(object? sender, EventArgs e)
     {
+        System.Diagnostics.Debug.WriteLine("[SettingsWindow] OnLanguageRequested called");
         try
         {
             var page = new LanguageSettingsPage();
@@ -112,22 +121,20 @@ public partial class SettingsWindow : Window
 
     private void OnAppearanceRequested(object? sender, EventArgs e)
     {
-        if (_appearanceSettingsService == null)
-        {
-            System.Diagnostics.Trace.WriteLine("SettingsWindow: Appearance settings service not initialized");
-            return;
-        }
-
+        System.Diagnostics.Debug.WriteLine("[SettingsWindow] OnAppearanceRequested called");
         try
         {
             var appearanceMainPage = new AppearanceMainPage();
+            System.Diagnostics.Debug.WriteLine("[SettingsWindow] AppearanceMainPage created");
             appearanceMainPage.TabSettingsRequested += OnTabSettingsRequested;
             appearanceMainPage.MainWindowSettingsRequested += OnMainWindowSettingsRequested;
             appearanceMainPage.OtherWindowsSettingsRequested += OnOtherWindowsSettingsRequested;
+            appearanceMainPage.BackRequested += (_, _) => LoadMainPage();
 
             if (_contentHost != null)
             {
                 _contentHost.Content = appearanceMainPage;
+                System.Diagnostics.Debug.WriteLine("[SettingsWindow] AppearanceMainPage set as content");
             }
 
             // Resize window for appearance main page
@@ -141,70 +148,107 @@ public partial class SettingsWindow : Window
 
     private void OnTabSettingsRequested(object? sender, EventArgs e)
     {
-        if (_appearanceSettingsService == null) return;
-
+        System.Diagnostics.Debug.WriteLine("[SettingsWindow] OnTabSettingsRequested called");
+        
+        // Спробувати ініціалізувати сервіс, якщо він не був ініціалізований
+        if (_appearanceSettingsService == null)
+        {
+            System.Diagnostics.Debug.WriteLine("[SettingsWindow] _appearanceSettingsService is null, trying to initialize");
+            InitializeSettingsService();
+        }
+        
+        // Створюємо сторінку навіть якщо сервіс null - вона покаже дефолтні значення
+        System.Diagnostics.Debug.WriteLine($"[SettingsWindow] Creating TabAppearanceSettingsPage, service is {(_appearanceSettingsService != null ? "OK" : "NULL")}");
         try
         {
             var tabSettingsPage = new TabAppearanceSettingsPage(_appearanceSettingsService);
+            System.Diagnostics.Debug.WriteLine("[SettingsWindow] TabAppearanceSettingsPage created successfully");
             tabSettingsPage.BackRequested += OnAppearanceBackRequested;
             tabSettingsPage.SettingsSaved += OnAppearanceSettingsSaved;
 
             if (_contentHost != null)
             {
                 _contentHost.Content = tabSettingsPage;
+                System.Diagnostics.Debug.WriteLine("[SettingsWindow] TabSettingsPage set as content");
             }
 
             ResizeWindowForPage(660, 600);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Trace.WriteLine($"SettingsWindow: Error loading tab settings page: {ex}");
+            System.Diagnostics.Debug.WriteLine($"[SettingsWindow] ERROR loading tab settings page: {ex}");
+            System.Diagnostics.Debug.WriteLine($"[SettingsWindow] Exception type: {ex.GetType().Name}");
+            System.Diagnostics.Debug.WriteLine($"[SettingsWindow] Stack trace: {ex.StackTrace}");
         }
     }
 
     private void OnMainWindowSettingsRequested(object? sender, EventArgs e)
     {
-        if (_appearanceSettingsService == null) return;
-
+        System.Diagnostics.Debug.WriteLine("[SettingsWindow] OnMainWindowSettingsRequested called");
+        
+        // Спробувати ініціалізувати сервіс, якщо він не був ініціалізований
+        if (_appearanceSettingsService == null)
+        {
+            System.Diagnostics.Debug.WriteLine("[SettingsWindow] _appearanceSettingsService is null, trying to initialize");
+            InitializeSettingsService();
+        }
+        
+        // Створюємо сторінку навіть якщо сервіс null - вона покаже дефолтні значення
+        System.Diagnostics.Debug.WriteLine($"[SettingsWindow] Creating MainWindowAppearanceSettingsPage, service is {(_appearanceSettingsService != null ? "OK" : "NULL")}");
         try
         {
             var mainWindowSettingsPage = new MainWindowAppearanceSettingsPage(_appearanceSettingsService);
+            System.Diagnostics.Debug.WriteLine("[SettingsWindow] MainWindowAppearanceSettingsPage created successfully");
             mainWindowSettingsPage.BackRequested += OnAppearanceBackRequested;
             mainWindowSettingsPage.SettingsSaved += OnAppearanceSettingsSaved;
 
             if (_contentHost != null)
             {
                 _contentHost.Content = mainWindowSettingsPage;
+                System.Diagnostics.Debug.WriteLine("[SettingsWindow] MainWindowSettingsPage set as content");
             }
 
             ResizeWindowForPage(660, 600);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Trace.WriteLine($"SettingsWindow: Error loading main window settings page: {ex}");
+            System.Diagnostics.Debug.WriteLine($"[SettingsWindow] ERROR loading main window settings page: {ex}");
+            System.Diagnostics.Debug.WriteLine($"[SettingsWindow] Exception type: {ex.GetType().Name}");
         }
     }
 
     private void OnOtherWindowsSettingsRequested(object? sender, EventArgs e)
     {
-        if (_appearanceSettingsService == null) return;
-
+        System.Diagnostics.Debug.WriteLine("[SettingsWindow] OnOtherWindowsSettingsRequested called");
+        
+        // Спробувати ініціалізувати сервіс, якщо він не був ініціалізований
+        if (_appearanceSettingsService == null)
+        {
+            System.Diagnostics.Debug.WriteLine("[SettingsWindow] _appearanceSettingsService is null, trying to initialize");
+            InitializeSettingsService();
+        }
+        
+        // Створюємо сторінку навіть якщо сервіс null - вона покаже дефолтні значення
+        System.Diagnostics.Debug.WriteLine($"[SettingsWindow] Creating OtherWindowsAppearanceSettingsPage, service is {(_appearanceSettingsService != null ? "OK" : "NULL")}");
         try
         {
             var otherWindowsSettingsPage = new OtherWindowsAppearanceSettingsPage(_appearanceSettingsService);
+            System.Diagnostics.Debug.WriteLine("[SettingsWindow] OtherWindowsAppearanceSettingsPage created successfully");
             otherWindowsSettingsPage.BackRequested += OnAppearanceBackRequested;
             otherWindowsSettingsPage.SettingsSaved += OnAppearanceSettingsSaved;
 
             if (_contentHost != null)
             {
                 _contentHost.Content = otherWindowsSettingsPage;
+                System.Diagnostics.Debug.WriteLine("[SettingsWindow] OtherWindowsSettingsPage set as content");
             }
 
             ResizeWindowForPage(660, 550);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Trace.WriteLine($"SettingsWindow: Error loading other windows settings page: {ex}");
+            System.Diagnostics.Debug.WriteLine($"[SettingsWindow] ERROR loading other windows settings page: {ex}");
+            System.Diagnostics.Debug.WriteLine($"[SettingsWindow] Exception type: {ex.GetType().Name}");
         }
     }
 
@@ -304,15 +348,21 @@ public partial class SettingsWindow : Window
 
     private void OnSearchEngineRequested(object? sender, EventArgs e)
     {
+        System.Diagnostics.Debug.WriteLine("[SettingsWindow] OnSearchEngineRequested called");
+        
+        // Спробувати ініціалізувати сервіс, якщо він не був ініціалізований
         if (_settingsService == null)
         {
-            System.Diagnostics.Debug.WriteLine("SettingsWindow: Settings service not initialized");
-            return;
+            System.Diagnostics.Debug.WriteLine("[SettingsWindow] _settingsService is null, trying to initialize");
+            InitializeSettingsService();
         }
-
+        
+        // Створюємо сторінку навіть якщо сервіс null - вона покаже дефолтні значення
+        System.Diagnostics.Debug.WriteLine($"[SettingsWindow] Creating SearchEngineSettingsPage, service is {(_settingsService != null ? "OK" : "NULL")}");
         try
         {
             var searchEnginePage = new SearchEngineSettingsPage(_settingsService);
+            System.Diagnostics.Debug.WriteLine("[SettingsWindow] SearchEngineSettingsPage created successfully");
             searchEnginePage.BackRequested += OnSearchEngineBackRequested;
             searchEnginePage.SettingsSaved += OnSearchEngineSettingsSaved;
             searchEnginePage.NavigateRequested += OnSearchEngineNavigateRequested;
@@ -320,6 +370,7 @@ public partial class SettingsWindow : Window
             if (_contentHost != null)
             {
                 _contentHost.Content = searchEnginePage;
+                System.Diagnostics.Debug.WriteLine("[SettingsWindow] SearchEngineSettingsPage set as content");
             }
 
             // Resize window for search engine page
@@ -327,7 +378,10 @@ public partial class SettingsWindow : Window
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"SettingsWindow: Error loading search engine page: {ex}");
+            System.Diagnostics.Debug.WriteLine($"[SettingsWindow] ERROR loading search engine page: {ex}");
+            System.Diagnostics.Debug.WriteLine($"[SettingsWindow] Exception type: {ex.GetType().Name}");
+            System.Diagnostics.Debug.WriteLine($"[SettingsWindow] Inner exception: {ex.InnerException?.Message}");
+            System.Diagnostics.Debug.WriteLine($"[SettingsWindow] Stack trace: {ex.StackTrace}");
         }
     }
 

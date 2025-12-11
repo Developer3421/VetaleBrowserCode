@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using VetaleBrowser.VetaleBrowser.Database;
 using VetaleBrowser.VetaleBrowser.Database.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
@@ -21,7 +22,7 @@ public partial class SearchEngineSettingsPage : UserControl
     private RadioButton? _customRadio;
     private TextBox? _customUrlTextBox;
 
-    private readonly ISettingsService _settingsService;
+    private readonly ISettingsService? _settingsService;
     private bool _isLoading = true;
 
     private const string VetaleSearchName = "Vetale Search";
@@ -36,11 +37,11 @@ public partial class SearchEngineSettingsPage : UserControl
     };
 
     // Конструктор для XAML
-    public SearchEngineSettingsPage() : this(null!)
+    public SearchEngineSettingsPage() : this(null)
     {
     }
 
-    public SearchEngineSettingsPage(ISettingsService settingsService)
+    public SearchEngineSettingsPage(ISettingsService? settingsService)
     {
         _settingsService = settingsService;
         InitializeComponent();
@@ -69,13 +70,28 @@ public partial class SearchEngineSettingsPage : UserControl
 
     private async System.Threading.Tasks.Task LoadCurrentSettings()
     {
-        if (_settingsService == null)
-            return;
-
         try
         {
-            var currentName = await _settingsService.GetSearchEngineNameAsync();
-            var currentUrl = await _settingsService.GetSearchEngineUrlAsync();
+            string currentName = "Google"; // Default
+            string currentUrl = "https://www.google.com/search?q={0}"; // Default
+            
+            if (_settingsService != null)
+            {
+                try
+                {
+                    currentName = await _settingsService.GetSearchEngineNameAsync();
+                    currentUrl = await _settingsService.GetSearchEngineUrlAsync();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SearchEngineSettingsPage] Error loading settings: {ex.Message}");
+                    // Use defaults
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[SearchEngineSettingsPage] SettingsService is null, using defaults");
+            }
 
             // Спеціальний випадок: Vetale Search як локальний пошук
             if (string.Equals(currentName, VetaleSearchName, StringComparison.OrdinalIgnoreCase))
@@ -143,8 +159,25 @@ public partial class SearchEngineSettingsPage : UserControl
 
     private async void OnSaveClick(object? sender, RoutedEventArgs e)
     {
-        if (_settingsService == null)
-            return;
+        System.Diagnostics.Debug.WriteLine("[SearchEngineSettingsPage] OnSaveClick called");
+        
+        // Якщо сервіс null - спробуємо створити свій
+        var settingsService = _settingsService;
+        if (settingsService == null)
+        {
+            System.Diagnostics.Debug.WriteLine("[SearchEngineSettingsPage] _settingsService is null, getting from factory...");
+            try
+            {
+                settingsService = DatabaseServicesFactory.GetSettingsService();
+                System.Diagnostics.Debug.WriteLine("[SearchEngineSettingsPage] Got SettingsService from factory successfully");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SearchEngineSettingsPage] ERROR getting SettingsService: {ex.Message}");
+                SettingsSaved?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+        }
 
         try
         {
@@ -202,16 +235,16 @@ public partial class SearchEngineSettingsPage : UserControl
             }
 
             // Зберігаємо налаштування
-            await _settingsService.SetSearchEngineAsync(searchEngineName, searchEngineUrl);
+            await settingsService.SetSearchEngineAsync(searchEngineName, searchEngineUrl);
             
-            System.Diagnostics.Debug.WriteLine($"SearchEngineSettingsPage: Saved {searchEngineName} - {searchEngineUrl}");
+            System.Diagnostics.Debug.WriteLine($"[SearchEngineSettingsPage] Saved {searchEngineName} - {searchEngineUrl}");
             
             // Повідомляємо про успішне збереження (SettingsWindow сам закриється після навігації)
             SettingsSaved?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"SearchEngineSettingsPage: Error saving settings: {ex}");
+            System.Diagnostics.Debug.WriteLine($"[SearchEngineSettingsPage] Error saving settings: {ex}");
         }
     }
 

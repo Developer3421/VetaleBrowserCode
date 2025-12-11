@@ -2,6 +2,7 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using VetaleBrowser.VetaleBrowser.Database;
 using VetaleBrowser.VetaleBrowser.Database.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
@@ -18,14 +19,14 @@ public partial class TabAppearanceSettingsPage : UserControl
     private TextBox? _tabTextColorTextBox;
     private TextBox? _tabActiveColorTextBox;
 
-    private readonly IAppearanceSettingsService _appearanceSettingsService;
+    private readonly IAppearanceSettingsService? _appearanceSettingsService;
     private bool _isLoading = true;
 
-    public TabAppearanceSettingsPage() : this(null!)
+    public TabAppearanceSettingsPage() : this(null)
     {
     }
 
-    public TabAppearanceSettingsPage(IAppearanceSettingsService appearanceSettingsService)
+    public TabAppearanceSettingsPage(IAppearanceSettingsService? appearanceSettingsService)
     {
         _appearanceSettingsService = appearanceSettingsService;
         InitializeComponent();
@@ -58,12 +59,34 @@ public partial class TabAppearanceSettingsPage : UserControl
     {
         try
         {
-            var tabWidth = await _appearanceSettingsService.GetTabWidthAsync();
-            var tabElementSize = await _appearanceSettingsService.GetTabElementSizeAsync();
-            var tabIconSize = await _appearanceSettingsService.GetTabIconSizeAsync();
-            var tabBackgroundColor = await _appearanceSettingsService.GetTabBackgroundColorAsync();
-            var tabTextColor = await _appearanceSettingsService.GetTabTextColorAsync();
-            var tabActiveColor = await _appearanceSettingsService.GetTabActiveColorAsync();
+            // Default values
+            double tabWidth = 200.0;
+            double tabElementSize = 16.0;
+            double tabIconSize = 16.0;
+            string tabBackgroundColor = "#F5F5F5";
+            string tabTextColor = "#000000";
+            string tabActiveColor = "#9A1CE8";
+            
+            if (_appearanceSettingsService != null)
+            {
+                try
+                {
+                    tabWidth = await _appearanceSettingsService.GetTabWidthAsync();
+                    tabElementSize = await _appearanceSettingsService.GetTabElementSizeAsync();
+                    tabIconSize = await _appearanceSettingsService.GetTabIconSizeAsync();
+                    tabBackgroundColor = await _appearanceSettingsService.GetTabBackgroundColorAsync();
+                    tabTextColor = await _appearanceSettingsService.GetTabTextColorAsync();
+                    tabActiveColor = await _appearanceSettingsService.GetTabActiveColorAsync();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[TabAppearanceSettingsPage] Error loading from DB: {ex.Message}");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[TabAppearanceSettingsPage] AppearanceSettingsService is null, using defaults");
+            }
 
             if (_tabWidthTextBox != null)
                 _tabWidthTextBox.Text = tabWidth.ToString();
@@ -85,23 +108,56 @@ public partial class TabAppearanceSettingsPage : UserControl
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading tab appearance settings: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Error loading tab appearance settings: {ex.Message}");
         }
     }
 
     private async void OnSaveClick(object? sender, RoutedEventArgs e)
     {
-        if (_appearanceSettingsService == null || _isLoading)
+        System.Diagnostics.Debug.WriteLine("[TabAppearanceSettingsPage] OnSaveClick called");
+        
+        if (_isLoading)
+        {
+            System.Diagnostics.Debug.WriteLine("[TabAppearanceSettingsPage] Still loading, skipping save");
             return;
+        }
+        
+        // Якщо сервіс null - спробуємо створити свій
+        var service = _appearanceSettingsService;
+        if (service == null)
+        {
+            System.Diagnostics.Debug.WriteLine("[TabAppearanceSettingsPage] _appearanceSettingsService is null, getting from factory...");
+            try
+            {
+                service = DatabaseServicesFactory.GetAppearanceSettingsService();
+                System.Diagnostics.Debug.WriteLine("[TabAppearanceSettingsPage] Got AppearanceSettingsService from factory successfully");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TabAppearanceSettingsPage] ERROR getting service: {ex.Message}");
+                SettingsSaved?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+        }
+        
+        if (service == null)
+        {
+            System.Diagnostics.Debug.WriteLine("[TabAppearanceSettingsPage] ERROR: Service still null");
+            SettingsSaved?.Invoke(this, EventArgs.Empty);
+            return;
+        }
 
         try
         {
+            System.Diagnostics.Debug.WriteLine("[TabAppearanceSettingsPage] Saving settings...");
+            
             // Save Tab Width
             if (_tabWidthTextBox != null && !string.IsNullOrWhiteSpace(_tabWidthTextBox.Text))
             {
                 if (double.TryParse(_tabWidthTextBox.Text, out var tabWidth))
                 {
-                    await _appearanceSettingsService.SetTabWidthAsync(tabWidth);
+                    await service.SetTabWidthAsync(tabWidth);
+                    System.Diagnostics.Debug.WriteLine($"[TabAppearanceSettingsPage] Saved TabWidth: {tabWidth}");
                 }
             }
 
@@ -110,7 +166,7 @@ public partial class TabAppearanceSettingsPage : UserControl
             {
                 if (double.TryParse(_tabElementSizeTextBox.Text, out var tabElementSize))
                 {
-                    await _appearanceSettingsService.SetTabElementSizeAsync(tabElementSize);
+                    await service.SetTabElementSizeAsync(tabElementSize);
                 }
             }
 
@@ -119,33 +175,35 @@ public partial class TabAppearanceSettingsPage : UserControl
             {
                 if (double.TryParse(_tabIconSizeTextBox.Text, out var tabIconSize))
                 {
-                    await _appearanceSettingsService.SetTabIconSizeAsync(tabIconSize);
+                    await service.SetTabIconSizeAsync(tabIconSize);
                 }
             }
 
             // Save Tab Background Color
             if (_tabBackgroundColorTextBox != null && !string.IsNullOrWhiteSpace(_tabBackgroundColorTextBox.Text))
             {
-                await _appearanceSettingsService.SetTabBackgroundColorAsync(_tabBackgroundColorTextBox.Text);
+                await service.SetTabBackgroundColorAsync(_tabBackgroundColorTextBox.Text);
             }
 
             // Save Tab Text Color
             if (_tabTextColorTextBox != null && !string.IsNullOrWhiteSpace(_tabTextColorTextBox.Text))
             {
-                await _appearanceSettingsService.SetTabTextColorAsync(_tabTextColorTextBox.Text);
+                await service.SetTabTextColorAsync(_tabTextColorTextBox.Text);
             }
 
             // Save Tab Active Color
             if (_tabActiveColorTextBox != null && !string.IsNullOrWhiteSpace(_tabActiveColorTextBox.Text))
             {
-                await _appearanceSettingsService.SetTabActiveColorAsync(_tabActiveColorTextBox.Text);
+                await service.SetTabActiveColorAsync(_tabActiveColorTextBox.Text);
+                System.Diagnostics.Debug.WriteLine($"[TabAppearanceSettingsPage] Saved TabActiveColor: {_tabActiveColorTextBox.Text}");
             }
 
+            System.Diagnostics.Debug.WriteLine("[TabAppearanceSettingsPage] All settings saved successfully!");
             SettingsSaved?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error saving tab appearance settings: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[TabAppearanceSettingsPage] ERROR saving settings: {ex.Message}");
         }
     }
 

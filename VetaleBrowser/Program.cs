@@ -73,23 +73,24 @@ class Program
             
             var switches = new (string key, string? value)[]
             {
-                // === GPU ACCELERATION (AMD RX 5700 XT FIX) ===
-                // ВАЖЛИВО: D3D11 ANGLE спричиняє витоки пам'яті на AMD картах!
-                // Використовуємо OpenGL замість D3D11 для AMD
-                ("use-angle", "gl"),  // OpenGL замість d3d11 для AMD
-                ("use-gl", "desktop"), // Примусово desktop OpenGL
+                // === GPU ACCELERATION (Hardware rendering for WebGL games) ===
+                // D3D11 ANGLE для WebGL - найкраща сумісність з іграми
+                ("use-angle", "d3d11"),  // D3D11 для WebGL (потрібно для HexGL)
                 
-                // Якщо OpenGL не працює, можна спробувати software rendering:
-                // ("disable-gpu", null),
-                // ("disable-gpu-compositing", null),
+                // AMD memory leak mitigations
+                ("disable-gpu-memory-buffer-compositor-resources", null), // Зменшує витоки на AMD
+                ("disable-gpu-memory-buffer-video-frames", null), // Фікс витоків відео на AMD
+                ("disable-zero-copy", null), // Вимкнути zero-copy для стабільності на AMD
                 
+                // GPU features
                 ("enable-gpu-rasterization", null),
                 ("enable-accelerated-video-decode", null),
                 ("enable-accelerated-2d-canvas", null),
+                ("enable-oop-rasterization", null), // Out-of-process rasterization
                 
                 // === AGGRESSIVE MEMORY OPTIMIZATION (500MB MAX per tab) ===
-                // V8 heap обмежено до 64MB замість 128MB
-                ("js-flags", "--max-old-space-size=64 --optimize-for-size --lite-mode --gc-interval=100"),
+                // V8 heap - збільшено для підтримки WebGL ігор
+                ("js-flags", "--max-old-space-size=128 --optimize-for-size --gc-interval=100"),
                 
                 // CRITICAL: Force single renderer process to limit RAM
                 ("renderer-process-limit", "1"),
@@ -106,25 +107,37 @@ class Program
                 ("disable-spell-checking", null),
                 ("disable-preconnect", null),
                 ("disable-domain-reliability", null),
-                ("disable-reading-from-canvas", null),
+                // ("disable-reading-from-canvas", null), // Потрібно для ігор (читання canvas)
                 ("disable-databases", null),
-                ("disable-local-storage", null), // Видалити якщо потрібно local storage
+                // ("disable-local-storage", null), // Потрібно для ігор (HexGL)
                 ("aggressive-cache-discard", null),
-                ("disable-gpu-shader-disk-cache", null),
+                // ("disable-gpu-shader-disk-cache", null), // Потрібно для WebGL ігор (шейдери)
                 
                 // Memory pressure handling
                 ("memory-pressure-thresholds", "1024,2048,4096"),
-                ("enable-low-end-device-mode", null), // Режим для пристроїв з малою RAM
+                // Removed enable-low-end-device-mode to allow WebGL games to work
+                
+                // === WEBGL/GAMES SUPPORT ===
+                ("enable-webgl", null),
+                ("enable-webgl2", null),
+                ("ignore-gpu-blocklist", null), // Дозволити GPU навіть якщо драйвер у "чорному списку"
+                ("allow-file-access-from-files", null), // Дозволити XHR до file:// URL (потрібно для HexGL шейдерів)
+                ("allow-file-access", null), // Дозволити Image() завантаження з file:// (потрібно для текстур)
+                ("disable-web-security", null), // Вимкнути CORS для локальних файлів (потрібно для текстур гри)
+                ("enable-unsafe-webgpu", null), // Дозволити WebGPU для сучасних ігор
+                
+                // GPU memory - без обмежень для ігор
                 
                 // === DISK CACHE (Мінімальний) ===
                 ("user-data-dir", userDataDir),
                 ("disk-cache-dir", diskCacheDir),
                 ("disk-cache-size", (32 * 1024 * 1024).ToString()), // 32MB max
-                ("media-cache-size", (8 * 1024 * 1024).ToString()),  // 8MB max
+                // media-cache-size - без обмежень для ігор та відео
                 
                 // === PERFORMANCE ===
                 ("enable-features", "BackForwardCache,LazyFrameLoading,LazyImageLoading"),
-                ("disable-features", "CalculateNativeWinOcclusion,IsolateOrigins,SitePerProcess,AutofillServerCommunication,MediaRouter,Translate,OptimizationHints,GpuMemoryBufferVideoFrames"),
+                // Вимкнено GpuMemoryBuffer* для запобігання витоків пам'яті на AMD
+                ("disable-features", "CalculateNativeWinOcclusion,IsolateOrigins,SitePerProcess,AutofillServerCommunication,MediaRouter,Translate,OptimizationHints,GpuMemoryBufferVideoFrames,GpuMemoryBufferCompositorResources,RawDraw,CanvasOopRasterization"),
                 
                 // === PROCESS MODEL (Економія RAM) ===
                 ("process-per-site", null),

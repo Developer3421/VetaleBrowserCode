@@ -12,6 +12,7 @@
 
   <!-- Settings main page -->
   <x:String x:Key="Settings.Header">Settings</x:String>
+  <x:String x:Key="Settings.Back">Back</x:String>
   <x:String x:Key="Settings.Language.Title">Language</x:String>
   <x:String x:Key="Settings.Language.Sub">Choose your preferred language</x:String>
   <x:String x:Key="Settings.Appearance.Title">Appearance</x:String>
@@ -485,6 +486,8 @@
   <x:String x:Key="ErrorPage.Category.Security">🔒 Security problem</x:String>
   <x:String x:Key="ErrorPage.Category.General">⚠️ General error</x:String>
   <x:String x:Key="ErrorPage.Category.Error">Error</x:String>
+  <x:String x:Key="ErrorPage.PlayGame">Play game</x:String>
+  <x:String x:Key="ErrorPage.GameDeveloper">HexGL game by Thibaut Despoulain</x:String>
 
   <!-- Security Status -->
   <x:String x:Key="Security.Safe.Tooltip">✓ Safe site</x:String>

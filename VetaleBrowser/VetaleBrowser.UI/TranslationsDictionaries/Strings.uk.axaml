@@ -12,6 +12,7 @@
 
   <!-- Головна сторінка налаштувань -->
   <x:String x:Key="Settings.Header">Налаштування</x:String>
+  <x:String x:Key="Settings.Back">Назад</x:String>
   <x:String x:Key="Settings.Language.Title">Мова</x:String>
   <x:String x:Key="Settings.Language.Sub">Обрати мову інтерфейсу</x:String>
   <x:String x:Key="Settings.Appearance.Title">Зовнішній вигляд</x:String>

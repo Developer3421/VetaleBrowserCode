@@ -40,6 +40,9 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         private TextBlock? _retryButtonText;
         private TextBlock? _goBackButtonText;
         private Button? _retryButton;
+        private Button? _playGameButton;
+        private TextBlock? _playGameButtonText;
+        private TextBlock? _gameDeveloperText;
 
         /// <summary>
         /// Подія запиту повторної спроби завантаження
@@ -60,6 +63,11 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         /// Подія запиту пошуку
         /// </summary>
         public event EventHandler<string>? SearchRequested;
+        
+        /// <summary>
+        /// Подія запиту запуску гри HexGL
+        /// </summary>
+        public event EventHandler? PlayGameRequested;
 
         public BrowserErrorPage()
         {
@@ -97,6 +105,9 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
             _retryButtonText = this.FindControl<TextBlock>("RetryButtonText");
             _goBackButtonText = this.FindControl<TextBlock>("GoBackButtonText");
             _retryButton = this.FindControl<Button>("RetryButton");
+            _playGameButton = this.FindControl<Button>("PlayGameButton");
+            _playGameButtonText = this.FindControl<TextBlock>("PlayGameButtonText");
+            _gameDeveloperText = this.FindControl<TextBlock>("GameDeveloperText");
         }
         
         /// <summary>
@@ -116,6 +127,10 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
                 _retryButtonText.Text = GetLocalizedString("ErrorPage.Retry", "Спробувати знову");
             if (_goBackButtonText != null)
                 _goBackButtonText.Text = GetLocalizedString("ErrorPage.GoBack", "Назад");
+            if (_playGameButtonText != null)
+                _playGameButtonText.Text = GetLocalizedString("ErrorPage.PlayGame", "Грати в гру");
+            if (_gameDeveloperText != null)
+                _gameDeveloperText.Text = GetLocalizedString("ErrorPage.GameDeveloper", "Гра HexGL від Thibaut Despoulain");
         }
         
         /// <summary>
@@ -338,6 +353,14 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
             {
                 SearchRequested?.Invoke(this, query);
             }
+        }
+        
+        /// <summary>
+        /// Обробник кнопки "Грати в гру"
+        /// </summary>
+        private void OnPlayGameClicked(object? sender, RoutedEventArgs e)
+        {
+            PlayGameRequested?.Invoke(this, EventArgs.Empty);
         }
         
         /// <summary>

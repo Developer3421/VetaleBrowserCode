@@ -65,6 +65,7 @@
       <Folder Include="VetaleBrowser.DevTools\" />
       <Folder Include="VetaleBrowser.VoiceRecognition\Models\" />
       <Folder Include="VetaleBrowser.WebEngine\" />
+      <Folder Include="VetaleBrowserOfflineGame\" />
     </ItemGroup>
 
     <ItemGroup>
@@ -168,5 +169,13 @@
     <ItemGroup>
       <!-- Копіювати всі моделі Whisper (.bin) до вихідної директорії -->
       <None Include="VetaleBrowser.VoiceRecognition\Models\*.bin" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
+    <!-- Copy HexGL offline game files to output directory -->
+    <ItemGroup>
+      <Content Include="VetaleBrowserOfflineGame\HexGL-master\**\*.*">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <Link>VetaleBrowserOfflineGame\HexGL-master\%(RecursiveDir)%(FileName)%(Extension)</Link>
+      </Content>
     </ItemGroup>
 </Project>

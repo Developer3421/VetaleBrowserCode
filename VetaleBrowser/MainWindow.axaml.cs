@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -21,6 +22,7 @@ using VetaleBrowser.VetaleBrowser.Database;
 using VetaleBrowser.VetaleBrowser.Database.Services;
 using Avalonia.Media;
 using VetaleBrowser.VetaleBrowser.VoiceRecognition.Services;
+using VetaleBrowser.VetaleBrowser.Core.Services;
 
 namespace VetaleBrowser;
 
@@ -351,21 +353,35 @@ public partial class MainWindow : Window
     {
         try
         {
-            var config = DatabaseConfiguration.CreateDefault();
-            _settingsService = new SettingsService(config.DatabasePath, config.EncryptionKey);
-            System.Diagnostics.Debug.WriteLine("MainWindow: Settings service initialized");
+            System.Diagnostics.Debug.WriteLine("[MainWindow] Initializing settings services via DatabaseServicesFactory...");
+            
+            // Ініціалізуємо через централізовану фабрику
+            DatabaseServicesFactory.Initialize();
+            
+            // Отримуємо сервіси
+            _settingsService = DatabaseServicesFactory.TryGetSettingsService();
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] SettingsService: {(_settingsService != null ? "OK" : "NULL")}");
             
             // Ініціалізуємо сервіс історії пошуку
+            var config = DatabaseConfiguration.CreateDefault();
             var searchHistoryPath = System.IO.Path.Combine(
                 System.IO.Path.GetDirectoryName(config.DatabasePath) ?? string.Empty,
                 "Search",
                 "search_history.db");
+            
+            // Гарантуємо директорію для історії пошуку
+            var searchDir = System.IO.Path.GetDirectoryName(searchHistoryPath);
+            if (!string.IsNullOrEmpty(searchDir) && !System.IO.Directory.Exists(searchDir))
+            {
+                System.IO.Directory.CreateDirectory(searchDir);
+            }
+            
             _searchHistoryService = new VetaleBrowser.Search.Database.SearchHistoryDatabaseService(searchHistoryPath, config.EncryptionKey);
-            System.Diagnostics.Debug.WriteLine("MainWindow: Search history service initialized");
+            System.Diagnostics.Debug.WriteLine("[MainWindow] Search history service initialized");
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainWindow: Error initializing settings service: {ex}");
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Error initializing settings service: {ex}");
         }
     }
 
@@ -373,16 +389,15 @@ public partial class MainWindow : Window
     {
         try
         {
-            var config = DatabaseConfiguration.CreateDefault();
-            var appearanceDbPath = System.IO.Path.Combine(
-                System.IO.Path.GetDirectoryName(config.DatabasePath) ?? string.Empty,
-                "appearance_settings.db");
-            _appearanceSettingsService = new AppearanceSettingsService(appearanceDbPath, config.EncryptionKey);
-            System.Diagnostics.Debug.WriteLine("MainWindow: Appearance settings service initialized");
+            System.Diagnostics.Debug.WriteLine("[MainWindow] Initializing appearance settings service...");
+            
+            // Отримуємо сервіс через фабрику
+            _appearanceSettingsService = DatabaseServicesFactory.TryGetAppearanceSettingsService();
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] AppearanceSettingsService: {(_appearanceSettingsService != null ? "OK" : "NULL")}");
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainWindow: Error initializing appearance settings service: {ex}");
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Error initializing appearance settings service: {ex}");
         }
     }
 
@@ -1197,7 +1212,40 @@ public partial class MainWindow : Window
             var size = scale >= 1.5 ? 48 : 32;
             System.Diagnostics.Debug.WriteLine($"[MainWindow] UpdateFavicon: url={uri} size={size} scale={scale:0.00}");
 
-            var image = await _faviconService.GetFaviconAsync(uri, size);
+            // Перевіряємо, чи це гра HexGL (localhost)
+            var isHexGlGame = address.StartsWith("http://localhost:") && 
+                              (address.Contains("index.html") || address.EndsWith("/"));
+            
+            IImage? image = null;
+            if (isHexGlGame && LocalGameServer.Instance.IsRunning)
+            {
+                // Завантажуємо іконку гри напряму з локального сервера
+                var gameIconUrl = LocalGameServer.Instance.GameIconUrl;
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Loading HexGL game icon directly: {gameIconUrl}");
+                
+                try
+                {
+                    using var httpClient = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+                    var iconBytes = await httpClient.GetByteArrayAsync(gameIconUrl);
+                    
+                    if (iconBytes != null && iconBytes.Length > 0)
+                    {
+                        using var stream = new MemoryStream(iconBytes);
+                        image = new Avalonia.Media.Imaging.Bitmap(stream);
+                        System.Diagnostics.Debug.WriteLine($"[MainWindow] HexGL icon loaded: {iconBytes.Length} bytes");
+                    }
+                }
+                catch (Exception iconEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Failed to load HexGL icon: {iconEx.Message}");
+                }
+            }
+            else
+            {
+                // Стандартний favicon
+                image = await _faviconService.GetFaviconAsync(uri, size);
+            }
+            
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var tabsHost = _normalModePage?.TabsHostPanel;
@@ -1277,6 +1325,9 @@ public partial class MainWindow : Window
         _tabs.Dispose();
         if (_faviconService is IDisposable d) d.Dispose();
         _faviconPollTimer.Stop();
+        
+        // Зупиняємо локальний сервер гри
+        try { LocalGameServer.Instance.Dispose(); } catch { }
     }
 
 
@@ -1768,11 +1819,30 @@ public partial class MainWindow : Window
                 ActivateWorker(worker);
             }
 
-            // Оновлюємо заголовок вкладки
-            UpdateTabTitle(worker, entry.Title ?? worker.Title);
+            // Перевіряємо, чи це гра HexGL (localhost з index.html від локального сервера)
+            var url = entry.Url ?? "";
+            var isHexGlGame = url.StartsWith("http://localhost:") && 
+                              (url.Contains("index.html") || url.EndsWith("/"));
+            
+            if (isHexGlGame)
+            {
+                // Оновлюємо заголовок вкладки на назву гри з розробником
+                UpdateTabTitle(worker, "HexGL - by Thibaut Despoulain");
+                
+                // Оновлюємо адресний рядок з інформацією про гру
+                UpdateNavigationBar("vetale://game/hexgl?by=Thibaut%20Despoulain");
+                
+                // Примусово оновлюємо іконку гри
+                _ = UpdateFaviconAsync(url);
+            }
+            else
+            {
+                // Оновлюємо заголовок вкладки
+                UpdateTabTitle(worker, entry.Title ?? worker.Title);
 
-            // Оновлюємо адресний рядок
-            UpdateNavigationBar(entry.Url);
+                // Оновлюємо адресний рядок
+                UpdateNavigationBar(entry.Url);
+            }
         }
         catch (Exception ex)
         {
@@ -1836,6 +1906,39 @@ public partial class MainWindow : Window
                 {
                     SubscribeToInternalPageEvents(content);
                     worker.Navigate(searchUrl, content);
+                }
+            };
+            
+            errorPage.PlayGameRequested += (_, _) =>
+            {
+                try
+                {
+                    // Запускаємо локальний HTTP сервер для гри
+                    var gameServer = LocalGameServer.Instance;
+                    if (!gameServer.IsRunning)
+                    {
+                        gameServer.Start();
+                    }
+                    
+                    if (gameServer.IsRunning)
+                    {
+                        // Навігуємо до гри через HTTP
+                        var gameUrl = gameServer.GameUrl;
+                        worker.Navigate(gameUrl);
+                        
+                        // Оновлюємо заголовок вкладки на назву гри
+                        UpdateTabTitle(worker, "HexGL - by Thibaut Despoulain");
+                        
+                        System.Diagnostics.Debug.WriteLine($"[MainWindow] Navigating to HexGL game via HTTP: {gameUrl}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("[MainWindow] Failed to start game server");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Error starting game: {ex.Message}");
                 }
             };
             

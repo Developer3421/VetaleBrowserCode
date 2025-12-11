@@ -31,7 +31,26 @@
     </UserControl.Styles>
 
     <Grid Margin="20">
-        <StackPanel Spacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Back Button -->
+        <Button Grid.Row="0"
+                Click="OnBackClick"
+                Background="Transparent"
+                BorderThickness="0"
+                HorizontalAlignment="Left"
+                Margin="0,0,0,10"
+                Cursor="Hand">
+            <StackPanel Orientation="Horizontal" Spacing="5">
+                <TextBlock Text="←" FontSize="18"/>
+                <TextBlock Text="{DynamicResource Settings.Back}" FontSize="14"/>
+            </StackPanel>
+        </Button>
+        
+        <StackPanel Grid.Row="1" Spacing="10">
             <!-- Header -->
             <TextBlock Text="{DynamicResource Appearance.Header}"
                       FontSize="24"
