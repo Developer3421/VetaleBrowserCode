@@ -22,30 +22,18 @@ public class SettingsService : ISettingsService, IDisposable
     {
         _encryptionService = new DatabaseEncryptionService(encryptionKey);
         
-        // Створюємо директорію для бази даних якщо не існує
-        var directory = Path.GetDirectoryName(databasePath);
-        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-        {
-            Directory.CreateDirectory(directory);
-        }
-
-        // MEMORY OPTIMIZATION: Direct mode для мінімального споживання RAM
-        var connectionString = new ConnectionString
-        {
-            Filename = databasePath,
-            Connection = ConnectionType.Direct
-        };
-
-        _database = new LiteDatabase(connectionString);
+        System.Diagnostics.Debug.WriteLine($"[SettingsService] Creating with path: {databasePath}");
         
-        // MEMORY OPTIMIZATION: Checkpoint
-        try { _database.Checkpoint(); } catch { }
+        // Використовуємо оптимізоване з'єднання з мінімальним споживанням RAM
+        _database = DatabaseConfiguration.CreateOptimizedDatabase(databasePath);
         
         // Отримуємо колекцію
         _settingsCollection = _database.GetCollection<SettingItem>("settings");
         
         // Один унікальний індекс
         _settingsCollection.EnsureIndex(x => x.Key, true);
+        
+        System.Diagnostics.Debug.WriteLine("[SettingsService] Initialized successfully");
     }
 
     public async Task<string> GetSearchEngineUrlAsync()

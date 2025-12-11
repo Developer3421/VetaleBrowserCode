@@ -44,28 +44,18 @@ public class AppearanceSettingsService : IAppearanceSettingsService, IDisposable
     {
         _encryptionService = new DatabaseEncryptionService(encryptionKey);
         
-        // Створюємо директорію для бази даних якщо не існує
-        var directory = Path.GetDirectoryName(databasePath);
-        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-        {
-            Directory.CreateDirectory(directory);
-        }
-
-        // MEMORY OPTIMIZATION: Direct connection
-        var connectionString = new ConnectionString
-        {
-            Filename = databasePath,
-            Connection = ConnectionType.Direct
-        };
-
-        _database = new LiteDatabase(connectionString);
-        try { _database.Checkpoint(); } catch { }
+        System.Diagnostics.Debug.WriteLine($"[AppearanceSettingsService] Creating with path: {databasePath}");
+        
+        // Використовуємо оптимізоване з'єднання з мінімальним споживанням RAM
+        _database = DatabaseConfiguration.CreateOptimizedDatabase(databasePath);
         
         // Отримуємо колекцію
         _settingsCollection = _database.GetCollection<SettingItem>("appearance_settings");
         
         // Створюємо індекс для ключа
         _settingsCollection.EnsureIndex(x => x.Key, true); // true = unique
+        
+        System.Diagnostics.Debug.WriteLine("[AppearanceSettingsService] Initialized successfully");
     }
 
     #region Helper Methods
