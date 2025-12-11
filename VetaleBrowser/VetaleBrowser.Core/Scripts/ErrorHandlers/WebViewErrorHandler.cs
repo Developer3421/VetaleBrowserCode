@@ -47,7 +47,12 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
 
             try
             {
+                // Спочатку намагаємось підписатись на події самого WebView
+                AttachWebViewEvents();
+                
+                // Потім шукаємо внутрішній AvaloniaCefBrowser
                 AttachAvaloniaCefBrowserEvents();
+                
                 // залишаємо PropertyChanged як fallback (оновлення _lastValidUrl + chrome-error/title-хак як останню лінію оборони)
                 _webView.PropertyChanged += OnWebViewPropertyChanged;
 
@@ -59,6 +64,38 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 Debug.WriteLine($"[WebViewErrorHandler] Failed to attach handlers: {ex}");
             }
         }
+        
+        /// <summary>
+        /// Спробувати підписатись на події безпосередньо на WebView
+        /// </summary>
+        private void AttachWebViewEvents()
+        {
+            var webViewType = _webView.GetType();
+            Debug.WriteLine($"[WebViewErrorHandler] Attaching to WebView events...");
+            
+            // Виводимо всі події WebView для діагностики
+            Debug.WriteLine("[WebViewErrorHandler] WebView events:");
+            foreach (var evt in webViewType.GetEvents(BindingFlags.Instance | BindingFlags.Public))
+            {
+                Debug.WriteLine($"[WebViewErrorHandler]   Event: {evt.Name}");
+            }
+            
+            // WebView з WebViewControl-Avalonia може мати власні події помилок
+            // Спробуємо різні варіанти назв
+            string[] errorEventNames = { 
+                "LoadError", "LoadFailed", "NavigationError", "PageLoadError",
+                "BrowserLoadError", "OnLoadError", "LoadingError" 
+            };
+            
+            foreach (var eventName in errorEventNames)
+            {
+                TrySubscribe(_webView, webViewType, eventName, nameof(OnBrowserLoadError));
+            }
+            
+            TrySubscribe(_webView, webViewType, "UnhandledException", nameof(OnBrowserUnhandledException));
+            TrySubscribe(_webView, webViewType, "JavascriptUncaughtException", nameof(OnJavascriptUncaughtException));
+            TrySubscribe(_webView, webViewType, "ConsoleMessage", nameof(OnConsoleMessage));
+        }
 
         /// <summary>
         /// Шукає всередині WebView екземпляр AvaloniaCefBrowser і підписується на LoadError, UnhandledException, JavascriptUncaughtException, ConsoleMessage
@@ -67,30 +104,109 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         {
             // Багато обгорток для CEF мають всередині властивість/поле "Browser". Підлаштуй ім'я при потребі.
             var webViewType = _webView.GetType();
+            Debug.WriteLine($"[WebViewErrorHandler] WebView type: {webViewType.FullName}");
+            
+            // Виводимо всі властивості та поля для діагностики
+            Debug.WriteLine("[WebViewErrorHandler] Available properties:");
+            foreach (var prop in webViewType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                Debug.WriteLine($"[WebViewErrorHandler]   Property: {prop.Name} ({prop.PropertyType.Name})");
+            }
+            Debug.WriteLine("[WebViewErrorHandler] Available fields:");
+            foreach (var field in webViewType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                Debug.WriteLine($"[WebViewErrorHandler]   Field: {field.Name} ({field.FieldType.Name})");
+            }
 
             object? browser = null;
-            var browserProp = webViewType.GetProperty("Browser", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (browserProp != null)
+            
+            // Спробуємо різні назви властивостей/полів
+            string[] browserNames = { "Browser", "_browser", "browser", "chromiumBrowser", "_chromiumBrowser", "InternalBrowser", "_internalBrowser", "CefBrowser", "_cefBrowser" };
+            
+            foreach (var name in browserNames)
             {
-                browser = browserProp.GetValue(_webView);
-            }
-            else
-            {
-                var browserField = webViewType.GetField("Browser", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                var browserProp = webViewType.GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                if (browserProp != null)
+                {
+                    browser = browserProp.GetValue(_webView);
+                    if (browser != null)
+                    {
+                        Debug.WriteLine($"[WebViewErrorHandler] Found browser via property '{name}', type: {browser.GetType().FullName}");
+                        break;
+                    }
+                }
+                
+                var browserField = webViewType.GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
                 if (browserField != null)
                 {
                     browser = browserField.GetValue(_webView);
+                    if (browser != null)
+                    {
+                        Debug.WriteLine($"[WebViewErrorHandler] Found browser via field '{name}', type: {browser.GetType().FullName}");
+                        break;
+                    }
+                }
+            }
+            
+            // Якщо не знайшли за назвою, шукаємо за типом (містить CefBrowser або AvaloniaCefBrowser в назві типу)
+            if (browser == null)
+            {
+                Debug.WriteLine("[WebViewErrorHandler] Searching by type pattern...");
+                foreach (var field in webViewType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+                {
+                    var val = field.GetValue(_webView);
+                    if (val != null)
+                    {
+                        var typeName = val.GetType().FullName ?? "";
+                        if (typeName.Contains("CefBrowser") || typeName.Contains("Chromium") || typeName.Contains("Browser"))
+                        {
+                            browser = val;
+                            Debug.WriteLine($"[WebViewErrorHandler] Found browser by type pattern in field '{field.Name}', type: {typeName}");
+                            break;
+                        }
+                    }
+                }
+                
+                if (browser == null)
+                {
+                    foreach (var prop in webViewType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+                    {
+                        try
+                        {
+                            var val = prop.GetValue(_webView);
+                            if (val != null)
+                            {
+                                var typeName = val.GetType().FullName ?? "";
+                                if (typeName.Contains("CefBrowser") || typeName.Contains("Chromium") || typeName.Contains("Browser"))
+                                {
+                                    browser = val;
+                                    Debug.WriteLine($"[WebViewErrorHandler] Found browser by type pattern in property '{prop.Name}', type: {typeName}");
+                                    break;
+                                }
+                            }
+                        }
+                        catch { /* ігноруємо помилки при читанні властивостей */ }
+                    }
                 }
             }
 
             if (browser == null)
             {
                 Debug.WriteLine("[WebViewErrorHandler] AvaloniaCefBrowser not found inside WebView (property/field 'Browser' missing or null)");
+                Debug.WriteLine("[WebViewErrorHandler] Will rely on PropertyChanged fallback for error detection");
                 return;
             }
 
             // Підписуємось максимально прямо, як у твоєму прикладі, але через reflection, щоб не тягнути типи EventArgs у Core.
             var browserType = browser.GetType();
+            Debug.WriteLine($"[WebViewErrorHandler] Browser type: {browserType.FullName}");
+            
+            // Виводимо доступні події
+            Debug.WriteLine("[WebViewErrorHandler] Available events on browser:");
+            foreach (var evt in browserType.GetEvents(BindingFlags.Instance | BindingFlags.Public))
+            {
+                Debug.WriteLine($"[WebViewErrorHandler]   Event: {evt.Name}");
+            }
 
             TrySubscribe(browser, browserType, "LoadError", nameof(OnBrowserLoadError));
             TrySubscribe(browser, browserType, "UnhandledException", nameof(OnBrowserUnhandledException));
@@ -278,8 +394,18 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                         _lastValidUrl = oldAddress;
                     }
                     
-                    // Детектуємо помилку через chrome-error:// URL як fallback, якщо немає явної події помилки
-                    if (!_hasExplicitErrorForCurrentNav && !string.IsNullOrEmpty(newAddress))
+                    // Скидаємо прапорець при новій навігації (щоб fallback працював)
+                    if (!string.IsNullOrEmpty(newAddress) && 
+                        !newAddress.StartsWith("chrome-error://", StringComparison.OrdinalIgnoreCase) &&
+                        newAddress != oldAddress)
+                    {
+                        // Якщо це нова навігація на звичайний URL - скидаємо прапорець
+                        _hasExplicitErrorForCurrentNav = false;
+                        Debug.WriteLine($"[WebViewErrorHandler] Reset explicit error flag for new navigation");
+                    }
+                    
+                    // Детектуємо помилку через chrome-error:// URL як fallback
+                    if (!string.IsNullOrEmpty(newAddress))
                     {
                         if (newAddress.StartsWith("chrome-error://", StringComparison.OrdinalIgnoreCase))
                         {
@@ -295,10 +421,6 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                     if (string.IsNullOrWhiteSpace(newTitle))
                         return;
 
-                    // Якщо вже є явна помилка від WebView — не намагаємось вгадувати по Title, щоб не дублювати
-                    if (_hasExplicitErrorForCurrentNav)
-                        return;
-
                     // Якщо в Title явно присутній ERR_ — одразу вважаємо це помилкою
                     if (newTitle.Contains("ERR_", StringComparison.OrdinalIgnoreCase))
                     {
@@ -309,6 +431,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                             failedUrl = _pendingUrl ?? _lastValidUrl ?? "unknown";
                         }
                         Debug.WriteLine($"[WebViewErrorHandler] Error detected from explicit ERR_ in title (fallback): {newTitle}, code={guessedCode}, url={failedUrl}");
+                        _hasExplicitErrorForCurrentNav = true; // Встановлюємо щоб не дублювати
                         ReportError(guessedCode, failedUrl!, newTitle);
                         return;
                     }
@@ -317,6 +440,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                     if (DetectErrorFromTitle(newTitle))
                     {
                         Debug.WriteLine($"[WebViewErrorHandler] Error detected from title (fallback): {newTitle}");
+                        _hasExplicitErrorForCurrentNav = true; // Встановлюємо щоб не дублювати
                     }
                 }
             }
@@ -638,6 +762,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 // Сповіщаємо підписників в UI потоці
                 Dispatcher.UIThread.Post(() =>
                 {
+                    Debug.WriteLine($"[WebViewErrorHandler] Invoking ErrorOccurred event for: {error.Title}");
                     ErrorOccurred?.Invoke(this, new BrowserErrorEventArgs(error));
                 });
             }

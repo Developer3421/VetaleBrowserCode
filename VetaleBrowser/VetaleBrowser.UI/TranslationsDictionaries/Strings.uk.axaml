@@ -452,4 +452,30 @@
   <x:String x:Key="BrowserError.Category.Server">Проблема сервера</x:String>
   <x:String x:Key="BrowserError.Category.Security">Проблема безпеки</x:String>
   <x:String x:Key="BrowserError.Category.General">Загальна помилка</x:String>
+
+  <!-- Error Page Modern UI (ErrorPage.*) -->
+  <x:String x:Key="ErrorPage.TipsHeader">💡 Що можна спробувати</x:String>
+  <x:String x:Key="ErrorPage.SearchHeader">🔍 Пошук в інтернеті</x:String>
+  <x:String x:Key="ErrorPage.SearchWatermark">Введіть пошуковий запит...</x:String>
+  <x:String x:Key="ErrorPage.Search">Шукати</x:String>
+  <x:String x:Key="ErrorPage.Retry">Спробувати знову</x:String>
+  <x:String x:Key="ErrorPage.GoBack">Назад</x:String>
+  <x:String x:Key="ErrorPage.Time">Час</x:String>
+  <x:String x:Key="ErrorPage.Category.Network">🌐 Мережева проблема</x:String>
+  <x:String x:Key="ErrorPage.Category.Server">🖥️ Проблема сервера</x:String>
+  <x:String x:Key="ErrorPage.Category.Security">🔒 Проблема безпеки</x:String>
+  <x:String x:Key="ErrorPage.Category.General">⚠️ Загальна помилка</x:String>
+  <x:String x:Key="ErrorPage.Category.Error">Помилка</x:String>
+
+  <!-- Security Status -->
+  <x:String x:Key="Security.Safe.Tooltip">✓ Безпечний сайт</x:String>
+  <x:String x:Key="Security.Safe.Text">Перевірено: безпечно</x:String>
+  <x:String x:Key="Security.Dangerous.Tooltip">⚠️ НЕБЕЗПЕЧНИЙ САЙТ (фішинг)!</x:String>
+  <x:String x:Key="Security.Dangerous.Text">НЕБЕЗПЕЧНО!</x:String>
+  <x:String x:Key="Security.Checking.Tooltip">⏳ Перевірка безпеки...</x:String>
+  <x:String x:Key="Security.Checking.Text">Перевірка…</x:String>
+  <x:String x:Key="Security.Error.Tooltip">⚠ Помилка перевірки</x:String>
+  <x:String x:Key="Security.Error.Text">Помилка перевірки</x:String>
+  <x:String x:Key="Security.Unknown.Tooltip">? Статус невідомий</x:String>
+  <x:String x:Key="Security.Unknown.Text">Статус невідомий</x:String>
 </ResourceDictionary>

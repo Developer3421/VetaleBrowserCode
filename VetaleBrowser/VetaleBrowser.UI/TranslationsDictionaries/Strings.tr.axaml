@@ -150,4 +150,159 @@
   <x:String x:Key="Tools.Console.Description">Günlükler ve teşhislerle geliştirici konsolu</x:String>
 
   <x:String x:Key="Tools.NavigateButton">→ Tarayıcıda aç</x:String>
+
+  <!-- Browser Error Pages -->
+  <!-- Network Errors -->
+  <x:String x:Key="BrowserError.NameNotResolved.Title">Site bulunamadı</x:String>
+  <x:String x:Key="BrowserError.NameNotResolved.Description">Bu alan adı için sunucu IP adresi bulunamadı. Site mevcut olmayabilir veya yazım hatası olabilir.</x:String>
+  <x:String x:Key="BrowserError.NameNotResolved.Tip1">Adres yazımını kontrol edin</x:String>
+  <x:String x:Key="BrowserError.NameNotResolved.Tip2">İnternete bağlı olduğunuzdan emin olun</x:String>
+  <x:String x:Key="BrowserError.NameNotResolved.Tip3">DNS önbelleğini temizlemeyi deneyin: ipconfig /flushdns</x:String>
+
+  <x:String x:Key="BrowserError.InternetDisconnected.Title">İnternet bağlantısı yok</x:String>
+  <x:String x:Key="BrowserError.InternetDisconnected.Description">Cihazınız internete bağlı değil. Bağlantınızı kontrol edin ve tekrar deneyin.</x:String>
+  <x:String x:Key="BrowserError.InternetDisconnected.Tip1">Wi-Fi'nin açık olduğundan veya kablonun bağlı olduğundan emin olun</x:String>
+  <x:String x:Key="BrowserError.InternetDisconnected.Tip2">Yönlendirici veya modemi yeniden başlatın</x:String>
+  <x:String x:Key="BrowserError.InternetDisconnected.Tip3">İnternet servis sağlayıcınızla iletişime geçin</x:String>
+
+  <x:String x:Key="BrowserError.ConnectionRefused.Title">Bağlantı reddedildi</x:String>
+  <x:String x:Key="BrowserError.ConnectionRefused.Description">Sunucu bağlantı girişimini aktif olarak reddetti. Sunucu çalışmıyor veya port kapalı olabilir.</x:String>
+  <x:String x:Key="BrowserError.ConnectionRefused.Tip1">Sunucunun çalıştığından emin olun</x:String>
+  <x:String x:Key="BrowserError.ConnectionRefused.Tip2">Güvenlik duvarı ayarlarını kontrol edin</x:String>
+  <x:String x:Key="BrowserError.ConnectionRefused.Tip3">Daha sonra tekrar deneyin</x:String>
+
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Title">Bağlantı zaman aşımına uğradı</x:String>
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Description">Sunucu yanıt vermesi çok uzun sürdü. Yavaş bağlantı veya sunucu aşırı yükü nedeniyle olabilir.</x:String>
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Tip1">İnternet hızınızı kontrol edin</x:String>
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Tip2">Sayfayı yenilemeyi deneyin</x:String>
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Tip3">Sunucu daha az meşgul olduğunda tekrar deneyin</x:String>
+
+  <x:String x:Key="BrowserError.ConnectionReset.Title">Bağlantı sıfırlandı</x:String>
+  <x:String x:Key="BrowserError.ConnectionReset.Description">Sunucu bağlantısı beklenmedik şekilde kesildi. Bu geçici bir sorun olabilir.</x:String>
+  <x:String x:Key="BrowserError.ConnectionReset.Tip1">Sayfayı yenileyin</x:String>
+  <x:String x:Key="BrowserError.ConnectionReset.Tip2">İnternet bağlantınızı kontrol edin</x:String>
+  <x:String x:Key="BrowserError.ConnectionReset.Tip3">VPN veya proxy kullanıyorsanız devre dışı bırakın</x:String>
+
+  <!-- Security Errors -->
+  <x:String x:Key="BrowserError.SSLError.Title">Güvenli olmayan bağlantı</x:String>
+  <x:String x:Key="BrowserError.SSLError.Description">Bu sitenin güvenlik sertifikası geçersiz veya süresi dolmuş. Verileriniz risk altında olabilir.</x:String>
+  <x:String x:Key="BrowserError.SSLError.Tip1">Bu siteye kişisel bilgi girmeyin</x:String>
+  <x:String x:Key="BrowserError.SSLError.Tip2">Cihazınızdaki tarih ve saati kontrol edin</x:String>
+  <x:String x:Key="BrowserError.SSLError.Tip3">Site yöneticisiyle iletişime geçin</x:String>
+
+  <!-- Server Errors -->
+  <x:String x:Key="BrowserError.EmptyResponse.Title">Boş yanıt</x:String>
+  <x:String x:Key="BrowserError.EmptyResponse.Description">Sunucu hiçbir veri göndermedi. Sunucu aşırı yüklenmiş veya arızalı olabilir.</x:String>
+  <x:String x:Key="BrowserError.EmptyResponse.Tip1">Sayfayı yenilemeyi deneyin</x:String>
+  <x:String x:Key="BrowserError.EmptyResponse.Tip2">Daha sonra tekrar deneyin</x:String>
+  <x:String x:Key="BrowserError.EmptyResponse.Tip3">Sunucu durumunu kontrol edin</x:String>
+
+  <x:String x:Key="BrowserError.TooManyRedirects.Title">Çok fazla yönlendirme</x:String>
+  <x:String x:Key="BrowserError.TooManyRedirects.Description">Sayfa bir yönlendirme döngüsü oluşturdu. Sunucu yanlış yapılandırılmış.</x:String>
+  <x:String x:Key="BrowserError.TooManyRedirects.Tip1">Bu site için çerezleri temizleyin</x:String>
+  <x:String x:Key="BrowserError.TooManyRedirects.Tip2">Farklı bir tarayıcı deneyin</x:String>
+  <x:String x:Key="BrowserError.TooManyRedirects.Tip3">Site desteğiyle iletişime geçin</x:String>
+
+  <!-- General Errors -->
+  <x:String x:Key="BrowserError.BlockedByClient.Title">Engellendi</x:String>
+  <x:String x:Key="BrowserError.BlockedByClient.Description">Bu kaynağın yüklenmesi tarayıcı veya bir uzantı tarafından engellendi.</x:String>
+  <x:String x:Key="BrowserError.BlockedByClient.Tip1">Reklam engelleyici ayarlarını kontrol edin</x:String>
+  <x:String x:Key="BrowserError.BlockedByClient.Tip2">Güvenlik uzantılarını geçici olarak devre dışı bırakın</x:String>
+  <x:String x:Key="BrowserError.BlockedByClient.Tip3">Siteyi istisna listesine ekleyin</x:String>
+
+  <x:String x:Key="BrowserError.InvalidUrl.Title">Geçersiz adres</x:String>
+  <x:String x:Key="BrowserError.InvalidUrl.Description">Girilen adres yanlış biçimde ve işlenemiyor.</x:String>
+  <x:String x:Key="BrowserError.InvalidUrl.Tip1">URL yazımını kontrol edin</x:String>
+  <x:String x:Key="BrowserError.InvalidUrl.Tip2">URL'nin http:// veya https:// ile başladığından emin olun</x:String>
+  <x:String x:Key="BrowserError.InvalidUrl.Tip3">Siteyi arama yoluyla bulmayı deneyin</x:String>
+
+  <x:String x:Key="BrowserError.FileNotFound.Title">Dosya bulunamadı</x:String>
+  <x:String x:Key="BrowserError.FileNotFound.Description">İstenen dosya belirtilen adreste mevcut değil.</x:String>
+  <x:String x:Key="BrowserError.FileNotFound.Tip1">Dosya yolunu kontrol edin</x:String>
+  <x:String x:Key="BrowserError.FileNotFound.Tip2">Dosyanın var olduğundan emin olun</x:String>
+  <x:String x:Key="BrowserError.FileNotFound.Tip3">Sitenin ana sayfasına gitmeyi deneyin</x:String>
+
+  <x:String x:Key="BrowserError.AccessDenied.Title">Erişim reddedildi</x:String>
+  <x:String x:Key="BrowserError.AccessDenied.Description">Bu kaynağı görüntüleme izniniz yok.</x:String>
+  <x:String x:Key="BrowserError.AccessDenied.Tip1">Hesabınıza giriş yapın</x:String>
+  <x:String x:Key="BrowserError.AccessDenied.Tip2">Erişim için yöneticiyle iletişime geçin</x:String>
+  <x:String x:Key="BrowserError.AccessDenied.Tip3">İzin ayarlarını kontrol edin</x:String>
+
+  <x:String x:Key="BrowserError.Unknown.Title">Yükleme hatası</x:String>
+  <x:String x:Key="BrowserError.Unknown.Description">Sayfa yüklenemedi.</x:String>
+  <x:String x:Key="BrowserError.Unknown.Tip1">Sayfayı yenilemeyi deneyin</x:String>
+  <x:String x:Key="BrowserError.Unknown.Tip2">İnternet bağlantınızı kontrol edin</x:String>
+  <x:String x:Key="BrowserError.Unknown.Tip3">Daha sonra tekrar deneyin</x:String>
+
+  <!-- HTTP Error Pages -->
+  <x:String x:Key="BrowserError.Http400.Title">Hatalı istek</x:String>
+  <x:String x:Key="BrowserError.Http400.Description">Sunucu sözdizimi hatası nedeniyle isteğinizi işleyemiyor.</x:String>
+
+  <x:String x:Key="BrowserError.Http401.Title">Yetkilendirme gerekli</x:String>
+  <x:String x:Key="BrowserError.Http401.Description">Bu sayfaya erişmek için giriş yapmanız gerekiyor.</x:String>
+
+  <x:String x:Key="BrowserError.Http403.Title">Erişim yasak</x:String>
+  <x:String x:Key="BrowserError.Http403.Description">Bu sayfayı görüntüleme izniniz yok.</x:String>
+
+  <x:String x:Key="BrowserError.Http404.Title">Sayfa bulunamadı</x:String>
+  <x:String x:Key="BrowserError.Http404.Description">İstenen sayfa bu sunucuda mevcut değil. Kaldırılmış veya taşınmış olabilir.</x:String>
+
+  <x:String x:Key="BrowserError.Http408.Title">İstek zaman aşımı</x:String>
+  <x:String x:Key="BrowserError.Http408.Description">Sunucu uzun bekleme nedeniyle bağlantıyı kapattı.</x:String>
+
+  <x:String x:Key="BrowserError.Http429.Title">Çok fazla istek</x:String>
+  <x:String x:Key="BrowserError.Http429.Description">Çok fazla istek gönderdiniz. Bekleyin ve tekrar deneyin.</x:String>
+
+  <x:String x:Key="BrowserError.Http500.Title">Dahili sunucu hatası</x:String>
+  <x:String x:Key="BrowserError.Http500.Description">Sunucuda beklenmeyen bir hata oluştu. Bu bağlantınızla değil, site sorunudur.</x:String>
+
+  <x:String x:Key="BrowserError.Http502.Title">Hatalı ağ geçidi</x:String>
+  <x:String x:Key="BrowserError.Http502.Description">Proxy sunucu başka bir sunucudan geçersiz yanıt aldı.</x:String>
+
+  <x:String x:Key="BrowserError.Http503.Title">Hizmet kullanılamıyor</x:String>
+  <x:String x:Key="BrowserError.Http503.Description">Sunucu bakım veya aşırı yük nedeniyle geçici olarak kullanılamıyor.</x:String>
+
+  <x:String x:Key="BrowserError.Http504.Title">Ağ geçidi zaman aşımı</x:String>
+  <x:String x:Key="BrowserError.Http504.Description">Proxy sunucu başka bir sunucudan zamanında yanıt alamadı.</x:String>
+
+  <x:String x:Key="BrowserError.HttpUnknown.Title">Sunucu hatası</x:String>
+  <x:String x:Key="BrowserError.HttpUnknown.Description">Sunucu bir hata döndürdü.</x:String>
+
+  <!-- Error Page UI Elements -->
+  <x:String x:Key="BrowserError.Retry">Tekrar dene</x:String>
+  <x:String x:Key="BrowserError.GoBack">Geri</x:String>
+  <x:String x:Key="BrowserError.GoHome">Ana Sayfa</x:String>
+  <x:String x:Key="BrowserError.Search">Ara</x:String>
+  <x:String x:Key="BrowserError.SearchPlaceholder">Arama sorgusu girin...</x:String>
+  <x:String x:Key="BrowserError.Tips">Deneyebileceğiniz şeyler:</x:String>
+  <x:String x:Key="BrowserError.Category.Network">Ağ sorunu</x:String>
+  <x:String x:Key="BrowserError.Category.Server">Sunucu sorunu</x:String>
+  <x:String x:Key="BrowserError.Category.Security">Güvenlik sorunu</x:String>
+  <x:String x:Key="BrowserError.Category.General">Genel hata</x:String>
+
+  <!-- Error Page Modern UI (ErrorPage.*) -->
+  <x:String x:Key="ErrorPage.TipsHeader">💡 Deneyebileceğiniz şeyler</x:String>
+  <x:String x:Key="ErrorPage.SearchHeader">🔍 İnternette ara</x:String>
+  <x:String x:Key="ErrorPage.SearchWatermark">Arama sorgusu girin...</x:String>
+  <x:String x:Key="ErrorPage.Search">Ara</x:String>
+  <x:String x:Key="ErrorPage.Retry">Tekrar dene</x:String>
+  <x:String x:Key="ErrorPage.GoBack">Geri</x:String>
+  <x:String x:Key="ErrorPage.Time">Zaman</x:String>
+  <x:String x:Key="ErrorPage.Category.Network">🌐 Ağ sorunu</x:String>
+  <x:String x:Key="ErrorPage.Category.Server">🖥️ Sunucu sorunu</x:String>
+  <x:String x:Key="ErrorPage.Category.Security">🔒 Güvenlik sorunu</x:String>
+  <x:String x:Key="ErrorPage.Category.General">⚠️ Genel hata</x:String>
+  <x:String x:Key="ErrorPage.Category.Error">Hata</x:String>
+
+  <!-- Security Status -->
+  <x:String x:Key="Security.Safe.Tooltip">✓ Güvenli site</x:String>
+  <x:String x:Key="Security.Safe.Text">Doğrulandı: güvenli</x:String>
+  <x:String x:Key="Security.Dangerous.Tooltip">⚠️ TEHLİKELİ SİTE (oltalama)!</x:String>
+  <x:String x:Key="Security.Dangerous.Text">TEHLİKELİ!</x:String>
+  <x:String x:Key="Security.Checking.Tooltip">⏳ Güvenlik kontrol ediliyor...</x:String>
+  <x:String x:Key="Security.Checking.Text">Kontrol ediliyor…</x:String>
+  <x:String x:Key="Security.Error.Tooltip">⚠ Kontrol başarısız</x:String>
+  <x:String x:Key="Security.Error.Text">Kontrol başarısız</x:String>
+  <x:String x:Key="Security.Unknown.Tooltip">? Durum bilinmiyor</x:String>
+  <x:String x:Key="Security.Unknown.Text">Durum bilinmiyor</x:String>
 </ResourceDictionary>

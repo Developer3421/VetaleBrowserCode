@@ -298,8 +298,18 @@ public class NavigationBar : TemplatedControl
             // Перевірка безпеки перед навігацією
             await CheckUrlSecurityAsync(url);
 
-            await _webViewManager.NavigateAsync(url);
-            System.Diagnostics.Trace.WriteLine($"NavigationBar: Navigate to {url}");
+            // Якщо є TabWorker, використовуємо його Navigate (що включає PreCheck)
+            if (_tabWorker != null)
+            {
+                _tabWorker.Navigate(url);
+                System.Diagnostics.Trace.WriteLine($"NavigationBar: Navigate via TabWorker to {url}");
+            }
+            else
+            {
+                // Fallback до прямої навігації
+                await _webViewManager.NavigateAsync(url);
+                System.Diagnostics.Trace.WriteLine($"NavigationBar: Navigate to {url}");
+            }
         }
     }
 
@@ -510,32 +520,32 @@ public class NavigationBar : TemplatedControl
                 // Зелений щит - безпечно
                 _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#4CAF50"));
                 _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z");
-                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, "✓ Безпечний сайт");
-                if (_securityText != null) _securityText.Text = "Перевірено: безпечно";
+                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Safe.Tooltip", "✓ Безпечний сайт"));
+                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Safe.Text", "Перевірено: безпечно");
                 break;
 
             case SecurityStatus.Dangerous:
                 // Червоний щит з оклику - небезпечно
                 _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#F44336"));
                 _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z M11 7h2v6h-2V7z M11 15h2v2h-2v-2z");
-                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, "⚠️ НЕБЕЗПЕЧНИЙ САЙТ (фішинг)!");
-                if (_securityText != null) _securityText.Text = "НЕБЕЗПЕЧНО!";
+                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Dangerous.Tooltip", "⚠️ НЕБЕЗПЕЧНИЙ САЙТ (фішинг)!"));
+                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Dangerous.Text", "НЕБЕЗПЕЧНО!");
                 break;
 
             case SecurityStatus.Checking:
                 // Жовтий щит - перевірка
                 _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#FFC107"));
                 _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z");
-                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, "⏳ Перевірка безпеки...");
-                if (_securityText != null) _securityText.Text = "Перевірка…";
+                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Checking.Tooltip", "⏳ Перевірка безпеки..."));
+                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Checking.Text", "Перевірка…");
                 break;
 
             case SecurityStatus.Error:
                 // Помаранчевий щит - помилка
                 _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#FF9800"));
                 _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z");
-                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, "⚠ Помилка перевірки");
-                if (_securityText != null) _securityText.Text = "Помилка перевірки";
+                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Error.Tooltip", "⚠ Помилка перевірки"));
+                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Error.Text", "Помилка перевірки");
                 break;
 
             case SecurityStatus.Unknown:
@@ -543,10 +553,24 @@ public class NavigationBar : TemplatedControl
                 // Сірий щит - невідомо
                 _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#9E9E9E"));
                 _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z");
-                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, "? Статус невідомий");
-                if (_securityText != null) _securityText.Text = "Статус невідомий";
+                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Unknown.Tooltip", "? Статус невідомий"));
+                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Unknown.Text", "Статус невідомий");
                 break;
         }
+    }
+    
+    /// <summary>
+    /// Отримати локалізований рядок
+    /// </summary>
+    private static string GetLocalizedString(string key, string defaultValue)
+    {
+        try
+        {
+            if (Application.Current?.TryFindResource(key, out var resource) == true && resource is string str)
+                return str;
+        }
+        catch { }
+        return defaultValue;
     }
 
     private async System.Threading.Tasks.Task AutoNavigateDebouncedAsync()

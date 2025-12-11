@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Controls.ErrorHandlingBrowserComponent"
+             x:Name="ErrorHandlingBrowserRoot">
+
+    <!-- Основний Grid для перемикання між браузером та сторінкою помилки -->
+    <Grid x:Name="MainGrid">
+        <!-- WebView контейнер - сюди буде додано WebView програмно -->
+        <ContentControl x:Name="WebViewContainer" 
+                        IsVisible="True"/>
+        
+        <!-- Контейнер для сторінки помилки -->
+        <ContentControl x:Name="ErrorPageContainer" 
+                        IsVisible="False"/>
+    </Grid>
+</UserControl>
+

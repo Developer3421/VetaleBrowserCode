@@ -11,13 +11,19 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
 {
     /// <summary>
     /// Сторінка помилки браузера з локалізованими повідомленнями
-    /// Стилізована відповідно до ToolsMainPage для єдиного фірмового стилю
+    /// Сучасний дизайн у стилі Chrome/Firefox
     /// </summary>
     public partial class BrowserErrorPage : UserControl
     {
         private BrowserError? _error;
         
+        /// <summary>
+        /// Поточна помилка
+        /// </summary>
+        public BrowserError? Error => _error;
+        
         // Елементи UI
+        private Border? _errorIconCircle;
         private TextBlock? _errorIconText;
         private TextBlock? _errorTitleText;
         private TextBlock? _errorCategoryText;
@@ -25,9 +31,14 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         private TextBlock? _failedUrlText;
         private TextBlock? _errorCodeText;
         private TextBlock? _timestampText;
+        private TextBlock? _tipsHeaderText;
         private StackPanel? _tipsPanel;
         private Border? _searchSection;
+        private TextBlock? _searchHeaderText;
         private TextBox? _searchTextBox;
+        private TextBlock? _searchButtonText;
+        private TextBlock? _retryButtonText;
+        private TextBlock? _goBackButtonText;
         private Button? _retryButton;
 
         /// <summary>
@@ -41,7 +52,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         public event EventHandler? GoBackRequested;
         
         /// <summary>
-        /// Подія запиту переходу на головну
+        /// Подія запиту переходу на головну (залишаємо для сумісності)
         /// </summary>
         public event EventHandler? GoHomeRequested;
         
@@ -54,6 +65,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         {
             InitializeComponent();
             FindControls();
+            ApplyLocalization();
         }
         
         public BrowserErrorPage(BrowserError error) : this()
@@ -68,6 +80,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         
         private void FindControls()
         {
+            _errorIconCircle = this.FindControl<Border>("ErrorIconCircle");
             _errorIconText = this.FindControl<TextBlock>("ErrorIconText");
             _errorTitleText = this.FindControl<TextBlock>("ErrorTitleText");
             _errorCategoryText = this.FindControl<TextBlock>("ErrorCategoryText");
@@ -75,10 +88,48 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
             _failedUrlText = this.FindControl<TextBlock>("FailedUrlText");
             _errorCodeText = this.FindControl<TextBlock>("ErrorCodeText");
             _timestampText = this.FindControl<TextBlock>("TimestampText");
+            _tipsHeaderText = this.FindControl<TextBlock>("TipsHeaderText");
             _tipsPanel = this.FindControl<StackPanel>("TipsPanel");
             _searchSection = this.FindControl<Border>("SearchSection");
+            _searchHeaderText = this.FindControl<TextBlock>("SearchHeaderText");
             _searchTextBox = this.FindControl<TextBox>("SearchTextBox");
+            _searchButtonText = this.FindControl<TextBlock>("SearchButtonText");
+            _retryButtonText = this.FindControl<TextBlock>("RetryButtonText");
+            _goBackButtonText = this.FindControl<TextBlock>("GoBackButtonText");
             _retryButton = this.FindControl<Button>("RetryButton");
+        }
+        
+        /// <summary>
+        /// Застосувати локалізацію до статичних елементів
+        /// </summary>
+        private void ApplyLocalization()
+        {
+            if (_tipsHeaderText != null)
+                _tipsHeaderText.Text = GetLocalizedString("ErrorPage.TipsHeader", "💡 Що можна спробувати");
+            if (_searchHeaderText != null)
+                _searchHeaderText.Text = GetLocalizedString("ErrorPage.SearchHeader", "🔍 Пошук в інтернеті");
+            if (_searchTextBox != null)
+                _searchTextBox.Watermark = GetLocalizedString("ErrorPage.SearchWatermark", "Введіть пошуковий запит...");
+            if (_searchButtonText != null)
+                _searchButtonText.Text = GetLocalizedString("ErrorPage.Search", "Шукати");
+            if (_retryButtonText != null)
+                _retryButtonText.Text = GetLocalizedString("ErrorPage.Retry", "Спробувати знову");
+            if (_goBackButtonText != null)
+                _goBackButtonText.Text = GetLocalizedString("ErrorPage.GoBack", "Назад");
+        }
+        
+        /// <summary>
+        /// Отримати локалізований рядок
+        /// </summary>
+        private string GetLocalizedString(string key, string defaultValue)
+        {
+            try
+            {
+                if (Application.Current?.TryFindResource(key, out var resource) == true && resource is string str)
+                    return str;
+            }
+            catch { }
+            return defaultValue;
         }
 
         /// <summary>
@@ -88,14 +139,10 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         {
             _error = error ?? throw new ArgumentNullException(nameof(error));
             
-            // Оновлюємо фон відповідно до категорії
-            try
+            // Оновлюємо колір кола іконки відповідно до категорії
+            if (_errorIconCircle != null)
             {
-                Background = new SolidColorBrush(Color.Parse(error.BackgroundColor));
-            }
-            catch
-            {
-                Background = new SolidColorBrush(Color.Parse("#FF9800"));
+                _errorIconCircle.Background = new SolidColorBrush(GetIconCircleColor(error.Category));
             }
             
             // Оновлюємо іконку та заголовок
@@ -118,11 +165,14 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
             
             // Оновлюємо код помилки
             if (_errorCodeText != null)
-                _errorCodeText.Text = $"Код: {error.ErrorName} ({error.ErrorCode})";
+                _errorCodeText.Text = $"{error.ErrorName} ({error.ErrorCode})";
             
             // Оновлюємо час
             if (_timestampText != null)
-                _timestampText.Text = $"Час: {error.OccurredAt.ToLocalTime():HH:mm:ss}";
+            {
+                var timeLabel = GetLocalizedString("ErrorPage.Time", "Час");
+                _timestampText.Text = $"{timeLabel}: {error.OccurredAt.ToLocalTime():HH:mm:ss dd.MM.yyyy}";
+            }
             
             // Оновлюємо підказки
             UpdateTips(error.Tips);
@@ -151,17 +201,32 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         }
         
         /// <summary>
+        /// Отримує колір кола іконки за категорією
+        /// </summary>
+        private Color GetIconCircleColor(BrowserErrorCategory category)
+        {
+            return category switch
+            {
+                BrowserErrorCategory.NetworkError => Color.Parse("#FEF3C7"),    // Помаранчевий/жовтий
+                BrowserErrorCategory.ServerError => Color.Parse("#FEE2E2"),     // Червоний
+                BrowserErrorCategory.SecurityError => Color.Parse("#FECACA"),   // Темно-червоний
+                BrowserErrorCategory.GeneralError => Color.Parse("#E2E8F0"),    // Сірий
+                _ => Color.Parse("#E2E8F0")
+            };
+        }
+        
+        /// <summary>
         /// Отримує назву категорії для відображення
         /// </summary>
         private string GetCategoryDisplayName(BrowserErrorCategory category)
         {
             return category switch
             {
-                BrowserErrorCategory.NetworkError => "🌐 Мережева проблема",
-                BrowserErrorCategory.ServerError => "🖥️ Проблема сервера",
-                BrowserErrorCategory.SecurityError => "🔒 Проблема безпеки",
-                BrowserErrorCategory.GeneralError => "⚠️ Загальна помилка",
-                _ => "Помилка"
+                BrowserErrorCategory.NetworkError => GetLocalizedString("ErrorPage.Category.Network", "🌐 Мережева проблема"),
+                BrowserErrorCategory.ServerError => GetLocalizedString("ErrorPage.Category.Server", "🖥️ Проблема сервера"),
+                BrowserErrorCategory.SecurityError => GetLocalizedString("ErrorPage.Category.Security", "🔒 Проблема безпеки"),
+                BrowserErrorCategory.GeneralError => GetLocalizedString("ErrorPage.Category.General", "⚠️ Загальна помилка"),
+                _ => GetLocalizedString("ErrorPage.Category.Error", "Помилка")
             };
         }
         
@@ -179,39 +244,66 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
             {
                 var tipBorder = new Border
                 {
-                    Background = new SolidColorBrush(Color.Parse("#FAFAFA")),
-                    BorderBrush = new SolidColorBrush(Color.Parse("#E8E8E8")),
+                    Background = new SolidColorBrush(Color.Parse("#F8FAFC")),
+                    BorderBrush = new SolidColorBrush(Color.Parse("#E2E8F0")),
                     BorderThickness = new Thickness(1),
-                    CornerRadius = new CornerRadius(6),
-                    Padding = new Thickness(15, 10),
-                    Margin = new Thickness(0, 0, 0, 8)
+                    CornerRadius = new CornerRadius(10),
+                    Padding = new Thickness(18, 14),
+                    Margin = new Thickness(0, 0, 0, 10),
+                    Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand)
+                };
+                
+                // Ефект наведення
+                tipBorder.PointerEntered += (s, e) =>
+                {
+                    tipBorder.Background = new SolidColorBrush(Color.Parse("#F1F5F9"));
+                    tipBorder.BorderBrush = new SolidColorBrush(Color.Parse("#CBD5E1"));
+                };
+                tipBorder.PointerExited += (s, e) =>
+                {
+                    tipBorder.Background = new SolidColorBrush(Color.Parse("#F8FAFC"));
+                    tipBorder.BorderBrush = new SolidColorBrush(Color.Parse("#E2E8F0"));
                 };
                 
                 var tipPanel = new StackPanel
                 {
                     Orientation = Orientation.Horizontal,
-                    Spacing = 12
+                    Spacing = 14
                 };
                 
-                // Номер підказки
-                var numberText = new TextBlock
+                // Номер підказки в колі
+                var numberBorder = new Border
                 {
-                    Text = $"{index}.",
-                    FontWeight = FontWeight.SemiBold,
-                    Foreground = new SolidColorBrush(Color.Parse("#4CAF50")),
+                    Width = 28,
+                    Height = 28,
+                    CornerRadius = new CornerRadius(14),
+                    Background = new SolidColorBrush(Color.Parse("#3B82F6")),
                     VerticalAlignment = VerticalAlignment.Top
                 };
+                
+                var numberText = new TextBlock
+                {
+                    Text = index.ToString(),
+                    FontWeight = FontWeight.SemiBold,
+                    FontSize = 13,
+                    Foreground = Brushes.White,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                numberBorder.Child = numberText;
                 
                 // Текст підказки
                 var tipText = new TextBlock
                 {
                     Text = tip,
                     TextWrapping = TextWrapping.Wrap,
-                    Foreground = new SolidColorBrush(Color.Parse("#424242")),
-                    VerticalAlignment = VerticalAlignment.Center
+                    Foreground = new SolidColorBrush(Color.Parse("#475569")),
+                    VerticalAlignment = VerticalAlignment.Center,
+                    FontSize = 14,
+                    LineHeight = 22
                 };
                 
-                tipPanel.Children.Add(numberText);
+                tipPanel.Children.Add(numberBorder);
                 tipPanel.Children.Add(tipText);
                 tipBorder.Child = tipPanel;
                 
@@ -234,14 +326,6 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         private void OnGoBackClicked(object? sender, RoutedEventArgs e)
         {
             GoBackRequested?.Invoke(this, EventArgs.Empty);
-        }
-        
-        /// <summary>
-        /// Обробник кнопки "На головну"
-        /// </summary>
-        private void OnGoHomeClicked(object? sender, RoutedEventArgs e)
-        {
-            GoHomeRequested?.Invoke(this, EventArgs.Empty);
         }
         
         /// <summary>

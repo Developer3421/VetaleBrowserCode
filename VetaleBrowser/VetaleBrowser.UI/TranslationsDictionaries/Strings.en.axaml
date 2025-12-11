@@ -471,4 +471,30 @@
   <x:String x:Key="BrowserError.Category.Server">Server problem</x:String>
   <x:String x:Key="BrowserError.Category.Security">Security problem</x:String>
   <x:String x:Key="BrowserError.Category.General">General error</x:String>
+
+  <!-- Error Page Modern UI (ErrorPage.*) -->
+  <x:String x:Key="ErrorPage.TipsHeader">💡 What you can try</x:String>
+  <x:String x:Key="ErrorPage.SearchHeader">🔍 Search the web</x:String>
+  <x:String x:Key="ErrorPage.SearchWatermark">Enter search query...</x:String>
+  <x:String x:Key="ErrorPage.Search">Search</x:String>
+  <x:String x:Key="ErrorPage.Retry">Try again</x:String>
+  <x:String x:Key="ErrorPage.GoBack">Go back</x:String>
+  <x:String x:Key="ErrorPage.Time">Time</x:String>
+  <x:String x:Key="ErrorPage.Category.Network">🌐 Network problem</x:String>
+  <x:String x:Key="ErrorPage.Category.Server">🖥️ Server problem</x:String>
+  <x:String x:Key="ErrorPage.Category.Security">🔒 Security problem</x:String>
+  <x:String x:Key="ErrorPage.Category.General">⚠️ General error</x:String>
+  <x:String x:Key="ErrorPage.Category.Error">Error</x:String>
+
+  <!-- Security Status -->
+  <x:String x:Key="Security.Safe.Tooltip">✓ Safe site</x:String>
+  <x:String x:Key="Security.Safe.Text">Verified: safe</x:String>
+  <x:String x:Key="Security.Dangerous.Tooltip">⚠️ DANGEROUS SITE (phishing)!</x:String>
+  <x:String x:Key="Security.Dangerous.Text">DANGEROUS!</x:String>
+  <x:String x:Key="Security.Checking.Tooltip">⏳ Checking security...</x:String>
+  <x:String x:Key="Security.Checking.Text">Checking…</x:String>
+  <x:String x:Key="Security.Error.Tooltip">⚠ Check failed</x:String>
+  <x:String x:Key="Security.Error.Text">Check failed</x:String>
+  <x:String x:Key="Security.Unknown.Tooltip">? Status unknown</x:String>
+  <x:String x:Key="Security.Unknown.Text">Status unknown</x:String>
 </ResourceDictionary>

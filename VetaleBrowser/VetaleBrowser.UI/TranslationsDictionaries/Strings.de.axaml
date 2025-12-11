@@ -184,4 +184,159 @@
   <x:String x:Key="Tools.Console.Description">Entwicklerkonsole mit Logs und Diagnose</x:String>
   
   <x:String x:Key="Tools.NavigateButton">→ Im Browser öffnen</x:String>
+
+  <!-- Browser Error Pages -->
+  <!-- Network Errors -->
+  <x:String x:Key="BrowserError.NameNotResolved.Title">Webseite nicht gefunden</x:String>
+  <x:String x:Key="BrowserError.NameNotResolved.Description">Die IP-Adresse des Servers für diesen Domainnamen konnte nicht gefunden werden. Die Webseite existiert möglicherweise nicht oder es liegt ein Tippfehler vor.</x:String>
+  <x:String x:Key="BrowserError.NameNotResolved.Tip1">Überprüfen Sie die Schreibweise der Adresse</x:String>
+  <x:String x:Key="BrowserError.NameNotResolved.Tip2">Stellen Sie sicher, dass Sie mit dem Internet verbunden sind</x:String>
+  <x:String x:Key="BrowserError.NameNotResolved.Tip3">Versuchen Sie, den DNS-Cache zu leeren: ipconfig /flushdns</x:String>
+
+  <x:String x:Key="BrowserError.InternetDisconnected.Title">Keine Internetverbindung</x:String>
+  <x:String x:Key="BrowserError.InternetDisconnected.Description">Ihr Gerät ist nicht mit dem Internet verbunden. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.</x:String>
+  <x:String x:Key="BrowserError.InternetDisconnected.Tip1">Überprüfen Sie, ob WLAN aktiviert oder ein Kabel angeschlossen ist</x:String>
+  <x:String x:Key="BrowserError.InternetDisconnected.Tip2">Starten Sie Ihren Router oder Modem neu</x:String>
+  <x:String x:Key="BrowserError.InternetDisconnected.Tip3">Kontaktieren Sie Ihren Internetanbieter</x:String>
+
+  <x:String x:Key="BrowserError.ConnectionRefused.Title">Verbindung abgelehnt</x:String>
+  <x:String x:Key="BrowserError.ConnectionRefused.Description">Der Server hat den Verbindungsversuch aktiv abgelehnt. Der Server läuft möglicherweise nicht oder der Port ist geschlossen.</x:String>
+  <x:String x:Key="BrowserError.ConnectionRefused.Tip1">Stellen Sie sicher, dass der Server läuft</x:String>
+  <x:String x:Key="BrowserError.ConnectionRefused.Tip2">Überprüfen Sie die Firewall-Einstellungen</x:String>
+  <x:String x:Key="BrowserError.ConnectionRefused.Tip3">Versuchen Sie es später erneut</x:String>
+
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Title">Verbindungszeitüberschreitung</x:String>
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Description">Der Server hat zu lange gebraucht, um zu antworten. Dies könnte an einer langsamen Verbindung oder Serverüberlastung liegen.</x:String>
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Tip1">Überprüfen Sie Ihre Internetgeschwindigkeit</x:String>
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Tip2">Versuchen Sie, die Seite zu aktualisieren</x:String>
+  <x:String x:Key="BrowserError.ConnectionTimedOut.Tip3">Versuchen Sie es später erneut, wenn der Server weniger ausgelastet ist</x:String>
+
+  <x:String x:Key="BrowserError.ConnectionReset.Title">Verbindung zurückgesetzt</x:String>
+  <x:String x:Key="BrowserError.ConnectionReset.Description">Die Verbindung zum Server wurde unerwartet unterbrochen. Dies kann ein vorübergehendes Problem sein.</x:String>
+  <x:String x:Key="BrowserError.ConnectionReset.Tip1">Aktualisieren Sie die Seite</x:String>
+  <x:String x:Key="BrowserError.ConnectionReset.Tip2">Überprüfen Sie Ihre Internetverbindung</x:String>
+  <x:String x:Key="BrowserError.ConnectionReset.Tip3">Deaktivieren Sie VPN oder Proxy, falls verwendet</x:String>
+
+  <!-- Security Errors -->
+  <x:String x:Key="BrowserError.SSLError.Title">Unsichere Verbindung</x:String>
+  <x:String x:Key="BrowserError.SSLError.Description">Das Sicherheitszertifikat dieser Webseite ist ungültig oder abgelaufen. Ihre Daten könnten gefährdet sein.</x:String>
+  <x:String x:Key="BrowserError.SSLError.Tip1">Geben Sie keine persönlichen Daten auf dieser Seite ein</x:String>
+  <x:String x:Key="BrowserError.SSLError.Tip2">Überprüfen Sie Datum und Uhrzeit auf Ihrem Gerät</x:String>
+  <x:String x:Key="BrowserError.SSLError.Tip3">Kontaktieren Sie den Webseiten-Administrator</x:String>
+
+  <!-- Server Errors -->
+  <x:String x:Key="BrowserError.EmptyResponse.Title">Leere Antwort</x:String>
+  <x:String x:Key="BrowserError.EmptyResponse.Description">Der Server hat keine Daten gesendet. Der Server ist möglicherweise überlastet oder defekt.</x:String>
+  <x:String x:Key="BrowserError.EmptyResponse.Tip1">Versuchen Sie, die Seite zu aktualisieren</x:String>
+  <x:String x:Key="BrowserError.EmptyResponse.Tip2">Versuchen Sie es später erneut</x:String>
+  <x:String x:Key="BrowserError.EmptyResponse.Tip3">Überprüfen Sie den Serverstatus</x:String>
+
+  <x:String x:Key="BrowserError.TooManyRedirects.Title">Zu viele Weiterleitungen</x:String>
+  <x:String x:Key="BrowserError.TooManyRedirects.Description">Die Seite hat eine Weiterleitungsschleife erstellt. Der Server ist falsch konfiguriert.</x:String>
+  <x:String x:Key="BrowserError.TooManyRedirects.Tip1">Löschen Sie die Cookies für diese Seite</x:String>
+  <x:String x:Key="BrowserError.TooManyRedirects.Tip2">Versuchen Sie einen anderen Browser</x:String>
+  <x:String x:Key="BrowserError.TooManyRedirects.Tip3">Kontaktieren Sie den Support der Seite</x:String>
+
+  <!-- General Errors -->
+  <x:String x:Key="BrowserError.BlockedByClient.Title">Blockiert</x:String>
+  <x:String x:Key="BrowserError.BlockedByClient.Description">Das Laden dieser Ressource wurde vom Browser oder einer Erweiterung blockiert.</x:String>
+  <x:String x:Key="BrowserError.BlockedByClient.Tip1">Überprüfen Sie die Werbeblocker-Einstellungen</x:String>
+  <x:String x:Key="BrowserError.BlockedByClient.Tip2">Deaktivieren Sie Sicherheitserweiterungen vorübergehend</x:String>
+  <x:String x:Key="BrowserError.BlockedByClient.Tip3">Fügen Sie die Seite zur Ausnahmeliste hinzu</x:String>
+
+  <x:String x:Key="BrowserError.InvalidUrl.Title">Ungültige Adresse</x:String>
+  <x:String x:Key="BrowserError.InvalidUrl.Description">Die eingegebene Adresse hat ein falsches Format und kann nicht verarbeitet werden.</x:String>
+  <x:String x:Key="BrowserError.InvalidUrl.Tip1">Überprüfen Sie die URL-Schreibweise</x:String>
+  <x:String x:Key="BrowserError.InvalidUrl.Tip2">Stellen Sie sicher, dass die URL mit http:// oder https:// beginnt</x:String>
+  <x:String x:Key="BrowserError.InvalidUrl.Tip3">Versuchen Sie, die Seite über die Suche zu finden</x:String>
+
+  <x:String x:Key="BrowserError.FileNotFound.Title">Datei nicht gefunden</x:String>
+  <x:String x:Key="BrowserError.FileNotFound.Description">Die angeforderte Datei existiert nicht an der angegebenen Adresse.</x:String>
+  <x:String x:Key="BrowserError.FileNotFound.Tip1">Überprüfen Sie den Dateipfad</x:String>
+  <x:String x:Key="BrowserError.FileNotFound.Tip2">Stellen Sie sicher, dass die Datei existiert</x:String>
+  <x:String x:Key="BrowserError.FileNotFound.Tip3">Versuchen Sie, zur Startseite der Webseite zu navigieren</x:String>
+
+  <x:String x:Key="BrowserError.AccessDenied.Title">Zugriff verweigert</x:String>
+  <x:String x:Key="BrowserError.AccessDenied.Description">Sie haben keine Berechtigung, diese Ressource anzuzeigen.</x:String>
+  <x:String x:Key="BrowserError.AccessDenied.Tip1">Melden Sie sich bei Ihrem Konto an</x:String>
+  <x:String x:Key="BrowserError.AccessDenied.Tip2">Kontaktieren Sie den Administrator für Zugriff</x:String>
+  <x:String x:Key="BrowserError.AccessDenied.Tip3">Überprüfen Sie die Berechtigungseinstellungen</x:String>
+
+  <x:String x:Key="BrowserError.Unknown.Title">Ladefehler</x:String>
+  <x:String x:Key="BrowserError.Unknown.Description">Die Seite konnte nicht geladen werden.</x:String>
+  <x:String x:Key="BrowserError.Unknown.Tip1">Versuchen Sie, die Seite zu aktualisieren</x:String>
+  <x:String x:Key="BrowserError.Unknown.Tip2">Überprüfen Sie Ihre Internetverbindung</x:String>
+  <x:String x:Key="BrowserError.Unknown.Tip3">Versuchen Sie es später erneut</x:String>
+
+  <!-- HTTP Error Pages -->
+  <x:String x:Key="BrowserError.Http400.Title">Fehlerhafte Anfrage</x:String>
+  <x:String x:Key="BrowserError.Http400.Description">Der Server kann Ihre Anfrage wegen eines Syntaxfehlers nicht verarbeiten.</x:String>
+
+  <x:String x:Key="BrowserError.Http401.Title">Autorisierung erforderlich</x:String>
+  <x:String x:Key="BrowserError.Http401.Description">Sie müssen sich anmelden, um auf diese Seite zuzugreifen.</x:String>
+
+  <x:String x:Key="BrowserError.Http403.Title">Zugriff verboten</x:String>
+  <x:String x:Key="BrowserError.Http403.Description">Sie haben keine Berechtigung, diese Seite anzuzeigen.</x:String>
+
+  <x:String x:Key="BrowserError.Http404.Title">Seite nicht gefunden</x:String>
+  <x:String x:Key="BrowserError.Http404.Description">Die angeforderte Seite existiert auf diesem Server nicht. Sie wurde möglicherweise entfernt oder verschoben.</x:String>
+
+  <x:String x:Key="BrowserError.Http408.Title">Anfrage-Zeitüberschreitung</x:String>
+  <x:String x:Key="BrowserError.Http408.Description">Der Server hat die Verbindung wegen zu langem Warten geschlossen.</x:String>
+
+  <x:String x:Key="BrowserError.Http429.Title">Zu viele Anfragen</x:String>
+  <x:String x:Key="BrowserError.Http429.Description">Sie haben zu viele Anfragen gesendet. Warten Sie und versuchen Sie es erneut.</x:String>
+
+  <x:String x:Key="BrowserError.Http500.Title">Interner Serverfehler</x:String>
+  <x:String x:Key="BrowserError.Http500.Description">Auf dem Server ist ein unerwarteter Fehler aufgetreten. Dies ist ein Problem der Webseite, nicht Ihrer Verbindung.</x:String>
+
+  <x:String x:Key="BrowserError.Http502.Title">Fehlerhaftes Gateway</x:String>
+  <x:String x:Key="BrowserError.Http502.Description">Der Proxy-Server hat eine ungültige Antwort von einem anderen Server erhalten.</x:String>
+
+  <x:String x:Key="BrowserError.Http503.Title">Dienst nicht verfügbar</x:String>
+  <x:String x:Key="BrowserError.Http503.Description">Der Server ist wegen Wartung oder Überlastung vorübergehend nicht verfügbar.</x:String>
+
+  <x:String x:Key="BrowserError.Http504.Title">Gateway-Zeitüberschreitung</x:String>
+  <x:String x:Key="BrowserError.Http504.Description">Der Proxy-Server hat nicht rechtzeitig eine Antwort von einem anderen Server erhalten.</x:String>
+
+  <x:String x:Key="BrowserError.HttpUnknown.Title">Serverfehler</x:String>
+  <x:String x:Key="BrowserError.HttpUnknown.Description">Der Server hat einen Fehler zurückgegeben.</x:String>
+
+  <!-- Error Page UI Elements -->
+  <x:String x:Key="BrowserError.Retry">Erneut versuchen</x:String>
+  <x:String x:Key="BrowserError.GoBack">Zurück</x:String>
+  <x:String x:Key="BrowserError.GoHome">Startseite</x:String>
+  <x:String x:Key="BrowserError.Search">Suchen</x:String>
+  <x:String x:Key="BrowserError.SearchPlaceholder">Suchanfrage eingeben...</x:String>
+  <x:String x:Key="BrowserError.Tips">Was Sie versuchen können:</x:String>
+  <x:String x:Key="BrowserError.Category.Network">Netzwerkproblem</x:String>
+  <x:String x:Key="BrowserError.Category.Server">Serverproblem</x:String>
+  <x:String x:Key="BrowserError.Category.Security">Sicherheitsproblem</x:String>
+  <x:String x:Key="BrowserError.Category.General">Allgemeiner Fehler</x:String>
+
+  <!-- Error Page Modern UI (ErrorPage.*) -->
+  <x:String x:Key="ErrorPage.TipsHeader">💡 Was Sie versuchen können</x:String>
+  <x:String x:Key="ErrorPage.SearchHeader">🔍 Im Internet suchen</x:String>
+  <x:String x:Key="ErrorPage.SearchWatermark">Suchanfrage eingeben...</x:String>
+  <x:String x:Key="ErrorPage.Search">Suchen</x:String>
+  <x:String x:Key="ErrorPage.Retry">Erneut versuchen</x:String>
+  <x:String x:Key="ErrorPage.GoBack">Zurück</x:String>
+  <x:String x:Key="ErrorPage.Time">Zeit</x:String>
+  <x:String x:Key="ErrorPage.Category.Network">🌐 Netzwerkproblem</x:String>
+  <x:String x:Key="ErrorPage.Category.Server">🖥️ Serverproblem</x:String>
+  <x:String x:Key="ErrorPage.Category.Security">🔒 Sicherheitsproblem</x:String>
+  <x:String x:Key="ErrorPage.Category.General">⚠️ Allgemeiner Fehler</x:String>
+  <x:String x:Key="ErrorPage.Category.Error">Fehler</x:String>
+
+  <!-- Security Status -->
+  <x:String x:Key="Security.Safe.Tooltip">✓ Sichere Webseite</x:String>
+  <x:String x:Key="Security.Safe.Text">Geprüft: sicher</x:String>
+  <x:String x:Key="Security.Dangerous.Tooltip">⚠️ GEFÄHRLICHE WEBSEITE (Phishing)!</x:String>
+  <x:String x:Key="Security.Dangerous.Text">GEFÄHRLICH!</x:String>
+  <x:String x:Key="Security.Checking.Tooltip">⏳ Sicherheit wird geprüft...</x:String>
+  <x:String x:Key="Security.Checking.Text">Wird geprüft…</x:String>
+  <x:String x:Key="Security.Error.Tooltip">⚠ Prüfung fehlgeschlagen</x:String>
+  <x:String x:Key="Security.Error.Text">Prüfung fehlgeschlagen</x:String>
+  <x:String x:Key="Security.Unknown.Tooltip">? Status unbekannt</x:String>
+  <x:String x:Key="Security.Unknown.Text">Status unbekannt</x:String>
 </ResourceDictionary>

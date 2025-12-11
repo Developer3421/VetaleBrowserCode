@@ -310,4 +310,30 @@
   <x:String x:Key="BrowserError.Category.Server">Проблема сервера</x:String>
   <x:String x:Key="BrowserError.Category.Security">Проблема безопасности</x:String>
   <x:String x:Key="BrowserError.Category.General">Общая ошибка</x:String>
+
+  <!-- Error Page Modern UI (ErrorPage.*) -->
+  <x:String x:Key="ErrorPage.TipsHeader">💡 Что можно попробовать</x:String>
+  <x:String x:Key="ErrorPage.SearchHeader">🔍 Поиск в интернете</x:String>
+  <x:String x:Key="ErrorPage.SearchWatermark">Введите поисковый запрос...</x:String>
+  <x:String x:Key="ErrorPage.Search">Искать</x:String>
+  <x:String x:Key="ErrorPage.Retry">Попробовать снова</x:String>
+  <x:String x:Key="ErrorPage.GoBack">Назад</x:String>
+  <x:String x:Key="ErrorPage.Time">Время</x:String>
+  <x:String x:Key="ErrorPage.Category.Network">🌐 Сетевая проблема</x:String>
+  <x:String x:Key="ErrorPage.Category.Server">🖥️ Проблема сервера</x:String>
+  <x:String x:Key="ErrorPage.Category.Security">🔒 Проблема безопасности</x:String>
+  <x:String x:Key="ErrorPage.Category.General">⚠️ Общая ошибка</x:String>
+  <x:String x:Key="ErrorPage.Category.Error">Ошибка</x:String>
+
+  <!-- Security Status -->
+  <x:String x:Key="Security.Safe.Tooltip">✓ Безопасный сайт</x:String>
+  <x:String x:Key="Security.Safe.Text">Проверено: безопасно</x:String>
+  <x:String x:Key="Security.Dangerous.Tooltip">⚠️ ОПАСНЫЙ САЙТ (фишинг)!</x:String>
+  <x:String x:Key="Security.Dangerous.Text">ОПАСНО!</x:String>
+  <x:String x:Key="Security.Checking.Tooltip">⏳ Проверка безопасности...</x:String>
+  <x:String x:Key="Security.Checking.Text">Проверка…</x:String>
+  <x:String x:Key="Security.Error.Tooltip">⚠ Ошибка проверки</x:String>
+  <x:String x:Key="Security.Error.Text">Ошибка проверки</x:String>
+  <x:String x:Key="Security.Unknown.Tooltip">? Статус неизвестен</x:String>
+  <x:String x:Key="Security.Unknown.Text">Статус неизвестен</x:String>
 </ResourceDictionary>
