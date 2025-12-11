@@ -136,8 +136,6 @@ class Program
                 
                 // === PERFORMANCE ===
                 ("enable-features", "BackForwardCache,LazyFrameLoading,LazyImageLoading"),
-                // Вимкнено GpuMemoryBuffer* для запобігання витоків пам'яті на AMD
-                ("disable-features", "CalculateNativeWinOcclusion,IsolateOrigins,SitePerProcess,AutofillServerCommunication,MediaRouter,Translate,OptimizationHints,GpuMemoryBufferVideoFrames,GpuMemoryBufferCompositorResources,RawDraw,CanvasOopRasterization"),
                 
                 // === PROCESS MODEL (Економія RAM) ===
                 ("process-per-site", null),
@@ -147,9 +145,27 @@ class Program
                 
                 // === USER AGENT ===
                 ("user-agent", userAgent),
-                ("disable-external-protocol-handler", null),
-                ("disable-default-apps", null),
-                ("disable-pdf-extension", null),
+                
+                // === ПОВНА ЗАБОРОНА ПЕРЕНАПРАВЛЕННЯ НА ЗОВНІШНІ БРАУЗЕРИ ===
+                // Значення "1" = увімкнено заборону, null/empty = функція активна
+                ("disable-external-protocol-handler", "1"), // КРИТИЧНО: Вимкнути ВСІ зовнішні протоколи
+                ("disable-prompt-on-repost", "1"),
+                ("disable-hang-monitor", "1"),
+                ("no-first-run", "1"),
+                ("no-default-browser-check", "1"),
+                ("disable-default-apps", "1"),
+                ("disable-popup-blocking", "1"), // Popup всередині браузера
+                ("disable-external-intent-requests", "1"), // Заборона зовнішніх intent
+                ("disable-protocol-handler-check", "1"),
+                ("disable-pdf-extension", "1"),
+                
+                // КРИТИЧНО: Заборона відкриття зовнішніх URL через систему
+                ("disable-features", "CalculateNativeWinOcclusion,IsolateOrigins,SitePerProcess,AutofillServerCommunication,MediaRouter,Translate,OptimizationHints,GpuMemoryBufferVideoFrames,GpuMemoryBufferCompositorResources,RawDraw,CanvasOopRasterization,ExternalProtocolDialog,IntentPicker,NativeNotifications,OpenLinkInExternalApp,NavigateEventHandling,ExternalBrowserIntegration"),
+                
+                // Заборона будь-яких зовнішніх обробників URL
+                ("autoplay-policy", "no-user-gesture-required"),
+                ("disable-hang-monitor", "1"),
+                ("disable-ipc-flooding-protection", "1"),
                 
                 // === V8 ===
                 ("enable-v8-idle-tasks", null),

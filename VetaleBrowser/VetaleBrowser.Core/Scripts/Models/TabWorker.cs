@@ -310,9 +310,21 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 var newAddr = WebView.Address;
                 var prev = _prevAddress;
                 _prevAddress = newAddr;
-                // Перехват https-загрузок отключен: CefGlue открывает системный диалог сохранения, который не идет через HTTP-скачивания
-                // и отслеживается через системный монитор папки Загрузки (DownloadFolderWatcherService)
-                // _ = TryInterceptDownloadAsync(newAddr, prev);
+                
+                // Перевіряємо чи це зовнішній протокол і блокуємо
+                if (!string.IsNullOrEmpty(newAddr) && IsExternalProtocol(newAddr))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[TabWorker] BLOCKED external protocol: {newAddr}");
+                    // Повертаємось на попередню сторінку
+                    if (!string.IsNullOrEmpty(prev))
+                    {
+                        try { WebView.Address = prev; } catch { }
+                    }
+                    return;
+                }
+                
+                // Ре-ін'єктуємо JavaScript guards після кожної навігації
+                InjectNavigationGuards();
             }
             else if (e.Property.Name == "Title")
             {
@@ -327,6 +339,53 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             {
                 // no-op
             }
+        }
+        
+        /// <summary>
+        /// Перевіряє чи URL є зовнішнім протоколом (intent://, tel://, mailto://, etc.)
+        /// </summary>
+        private static bool IsExternalProtocol(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url)) return false;
+            
+            var u = url.Trim().ToLowerInvariant();
+            
+            // Дозволені протоколи - все всередині браузера
+            if (u.StartsWith("http://") || u.StartsWith("https://") || 
+                u.StartsWith("file://") || u.StartsWith("data:") || 
+                u.StartsWith("javascript:") || u.StartsWith("blob:") ||
+                u.StartsWith("about:") || u.StartsWith("vetale:"))
+            {
+                return false;
+            }
+            
+            // Заблоковані протоколи
+            string[] blockedProtocols = {
+                "intent:", "android-app:", "market:", "tel:", "mailto:", 
+                "sms:", "whatsapp:", "tg:", "viber:", "skype:", "zoom:",
+                "ms-", "vnd.", "app:", "custom:", "myapp:"
+            };
+            
+            foreach (var p in blockedProtocols)
+            {
+                if (u.StartsWith(p) || u.Contains("://" + p)) return true;
+            }
+            
+            // Якщо є ":" в перших 20 символах і це не http/https - заблокувати
+            var colonIndex = u.IndexOf(':');
+            if (colonIndex > 0 && colonIndex < 20)
+            {
+                var protocol = u.Substring(0, colonIndex);
+                // Перевіряємо чи це не звичайний URL
+                if (protocol != "http" && protocol != "https" && protocol != "file" && 
+                    protocol != "data" && protocol != "javascript" && protocol != "blob" &&
+                    protocol != "about" && protocol != "vetale")
+                {
+                    return true;
+                }
+            }
+            
+            return false;
         }
 
         private void SchedulePidRefreshBurst()
@@ -515,6 +574,13 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         {
             try
             {
+                // КРИТИЧНО: Блокуємо зовнішні протоколи ДО будь-якої навігації
+                if (IsExternalProtocol(url))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] BLOCKED external protocol in PreCheck: {url}");
+                    return; // Нічого не робимо - просто блокуємо
+                }
+                
                 // Перевіряємо доступність URL через HTTP HEAD request
                 if (ErrorHandler != null)
                 {
@@ -544,8 +610,11 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] PreCheckAndNavigateAsync error: {ex.Message}");
-                // Fallback - навігуємо в WebView напряму
-                await Manager.NavigateAsync(url);
+                // Fallback - навігуємо в WebView напряму (тільки якщо не зовнішній протокол)
+                if (!IsExternalProtocol(url))
+                {
+                    await Manager.NavigateAsync(url);
+                }
             }
         }
         
@@ -779,12 +848,84 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             {
                 var js = @"
                     (function(){
-                        if(window.__vetale_no_external__) return; 
-                        window.__vetale_no_external__ = true;
-                        // Override window.open to open in the same tab
+                        if(window.__vetale_no_external_v2__) return; 
+                        window.__vetale_no_external_v2__ = true;
+                        
+                        // Список заблокованих протоколів
+                        var blockedProtocols = ['intent:', 'android-app:', 'market:', 'tel:', 'mailto:', 'sms:', 'whatsapp:', 'tg:', 'viber:', 'skype:', 'zoom:', 'ms-', 'vnd.'];
+                        
+                        function isBlockedUrl(url){
+                            if(!url) return false;
+                            var u = url.toString().toLowerCase().trim();
+                            // Блокуємо всі non-http/https протоколи крім file, javascript, data, blob
+                            if(u.startsWith('http:') || u.startsWith('https:') || u.startsWith('file:') || 
+                               u.startsWith('javascript:') || u.startsWith('data:') || u.startsWith('blob:') ||
+                               u.startsWith('about:') || u.startsWith('vetale:')) {
+                                return false;
+                            }
+                            // Блокуємо все інше
+                            for(var i=0; i<blockedProtocols.length; i++){
+                                if(u.indexOf(blockedProtocols[i]) !== -1) return true;
+                            }
+                            // Якщо є ':' і це не http/https - блокуємо
+                            var colonIdx = u.indexOf(':');
+                            if(colonIdx > 0 && colonIdx < 20) return true;
+                            return false;
+                        }
+                        
+                        // КРИТИЧНО: Перехоплюємо location.href та location.assign
+                        try {
+                            var origLocationDescriptor = Object.getOwnPropertyDescriptor(window, 'location');
+                            var origLocation = window.location;
+                            
+                            // Перехоплюємо window.location.href = ...
+                            if(origLocation && origLocation.href !== undefined) {
+                                var origHrefSetter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(origLocation), 'href');
+                                if(origHrefSetter && origHrefSetter.set) {
+                                    Object.defineProperty(origLocation, 'href', {
+                                        get: function(){ return origHrefSetter.get.call(this); },
+                                        set: function(v){
+                                            if(isBlockedUrl(v)){
+                                                console.log('[VetaleBrowser] Blocked external redirect:', v);
+                                                return;
+                                            }
+                                            origHrefSetter.set.call(this, v);
+                                        },
+                                        configurable: true
+                                    });
+                                }
+                            }
+                        } catch(e){ console.log('[VetaleBrowser] location override failed:', e); }
+                        
+                        // Перехоплюємо location.assign та location.replace
+                        try {
+                            var origAssign = location.assign;
+                            var origReplace = location.replace;
+                            location.assign = function(url){
+                                if(isBlockedUrl(url)){
+                                    console.log('[VetaleBrowser] Blocked location.assign:', url);
+                                    return;
+                                }
+                                return origAssign.call(location, url);
+                            };
+                            location.replace = function(url){
+                                if(isBlockedUrl(url)){
+                                    console.log('[VetaleBrowser] Blocked location.replace:', url);
+                                    return;
+                                }
+                                return origReplace.call(location, url);
+                            };
+                        } catch(e){ console.log('[VetaleBrowser] location methods override failed:', e); }
+                        
+                        // Перехоплюємо window.open
                         try {
                             var originalOpen = window.open;
                             window.open = function(url, name, specs){
+                                if(isBlockedUrl(url)){
+                                    console.log('[VetaleBrowser] Blocked window.open:', url);
+                                    return null;
+                                }
+                                // Відкриваємо в тій самій вкладці замість нового вікна
                                 try{
                                     if(url){ location.href = url; }
                                 }catch(e){}
@@ -792,39 +933,44 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                             };
                         } catch(e) {}
                         
-                        function isExternalScheme(u){
-                            try{
-                                var a = document.createElement('a');
-                                a.href = u;
-                                var p = a.protocol ? a.protocol.toLowerCase() : '';
-                                if(!p) return false;
-                                if(p === 'http:' || p === 'https:') return false;
-                                return true; // everything else is treated as external
-                            }catch(e){ return false; }
-                        }
-                        
-                        // Intercept anchor clicks with target=_blank or external schemes
+                        // Перехоплюємо всі кліки на посилання
                         document.addEventListener('click', function(e){
                             try{
                                 var el = e.target;
                                 while(el && el.tagName !== 'A'){ el = el.parentElement; }
                                 if(!el) return;
-                                var href = el.getAttribute('href');
+                                var href = el.getAttribute('href') || el.href;
                                 if(!href) return;
+                                
+                                // Блокуємо зовнішні протоколи
+                                if(isBlockedUrl(href)){
+                                    e.preventDefault(); 
+                                    e.stopPropagation();
+                                    e.stopImmediatePropagation();
+                                    console.log('[VetaleBrowser] Blocked link click:', href);
+                                    return false;
+                                }
+                                
+                                // _blank відкриваємо в тій самій вкладці
                                 var target = el.getAttribute('target');
-                                if((target && target.toLowerCase() === '_blank') || isExternalScheme(href)){
-                                    e.preventDefault(); e.stopPropagation();
-                                    if(!isExternalScheme(href)){
-                                        try{ location.href = href; }catch(_){ }
-                                    } // else: block external app invocation silently
+                                if(target && target.toLowerCase() === '_blank'){
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    try{ location.href = href; }catch(_){ }
                                 }
                             }catch(_){ }
                         }, true);
                         
-                        // Prevent form target=_blank popups
+                        // Перехоплюємо форми
                         document.addEventListener('submit', function(e){
                             try{
                                 var f = e.target; if(!f) return;
+                                var action = f.getAttribute('action') || '';
+                                if(isBlockedUrl(action)){
+                                    e.preventDefault();
+                                    console.log('[VetaleBrowser] Blocked form submit:', action);
+                                    return;
+                                }
                                 var t = f.getAttribute('target');
                                 if(t && t.toLowerCase() === '_blank'){
                                     e.preventDefault();
@@ -832,11 +978,23 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                                 }
                             }catch(_){ }
                         }, true);
+                        
+                        // Блокуємо navigator.registerProtocolHandler
+                        try {
+                            if(navigator.registerProtocolHandler){
+                                navigator.registerProtocolHandler = function(){ 
+                                    console.log('[VetaleBrowser] Blocked registerProtocolHandler');
+                                    return; 
+                                };
+                            }
+                        } catch(e){}
+                        
+                        console.log('[VetaleBrowser] Navigation guards v2 active');
                     })();
                 ";
 
                 await WebView.EvaluateScript<object>(js);
-                Debug.WriteLine("[TabWorker] Navigation guards injected");
+                Debug.WriteLine("[TabWorker] Navigation guards v2 injected");
             }
             catch (Exception ex)
             {
