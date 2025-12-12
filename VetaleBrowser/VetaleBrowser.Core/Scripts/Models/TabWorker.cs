@@ -151,6 +151,10 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         // Track OS process IDs associated with this tab's rendering/audible activity (best-effort, OS-level, non-CEF-specific)
         private readonly HashSet<int> _relatedPids = new();
         private readonly DispatcherTimer _pidRefreshTimer = new() { Interval = TimeSpan.FromSeconds(2) };
+        
+        // Timer for delayed mute reapplication after navigation
+        private readonly DispatcherTimer _muteReapplyTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
+        private int _muteReapplyCount;
 
         // Fullscreen poller to catch content-initiated fullscreen when events aren't exposed
         private readonly DispatcherTimer _fullscreenPollTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
@@ -194,6 +198,12 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     _isMuted = value; 
                     OnPropertyChanged(); 
                     ApplyMuteState();
+                    
+                    // Якщо вмикається mute, ін'єктуємо interceptor для перехоплення нових AudioContext
+                    if (_isMuted)
+                    {
+                        _ = InjectAudioInterceptorAsync();
+                    }
                 } 
             }
         }
@@ -325,8 +335,16 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 
                 // Ре-ін'єктуємо JavaScript guards після кожної навігації
                 InjectNavigationGuards();
+                
+                // Повторно застосовуємо стан mute після кожної навігації
+                // Це гарантує що mute працює для нового контенту (ігри, WebGL, нові вкладки)
+                if (_isMuted)
+                {
+                    // Даємо час на ініціалізацію нового контенту
+                    ScheduleMuteReapply();
+                }
             }
-            else if (e.Property.Name == "Title")
+            else if (e.Property?.Name == "Title")
             {
                 var t = WebView.Title;
                 if (!string.IsNullOrWhiteSpace(t))
@@ -335,7 +353,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     TryUpdateSubprocessTitle();
                 }
             }
-            else if (e.Property.Name == "CanGoBack" || e.Property.Name == "CanGoForward")
+            else if (e.Property?.Name == "CanGoBack" || e.Property?.Name == "CanGoForward")
             {
                 // no-op
             }
@@ -995,6 +1013,12 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
                 await WebView.EvaluateScript<object>(js);
                 Debug.WriteLine("[TabWorker] Navigation guards v2 injected");
+                
+                // Якщо вкладка замутована, ін'єктуємо audio interceptor для перехоплення нових AudioContext
+                if (_isMuted)
+                {
+                    await InjectAudioInterceptorAsync();
+                }
             }
             catch (Exception ex)
             {
@@ -1002,82 +1026,86 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             }
         }
 
-
-        private async void ApplyMuteState()
+        /// <summary>
+        /// Ін'єктує JavaScript код, який перехоплює AudioContext до його створення.
+        /// Це гарантує що ігри типу HexGL будуть замутовані з самого початку.
+        /// </summary>
+        private async Task InjectAudioInterceptorAsync()
         {
             try
             {
-                bool appliedAtCefLevel = false;
-
-                // Try to use CEFGlue native API first (best method - affects all audio from this browser instance)
-                try
-                {
-                    var cefBrowserHost = TryGetCefBrowserHost();
-                    if (cefBrowserHost != null)
-                    {
-                        // Use reflection to call SetAudioMuted on CefBrowserHost
-                        var setAudioMutedMethod = cefBrowserHost.GetType().GetMethod("SetAudioMuted", 
-                            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                        
-                        if (setAudioMutedMethod != null)
-                        {
-                            setAudioMutedMethod.Invoke(cefBrowserHost, new object[] { _isMuted });
-                            appliedAtCefLevel = true;
-                            Debug.WriteLine($"[TabWorker] Audio {(_isMuted ? "muted" : "unmuted")} via CEF native API");
-                        }
-                    }
-                }
-                catch (Exception cefEx)
-                {
-                    Debug.WriteLine($"[TabWorker] CEF native mute failed: {cefEx.Message}");
-                }
-
-                if (appliedAtCefLevel)
-                {
-                    return; // CEF API worked, we're done
-                }
-
-                // Fallback 1: Try to mute per related OS process using Windows audio sessions (system level)
-                bool appliedAtSystemLevel = false;
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && _relatedPids.Count > 0)
-                {
-                    foreach (var pid in _relatedPids)
-                    {
-                        try
-                        {
-                            if (WindowsAudioSessionService.TrySetProcessMute(pid, _isMuted))
-                            {
-                                appliedAtSystemLevel = true;
-                            }
-                        }
-                        catch { }
-                    }
-                }
-
-                if (appliedAtSystemLevel)
-                {
-                    Debug.WriteLine($"[TabWorker] Audio {(_isMuted ? "muted" : "unmuted")} at system level for PIDs: {string.Join(",", _relatedPids)}");
-                    return;
-                }
-
-                // Fallback 2: JavaScript to control media elements
-                try
-                {
-                    var js = _isMuted
-                        ? "(function(){try{document.querySelectorAll('video,audio').forEach(m=>{m.muted=true; m.volume=0;});}catch(e){}})();"
-                        : "(function(){try{document.querySelectorAll('video,audio').forEach(m=>{m.muted=false; if(m.volume===0) m.volume=1.0;});}catch(e){}})();";
+                var js = @"(function(){
+                    if (window._vetaleAudioInterceptorInjected) return;
+                    window._vetaleAudioInterceptorInjected = true;
                     
-                    await WebView.EvaluateScript<object>(js);
-                    System.Diagnostics.Debug.WriteLine($"[TabWorker] Audio state applied via JavaScript fallback: {_isMuted}");
-                }
-                catch (Exception jsEx)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[TabWorker] JS mute fallback failed: {jsEx.Message}");
-                }
+                    // Initialize tracking arrays
+                    window._vetaleAudioContexts = window._vetaleAudioContexts || [];
+                    window._vetaleGainNodes = window._vetaleGainNodes || [];
+                    window._vetaleAudioMuted = true;
+                    
+                    // Hook AudioContext
+                    if (window.AudioContext && !window._vetaleOrigAudioContext) {
+                        window._vetaleOrigAudioContext = window.AudioContext;
+                        window.AudioContext = function() {
+                            var ctx = new window._vetaleOrigAudioContext();
+                            window._vetaleAudioContexts.push(ctx);
+                            
+                            // Auto-suspend if muted
+                            if (window._vetaleAudioMuted) {
+                                try { ctx.suspend(); } catch(e){}
+                            }
+                            
+                            // Hook createGain to track gain nodes
+                            var origCreateGain = ctx.createGain.bind(ctx);
+                            ctx.createGain = function() {
+                                var gain = origCreateGain();
+                                window._vetaleGainNodes.push(gain);
+                                if (window._vetaleAudioMuted) {
+                                    try { gain.gain.value = 0; } catch(e){}
+                                }
+                                return gain;
+                            };
+                            
+                            return ctx;
+                        };
+                        window.AudioContext.prototype = window._vetaleOrigAudioContext.prototype;
+                    }
+                    
+                    // Hook webkitAudioContext
+                    if (window.webkitAudioContext && !window._vetaleOrigWebkitAudioContext) {
+                        window._vetaleOrigWebkitAudioContext = window.webkitAudioContext;
+                        window.webkitAudioContext = function() {
+                            var ctx = new window._vetaleOrigWebkitAudioContext();
+                            window._vetaleAudioContexts.push(ctx);
+                            
+                            if (window._vetaleAudioMuted) {
+                                try { ctx.suspend(); } catch(e){}
+                            }
+                            
+                            var origCreateGain = ctx.createGain.bind(ctx);
+                            ctx.createGain = function() {
+                                var gain = origCreateGain();
+                                window._vetaleGainNodes.push(gain);
+                                if (window._vetaleAudioMuted) {
+                                    try { gain.gain.value = 0; } catch(e){}
+                                }
+                                return gain;
+                            };
+                            
+                            return ctx;
+                        };
+                        window.webkitAudioContext.prototype = window._vetaleOrigWebkitAudioContext.prototype;
+                    }
+                    
+                    console.log('[VetaleBrowser] Audio interceptor injected (muted mode)');
+                })();";
+                
+                await WebView.EvaluateScript<object>(js);
+                Debug.WriteLine("[TabWorker] Audio interceptor injected");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[TabWorker] Failed to apply mute state: {ex.Message}");
+                Debug.WriteLine($"[TabWorker] Failed to inject audio interceptor: {ex.Message}");
             }
         }
 
@@ -1088,65 +1116,105 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         {
             try
             {
-                // WebView -> potentially has internal CefGlue browser
                 var webViewType = WebView.GetType();
-                
-                // Шукаємо поле/властивість Browser або BrowserHost
-                var browserProperty = webViewType.GetProperty("Browser", 
-                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                
-                if (browserProperty == null)
-                {
-                    browserProperty = webViewType.GetProperty("CefBrowser", 
-                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                }
-
-                var browserField = webViewType.GetField("_browser", 
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                
-                if (browserField == null)
-                {
-                    browserField = webViewType.GetField("browser", 
-                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                }
-
                 object? browser = null;
-                if (browserProperty != null)
+                
+                // Шукаємо browser через різні назви властивостей/полів
+                string[] browserNames = { "Browser", "_browser", "browser", "chromiumBrowser", "_chromiumBrowser", 
+                                          "InternalBrowser", "_internalBrowser", "CefBrowser", "_cefBrowser" };
+                
+                foreach (var name in browserNames)
                 {
-                    browser = browserProperty.GetValue(WebView);
+                    var browserProp = webViewType.GetProperty(name, 
+                        System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+                    if (browserProp != null)
+                    {
+                        browser = browserProp.GetValue(WebView);
+                        if (browser != null)
+                        {
+                            Debug.WriteLine($"[TabWorker] Found browser via property '{name}'");
+                            break;
+                        }
+                    }
+                    
+                    var browserField = webViewType.GetField(name, 
+                        System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+                    if (browserField != null)
+                    {
+                        browser = browserField.GetValue(WebView);
+                        if (browser != null)
+                        {
+                            Debug.WriteLine($"[TabWorker] Found browser via field '{name}'");
+                            break;
+                        }
+                    }
                 }
-                else if (browserField != null)
+                
+                // Якщо не знайшли за назвою, шукаємо за типом
+                if (browser == null)
                 {
-                    browser = browserField.GetValue(WebView);
+                    foreach (var field in webViewType.GetFields(System.Reflection.BindingFlags.Instance | 
+                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic))
+                    {
+                        try
+                        {
+                            var val = field.GetValue(WebView);
+                            if (val != null)
+                            {
+                                var typeName = val.GetType().FullName ?? "";
+                                if (typeName.Contains("CefBrowser") || typeName.Contains("Chromium") || typeName.Contains("Browser"))
+                                {
+                                    browser = val;
+                                    Debug.WriteLine($"[TabWorker] Found browser via field type pattern '{field.Name}', type: {typeName}");
+                                    break;
+                                }
+                            }
+                        }
+                        catch { }
+                    }
                 }
 
                 if (browser == null)
                 {
+                    Debug.WriteLine("[TabWorker] Browser object not found in WebView");
                     return null;
                 }
 
-                // Тепер отримуємо Host з browser
+                // Отримуємо Host з browser
                 var browserType = browser.GetType();
-                var hostProperty = browserType.GetProperty("Host", 
-                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                
-                if (hostProperty == null)
-                {
-                    hostProperty = browserType.GetProperty("BrowserHost", 
-                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                }
-
-                var hostMethod = browserType.GetMethod("GetHost", 
-                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-
                 object? host = null;
-                if (hostProperty != null)
+                
+                // Шукаємо Host через різні назви
+                string[] hostNames = { "Host", "BrowserHost", "_host", "_browserHost" };
+                
+                foreach (var name in hostNames)
                 {
-                    host = hostProperty.GetValue(browser);
+                    var hostProp = browserType.GetProperty(name, 
+                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (hostProp != null)
+                    {
+                        host = hostProp.GetValue(browser);
+                        if (host != null)
+                        {
+                            Debug.WriteLine($"[TabWorker] Found host via property '{name}'");
+                            break;
+                        }
+                    }
                 }
-                else if (hostMethod != null)
+                
+                // Спробуємо метод GetHost
+                if (host == null)
                 {
-                    host = hostMethod.Invoke(browser, null);
+                    var hostMethod = browserType.GetMethod("GetHost", 
+                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                    if (hostMethod != null)
+                    {
+                        host = hostMethod.Invoke(browser, null);
+                        if (host != null)
+                        {
+                            Debug.WriteLine("[TabWorker] Found host via GetHost() method");
+                        }
+                    }
                 }
 
                 return host;
@@ -1155,6 +1223,216 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             {
                 Debug.WriteLine($"[TabWorker] TryGetCefBrowserHost failed: {ex.Message}");
                 return null;
+            }
+        }
+
+
+        private async void ApplyMuteState()
+        {
+            try
+            {
+                Debug.WriteLine($"[TabWorker] ApplyMuteState called, _isMuted={_isMuted}, _relatedPids.Count={_relatedPids.Count}");
+                
+                bool applied = false;
+                
+                // Пріоритет 1: CEF native API через рефлексію (найнадійніший метод)
+                try
+                {
+                    var cefBrowserHost = TryGetCefBrowserHost();
+                    if (cefBrowserHost != null)
+                    {
+                        var setAudioMutedMethod = cefBrowserHost.GetType().GetMethod("SetAudioMuted", 
+                            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                        
+                        if (setAudioMutedMethod != null)
+                        {
+                            setAudioMutedMethod.Invoke(cefBrowserHost, new object[] { _isMuted });
+                            applied = true;
+                            Debug.WriteLine($"[TabWorker] Audio {(_isMuted ? "muted" : "unmuted")} via CEF native API");
+                        }
+                        else
+                        {
+                            Debug.WriteLine("[TabWorker] SetAudioMuted method not found on CefBrowserHost");
+                        }
+                    }
+                    else
+                    {
+                        Debug.WriteLine("[TabWorker] CefBrowserHost is null");
+                    }
+                }
+                catch (Exception cefEx)
+                {
+                    Debug.WriteLine($"[TabWorker] CEF native mute failed: {cefEx.Message}");
+                }
+
+                // Пріоритет 2: Windows Audio Session API
+                if (!applied && RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && _relatedPids.Count > 0)
+                {
+                    var pidsCopy = _relatedPids.ToList();
+                    foreach (var pid in pidsCopy)
+                    {
+                        try
+                        {
+                            if (WindowsAudioSessionService.TrySetProcessMute(pid, _isMuted))
+                            {
+                                applied = true;
+                            }
+                        }
+                        catch { }
+                    }
+                    
+                    if (applied)
+                    {
+                        Debug.WriteLine($"[TabWorker] Audio {(_isMuted ? "muted" : "unmuted")} at system level for PIDs: {string.Join(",", pidsCopy)}");
+                    }
+                }
+
+                // Пріоритет 3: JavaScript для control всіх media елементів + Web Audio API
+                // Завжди виконуємо JavaScript як додатковий захист
+                try
+                {
+                    var js = _isMuted
+                        ? @"(function(){
+                            try {
+                                // Mute all video and audio elements
+                                document.querySelectorAll('video,audio').forEach(function(m) {
+                                    m.muted = true;
+                                    m.volume = 0;
+                                });
+                                
+                                // Initialize tracking array if not exists
+                                if (!window._vetaleAudioContexts) {
+                                    window._vetaleAudioContexts = [];
+                                }
+                                
+                                // Suspend all tracked audio contexts
+                                window._vetaleAudioContexts.forEach(function(ctx) { 
+                                    try { 
+                                        if (ctx && ctx.state !== 'closed') {
+                                            ctx.suspend(); 
+                                        }
+                                    } catch(e){} 
+                                });
+                                
+                                // Hook AudioContext to track new instances and auto-suspend them
+                                if (window.AudioContext && !window._vetaleOrigAudioContext) {
+                                    window._vetaleOrigAudioContext = window.AudioContext;
+                                    window.AudioContext = function() {
+                                        var ctx = new window._vetaleOrigAudioContext();
+                                        window._vetaleAudioContexts.push(ctx);
+                                        if (window._vetaleAudioMuted) {
+                                            ctx.suspend();
+                                        }
+                                        return ctx;
+                                    };
+                                    window.AudioContext.prototype = window._vetaleOrigAudioContext.prototype;
+                                }
+                                if (window.webkitAudioContext && !window._vetaleOrigWebkitAudioContext) {
+                                    window._vetaleOrigWebkitAudioContext = window.webkitAudioContext;
+                                    window.webkitAudioContext = function() {
+                                        var ctx = new window._vetaleOrigWebkitAudioContext();
+                                        window._vetaleAudioContexts.push(ctx);
+                                        if (window._vetaleAudioMuted) {
+                                            ctx.suspend();
+                                        }
+                                        return ctx;
+                                    };
+                                    window.webkitAudioContext.prototype = window._vetaleOrigWebkitAudioContext.prototype;
+                                }
+                                
+                                // Set muted flag
+                                window._vetaleAudioMuted = true;
+                                
+                                // Also try to find and mute gain nodes (common pattern in games)
+                                if (window._vetaleGainNodes) {
+                                    window._vetaleGainNodes.forEach(function(g) { 
+                                        try { g.gain.value = 0; } catch(e){} 
+                                    });
+                                }
+                                
+                            } catch(e) { console.log('[VetaleBrowser] Mute error:', e); }
+                        })();"
+                        : @"(function(){
+                            try {
+                                // Unmute all video and audio elements
+                                document.querySelectorAll('video,audio').forEach(function(m) {
+                                    m.muted = false;
+                                    if (m.volume === 0) m.volume = 1.0;
+                                });
+                                
+                                // Resume all tracked audio contexts
+                                if (window._vetaleAudioContexts) {
+                                    window._vetaleAudioContexts.forEach(function(ctx) { 
+                                        try { 
+                                            if (ctx && ctx.state !== 'closed') {
+                                                ctx.resume(); 
+                                            }
+                                        } catch(e){} 
+                                    });
+                                }
+                                
+                                // Clear muted flag
+                                window._vetaleAudioMuted = false;
+                                
+                                // Restore gain nodes
+                                if (window._vetaleGainNodes) {
+                                    window._vetaleGainNodes.forEach(function(g) { 
+                                        try { g.gain.value = 1; } catch(e){} 
+                                    });
+                                }
+                                
+                            } catch(e) { console.log('[VetaleBrowser] Unmute error:', e); }
+                        })();";
+                    
+                    await WebView.EvaluateScript<object>(js);
+                    Debug.WriteLine($"[TabWorker] Audio state applied via JavaScript: {_isMuted}");
+                }
+                catch (Exception jsEx)
+                {
+                    Debug.WriteLine($"[TabWorker] JS mute failed: {jsEx.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[TabWorker] Failed to apply mute state: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// Планує відкладене повторне застосування mute після навігації.
+        /// Викликається кілька разів з інтервалом для гарантії що mute працює для динамічного контенту.
+        /// </summary>
+        private void ScheduleMuteReapply()
+        {
+            _muteReapplyCount = 4; // Застосуємо mute 4 рази з інтервалом 500ms
+            _muteReapplyTimer.Stop();
+            _muteReapplyTimer.Tick -= MuteReapplyTick;
+            _muteReapplyTimer.Tick += MuteReapplyTick;
+            _muteReapplyTimer.Start();
+        }
+        
+        private void MuteReapplyTick(object? sender, EventArgs e)
+        {
+            if (_muteReapplyCount <= 0)
+            {
+                _muteReapplyTimer.Stop();
+                _muteReapplyTimer.Tick -= MuteReapplyTick;
+                return;
+            }
+            
+            _muteReapplyCount--;
+            
+            if (_isMuted)
+            {
+                // Оновлюємо PID-и для нових процесів що могли з'явитись
+                RefreshRelatedProcessesBestEffort();
+                ApplyMuteState();
+            }
+            else
+            {
+                // Mute було вимкнено - зупиняємо таймер
+                _muteReapplyTimer.Stop();
+                _muteReapplyTimer.Tick -= MuteReapplyTick;
             }
         }
 
@@ -1278,6 +1556,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 WebView.Dispose();
                 _fullscreenPollTimer.Stop();
                 _pidRefreshTimer.Stop();
+                _muteReapplyTimer.Stop();
                 
                 // Release claimed PIDs so other tabs or future workers can reuse if processes persist
                 TabProcessTracker.ReleasePids(_relatedPids);
