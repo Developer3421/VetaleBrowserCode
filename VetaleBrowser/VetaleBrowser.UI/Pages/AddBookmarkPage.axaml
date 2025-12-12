@@ -100,7 +100,9 @@
                    Text="{DynamicResource Bookmarks.Add.Name}" 
                    FontSize="13" 
                    FontWeight="SemiBold" 
+                   
                    Margin="0,0,0,6"/>
+        
 
         <!-- Name TextBox -->
         <TextBox Grid.Row="3" 

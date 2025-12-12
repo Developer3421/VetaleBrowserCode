@@ -13,6 +13,7 @@ public static class DatabaseServicesFactory
     
     private static ISettingsService? _settingsService;
     private static IAppearanceSettingsService? _appearanceSettingsService;
+    private static IApiKeysService? _apiKeysService;
     private static bool _initialized;
     
     /// <summary>
@@ -41,10 +42,12 @@ public static class DatabaseServicesFactory
                 // Створюємо файли баз даних якщо не існують
                 EnsureDatabaseFileExists(config.GetSettingsDbPath());
                 EnsureDatabaseFileExists(config.GetAppearanceSettingsDbPath());
+                EnsureDatabaseFileExists(config.GetApiKeysDbPath());
                 
                 // Створюємо сервіси
                 _settingsService = CreateSettingsServiceInternal(config);
                 _appearanceSettingsService = CreateAppearanceSettingsServiceInternal(config);
+                _apiKeysService = CreateApiKeysServiceInternal(config);
                 
                 _initialized = true;
                 System.Diagnostics.Debug.WriteLine("[DatabaseServicesFactory] All databases initialized successfully");
@@ -135,6 +138,16 @@ public static class DatabaseServicesFactory
     }
     
     /// <summary>
+    /// Створює ApiKeysService
+    /// </summary>
+    private static IApiKeysService CreateApiKeysServiceInternal(DatabaseConfiguration config)
+    {
+        var dbPath = config.GetApiKeysDbPath();
+        System.Diagnostics.Debug.WriteLine($"[DatabaseServicesFactory] Creating ApiKeysService: {dbPath}");
+        return new ApiKeysService(dbPath, config.EncryptionKey);
+    }
+    
+    /// <summary>
     /// Отримує або створює сервіс налаштувань браузера
     /// </summary>
     public static ISettingsService GetSettingsService()
@@ -212,6 +225,47 @@ public static class DatabaseServicesFactory
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[DatabaseServicesFactory] TryGetAppearanceSettingsService failed: {ex.Message}");
+            return null;
+        }
+    }
+    
+    /// <summary>
+    /// Отримує або створює сервіс API ключів
+    /// </summary>
+    public static IApiKeysService GetApiKeysService()
+    {
+        if (_apiKeysService != null) return _apiKeysService;
+        
+        lock (_lock)
+        {
+            if (_apiKeysService != null) return _apiKeysService;
+            
+            Initialize();
+            
+            if (_apiKeysService == null)
+            {
+                // Fallback - створюємо напряму
+                var config = DatabaseConfiguration.CreateDefault();
+                EnsureDatabaseFileExists(config.GetApiKeysDbPath());
+                _apiKeysService = CreateApiKeysServiceInternal(config);
+            }
+        }
+        
+        return _apiKeysService;
+    }
+    
+    /// <summary>
+    /// Спробувати отримати сервіс API ключів (без викидання помилок)
+    /// </summary>
+    public static IApiKeysService? TryGetApiKeysService()
+    {
+        try
+        {
+            return GetApiKeysService();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DatabaseServicesFactory] TryGetApiKeysService failed: {ex.Message}");
             return null;
         }
     }

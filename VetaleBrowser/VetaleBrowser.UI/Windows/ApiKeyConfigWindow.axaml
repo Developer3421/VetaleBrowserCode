@@ -1,0 +1,200 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="550" d:DesignHeight="450"
+        x:Class="VetaleBrowser.VetaleBrowser.UI.Windows.ApiKeyConfigWindow"
+        Title="API Key Configuration"
+        WindowStartupLocation="CenterScreen"
+        SystemDecorations="None"
+        Background="#FF8B4513"
+        BorderThickness="1"
+        BorderBrush="#22000000"
+        CanResize="False"
+        Width="550"
+        Height="450"
+        Padding="8"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="42"
+        UseLayoutRounding="True"
+        TransparencyLevelHint="AcrylicBlur">
+
+    <Window.Resources>
+        <LinearGradientBrush x:Key="GrayGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#FFE0E0E0" Offset="0"/>
+            <GradientStop Color="#FFD0D0D0" Offset="0.3"/>
+            <GradientStop Color="#FFC5C5C5" Offset="0.7"/>
+            <GradientStop Color="#FFC0C0C0" Offset="1"/>
+        </LinearGradientBrush>
+    </Window.Resources>
+
+    <Window.Styles>
+        <Style Selector="Button.window-control">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#303030"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.window-control:pointerover">
+            <Setter Property="Background" Value="#40FFFFFF"/>
+        </Style>
+        <Style Selector="Button.window-control.close:pointerover">
+            <Setter Property="Background" Value="#40FF5C5C"/>
+        </Style>
+        
+        <!-- Primary Button Style -->
+        <Style Selector="Button.primary-btn">
+            <Setter Property="Background" Value="#4285F4"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="24,12"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.primary-btn:pointerover">
+            <Setter Property="Background" Value="#5C9CFC"/>
+        </Style>
+        <Style Selector="Button.primary-btn:pressed">
+            <Setter Property="Background" Value="#3367D6"/>
+        </Style>
+        
+        <!-- Secondary Button Style -->
+        <Style Selector="Button.secondary-btn">
+            <Setter Property="Background" Value="#757575"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="24,12"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.secondary-btn:pointerover">
+            <Setter Property="Background" Value="#9E9E9E"/>
+        </Style>
+
+        <!-- Link Button Style -->
+        <Style Selector="Button.link-btn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#4285F4"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.link-btn:pointerover">
+            <Setter Property="Foreground" Value="#5C9CFC"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- Top bar -->
+        <Grid x:Name="TopBarGrid" Grid.Row="0" Height="42" Background="{StaticResource GrayGradient}" PointerPressed="TopBar_PointerPressed">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <!-- Left: Icon and title -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                    <TextBlock x:Name="ServiceIcon" Text="🔑" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock x:Name="WindowTitle" Text="API Key Configuration" FontWeight="SemiBold" Foreground="#202020" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Right: Close button -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,4,0">
+                    <Button Classes="window-control close" Click="CloseWindow_Click">✕</Button>
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <!-- Content area -->
+        <Border Grid.Row="1" Background="Beige" CornerRadius="0,0,8,8" Margin="0,2,0,0">
+            <ScrollViewer>
+                <StackPanel Margin="32,24,32,32" Spacing="20">
+                    
+                    <!-- Header -->
+                    <StackPanel Spacing="8">
+                        <TextBlock x:Name="HeaderText" 
+                                   Text="Configure API Key" 
+                                   FontSize="22" FontWeight="Bold" 
+                                   Foreground="#1A1A1A"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="DescriptionText" 
+                                   Text="Enter your API key to enable this feature." 
+                                   FontSize="14" 
+                                   Foreground="#555555"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- API Key input -->
+                    <StackPanel Spacing="8">
+                        <TextBlock x:Name="ApiKeyLabel" 
+                                   Text="API Key" 
+                                   FontSize="14" FontWeight="SemiBold" 
+                                   Foreground="#333333"/>
+                        <TextBox x:Name="ApiKeyTextBox"
+                                 Watermark="Enter your API key..."
+                                 FontSize="14"
+                                 Padding="12,10"
+                                 CornerRadius="6"
+                                 Background="White"
+                                 BorderBrush="#CCCCCC"
+                                 BorderThickness="1"/>
+                    </StackPanel>
+
+                    <!-- How to get key section -->
+                    <Border x:Name="InstructionsPanel" Background="#F0F4FF" CornerRadius="8" Padding="16">
+                        <StackPanel Spacing="8">
+                            <TextBlock x:Name="HowToGetLabel" 
+                                       Text="📋 How to get an API key:" 
+                                       FontSize="14" FontWeight="SemiBold" 
+                                       Foreground="#4285F4"/>
+                            <TextBlock x:Name="Step1Text" 
+                                       Text="1. Go to the developer portal" 
+                                       FontSize="13" Foreground="#555555" TextWrapping="Wrap"/>
+                            <TextBlock x:Name="Step2Text" 
+                                       Text="2. Sign in or create an account" 
+                                       FontSize="13" Foreground="#555555" TextWrapping="Wrap"/>
+                            <TextBlock x:Name="Step3Text" 
+                                       Text="3. Generate an API key and copy it" 
+                                       FontSize="13" Foreground="#555555" TextWrapping="Wrap"/>
+                            <Button Classes="link-btn" 
+                                    x:Name="OpenPortalButton"
+                                    Click="OpenPortal_Click"
+                                    Content="🔗 Open Developer Portal"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Buttons -->
+                    <Grid ColumnDefinitions="*,Auto,16,Auto,*" Margin="0,8,0,0">
+                        <Button Grid.Column="1" 
+                                Classes="primary-btn"
+                                x:Name="SaveButton"
+                                Click="Save_Click"
+                                Content="Save API Key"/>
+                        <Button Grid.Column="3" 
+                                Classes="secondary-btn"
+                                x:Name="SkipButton"
+                                Click="Skip_Click"
+                                Content="Skip"/>
+                    </Grid>
+
+                    <!-- Info note -->
+                    <TextBlock x:Name="NoteText" 
+                               Text="💡 Your API key is stored locally with encryption and never shared." 
+                               FontSize="12" 
+                               Foreground="#777777"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</Window>
+

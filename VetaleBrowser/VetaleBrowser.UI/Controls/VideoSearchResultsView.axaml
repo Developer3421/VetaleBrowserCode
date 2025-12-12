@@ -1,0 +1,218 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:VetaleBrowser.VetaleBrowser.Search.Models;assembly=VetaleBrowser"
+             xmlns:controls="clr-namespace:VetaleBrowser.VetaleBrowser.UI.Controls"
+             mc:Ignorable="d"
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Controls.VideoSearchResultsView">
+    
+    <UserControl.Styles>
+        <!-- Професійна картка відео (YouTube стиль) -->
+        <Style Selector="Border.video-card">
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Margin" Value="8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.video-card:pointerover">
+            <Setter Property="RenderTransform" Value="scale(1.02)"/>
+        </Style>
+        <Style Selector="Border.video-card:pointerover Border.thumbnail-container">
+            <Setter Property="BoxShadow" Value="0 4 16 0 #40000000"/>
+        </Style>
+        
+        <!-- Контейнер превью -->
+        <Style Selector="Border.thumbnail-container">
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="ClipToBounds" Value="True"/>
+            <Setter Property="Background" Value="#1A1A1A"/>
+            <Setter Property="BoxShadow" Value="0 2 8 0 #20000000"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        
+        <!-- Кнопка Play -->
+        <Style Selector="Border.play-button">
+            <Setter Property="Width" Value="56"/>
+            <Setter Property="Height" Value="56"/>
+            <Setter Property="CornerRadius" Value="28"/>
+            <Setter Property="Background" Value="#E0FF0000"/>
+            <Setter Property="Opacity" Value="0.9"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.15"/>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.video-card:pointerover Border.play-button">
+            <Setter Property="Opacity" Value="1"/>
+            <Setter Property="RenderTransform" Value="scale(1.1)"/>
+        </Style>
+        
+        <!-- Бейдж тривалості -->
+        <Style Selector="Border.duration-badge">
+            <Setter Property="Background" Value="#CC000000"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="6,3"/>
+        </Style>
+        
+        <!-- Заголовок відео -->
+        <Style Selector="TextBlock.video-title">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#0F0F0F"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="MaxHeight" Value="42"/>
+            <Setter Property="LineHeight" Value="20"/>
+        </Style>
+        
+        <!-- Інформація про канал -->
+        <Style Selector="TextBlock.channel-info">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#606060"/>
+        </Style>
+        
+        <!-- Статистика -->
+        <Style Selector="TextBlock.video-stats">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#606060"/>
+        </Style>
+    </UserControl.Styles>
+    
+    <Grid>
+        <ScrollViewer x:Name="PART_ScrollViewer" 
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl x:Name="ItemsHost" Margin="8">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="models:VideoSearchResult">
+                        <Border Classes="video-card" 
+                                Width="320">
+                            <StackPanel>
+                                <!-- Превью відео -->
+                                <Border Classes="thumbnail-container" Height="180">
+                                    <Grid>
+                                        <!-- Зображення превью з оптимізованим завантаженням -->
+                                        <controls:AsyncImage Source="{Binding ThumbnailUrl}" 
+                                                             Stretch="UniformToFill"/>
+                                        
+                                        <!-- Play button по центру -->
+                                        <Border Classes="play-button"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="▶" 
+                                                       FontSize="24" 
+                                                       Foreground="White"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       Margin="4,0,0,0"/>
+                                        </Border>
+                                        
+                                        <!-- Тривалість -->
+                                        <Border Classes="duration-badge"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Bottom"
+                                                Margin="8">
+                                            <TextBlock Text="{Binding Duration}" 
+                                                       FontSize="12" 
+                                                       FontWeight="Medium"
+                                                       Foreground="White"/>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                                
+                                <!-- Інформація про відео -->
+                                <Grid Margin="0,12,0,8" ColumnDefinitions="40,*">
+                                    <!-- Аватар каналу -->
+                                    <Border Grid.Column="0" 
+                                            Width="36" Height="36" 
+                                            CornerRadius="18"
+                                            Background="#E0E0E0"
+                                            VerticalAlignment="Top">
+                                        <TextBlock Text="📺" 
+                                                   FontSize="18"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                                    </Border>
+                                    
+                                    <!-- Текстова інформація -->
+                                    <StackPanel Grid.Column="1" Spacing="4">
+                                        <!-- Заголовок -->
+                                        <TextBlock Classes="video-title"
+                                                   Text="{Binding Title}"
+                                                   ToolTip.Tip="{Binding Title}"/>
+                                        
+                                        <!-- Канал -->
+                                        <TextBlock Classes="channel-info"
+                                                   Text="{Binding ChannelTitle}"/>
+                                        
+                                        <!-- Статистика -->
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <TextBlock Classes="video-stats">
+                                                <Run Text="{Binding ViewCount, StringFormat='{}{0:N0}'}"/>
+                                                <Run Text=" переглядів"/>
+                                            </TextBlock>
+                                            <TextBlock Classes="video-stats" Text="•"/>
+                                            <TextBlock Classes="video-stats" 
+                                                       Text="{Binding PublishedAt, StringFormat='{}{0:dd.MM.yyyy}'}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+        
+        <!-- Індикатор завантаження -->
+        <Border x:Name="LoadingIndicator" 
+                IsVisible="False"
+                Background="#80FFFFFF"
+                VerticalAlignment="Bottom"
+                HorizontalAlignment="Center"
+                CornerRadius="20"
+                Padding="20,10"
+                Margin="0,0,0,20">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="⏳" FontSize="16"/>
+                <TextBlock Text="Пошук відео..." FontSize="14" Foreground="#333"/>
+            </StackPanel>
+        </Border>
+        
+        <!-- Повідомлення коли немає результатів -->
+        <Border x:Name="NoResultsMessage"
+                IsVisible="False"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+            <StackPanel Spacing="16" HorizontalAlignment="Center">
+                <TextBlock Text="🎬" FontSize="48" HorizontalAlignment="Center"/>
+                <TextBlock Text="Відео не знайдено" 
+                           FontSize="18" 
+                           FontWeight="SemiBold"
+                           Foreground="#666"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="Спробуйте змінити пошуковий запит"
+                           FontSize="14"
+                           Foreground="#999"
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
+

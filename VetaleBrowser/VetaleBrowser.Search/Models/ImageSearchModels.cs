@@ -4,6 +4,9 @@ namespace VetaleBrowser.VetaleBrowser.Search.Models
     {
         public string Query { get; set; } = string.Empty;
         public int PageNumber { get; set; } = 1;
+        /// <summary>
+        /// Максимальна кількість результатів на сторінку (максимум 50)
+        /// </summary>
         public int PageSize { get; set; } = 50;
         /// <summary>
         /// Источник: "Pexels", "Unsplash" или "All".

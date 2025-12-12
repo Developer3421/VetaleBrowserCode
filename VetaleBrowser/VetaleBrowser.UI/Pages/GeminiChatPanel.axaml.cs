@@ -10,6 +10,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using VetaleBrowser.VetaleBrowser.Search.Services;
 using VetaleBrowser.VetaleBrowser.Search.Models;
+using VetaleBrowser.VetaleBrowser.UI.Windows;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
 
@@ -28,6 +29,11 @@ public partial class GeminiChatPanel : UserControl, IDisposable
     private GeminiAiSummaryService? _geminiService;
     private CancellationTokenSource? _cancellationTokenSource;
     private bool _isDisposed;
+    
+    /// <summary>
+    /// Подія для навігації до URL у браузері Vetale
+    /// </summary>
+    public event EventHandler<string>? NavigateRequested;
 
     public GeminiChatPanel()
     {
@@ -214,7 +220,16 @@ public partial class GeminiChatPanel : UserControl, IDisposable
             else if (summary.State == AiSummaryState.Error)
             {
                 System.Diagnostics.Debug.WriteLine($"[GeminiChat] Error: {summary.ErrorMessage}");
-                AddAssistantMessage($"❌ Помилка: {summary.ErrorMessage}");
+                
+                // Перевіряємо чи потрібно показати вікно API ключа
+                if (summary.ErrorMessage == "API_KEY_REQUIRED")
+                {
+                    await ShowApiKeyWindowAsync(userMessage);
+                }
+                else
+                {
+                    AddAssistantMessage($"❌ Помилка: {summary.ErrorMessage}");
+                }
             }
             else
             {
@@ -376,6 +391,55 @@ public partial class GeminiChatPanel : UserControl, IDisposable
             ScrollToBottom();
 
         return loadingBorder;
+    }
+
+    /// <summary>
+    /// Show API key configuration window and retry the request if successful
+    /// </summary>
+    private async Task ShowApiKeyWindowAsync(string originalMessage)
+    {
+        try
+        {
+            var parentWindow = TopLevel.GetTopLevel(this) as Window;
+            
+            // Передаємо callback для навігації у браузері Vetale
+            var result = await ApiKeyConfigWindow.ShowGeminiConfigAsync(parentWindow, url =>
+            {
+                NavigateRequested?.Invoke(this, url);
+            });
+
+            if (result.Cancelled)
+            {
+                AddAssistantMessage("ℹ️ Потрібно налаштувати API ключ для роботи з Gemini. Спробуйте ще раз.");
+                return;
+            }
+
+            if (result.Skipped)
+            {
+                // Використовуємо дефолтний ключ
+                GeminiAiSummaryService.ClearCustomApiKey();
+                System.Diagnostics.Debug.WriteLine("[GeminiChat] Using default API key");
+            }
+            else if (result.Saved && !string.IsNullOrWhiteSpace(result.ApiKey))
+            {
+                // Встановлюємо кастомний ключ (вже збережено в БД)
+                GeminiAiSummaryService.SetCustomApiKey(result.ApiKey);
+                System.Diagnostics.Debug.WriteLine("[GeminiChat] Custom API key set");
+            }
+
+            // Переініціалізуємо сервіс з новим ключем
+            _geminiService?.Dispose();
+            _geminiService = new GeminiAiSummaryService();
+
+            // Повторюємо запит
+            AddAssistantMessage("✨ API ключ налаштовано. Обробляю ваш запит...");
+            await GenerateResponseAsync(originalMessage);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[GeminiChat] Error showing API key window: {ex}");
+            AddAssistantMessage($"❌ Помилка налаштування API ключа: {ex.Message}");
+        }
     }
 
     // Public API to trigger chat from outside

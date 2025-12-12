@@ -151,3 +151,57 @@ public class DownloadItem
     public bool IsArchived { get; set; } // для очистки старих записів
     public DateTime? ImportedAt { get; set; } // дата першого імпорту зі сканування папки завантажень
 }
+
+/// <summary>
+/// Модель для збереження API ключів з AES шифруванням
+/// </summary>
+public class ApiKeyItem
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// Унікальний ідентифікатор сервісу (наприклад: "gemini", "pexels", "unsplash", "youtube")
+    /// </summary>
+    public string ServiceId { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Назва сервісу для відображення (наприклад: "Google Gemini", "Pexels", "Unsplash", "YouTube")
+    /// </summary>
+    public string ServiceName { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Зашифрований API ключ
+    /// </summary>
+    public string EncryptedApiKey { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Чи активний цей ключ (користувач може вимкнути)
+    /// </summary>
+    public bool IsEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// Дата створення
+    /// </summary>
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    
+    /// <summary>
+    /// Дата останнього оновлення
+    /// </summary>
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    
+    /// <summary>
+    /// Дата останнього успішного використання
+    /// </summary>
+    public DateTime? LastUsedAt { get; set; }
+    
+    /// <summary>
+    /// Кількість успішних запитів
+    /// </summary>
+    public int SuccessfulRequestsCount { get; set; } = 0;
+    
+    /// <summary>
+    /// Кількість невдалих запитів
+    /// </summary>
+    public int FailedRequestsCount { get; set; } = 0;
+}
+

@@ -339,4 +339,19 @@
   <x:String x:Key="Security.Error.Text">Prüfung fehlgeschlagen</x:String>
   <x:String x:Key="Security.Unknown.Tooltip">? Status unbekannt</x:String>
   <x:String x:Key="Security.Unknown.Text">Status unbekannt</x:String>
+
+  <!-- Gemini API Key Window -->
+  <x:String x:Key="Gemini.ApiKey.Title">Gemini API-Schlüssel konfigurieren</x:String>
+  <x:String x:Key="Gemini.ApiKey.Header">Gemini AI konfigurieren</x:String>
+  <x:String x:Key="Gemini.ApiKey.Description">Um Gemini AI-Funktionen in Vetale Search zu nutzen, benötigen Sie einen Google API-Schlüssel. Sie können Ihren eigenen Schlüssel verwenden oder mit dem Standardschlüssel fortfahren.</x:String>
+  <x:String x:Key="Gemini.ApiKey.Label">API-Schlüssel</x:String>
+  <x:String x:Key="Gemini.ApiKey.Watermark">Geben Sie Ihren Gemini API-Schlüssel ein...</x:String>
+  <x:String x:Key="Gemini.ApiKey.HowToGet">📋 So erhalten Sie einen kostenlosen API-Schlüssel:</x:String>
+  <x:String x:Key="Gemini.ApiKey.Step1">1. Gehen Sie zu Google AI Studio</x:String>
+  <x:String x:Key="Gemini.ApiKey.Step2">2. Melden Sie sich mit Ihrem Google-Konto an</x:String>
+  <x:String x:Key="Gemini.ApiKey.Step3">3. Klicken Sie auf "Get API key" und kopieren Sie ihn</x:String>
+  <x:String x:Key="Gemini.ApiKey.OpenAIStudio">🔗 Google AI Studio öffnen</x:String>
+  <x:String x:Key="Gemini.ApiKey.UseCustomKey">Meinen Schlüssel verwenden</x:String>
+  <x:String x:Key="Gemini.ApiKey.UseDefaultKey">Mit Standard fortfahren</x:String>
+  <x:String x:Key="Gemini.ApiKey.Note">💡 Ihr API-Schlüssel wird lokal gespeichert und niemals geteilt. Der Standardschlüssel hat Nutzungsbeschränkungen.</x:String>
 </ResourceDictionary>

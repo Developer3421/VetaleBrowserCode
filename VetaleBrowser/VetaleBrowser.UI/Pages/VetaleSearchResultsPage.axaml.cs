@@ -14,6 +14,8 @@ using VetaleBrowser.VetaleBrowser.UI.Еlements; // NavigationBar
 using VetaleBrowser.VetaleBrowser.Search.Models;
 using VetaleBrowser.VetaleBrowser.Search.Services;
 using VetaleBrowser.VetaleBrowser.UI.Services;
+using VetaleBrowser.VetaleBrowser.UI.Windows;
+using VetaleBrowser.VetaleBrowser.Database.Services;
 using VetaleBrowser.VetaleBrowser.VoiceRecognition.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
@@ -21,7 +23,8 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages;
 public enum SearchMode
 {
     Sites,
-    Images
+    Images,
+    Videos
 }
 
 public partial class VetaleSearchResultsPage : UserControl
@@ -39,7 +42,9 @@ public partial class VetaleSearchResultsPage : UserControl
     private TextBlock? _searchStats;
     private StackPanel? _resultsPanel;
     private StackPanel? _imageResultsHost;
+    private StackPanel? _videoResultsHost;
     private Controls.ImageSearchResultsView? _imageResultsView;
+    private Controls.VideoSearchResultsView? _videoResultsView;
     private TextBlock? _queryHeading;
     private TextBox? _searchInput;
     private ComboBox? _searchEngineSelector;
@@ -59,6 +64,12 @@ public partial class VetaleSearchResultsPage : UserControl
     private CancellationTokenSource? _searchCts;
 
     private readonly ObservableCollection<string> _relatedQueries = new();
+    
+    // Прапорці для контролю показу вікон API ключів
+    // true = треба показати вікно, false = вже показали
+    private static bool _shouldShowGeminiApiKeyPrompt = true;
+    private static bool _shouldShowImageSearchApiKeyPrompt = true;
+    private static bool _shouldShowVideoSearchApiKeyPrompt = true;
 
     public VetaleSearchResultsPage()
     {
@@ -79,7 +90,9 @@ public partial class VetaleSearchResultsPage : UserControl
         _searchStats = this.FindControl<TextBlock>("SearchStats");
         _resultsPanel = this.FindControl<StackPanel>("ResultsPanel");
         _imageResultsHost = this.FindControl<StackPanel>("ImageResultsHost");
+        _videoResultsHost = this.FindControl<StackPanel>("VideoResultsHost");
         _imageResultsView = this.FindControl<Controls.ImageSearchResultsView>("ImageResultsView");
+        _videoResultsView = this.FindControl<Controls.VideoSearchResultsView>("VideoResultsView");
         _queryHeading = this.FindControl<TextBlock>("QueryHeading");
         _searchInput = this.FindControl<TextBox>("SearchInput");
         _searchEngineSelector = this.FindControl<ComboBox>("SearchEngineSelector");
@@ -90,6 +103,16 @@ public partial class VetaleSearchResultsPage : UserControl
 
         // Gemini chat control
         _geminiChat = this.FindControl<GeminiChatPanel>("GeminiChat");
+        
+        // Підключаємо навігацію з GeminiChat
+        if (_geminiChat != null)
+        {
+            _geminiChat.NavigateRequested += (s, url) =>
+            {
+                if (!string.IsNullOrWhiteSpace(url))
+                    NavigateRequested?.Invoke(this, url);
+            };
+        }
 
         if (_searchInput != null)
         {
@@ -101,9 +124,20 @@ public partial class VetaleSearchResultsPage : UserControl
             _searchButton.IsEnabled = !string.IsNullOrWhiteSpace(_searchInput?.Text);
         }
 
+        // Підключаємо навігацію з ImageResultsView
         if (_imageResultsView != null)
         {
             _imageResultsView.SourcePageOpenRequested += (s, url) =>
+            {
+                if (!string.IsNullOrWhiteSpace(url))
+                    NavigateRequested?.Invoke(this, url);
+            };
+        }
+        
+        // Підключаємо навігацію з VideoResultsView
+        if (_videoResultsView != null)
+        {
+            _videoResultsView.VideoOpenRequested += (s, url) =>
             {
                 if (!string.IsNullOrWhiteSpace(url))
                     NavigateRequested?.Invoke(this, url);
@@ -965,24 +999,42 @@ public partial class VetaleSearchResultsPage : UserControl
     {
         var sitesButton = this.FindControl<Button>("ModeSitesButton");
         var imagesButton = this.FindControl<Button>("ModeImagesButton");
-        if (sitesButton != null && imagesButton != null)
+        var videosButton = this.FindControl<Button>("ModeVideosButton");
+        
+        sitesButton?.Classes.Remove("active");
+        imagesButton?.Classes.Remove("active");
+        videosButton?.Classes.Remove("active");
+        
+        switch (_currentMode)
         {
-            sitesButton.Classes.Remove("active");
-            imagesButton.Classes.Remove("active");
-            if (_currentMode == SearchMode.Sites)
-                sitesButton.Classes.Add("active");
-            else
-                imagesButton.Classes.Add("active");
+            case SearchMode.Sites:
+                sitesButton?.Classes.Add("active");
+                break;
+            case SearchMode.Images:
+                imagesButton?.Classes.Add("active");
+                break;
+            case SearchMode.Videos:
+                videosButton?.Classes.Add("active");
+                break;
         }
 
         if (_resultsPanel != null)
             _resultsPanel.IsVisible = _currentMode == SearchMode.Sites;
         if (_imageResultsHost != null)
             _imageResultsHost.IsVisible = _currentMode == SearchMode.Images;
+        if (_videoResultsHost != null)
+            _videoResultsHost.IsVisible = _currentMode == SearchMode.Videos;
     }
 
-    private void ModeSites_Click(object? sender, RoutedEventArgs e)
+    private async void ModeSites_Click(object? sender, RoutedEventArgs e)
     {
+        // Показуємо вікно Gemini API при першому пошуку сайтів (якщо ще не показували)
+        if (_shouldShowGeminiApiKeyPrompt)
+        {
+            _shouldShowGeminiApiKeyPrompt = false; // Більше не показувати
+            await ShowGeminiApiKeyPromptAsync();
+        }
+        
         SetMode(SearchMode.Sites);
         if (_currentQuery != null)
         {
@@ -990,12 +1042,153 @@ public partial class VetaleSearchResultsPage : UserControl
         }
     }
 
-    private void ModeImages_Click(object? sender, RoutedEventArgs e)
+    private async void ModeImages_Click(object? sender, RoutedEventArgs e)
     {
+        // Показуємо вікно API ключів для пошуку зображень при першому використанні
+        if (_shouldShowImageSearchApiKeyPrompt)
+        {
+            _shouldShowImageSearchApiKeyPrompt = false; // Більше не показувати
+            await ShowImageSearchApiKeyPromptAsync();
+        }
+        
         SetMode(SearchMode.Images);
         if (_currentQuery != null && _imageResultsView != null)
         {
             _imageResultsView.SetQuery(_currentQuery);
+        }
+    }
+    
+    /// <summary>
+    /// Показує вікно для налаштування Gemini API ключа
+    /// </summary>
+    private async Task ShowGeminiApiKeyPromptAsync()
+    {
+        try
+        {
+            // Перевіряємо чи вже є ключ в БД
+            var apiKeysService = DatabaseServicesFactory.TryGetApiKeysService();
+            if (apiKeysService != null)
+            {
+                var existingKey = await apiKeysService.GetGeminiApiKeyAsync();
+                if (!string.IsNullOrWhiteSpace(existingKey))
+                {
+                    System.Diagnostics.Debug.WriteLine("[VetaleSearch] Gemini API key already configured");
+                    return;
+                }
+            }
+            
+            var parentWindow = TopLevel.GetTopLevel(this) as Window;
+            
+            // Передаємо callback для навігації у браузері Vetale
+            var result = await ApiKeyConfigWindow.ShowGeminiConfigAsync(parentWindow, url =>
+            {
+                NavigateRequested?.Invoke(this, url);
+            });
+            
+            if (result.Saved && !string.IsNullOrWhiteSpace(result.ApiKey))
+            {
+                // Оновлюємо сервіс Gemini
+                GeminiAiSummaryService.SetCustomApiKey(result.ApiKey);
+                System.Diagnostics.Debug.WriteLine("[VetaleSearch] Gemini API key configured");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearch] Error showing Gemini API key prompt: {ex.Message}");
+        }
+    }
+    
+    /// <summary>
+    /// Показує вікна для налаштування API ключів пошуку зображень (Pexels, Unsplash)
+    /// </summary>
+    private async Task ShowImageSearchApiKeyPromptAsync()
+    {
+        try
+        {
+            var parentWindow = TopLevel.GetTopLevel(this) as Window;
+            
+            // Callback для навігації у браузері Vetale
+            Action<string> navigateCallback = url => NavigateRequested?.Invoke(this, url);
+            
+            // Показуємо вікно для Pexels
+            var pexelsResult = await ApiKeyConfigWindow.ShowPexelsConfigAsync(parentWindow, navigateCallback);
+            if (pexelsResult.Saved)
+            {
+                System.Diagnostics.Debug.WriteLine("[VetaleSearch] Pexels API key configured");
+            }
+            
+            // Показуємо вікно для Unsplash
+            var unsplashResult = await ApiKeyConfigWindow.ShowUnsplashConfigAsync(parentWindow, navigateCallback);
+            if (unsplashResult.Saved)
+            {
+                System.Diagnostics.Debug.WriteLine("[VetaleSearch] Unsplash API key configured");
+            }
+            
+            // Переініціалізуємо сервіс пошуку зображень
+            if (_imageResultsView != null)
+            {
+                _imageResultsView.ImageSearchService = ImageSearchServiceFactory.Create();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearch] Error showing image search API key prompt: {ex.Message}");
+        }
+    }
+    
+    private async void ModeVideos_Click(object? sender, RoutedEventArgs e)
+    {
+        // Показуємо вікно API ключів для пошуку відео при першому використанні
+        if (_shouldShowVideoSearchApiKeyPrompt)
+        {
+            _shouldShowVideoSearchApiKeyPrompt = false; // Більше не показувати
+            await ShowVideoSearchApiKeyPromptAsync();
+        }
+        
+        SetMode(SearchMode.Videos);
+        
+        // Запускаємо пошук відео
+        if (_currentQuery != null && _videoResultsView != null)
+        {
+            _videoResultsView.SetQuery(_currentQuery);
+        }
+    }
+    
+    /// <summary>
+    /// Показує вікно для налаштування YouTube API ключа
+    /// </summary>
+    private async Task ShowVideoSearchApiKeyPromptAsync()
+    {
+        try
+        {
+            // Перевіряємо чи вже є ключ в БД
+            var apiKeysService = DatabaseServicesFactory.TryGetApiKeysService();
+            if (apiKeysService != null)
+            {
+                var existingKey = await apiKeysService.GetYouTubeApiKeyAsync();
+                if (!string.IsNullOrWhiteSpace(existingKey))
+                {
+                    System.Diagnostics.Debug.WriteLine("[VetaleSearch] YouTube API key already configured");
+                    return;
+                }
+            }
+            
+            var parentWindow = TopLevel.GetTopLevel(this) as Window;
+            
+            // Передаємо callback для навігації у браузері Vetale
+            var result = await ApiKeyConfigWindow.ShowYouTubeConfigAsync(parentWindow, url =>
+            {
+                NavigateRequested?.Invoke(this, url);
+            });
+            
+            if (result.Saved)
+            {
+                System.Diagnostics.Debug.WriteLine("[VetaleSearch] YouTube API key configured");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearch] Error showing YouTube API key prompt: {ex.Message}");
         }
     }
 }

@@ -500,4 +500,19 @@
   <x:String x:Key="Security.Error.Text">Check failed</x:String>
   <x:String x:Key="Security.Unknown.Tooltip">? Status unknown</x:String>
   <x:String x:Key="Security.Unknown.Text">Status unknown</x:String>
+
+  <!-- Gemini API Key Window -->
+  <x:String x:Key="Gemini.ApiKey.Title">Gemini API Key Configuration</x:String>
+  <x:String x:Key="Gemini.ApiKey.Header">Configure Gemini AI</x:String>
+  <x:String x:Key="Gemini.ApiKey.Description">To use Gemini AI features in Vetale Search, you need a Google API key. You can use your own key or continue with the default one.</x:String>
+  <x:String x:Key="Gemini.ApiKey.Label">API Key</x:String>
+  <x:String x:Key="Gemini.ApiKey.Watermark">Enter your Gemini API key...</x:String>
+  <x:String x:Key="Gemini.ApiKey.HowToGet">📋 How to get a free API key:</x:String>
+  <x:String x:Key="Gemini.ApiKey.Step1">1. Go to Google AI Studio</x:String>
+  <x:String x:Key="Gemini.ApiKey.Step2">2. Sign in with your Google account</x:String>
+  <x:String x:Key="Gemini.ApiKey.Step3">3. Click "Get API key" and copy it</x:String>
+  <x:String x:Key="Gemini.ApiKey.OpenAIStudio">🔗 Open Google AI Studio</x:String>
+  <x:String x:Key="Gemini.ApiKey.UseCustomKey">Use My Key</x:String>
+  <x:String x:Key="Gemini.ApiKey.UseDefaultKey">Continue with Default</x:String>
+  <x:String x:Key="Gemini.ApiKey.Note">💡 Your API key is stored locally and never shared. The default key has usage limits.</x:String>
 </ResourceDictionary>

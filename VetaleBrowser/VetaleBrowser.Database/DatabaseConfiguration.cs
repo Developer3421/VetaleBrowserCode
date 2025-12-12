@@ -104,6 +104,15 @@ public class DatabaseConfiguration
     }
     
     /// <summary>
+    /// Отримує шлях до бази даних API ключів
+    /// </summary>
+    public string GetApiKeysDbPath()
+    {
+        var directory = Path.GetDirectoryName(DatabasePath) ?? DefaultDatabasePath;
+        return Path.Combine(directory, "api_keys.db");
+    }
+    
+    /// <summary>
     /// Створює оптимізований ConnectionString для LiteDB з мінімальним споживанням RAM
     /// </summary>
     public static ConnectionString CreateOptimizedConnectionString(string databasePath)

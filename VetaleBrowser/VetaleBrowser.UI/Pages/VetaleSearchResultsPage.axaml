@@ -392,6 +392,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
                                 <Button x:Name="ModeSitesButton" Classes="page-number active" Click="ModeSites_Click">Сайти</Button>
                                 <Button x:Name="ModeImagesButton" Classes="page-number" Click="ModeImages_Click">Зображення</Button>
+                                <Button x:Name="ModeVideosButton" Classes="page-number" Click="ModeVideos_Click">Відео</Button>
                             </StackPanel>
 
                             <TextBlock x:Name="QueryHeading"
@@ -591,6 +592,16 @@
                             </ItemsControl>
                         </StackPanel>
                         <!-- end Related searches section -->
+                        
+                        <!-- Image Results Container -->
+                        <StackPanel x:Name="ImageResultsHost" IsVisible="False" Margin="0,12,0,0">
+                            <controls:ImageSearchResultsView x:Name="ImageResultsView"/>
+                        </StackPanel>
+                        
+                        <!-- Video Results Container -->
+                        <StackPanel x:Name="VideoResultsHost" IsVisible="False" Margin="0,12,0,0">
+                            <controls:VideoSearchResultsView x:Name="VideoResultsView"/>
+                        </StackPanel>
                     </StackPanel>
                     </Border>
                 </Border>

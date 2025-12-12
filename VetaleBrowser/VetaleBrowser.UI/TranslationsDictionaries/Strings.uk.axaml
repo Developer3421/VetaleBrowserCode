@@ -479,4 +479,19 @@
   <x:String x:Key="Security.Error.Text">Помилка перевірки</x:String>
   <x:String x:Key="Security.Unknown.Tooltip">? Статус невідомий</x:String>
   <x:String x:Key="Security.Unknown.Text">Статус невідомий</x:String>
+
+  <!-- Gemini API Key Window -->
+  <x:String x:Key="Gemini.ApiKey.Title">Налаштування Gemini API ключа</x:String>
+  <x:String x:Key="Gemini.ApiKey.Header">Налаштування Gemini AI</x:String>
+  <x:String x:Key="Gemini.ApiKey.Description">Для використання функцій Gemini AI у Vetale Search потрібен API ключ Google. Ви можете використати власний ключ або продовжити зі стандартним.</x:String>
+  <x:String x:Key="Gemini.ApiKey.Label">API ключ</x:String>
+  <x:String x:Key="Gemini.ApiKey.Watermark">Введіть ваш Gemini API ключ...</x:String>
+  <x:String x:Key="Gemini.ApiKey.HowToGet">📋 Як отримати безкоштовний API ключ:</x:String>
+  <x:String x:Key="Gemini.ApiKey.Step1">1. Перейдіть на Google AI Studio</x:String>
+  <x:String x:Key="Gemini.ApiKey.Step2">2. Увійдіть з вашим Google акаунтом</x:String>
+  <x:String x:Key="Gemini.ApiKey.Step3">3. Натисніть "Get API key" та скопіюйте його</x:String>
+  <x:String x:Key="Gemini.ApiKey.OpenAIStudio">🔗 Відкрити Google AI Studio</x:String>
+  <x:String x:Key="Gemini.ApiKey.UseCustomKey">Використати мій ключ</x:String>
+  <x:String x:Key="Gemini.ApiKey.UseDefaultKey">Продовжити зі стандартним</x:String>
+  <x:String x:Key="Gemini.ApiKey.Note">💡 Ваш API ключ зберігається локально і ніколи не передається. Стандартний ключ має обмеження використання.</x:String>
 </ResourceDictionary>

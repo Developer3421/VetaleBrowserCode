@@ -305,4 +305,19 @@
   <x:String x:Key="Security.Error.Text">Kontrol başarısız</x:String>
   <x:String x:Key="Security.Unknown.Tooltip">? Durum bilinmiyor</x:String>
   <x:String x:Key="Security.Unknown.Text">Durum bilinmiyor</x:String>
+
+  <!-- Gemini API Key Window -->
+  <x:String x:Key="Gemini.ApiKey.Title">Gemini API Anahtarı Yapılandırması</x:String>
+  <x:String x:Key="Gemini.ApiKey.Header">Gemini AI Yapılandır</x:String>
+  <x:String x:Key="Gemini.ApiKey.Description">Vetale Search'te Gemini AI özelliklerini kullanmak için Google API anahtarı gereklidir. Kendi anahtarınızı kullanabilir veya varsayılanla devam edebilirsiniz.</x:String>
+  <x:String x:Key="Gemini.ApiKey.Label">API Anahtarı</x:String>
+  <x:String x:Key="Gemini.ApiKey.Watermark">Gemini API anahtarınızı girin...</x:String>
+  <x:String x:Key="Gemini.ApiKey.HowToGet">📋 Ücretsiz API anahtarı nasıl alınır:</x:String>
+  <x:String x:Key="Gemini.ApiKey.Step1">1. Google AI Studio'ya gidin</x:String>
+  <x:String x:Key="Gemini.ApiKey.Step2">2. Google hesabınızla giriş yapın</x:String>
+  <x:String x:Key="Gemini.ApiKey.Step3">3. "Get API key"e tıklayın ve kopyalayın</x:String>
+  <x:String x:Key="Gemini.ApiKey.OpenAIStudio">🔗 Google AI Studio'yu Aç</x:String>
+  <x:String x:Key="Gemini.ApiKey.UseCustomKey">Anahtarımı Kullan</x:String>
+  <x:String x:Key="Gemini.ApiKey.UseDefaultKey">Varsayılanla Devam Et</x:String>
+  <x:String x:Key="Gemini.ApiKey.Note">💡 API anahtarınız yerel olarak saklanır ve asla paylaşılmaz. Varsayılan anahtarın kullanım sınırları vardır.</x:String>
 </ResourceDictionary>
