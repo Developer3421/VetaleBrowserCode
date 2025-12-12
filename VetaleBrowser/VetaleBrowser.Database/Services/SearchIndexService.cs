@@ -39,7 +39,7 @@ public class SearchIndexService : ISearchIndexService, IDisposable
         var connectionString = new ConnectionString
         {
             Filename = databasePath,
-            Connection = ConnectionType.Direct
+            Connection = ConnectionType.Shared
         };
 
         _database = new LiteDatabase(connectionString);

@@ -127,8 +127,8 @@ public class DatabaseConfiguration
         return new ConnectionString
         {
             Filename = databasePath,
-            // Direct mode - мінімальне споживання RAM, без кешування в пам'яті
-            Connection = ConnectionType.Direct,
+            // Shared mode - дозволяє багаторазовий доступ
+            Connection = ConnectionType.Shared,
             // Вимикаємо read-only режим для запису
             ReadOnly = false
         };

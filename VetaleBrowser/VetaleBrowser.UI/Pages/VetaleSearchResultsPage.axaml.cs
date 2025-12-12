@@ -52,6 +52,9 @@ public partial class VetaleSearchResultsPage : UserControl
     private Button? _voiceButton;
     private Popup? _suggestionsPopup;
     private ItemsControl? _suggestionsListBox;
+    
+    // Панель пагінації
+    private StackPanel? _paginationPanel;
 
     // Embed Gemini chat panel
     private GeminiChatPanel? _geminiChat;
@@ -64,6 +67,12 @@ public partial class VetaleSearchResultsPage : UserControl
     private CancellationTokenSource? _searchCts;
 
     private readonly ObservableCollection<string> _relatedQueries = new();
+    
+    // Стан пагінації
+    private int _currentPage = 1;
+    private bool _hasNextPage = false;
+    private bool _hasPreviousPage = false;
+    private const int ResultsPerPage = 50;
     
     // Прапорці для контролю показу вікон API ключів
     // true = треба показати вікно, false = вже показали
@@ -183,25 +192,22 @@ public partial class VetaleSearchResultsPage : UserControl
     }
 
     /// <summary>
-    /// Оновити статистику пошуку
+    /// Оновити статистику пошуку (для сумісності)
     /// </summary>
     public void UpdateSearchStats(int totalResults, double searchTime)
     {
-        if (_searchStats != null)
-        {
-            _searchStats.Text = $"Приблизно {totalResults:N0} результатів ({searchTime:F2} секунди)";
-        }
+        UpdateSearchStats(totalResults, searchTime, _currentPage);
     }
 
     /// <summary>
     /// Завантажити результати пошуку
     /// </summary>
-    private async void LoadSearchResults(string query)
+    private async void LoadSearchResults(string query, int page = 1)
     {
         if (string.IsNullOrWhiteSpace(query))
             return;
 
-        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Loading unified results for: {query}");
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Loading unified results for: {query}, page: {page}");
 
         _searchCts?.Cancel();
         _searchCts = new CancellationTokenSource();
@@ -209,20 +215,34 @@ public partial class VetaleSearchResultsPage : UserControl
 
         try
         {
-            _searchStats!.Text = "Шукаємо в Wikipedia, WebArchive, CommonCrawl…";
+            _currentPage = page;
+            
+            // Локалізовані повідомлення
+            var searchingText = GetLocalizedString("Search.Results.SearchingIn") 
+                ?? "Шукаємо в Wikipedia, WebArchive, MetaSearx…";
+            var loadingPageTemplate = GetLocalizedString("Search.Results.LoadingPage") 
+                ?? "Завантажуємо сторінку {0}…";
+            
+            _searchStats!.Text = page == 1 
+                ? searchingText 
+                : string.Format(loadingPageTemplate, page);
             _resultsPanel!.Children.Clear();
 
             var start = DateTime.UtcNow;
-            var page = await _unifiedSearchService.SearchAsync(query, pageNumber: 1, pageSize: 16, ct);
+            var searchPage = await _unifiedSearchService.SearchAsync(query, pageNumber: page, pageSize: ResultsPerPage, ct);
             var elapsed = (DateTime.UtcNow - start).TotalSeconds;
 
             if (ct.IsCancellationRequested)
                 return;
 
+            _hasNextPage = searchPage.HasNextPage;
+            _hasPreviousPage = searchPage.HasPreviousPage;
+
             Dispatcher.UIThread.Post(() =>
             {
-                RenderUnifiedResults(page);
-                UpdateSearchStats(page.TotalResults, elapsed);
+                RenderUnifiedResults(searchPage);
+                UpdateSearchStats(searchPage.TotalResults, elapsed, page);
+                RenderPaginationPanel();
             });
         }
         catch (OperationCanceledException)
@@ -233,9 +253,167 @@ public partial class VetaleSearchResultsPage : UserControl
             System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] LoadSearchResults error: {ex}");
             if (_searchStats != null)
             {
-                _searchStats.Text = "Сталась помилка під час пошуку. Спробуйте ще раз.";
+                var errorText = GetLocalizedString("Search.Results.Error") 
+                    ?? "Сталась помилка під час пошуку. Спробуйте ще раз.";
+                _searchStats.Text = errorText;
             }
         }
+    }
+    
+    /// <summary>
+    /// Оновлює статистику пошуку
+    /// </summary>
+    private void UpdateSearchStats(int totalResults, double elapsed, int page = 1)
+    {
+        if (_searchStats != null)
+        {
+            if (page > 1)
+            {
+                // Спробуємо отримати локалізований рядок
+                var template = GetLocalizedString("Search.Results.StatsWithPage") 
+                    ?? "Знайдено {0} результатів за {1} сек. (сторінка {2})";
+                _searchStats.Text = string.Format(template, totalResults, elapsed.ToString("F2"), page);
+            }
+            else
+            {
+                var template = GetLocalizedString("Search.Results.Stats") 
+                    ?? "Знайдено {0} результатів за {1} сек.";
+                _searchStats.Text = string.Format(template, totalResults, elapsed.ToString("F2"));
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Отримує локалізований рядок з ресурсів
+    /// </summary>
+    private string? GetLocalizedString(string key)
+    {
+        try
+        {
+            if (Avalonia.Application.Current != null && 
+                Avalonia.Application.Current.TryFindResource(key, out var resource) &&
+                resource is string str)
+            {
+                return str;
+            }
+        }
+        catch { }
+        return null;
+    }
+    
+    /// <summary>
+    /// Рендерить панель пагінації
+    /// </summary>
+    private void RenderPaginationPanel()
+    {
+        // Видаляємо стару панель пагінації якщо є
+        if (_paginationPanel != null && _resultsPanel != null)
+        {
+            _resultsPanel.Children.Remove(_paginationPanel);
+        }
+        
+        // Створюємо нову панель пагінації
+        _paginationPanel = new StackPanel
+        {
+            Orientation = Avalonia.Layout.Orientation.Horizontal,
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+            Margin = new Avalonia.Thickness(0, 20, 0, 20),
+            Spacing = 8
+        };
+        
+        // Локалізовані тексти
+        var prevText = GetLocalizedString("Search.Pagination.Previous") ?? "← Попередня";
+        var nextText = GetLocalizedString("Search.Pagination.Next") ?? "Наступна →";
+        
+        // Кнопка "Попередня"
+        if (_hasPreviousPage)
+        {
+            var prevButton = CreatePaginationButton(prevText, _currentPage - 1);
+            _paginationPanel.Children.Add(prevButton);
+        }
+        
+        // Номери сторінок (показуємо 5 сторінок навколо поточної)
+        var startPage = Math.Max(1, _currentPage - 2);
+        var endPage = startPage + 4;
+        
+        // Перша сторінка якщо не в діапазоні
+        if (startPage > 1)
+        {
+            _paginationPanel.Children.Add(CreatePaginationButton("1", 1));
+            if (startPage > 2)
+            {
+                _paginationPanel.Children.Add(new TextBlock 
+                { 
+                    Text = "...", 
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                    Foreground = Avalonia.Media.Brushes.Gray,
+                    Margin = new Avalonia.Thickness(4, 0)
+                });
+            }
+        }
+        
+        // Сторінки в діапазоні
+        for (int i = startPage; i <= endPage; i++)
+        {
+            var pageButton = CreatePaginationButton(i.ToString(), i, i == _currentPage);
+            _paginationPanel.Children.Add(pageButton);
+            
+            // Якщо це остання відома сторінка і немає наступної - виходимо
+            if (i == _currentPage && !_hasNextPage)
+                break;
+        }
+        
+        // Кнопка "Наступна"
+        if (_hasNextPage)
+        {
+            var nextButton = CreatePaginationButton(nextText, _currentPage + 1);
+            _paginationPanel.Children.Add(nextButton);
+        }
+        
+        // Додаємо панель в кінець результатів
+        _resultsPanel?.Children.Add(_paginationPanel);
+    }
+    
+    /// <summary>
+    /// Створює кнопку пагінації
+    /// </summary>
+    private Button CreatePaginationButton(string text, int targetPage, bool isCurrentPage = false)
+    {
+        var button = new Button
+        {
+            Content = text,
+            MinWidth = 40,
+            Padding = new Avalonia.Thickness(12, 8),
+            Background = isCurrentPage 
+                ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#FF6B00"))
+                : new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#F0F0F0")),
+            Foreground = isCurrentPage 
+                ? Avalonia.Media.Brushes.White 
+                : new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#333333")),
+            BorderThickness = new Avalonia.Thickness(1),
+            BorderBrush = isCurrentPage 
+                ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#FF6B00"))
+                : new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#CCCCCC")),
+            Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
+            CornerRadius = new Avalonia.CornerRadius(6)
+        };
+        
+        if (!isCurrentPage)
+        {
+            button.Click += (s, e) => 
+            {
+                if (!string.IsNullOrWhiteSpace(_currentQuery))
+                {
+                    LoadSearchResults(_currentQuery, targetPage);
+                    
+                    // Скролимо вгору
+                    var scrollViewer = this.FindControl<ScrollViewer>("MainScrollViewer");
+                    scrollViewer?.ScrollToHome();
+                }
+            };
+        }
+        
+        return button;
     }
 
     private void RenderUnifiedResults(UnifiedSearchPage page)
@@ -272,7 +450,7 @@ public partial class VetaleSearchResultsPage : UserControl
         {
             if (_searchStats != null)
             {
-                _searchStats.Text = "Нічого не знайдено";
+                _searchStats.Text = GetLocalizedString("Search.Results.NoResults") ?? "Нічого не знайдено";
             }
             return;
         }
@@ -344,7 +522,7 @@ public partial class VetaleSearchResultsPage : UserControl
                     _relatedQueries.Add(s.Text);
             }
 
-            await Dispatcher.UIThread.InvokeAsync(() =>
+            Dispatcher.UIThread.Post(() =>
             {
                 var relatedSection = this.FindControl<StackPanel>("RelatedSection");
                 var list = this.FindControl<ItemsControl>("RelatedQueriesList");
@@ -380,7 +558,7 @@ public partial class VetaleSearchResultsPage : UserControl
             result.Favicon = image;
             if (imageControl != null && image != null)
             {
-                await Dispatcher.UIThread.InvokeAsync(() =>
+                Dispatcher.UIThread.Post(() =>
                 {
                     imageControl.Source = image;
                 });
@@ -580,7 +758,7 @@ public partial class VetaleSearchResultsPage : UserControl
                 return;
 
             // Оновлюємо UI
-            await Dispatcher.UIThread.InvokeAsync(() =>
+            Dispatcher.UIThread.Post(() =>
             {
                 if (_suggestionsListBox != null)
                 {
@@ -611,22 +789,47 @@ public partial class VetaleSearchResultsPage : UserControl
     {
         try
         {
-            if (sender is Border border && border.DataContext is SearchSuggestion suggestion)
+            // Знаходимо елемент на який клікнули
+            if (e.Source is Control clickedControl)
             {
-                // Встановлюємо текст у поле пошуку
-                if (_searchInput != null)
+                // Шукаємо SearchSuggestion в DataContext поточного або батьківських елементів
+                var current = clickedControl;
+                SearchSuggestion? suggestion = null;
+                
+                while (current != null)
                 {
-                    _searchInput.Text = suggestion.Text;
+                    if (current.DataContext is SearchSuggestion sug)
+                    {
+                        suggestion = sug;
+                        break;
+                    }
+                    current = current.Parent as Control;
                 }
-
-                // Ховаємо попап
-                if (_suggestionsPopup != null)
+                
+                if (suggestion != null)
                 {
-                    _suggestionsPopup.IsOpen = false;
-                }
+                    System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Suggestion clicked: {suggestion.Text}");
+                    
+                    // Вставляємо текст підказки в поле пошуку
+                    if (_searchInput != null)
+                    {
+                        _searchInput.Text = suggestion.Text;
+                        _searchInput.CaretIndex = suggestion.Text.Length;
+                        _searchInput.Focus();
+                    }
 
-                // Виконуємо пошук
-                PerformSearch();
+                    // Ховаємо попап
+                    if (_suggestionsPopup != null)
+                    {
+                        _suggestionsPopup.IsOpen = false;
+                    }
+
+                    // НЕ виконуємо пошук автоматично - даємо користувачу редагувати
+                    // Якщо потрібно автоматично шукати, розкоментуйте:
+                    // PerformSearch();
+                    
+                    e.Handled = true;
+                }
             }
         }
         catch (Exception ex)
@@ -674,7 +877,8 @@ public partial class VetaleSearchResultsPage : UserControl
         _currentQuery = query;
 
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] PerformSearch query: '{query}'");
-        LoadSearchResults(query);
+        _currentPage = 1; // Скидаємо на першу сторінку
+        LoadSearchResults(query, 1);
 
         // опційно: lucky може одразу відкривати перший результат у майбутньому
         _ = _geminiChat?.AskAsync(query);

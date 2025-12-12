@@ -156,11 +156,52 @@ public partial class VetaleSearchHomePage : UserControl
 
     private void OnSuggestionPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is Border b && b.DataContext is SearchSuggestion sug && _searchInput != null)
+        try
         {
-            _searchInput.Text = sug.Text;
-            if (_suggestionsPopup != null) _suggestionsPopup.IsOpen = false;
-            PerformSearch();
+            // Знаходимо елемент на який клікнули
+            if (e.Source is Control clickedControl)
+            {
+                // Шукаємо SearchSuggestion в DataContext поточного або батьківських елементів
+                var current = clickedControl;
+                SearchSuggestion? suggestion = null;
+                
+                while (current != null)
+                {
+                    if (current.DataContext is SearchSuggestion sug)
+                    {
+                        suggestion = sug;
+                        break;
+                    }
+                    current = current.Parent as Control;
+                }
+                
+                if (suggestion != null && _searchInput != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] Suggestion clicked: {suggestion.Text}");
+                    
+                    // Вставляємо текст підказки в поле пошуку
+                    _searchInput.Text = suggestion.Text;
+                    
+                    // Ставимо курсор в кінець тексту
+                    _searchInput.CaretIndex = suggestion.Text.Length;
+                    
+                    // Закриваємо popup
+                    if (_suggestionsPopup != null) _suggestionsPopup.IsOpen = false;
+                    
+                    // Фокусуємо поле пошуку
+                    _searchInput.Focus();
+                    
+                    // НЕ виконуємо пошук автоматично - даємо користувачу можливість редагувати
+                    // Якщо потрібно автоматично шукати, розкоментуйте:
+                    // PerformSearch();
+                    
+                    e.Handled = true;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] OnSuggestionPointerPressed error: {ex.Message}");
         }
     }
 

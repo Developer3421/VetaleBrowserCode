@@ -1,3 +1,4 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -54,6 +55,8 @@ public partial class BookmarksWindow : Window
         addBookmarkPage.BookmarkSaved += (s, e) =>
         {
             ShowBookmarksPage();
+            // Перезавантажуємо список закладок
+            _bookmarksPage?.RefreshBookmarks();
         };
         
         addBookmarkPage.Cancelled += (s, e) =>
@@ -78,6 +81,9 @@ public partial class BookmarksWindow : Window
         _bookmarksPage = new BookmarksPage();
         _bookmarksPage.SetDatabaseService(DatabaseManager.Instance);
         
+        // Підписуємось на подію запиту додавання закладки
+        _bookmarksPage.AddBookmarkRequested += OnAddBookmarkRequested;
+        
         if (_contentHost != null)
         {
             _contentHost.Content = _bookmarksPage;
@@ -88,6 +94,15 @@ public partial class BookmarksWindow : Window
             MinWidth = 700;
             MinHeight = 500;
         }
+    }
+    
+    /// <summary>
+    /// Обробник запиту на додавання закладки з BookmarksPage
+    /// </summary>
+    private void OnAddBookmarkRequested(object? sender, EventArgs e)
+    {
+        // Показуємо форму додавання закладки в тому ж вікні
+        ShowAddBookmarkPage(string.Empty, string.Empty);
     }
 
     private void TopBar_PointerPressed(object? sender, PointerPressedEventArgs e)

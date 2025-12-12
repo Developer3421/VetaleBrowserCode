@@ -351,4 +351,48 @@
   <x:String x:Key="Gemini.ApiKey.UseCustomKey">Использовать мой ключ</x:String>
   <x:String x:Key="Gemini.ApiKey.UseDefaultKey">Продолжить со стандартным</x:String>
   <x:String x:Key="Gemini.ApiKey.Note">💡 Ваш API ключ хранится локально и никогда не передается. Стандартный ключ имеет ограничения использования.</x:String>
+
+  <!-- Vetale Search Results -->
+  <x:String x:Key="Search.Results.Stats">Найдено {0} результатов за {1} сек.</x:String>
+  <x:String x:Key="Search.Results.StatsWithPage">Найдено {0} результатов за {1} сек. (страница {2})</x:String>
+  <x:String x:Key="Search.Results.Searching">Поиск...</x:String>
+  <x:String x:Key="Search.Results.SearchingIn">Поиск в Wikipedia, WebArchive, MetaSearx…</x:String>
+  <x:String x:Key="Search.Results.LoadingPage">Загрузка страницы {0}…</x:String>
+  <x:String x:Key="Search.Results.NoResults">Ничего не найдено</x:String>
+  <x:String x:Key="Search.Results.Error">Произошла ошибка при поиске. Попробуйте снова.</x:String>
+  <x:String x:Key="Search.Results.Heading">Локальный поиск Vetale</x:String>
+  <x:String x:Key="Search.Results.Prompt">Введите запрос, чтобы увидеть локальные результаты.</x:String>
+  <x:String x:Key="Search.Results.Found">Найдено результатов</x:String>
+  
+  <!-- Pagination -->
+  <x:String x:Key="Search.Pagination.Previous">← Назад</x:String>
+  <x:String x:Key="Search.Pagination.Next">Далее →</x:String>
+  <x:String x:Key="Search.Pagination.Page">Страница {0}</x:String>
+  <x:String x:Key="Search.Pagination.First">Первая</x:String>
+  <x:String x:Key="Search.Pagination.Last">Последняя</x:String>
+  
+  <!-- Related Queries / Suggestions -->
+  <x:String x:Key="Search.Related.Title">Похожие запросы</x:String>
+  <x:String x:Key="Search.Related.AlsoSearch">Также ищут:</x:String>
+  <x:String x:Key="Search.Suggestions.Title">Подсказки</x:String>
+  
+  <!-- Search Sources -->
+  <x:String x:Key="Search.Source.Wikipedia">Википедия</x:String>
+  <x:String x:Key="Search.Source.WebArchive">Веб-архив</x:String>
+  <x:String x:Key="Search.Source.YouTube">YouTube</x:String>
+  <x:String x:Key="Search.Source.MetaSearx">MetaSearx</x:String>
+  <x:String x:Key="Search.Source.Curlie">Curlie</x:String>
+  <x:String x:Key="Search.Source.DirectUrl">Прямая ссылка</x:String>
+  
+  <!-- Search Modes -->
+  <x:String x:Key="Search.Mode.Sites">Сайты</x:String>
+  <x:String x:Key="Search.Mode.Images">Изображения</x:String>
+  <x:String x:Key="Search.Mode.Videos">Видео</x:String>
+  
+  <!-- Search Actions -->
+  <x:String x:Key="Search.Action.Search">Поиск</x:String>
+  <x:String x:Key="Search.Action.SearchImages">Поиск изображений</x:String>
+  <x:String x:Key="Search.Action.SearchVideos">Поиск видео</x:String>
+  <x:String x:Key="Search.Action.OpenOnYouTube">Открыть на YouTube</x:String>
+  <x:String x:Key="Search.Action.ViewSource">Просмотреть источник</x:String>
 </ResourceDictionary>

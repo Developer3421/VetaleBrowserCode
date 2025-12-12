@@ -8,36 +8,49 @@ using VetaleBrowser.VetaleBrowser.Search.Models;
 namespace VetaleBrowser.VetaleBrowser.Search.Services;
 
 /// <summary>
-/// Сервіс уніфікованого пошуку по Wikipedia, WebArchive, (надалі CommonCrawl),
-/// який агрегує результати в одну сторінку й зберігає їх у тимчасове сховище.
+/// Сервіс уніфікованого пошуку по Wikipedia, WebArchive, MetaSearx та інших джерелах,
+/// який агрегує результати в сторінки по 50 записів (як Google/Bing).
 /// </summary>
 public interface IUnifiedSearchService
 {
-    Task<UnifiedSearchPage> SearchAsync(string query, int pageNumber, int pageSize, CancellationToken ct = default);
+    /// <summary>
+    /// Пошук з пагінацією
+    /// </summary>
+    /// <param name="query">Пошуковий запит</param>
+    /// <param name="pageNumber">Номер сторінки (1-based)</param>
+    /// <param name="pageSize">Кількість результатів на сторінку (за замовчуванням 50)</param>
+    /// <param name="ct">Токен скасування</param>
+    Task<UnifiedSearchPage> SearchAsync(string query, int pageNumber = 1, int pageSize = 50, CancellationToken ct = default);
 }
 
 public sealed class UnifiedSearchService : IUnifiedSearchService
 {
     private readonly IWikipediaSearchClient _wikipedia;
     private readonly IWebArchiveSearchClient _webArchive;
+    private readonly IMetaSearxSearchClient _metaSearx;
     private readonly Func<ISearchSessionStore> _storeFactory;
+    
+    // Кількість результатів на сторінку (як у Google)
+    private const int DefaultPageSize = 50;
 
     public UnifiedSearchService()
-        : this(new WikipediaSearchClient(), new WebArchiveSearchClient(), () => new JsonFileSearchSessionStore())
+        : this(new WikipediaSearchClient(), new WebArchiveSearchClient(), new MetaSearxSearchClient(), () => new JsonFileSearchSessionStore())
     {
     }
 
     public UnifiedSearchService(
         IWikipediaSearchClient wikipedia,
         IWebArchiveSearchClient webArchive,
+        IMetaSearxSearchClient metaSearx,
         Func<ISearchSessionStore> storeFactory)
     {
         _wikipedia = wikipedia ?? throw new ArgumentNullException(nameof(wikipedia));
         _webArchive = webArchive ?? throw new ArgumentNullException(nameof(webArchive));
+        _metaSearx = metaSearx ?? throw new ArgumentNullException(nameof(metaSearx));
         _storeFactory = storeFactory ?? throw new ArgumentNullException(nameof(storeFactory));
     }
 
-    public async Task<UnifiedSearchPage> SearchAsync(string query, int pageNumber, int pageSize, CancellationToken ct = default)
+    public async Task<UnifiedSearchPage> SearchAsync(string query, int pageNumber = 1, int pageSize = 50, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(query))
         {
@@ -47,68 +60,105 @@ public sealed class UnifiedSearchService : IUnifiedSearchService
                 PageNumber = 1,
                 PageSize = pageSize,
                 TotalResults = 0,
-                Results = Array.Empty<UnifiedSearchResult>()
+                Results = Array.Empty<UnifiedSearchResult>(),
+                HasNextPage = false,
+                HasPreviousPage = false
             };
         }
 
         var store = _storeFactory();
-
-        // Паралельно тягнемо Wikipedia (1 результат) і WebArchive (посилання на пошук)
-        var wikiTask = _wikipedia.SearchTopAsync(query, maxResults: 1, ct);
-        var webArchiveTask = _webArchive.SearchTodayAsync(query, maxResults: 1, ct);
-
-        await Task.WhenAll(wikiTask, webArchiveTask);
-
         var results = new List<UnifiedSearchResult>();
+        var hasNextPage = false;
 
-        if (wikiTask.Result is { Count: > 0 })
+        // На першій сторінці показуємо Wikipedia, WebArchive, YouTube + MetaSearx
+        // На наступних сторінках - тільки MetaSearx
+        if (pageNumber == 1)
         {
-            foreach (var r in wikiTask.Result)
+            // Паралельно тягнемо Wikipedia, WebArchive та MetaSearx (перша сторінка)
+            var wikiTask = _wikipedia.SearchTopAsync(query, maxResults: 1, ct);
+            var webArchiveTask = _webArchive.SearchTodayAsync(query, maxResults: 1, ct);
+            var metaSearxTask = _metaSearx.SearchAsync(query, page: 1, resultsPerPage: pageSize - 3, ct);
+
+            await Task.WhenAll(wikiTask, webArchiveTask, metaSearxTask);
+
+            // 1. Wikipedia (енциклопедія)
+            if (wikiTask.Result is { Count: > 0 })
             {
-                r.Source = SearchSourceType.Wikipedia;
+                foreach (var r in wikiTask.Result)
+                {
+                    r.Source = SearchSourceType.Wikipedia;
+                    r.PageNumber = pageNumber;
+                    results.Add(r);
+                }
+            }
+
+            // 2. WebArchive (архів інтернету)
+            if (webArchiveTask.Result is { Count: > 0 })
+            {
+                foreach (var r in webArchiveTask.Result)
+                {
+                    r.Source = SearchSourceType.WebArchive;
+                    r.PageNumber = pageNumber;
+                    results.Add(r);
+                }
+            }
+
+            // 3. YouTube (посилання на відеопошук)
+            results.Add(new UnifiedSearchResult
+            {
+                Title = $"🎬 Відео на YouTube: \"{query}\"",
+                Url = $"https://www.youtube.com/results?search_query={Uri.EscapeDataString(query)}",
+                DisplayUrl = "youtube.com › results",
+                Snippet = $"Переглянути відео результати пошуку на YouTube для \"{query}\".",
+                Source = SearchSourceType.YouTube,
+                Timestamp = null,
+                RankScore = 0,
+                PageNumber = pageNumber
+            });
+
+            // 4. MetaSearx результати
+            if (metaSearxTask.Result.Results.Count > 0)
+            {
+                foreach (var r in metaSearxTask.Result.Results)
+                {
+                    r.Source = SearchSourceType.MetaSearx;
+                    r.PageNumber = pageNumber;
+                    results.Add(r);
+                }
+            }
+            
+            hasNextPage = metaSearxTask.Result.HasNextPage;
+        }
+        else
+        {
+            // Для сторінок 2+ - тільки результати з MetaSearx
+            var metaSearxResult = await _metaSearx.SearchAsync(query, page: pageNumber, resultsPerPage: pageSize, ct);
+            
+            foreach (var r in metaSearxResult.Results)
+            {
+                r.Source = SearchSourceType.MetaSearx;
+                r.PageNumber = pageNumber;
                 results.Add(r);
             }
+            
+            hasNextPage = metaSearxResult.HasNextPage;
         }
 
-        if (webArchiveTask.Result is { Count: > 0 })
-        {
-            foreach (var r in webArchiveTask.Result)
-            {
-                r.Source = SearchSourceType.WebArchive;
-                results.Add(r);
-            }
-        }
-
-        // TODO: сюди буде додано CommonCrawl (ще +5 результатів).
-
-        // Додаємо штучний результат-посилання на пошук по YouTube для цього запиту
-        var youtubeUrl = $"https://www.youtube.com/results?search_query={Uri.EscapeDataString(query)}";
-        results.Add(new UnifiedSearchResult
-        {
-            Title = $"Пошук на YouTube: \"{query}\"",
-            Url = youtubeUrl,
-            DisplayUrl = "youtube.com › results",
-            Snippet = $"Відкрити результати пошуку на YouTube для \"{query}\".",
-            Source = SearchSourceType.YouTube,
-            Timestamp = null,
-            RankScore = 0,
-            PageNumber = 1
-        });
-
-        // Проставляємо PageNumber і RankScore (спрощено: позиція в списку)
+        // Проставляємо RankScore для правильного сортування
         for (int i = 0; i < results.Count; i++)
         {
-            results[i].PageNumber = 1;
             results[i].RankScore = results.Count - i;
         }
 
         var page = new UnifiedSearchPage
         {
             SearchSessionId = store.SessionId,
-            PageNumber = 1,
+            PageNumber = pageNumber,
             PageSize = pageSize,
             TotalResults = results.Count,
-            Results = results.ToArray()
+            Results = results.ToArray(),
+            HasNextPage = hasNextPage,
+            HasPreviousPage = pageNumber > 1
         };
 
         await store.SavePageAsync(page, ct);

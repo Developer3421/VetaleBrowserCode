@@ -320,4 +320,48 @@
   <x:String x:Key="Gemini.ApiKey.UseCustomKey">Anahtarımı Kullan</x:String>
   <x:String x:Key="Gemini.ApiKey.UseDefaultKey">Varsayılanla Devam Et</x:String>
   <x:String x:Key="Gemini.ApiKey.Note">💡 API anahtarınız yerel olarak saklanır ve asla paylaşılmaz. Varsayılan anahtarın kullanım sınırları vardır.</x:String>
+
+  <!-- Vetale Search Results -->
+  <x:String x:Key="Search.Results.Stats">{0} sonuç {1} saniyede bulundu</x:String>
+  <x:String x:Key="Search.Results.StatsWithPage">{0} sonuç {1} saniyede bulundu (sayfa {2})</x:String>
+  <x:String x:Key="Search.Results.Searching">Aranıyor...</x:String>
+  <x:String x:Key="Search.Results.SearchingIn">Wikipedia, WebArchive, MetaSearx'te aranıyor…</x:String>
+  <x:String x:Key="Search.Results.LoadingPage">Sayfa {0} yükleniyor…</x:String>
+  <x:String x:Key="Search.Results.NoResults">Sonuç bulunamadı</x:String>
+  <x:String x:Key="Search.Results.Error">Arama sırasında bir hata oluştu. Lütfen tekrar deneyin.</x:String>
+  <x:String x:Key="Search.Results.Heading">Vetale Yerel Arama</x:String>
+  <x:String x:Key="Search.Results.Prompt">Yerel sonuçları görmek için bir sorgu girin.</x:String>
+  <x:String x:Key="Search.Results.Found">Sonuç bulundu</x:String>
+  
+  <!-- Pagination -->
+  <x:String x:Key="Search.Pagination.Previous">← Önceki</x:String>
+  <x:String x:Key="Search.Pagination.Next">Sonraki →</x:String>
+  <x:String x:Key="Search.Pagination.Page">Sayfa {0}</x:String>
+  <x:String x:Key="Search.Pagination.First">İlk</x:String>
+  <x:String x:Key="Search.Pagination.Last">Son</x:String>
+  
+  <!-- Related Queries / Suggestions -->
+  <x:String x:Key="Search.Related.Title">İlgili aramalar</x:String>
+  <x:String x:Key="Search.Related.AlsoSearch">Diğerleri de aradı:</x:String>
+  <x:String x:Key="Search.Suggestions.Title">Öneriler</x:String>
+  
+  <!-- Search Sources -->
+  <x:String x:Key="Search.Source.Wikipedia">Vikipedi</x:String>
+  <x:String x:Key="Search.Source.WebArchive">Web Arşivi</x:String>
+  <x:String x:Key="Search.Source.YouTube">YouTube</x:String>
+  <x:String x:Key="Search.Source.MetaSearx">MetaSearx</x:String>
+  <x:String x:Key="Search.Source.Curlie">Curlie</x:String>
+  <x:String x:Key="Search.Source.DirectUrl">Doğrudan Bağlantı</x:String>
+  
+  <!-- Search Modes -->
+  <x:String x:Key="Search.Mode.Sites">Siteler</x:String>
+  <x:String x:Key="Search.Mode.Images">Görseller</x:String>
+  <x:String x:Key="Search.Mode.Videos">Videolar</x:String>
+  
+  <!-- Search Actions -->
+  <x:String x:Key="Search.Action.Search">Ara</x:String>
+  <x:String x:Key="Search.Action.SearchImages">Görsel Ara</x:String>
+  <x:String x:Key="Search.Action.SearchVideos">Video Ara</x:String>
+  <x:String x:Key="Search.Action.OpenOnYouTube">YouTube'da Aç</x:String>
+  <x:String x:Key="Search.Action.ViewSource">Kaynağı Görüntüle</x:String>
 </ResourceDictionary>

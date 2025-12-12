@@ -390,13 +390,13 @@
                         <StackPanel>
                             <!-- Перемикач режимів пошуку -->
                             <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
-                                <Button x:Name="ModeSitesButton" Classes="page-number active" Click="ModeSites_Click">Сайти</Button>
-                                <Button x:Name="ModeImagesButton" Classes="page-number" Click="ModeImages_Click">Зображення</Button>
-                                <Button x:Name="ModeVideosButton" Classes="page-number" Click="ModeVideos_Click">Відео</Button>
+                                <Button x:Name="ModeSitesButton" Classes="page-number active" Click="ModeSites_Click" Content="{DynamicResource Search.Mode.Sites}"/>
+                                <Button x:Name="ModeImagesButton" Classes="page-number" Click="ModeImages_Click" Content="{DynamicResource Search.Mode.Images}"/>
+                                <Button x:Name="ModeVideosButton" Classes="page-number" Click="ModeVideos_Click" Content="{DynamicResource Search.Mode.Videos}"/>
                             </StackPanel>
 
                             <TextBlock x:Name="QueryHeading"
-                                       Text="Локальний пошук Vetale"
+                                       Text="{DynamicResource Search.Results.Heading}"
                                        FontSize="22"
                                        FontWeight="SemiBold"
                                        Foreground="#8B4513"
@@ -404,7 +404,7 @@
                             <!-- Stats -->
                             <TextBlock x:Name="SearchStats"
                                        Classes="search-stats"
-                                       Text="Введіть запит, щоб побачити локальні результати."/>
+                                       Text="{DynamicResource Search.Results.Prompt}"/>
 
                             <!-- Results -->
                             <StackPanel x:Name="ResultsPanel" Margin="0,12,0,0">
@@ -575,7 +575,7 @@
 
                         <!-- Related searches section -->
                         <StackPanel x:Name="RelatedSection" Margin="0,20,0,0" IsVisible="False">
-                            <TextBlock Classes="related-title" Text="Пов'язані запити"/>
+                            <TextBlock Classes="related-title" Text="{DynamicResource Search.Related.Title}"/>
                             <ItemsControl x:Name="RelatedQueriesList">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>

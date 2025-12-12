@@ -515,4 +515,48 @@
   <x:String x:Key="Gemini.ApiKey.UseCustomKey">Use My Key</x:String>
   <x:String x:Key="Gemini.ApiKey.UseDefaultKey">Continue with Default</x:String>
   <x:String x:Key="Gemini.ApiKey.Note">💡 Your API key is stored locally and never shared. The default key has usage limits.</x:String>
+
+  <!-- Vetale Search Results -->
+  <x:String x:Key="Search.Results.Stats">Found {0} results in {1} sec.</x:String>
+  <x:String x:Key="Search.Results.StatsWithPage">Found {0} results in {1} sec. (page {2})</x:String>
+  <x:String x:Key="Search.Results.Searching">Searching...</x:String>
+  <x:String x:Key="Search.Results.SearchingIn">Searching in Wikipedia, WebArchive, MetaSearx…</x:String>
+  <x:String x:Key="Search.Results.LoadingPage">Loading page {0}…</x:String>
+  <x:String x:Key="Search.Results.NoResults">No results found</x:String>
+  <x:String x:Key="Search.Results.Error">An error occurred during search. Please try again.</x:String>
+  <x:String x:Key="Search.Results.Heading">Vetale Local Search</x:String>
+  <x:String x:Key="Search.Results.Prompt">Enter a query to see local results.</x:String>
+  <x:String x:Key="Search.Results.Found">Results found</x:String>
+  
+  <!-- Pagination -->
+  <x:String x:Key="Search.Pagination.Previous">← Previous</x:String>
+  <x:String x:Key="Search.Pagination.Next">Next →</x:String>
+  <x:String x:Key="Search.Pagination.Page">Page {0}</x:String>
+  <x:String x:Key="Search.Pagination.First">First</x:String>
+  <x:String x:Key="Search.Pagination.Last">Last</x:String>
+  
+  <!-- Related Queries / Suggestions -->
+  <x:String x:Key="Search.Related.Title">Related searches</x:String>
+  <x:String x:Key="Search.Related.AlsoSearch">People also search:</x:String>
+  <x:String x:Key="Search.Suggestions.Title">Suggestions</x:String>
+  
+  <!-- Search Sources -->
+  <x:String x:Key="Search.Source.Wikipedia">Wikipedia</x:String>
+  <x:String x:Key="Search.Source.WebArchive">Web Archive</x:String>
+  <x:String x:Key="Search.Source.YouTube">YouTube</x:String>
+  <x:String x:Key="Search.Source.MetaSearx">MetaSearx</x:String>
+  <x:String x:Key="Search.Source.Curlie">Curlie</x:String>
+  <x:String x:Key="Search.Source.DirectUrl">Direct Link</x:String>
+  
+  <!-- Search Modes -->
+  <x:String x:Key="Search.Mode.Sites">Sites</x:String>
+  <x:String x:Key="Search.Mode.Images">Images</x:String>
+  <x:String x:Key="Search.Mode.Videos">Videos</x:String>
+  
+  <!-- Search Actions -->
+  <x:String x:Key="Search.Action.Search">Search</x:String>
+  <x:String x:Key="Search.Action.SearchImages">Search Images</x:String>
+  <x:String x:Key="Search.Action.SearchVideos">Search Videos</x:String>
+  <x:String x:Key="Search.Action.OpenOnYouTube">Open on YouTube</x:String>
+  <x:String x:Key="Search.Action.ViewSource">View Source</x:String>
 </ResourceDictionary>

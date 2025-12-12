@@ -27,13 +27,38 @@ public static class DatabaseManager
             {
                 lock (_lock)
                 {
+                    // Double-check locking
                     if (_instance == null)
                     {
-                        Initialize();
+                        InitializeInternal();
                     }
                 }
             }
             return _instance!;
+        }
+    }
+    
+    /// <summary>
+    /// Внутрішня ініціалізація (без повторного виклику якщо вже є екземпляр)
+    /// </summary>
+    private static void InitializeInternal()
+    {
+        if (_instance != null) return;
+        
+        // Визначаємо шлях до бази даних
+        var dbPath = GetDefaultDatabasePath();
+        
+        // Визначаємо ключ шифрування
+        var encryptionKey = GenerateEncryptionKey();
+
+        // Створюємо новий екземпляр
+        _instance = new TabDatabaseService(dbPath, encryptionKey);
+
+        // Створюємо початкову сесію якщо немає поточної
+        var currentSession = _instance.GetCurrentSession();
+        if (currentSession == null)
+        {
+            _instance.CreateSession();
         }
     }
 
@@ -86,8 +111,20 @@ public static class DatabaseManager
     {
         lock (_lock)
         {
-            // Закриваємо попередній екземпляр якщо існує
-            _instance?.Dispose();
+            // Якщо вже ініціалізовано і немає кастомних параметрів - не переініціалізуємо
+            if (_instance != null && customPath == null && customKey == null)
+            {
+                return;
+            }
+            
+            // Закриваємо попередній екземпляр тільки якщо є кастомні параметри
+            if (customPath != null || customKey != null)
+            {
+                _instance?.Dispose();
+                _instance = null;
+            }
+            
+            if (_instance != null) return;
 
             // Визначаємо шлях до бази даних
             var dbPath = customPath ?? GetDefaultDatabasePath();

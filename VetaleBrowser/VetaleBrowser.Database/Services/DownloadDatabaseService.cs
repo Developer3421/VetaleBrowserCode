@@ -32,7 +32,7 @@ public class DownloadDatabaseService : IDisposable
             Directory.CreateDirectory(dir);
 
         // MEMORY OPTIMIZATION: Direct connection
-        var cs = new ConnectionString { Filename = databasePath, Connection = ConnectionType.Direct };
+        var cs = new ConnectionString { Filename = databasePath, Connection = ConnectionType.Shared };
         _database = new LiteDatabase(cs);
         try { _database.Checkpoint(); } catch { }
 

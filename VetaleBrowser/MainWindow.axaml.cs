@@ -420,6 +420,10 @@ public partial class MainWindow : Window
                     var home = await GetSearchHomePageAsync();
                     System.Diagnostics.Debug.WriteLine($"[MainWindow] Creating initial tab with URL: {home}");
                     CreateNewTab(home);
+                    
+                    // Оновлюємо іконку та заголовок для початкової вкладки
+                    await UpdateFaviconAsync(home);
+                    await UpdateTabTitleAsync("Vetale Search", home);
                 }
                 catch (Exception ex)
                 {
@@ -1065,7 +1069,7 @@ public partial class MainWindow : Window
             {
                 var url = _tabs.Active.Manager.GetCurrentUrl();
                 _lastFaviconUrl = url; // keep poll baseline in sync
-                await Dispatcher.UIThread.InvokeAsync(() =>
+                Dispatcher.UIThread.Post(() =>
                 {
                     var nav = _normalModePage?.NavBar;
                     if (nav != null)
@@ -1101,7 +1105,7 @@ public partial class MainWindow : Window
             }
             else if (prop == "CanGoBack" || prop == "CanGoForward")
             {
-                await Dispatcher.UIThread.InvokeAsync(() =>
+                Dispatcher.UIThread.Post(() =>
                 {
                     var nav = _normalModePage?.NavBar;
                     if (nav != null && _tabs.Active != null)
@@ -1199,6 +1203,19 @@ public partial class MainWindow : Window
         try
         {
             if (string.IsNullOrWhiteSpace(address)) return;
+            
+            // Перевіряємо чи це Vetale Search (vetale:// або vetale:)
+            var isVetaleSearch = address.StartsWith("vetale://", StringComparison.OrdinalIgnoreCase) ||
+                                 address.StartsWith("vetale:", StringComparison.OrdinalIgnoreCase);
+            
+            if (isVetaleSearch)
+            {
+                // Завантажуємо іконку Vetale Search
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Detected Vetale URL: {address}, loading Vetale Search icon");
+                await LoadVetaleSearchIconAsync();
+                return;
+            }
+            
             if (!Uri.TryCreate(address, UriKind.Absolute, out var uri)) return;
 
             // Determine scale for better icon size
@@ -1246,7 +1263,7 @@ public partial class MainWindow : Window
                 image = await _faviconService.GetFaviconAsync(uri, size);
             }
             
-            await Dispatcher.UIThread.InvokeAsync(() =>
+            Dispatcher.UIThread.Post(() =>
             {
                 var tabsHost = _normalModePage?.TabsHostPanel;
                 if (tabsHost != null && _tabs.Active != null)
@@ -1268,13 +1285,143 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Завантажує іконку Vetale Search для вкладки
+    /// </summary>
+    private Task LoadVetaleSearchIconAsync()
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("[MainWindow] LoadVetaleSearchIconAsync called");
+            
+            IImage? image = null;
+            
+            // Спосіб 1: Завантажуємо з Application ресурсів
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] Trying to load from Application resources...");
+                if (Application.Current != null)
+                {
+                    if (Application.Current.TryFindResource("VetaleSearchIconImage", out var resource))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[MainWindow] Resource found, type: {resource?.GetType().Name ?? "null"}");
+                        if (resource is IImage img)
+                        {
+                            image = img;
+                            System.Diagnostics.Debug.WriteLine("[MainWindow] Vetale Search icon loaded from Application resources");
+                        }
+                        else if (resource is Avalonia.Media.Imaging.Bitmap bmp)
+                        {
+                            image = bmp;
+                            System.Diagnostics.Debug.WriteLine("[MainWindow] Vetale Search icon loaded as Bitmap from resources");
+                        }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("[MainWindow] VetaleSearchIconImage resource NOT found");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[MainWindow] Application.Current is null");
+                }
+            }
+            catch (Exception resEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Failed to load from resources: {resEx.Message}");
+            }
+            
+            // Спосіб 2: Завантажуємо через Uri напряму
+            if (image == null)
+            {
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine("[MainWindow] Trying to load via direct Uri...");
+                    var uri = new Uri("avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/VetaleSearchIcon.png");
+                    image = new Avalonia.Media.Imaging.Bitmap(Avalonia.Platform.AssetLoader.Open(uri));
+                    System.Diagnostics.Debug.WriteLine("[MainWindow] Vetale Search icon loaded via direct Uri");
+                }
+                catch (Exception uriEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Failed to load via Uri: {uriEx.Message}");
+                }
+            }
+            
+            // Спосіб 3: файлова система
+            if (image == null)
+            {
+                try
+                {
+                    var basePath = AppDomain.CurrentDomain.BaseDirectory;
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Base path: {basePath}");
+                    
+                    // Список можливих шляхів до іконки
+                    var possiblePaths = new[]
+                    {
+                        Path.Combine(basePath, "VetaleBrowser.UI", "Sources", "Icons", "VetaleSearchIcon.png"),
+                        Path.Combine(basePath, "Sources", "Icons", "VetaleSearchIcon.png"),
+                        Path.Combine(basePath, "Icons", "VetaleSearchIcon.png"),
+                        Path.Combine(basePath, "VetaleSearchIcon.png")
+                    };
+                    
+                    foreach (var path in possiblePaths)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[MainWindow] Checking path: {path}, exists: {File.Exists(path)}");
+                        if (File.Exists(path))
+                        {
+                            image = new Avalonia.Media.Imaging.Bitmap(path);
+                            System.Diagnostics.Debug.WriteLine($"[MainWindow] Vetale Search icon loaded from file: {path}");
+                            break;
+                        }
+                    }
+                }
+                catch (Exception fileEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Failed to load from file: {fileEx.Message}");
+                }
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Final image state: {(image != null ? "LOADED" : "NULL")}");
+            
+            // Застосовуємо іконку до вкладки
+            Dispatcher.UIThread.Post(() =>
+            {
+                var tabsHost = _normalModePage?.TabsHostPanel;
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] TabsHost: {(tabsHost != null ? "found" : "null")}, Active: {(_tabs.Active != null ? "found" : "null")}");
+                
+                if (tabsHost != null && _tabs.Active != null)
+                {
+                    var idx = _tabs.Workers.ToList().IndexOf(_tabs.Active);
+                    var childIdx = idx + 1;
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Tab index: {idx}, childIdx: {childIdx}, children count: {tabsHost.Children.Count}");
+                    
+                    if (idx >= 0 && childIdx < tabsHost.Children.Count && tabsHost.Children[childIdx] is Tab tab)
+                    {
+                        tab.FaviconSource = image;
+                        System.Diagnostics.Debug.WriteLine($"[MainWindow] Vetale Search icon APPLIED to tab: hasImage={(image != null)}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("[MainWindow] Could not find tab at expected index");
+                    }
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] LoadVetaleSearchIcon error: {ex.Message}");
+        }
+        
+        return Task.CompletedTask;
+    }
+
     // Compute and apply a friendly tab title from the page title or URL
-    private async Task UpdateTabTitleAsync(string? pageTitle, string? url)
+    private Task UpdateTabTitleAsync(string? pageTitle, string? url)
     {
         try
         {
             var friendly = ComputeTitle(pageTitle, url);
-            await Dispatcher.UIThread.InvokeAsync(() =>
+            Dispatcher.UIThread.Post(() =>
             {
                 var tabsHost = _normalModePage?.TabsHostPanel;
                 if (tabsHost != null && _tabs.Active != null)
@@ -1292,6 +1439,8 @@ public partial class MainWindow : Window
         {
             System.Diagnostics.Debug.WriteLine($"[MainWindow] UpdateTabTitle error: {ex.Message}");
         }
+        
+        return Task.CompletedTask;
     }
 
     private static string ComputeTitle(string? pageTitle, string? url)
@@ -1812,6 +1961,9 @@ public partial class MainWindow : Window
             {
                 // Показуємо внутрішню сторінку
                 ActivateWorkerForInternalPage(worker, entry.InternalPageContent, entry.Url);
+                
+                // Оновлюємо іконку для внутрішньої сторінки (Vetale Search)
+                _ = UpdateFaviconAsync(entry.Url);
             }
             else
             {
@@ -2121,13 +2273,15 @@ public partial class MainWindow : Window
 
     public void OpenVetaleSearchInCurrentTab()
     {
-        Dispatcher.UIThread.Post(() =>
+        Dispatcher.UIThread.Post(async () =>
         {
             const string vetaleSearchUrl = "vetale://search";
             var activeWorker = _tabs.Active;
             if (activeWorker == null)
             {
                 CreateNewTab(vetaleSearchUrl);
+                // Оновлюємо іконку для нової вкладки
+                await UpdateFaviconAsync(vetaleSearchUrl);
                 Activate();
                 Focus();
                 return;
@@ -2140,6 +2294,9 @@ public partial class MainWindow : Window
 
             // Навігуємо через History/TabWorker: подія OnWorkerNavigationChanged виставить UI
             activeWorker.Navigate(vetaleSearchUrl, home);
+            
+            // Оновлюємо іконку вкладки
+            await UpdateFaviconAsync(vetaleSearchUrl);
         });
     }
 }

@@ -38,11 +38,11 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
             Directory.CreateDirectory(directory);
         }
 
-        // MEMORY OPTIMIZATION: Direct mode замість Shared
+        // MEMORY OPTIMIZATION: Shared mode для дозволу багаторазового доступу
         var connectionString = new ConnectionString
         {
             Filename = databasePath,
-            Connection = ConnectionType.Direct // Менше RAM
+            Connection = ConnectionType.Shared // Дозволяє доступ з різних місць
         };
 
         _database = new LiteDatabase(connectionString);

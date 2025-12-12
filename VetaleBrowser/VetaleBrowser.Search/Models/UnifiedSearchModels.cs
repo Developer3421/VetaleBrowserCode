@@ -11,7 +11,9 @@ public enum SearchSourceType
     Wikipedia = 1,
     WebArchive = 2,
     CommonCrawl = 3,
-    YouTube = 4 // новий тип для пошуку на YouTube
+    YouTube = 4,
+    Curlie = 5,       // Curlie.org - відкритий веб-каталог (наступник DMOZ)
+    MetaSearx = 6     // MetaSearx - метапошукова система (агрегатор Google, Bing, DuckDuckGo тощо)
 }
 
 /// <summary>
@@ -49,4 +51,19 @@ public sealed class UnifiedSearchPage
     public int PageSize { get; set; }
     public int TotalResults { get; set; }
     public UnifiedSearchResult[] Results { get; set; } = Array.Empty<UnifiedSearchResult>();
+    
+    /// <summary>
+    /// Чи є наступна сторінка результатів
+    /// </summary>
+    public bool HasNextPage { get; set; }
+    
+    /// <summary>
+    /// Чи є попередня сторінка результатів
+    /// </summary>
+    public bool HasPreviousPage { get; set; }
+    
+    /// <summary>
+    /// Пошуковий запит
+    /// </summary>
+    public string Query { get; set; } = string.Empty;
 }

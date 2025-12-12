@@ -26,4 +26,7 @@
     <Bitmap x:Key="ReloadTabButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/ReloadTabButton.png</Bitmap>
     <Bitmap x:Key="SettingsButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/SettingsButton.png</Bitmap>
     <Bitmap x:Key="AddBookmarkButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/AddBookmarkButton.png</Bitmap>
+    
+    <!-- Vetale Search Icon -->
+    <Bitmap x:Key="VetaleSearchIconImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/VetaleSearchIcon.png</Bitmap>
 </ResourceDictionary>

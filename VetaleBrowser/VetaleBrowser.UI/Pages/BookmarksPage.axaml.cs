@@ -13,6 +13,16 @@ public partial class BookmarksPage : UserControl
     private ItemsControl? _bookmarksItemsControl;
     private ITabDatabaseService? _databaseService;
     private string? _currentFolder;
+    
+    /// <summary>
+    /// Подія для запиту на показ форми додавання закладки
+    /// </summary>
+    public event EventHandler? AddBookmarkRequested;
+    
+    /// <summary>
+    /// Подія для відкриття URL закладки
+    /// </summary>
+    public event EventHandler<string>? BookmarkOpenRequested;
 
     public BookmarksPage()
     {
@@ -56,11 +66,15 @@ public partial class BookmarksPage : UserControl
 
     private void AddBookmark_Click(object? sender, RoutedEventArgs e)
     {
-        // Open BookmarksWindow in "add bookmark" mode by passing an empty URL & title
-        var window = new Windows.BookmarksWindow(string.Empty, string.Empty);
-        window.ShowDialog(GetParentWindow());
-
-        // Adding is handled inside BookmarksWindow -> AddBookmarkPage; just reload list after window closes
+        // Викликаємо подію для показу форми додавання в тому ж вікні
+        AddBookmarkRequested?.Invoke(this, EventArgs.Empty);
+    }
+    
+    /// <summary>
+    /// Перезавантажує список закладок
+    /// </summary>
+    public void RefreshBookmarks()
+    {
         if (_databaseService != null)
         {
             try
@@ -69,7 +83,7 @@ public partial class BookmarksPage : UserControl
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error refreshing bookmarks after add: {ex.Message}");
+                Console.WriteLine($"Error refreshing bookmarks: {ex.Message}");
             }
         }
     }
