@@ -7,15 +7,36 @@
   <x:String x:Key="Console.Title">Konsole — Vetale Browser</x:String>
   <x:String x:Key="History.Title">Verlauf — Vetale Browser</x:String>
   <x:String x:Key="Bookmarks.Title">Lesezeichen — Vetale Browser</x:String>
+  <x:String x:Key="DevTools.Title">Entwicklertools — Vetale Browser</x:String>
+  <x:String x:Key="VetaleAI.Title">Vetale AI Chat — Vetale Browser</x:String>
+  <x:String x:Key="About.Title">Über — Vetale Browser</x:String>
+
+  <!-- Über-Fenster -->
+  <x:String x:Key="About.Version">Version 1.0</x:String>
+  <x:String x:Key="About.Creator.Label">Ersteller</x:String>
+  <x:String x:Key="About.Creator.Name">Oleg Kurylo</x:String>
+  <x:String x:Key="About.CreationDate.Label">Erstellungsdatum</x:String>
+  <x:String x:Key="About.CreationDate.Value">15. Dezember 2025</x:String>
+  <x:String x:Key="About.Description">Vetale Browser ist ein moderner Webbrowser, der von Grund auf neu entwickelt wurde. Der Ersteller hat einen langen Weg von der allerersten WPF-Version bis zu dieser aktuellen Avalonia UI-Version zurückgelegt. Der Browser verfügt über einen integrierten KI-Assistenten, Entwicklertools, Download-Manager und viele andere Funktionen für komfortables Surfen im Web.</x:String>
+  <x:String x:Key="About.Technologies.Label">Technologien</x:String>
+  <x:String x:Key="About.Copyright">© 2025 Oleg Kurylo. Alle Rechte vorbehalten.</x:String>
+  
+  <!-- Werkzeuge - Über -->
+  <x:String x:Key="Tools.About.Name">Über</x:String>
+  <x:String x:Key="Tools.About.Description">Informationen über den Browser und seinen Ersteller</x:String>
 
   <!-- Einstellungen Hauptseite -->
   <x:String x:Key="Settings.Header">Einstellungen</x:String>
+  <x:String x:Key="Settings.Back">Zurück</x:String>
   <x:String x:Key="Settings.Language.Title">Sprache</x:String>
   <x:String x:Key="Settings.Language.Sub">Bevorzugte Sprache auswählen</x:String>
   <x:String x:Key="Settings.Appearance.Title">Darstellung</x:String>
   <x:String x:Key="Settings.Appearance.Sub">Aussehen und Stil anpassen</x:String>
   <x:String x:Key="Settings.Search.Title">Suchmaschine</x:String>
   <x:String x:Key="Settings.Search.Sub">Standardsuchmaschine auswählen</x:String>
+  <x:String x:Key="Settings.Search.VetaleSearch.Subtitle">Lokale Suchmaschine</x:String>
+  <x:String x:Key="Settings.Search.VetaleSearch.Description">Schnelle Suche unter besuchten Seiten in lokaler Datenbank ohne Internetverbindung.</x:String>
+  <x:String x:Key="Settings.Search.OnlineEngines">Online-Suchmaschinen:</x:String>
 
   <!-- Fenstersteuerung -->
   <x:String x:Key="Window.Minimize">Minimieren</x:String>
@@ -35,7 +56,7 @@
   <x:String x:Key="Nav.Home">Startseite</x:String>
   <x:String x:Key="Nav.AddressBar.Watermark">URL oder Suchanfrage eingeben…</x:String>
 
-  <!-- Common actions -->
+  <!-- Allgemeine Aktionen -->
   <x:String x:Key="Common.Refresh">Aktualisieren</x:String>
   <x:String x:Key="Common.Clear">Leeren</x:String>
   <x:String x:Key="Common.ClearAll">Alles löschen</x:String>
@@ -53,7 +74,7 @@
   <!-- Tab -->
   <x:String x:Key="Tab.Mute.Toggle">Stumm schalten</x:String>
 
-  <!-- Bookmarks -->
+  <!-- Lesezeichen -->
   <x:String x:Key="Bookmarks.Header">Lesezeichen</x:String>
   <x:String x:Key="Bookmarks.Add">Lesezeichen hinzufügen</x:String>
   <x:String x:Key="Bookmarks.Folder.Default">Lesezeichen</x:String>
@@ -61,20 +82,20 @@
   <x:String x:Key="Bookmarks.Folder.Personal">Privat</x:String>
   <x:String x:Key="Bookmarks.Folder.News">Nachrichten</x:String>
   
-  <!-- Add Bookmark dialog -->
+  <!-- Lesezeichen hinzufügen Dialog -->
   <x:String x:Key="Bookmarks.Add.Header">Zu Lesezeichen hinzufügen</x:String>
   <x:String x:Key="Bookmarks.Add.Name">Name:</x:String>
   <x:String x:Key="Bookmarks.Add.Name.Watermark">Name des Lesezeichens eingeben</x:String>
   <x:String x:Key="Bookmarks.Add.Folder">Ordner:</x:String>
 
-  <!-- Button tooltips -->
+  <!-- Button-Tooltips -->
   <x:String x:Key="Tools.Button.Tooltip">Werkzeuge</x:String>
   <x:String x:Key="Settings.Button.Tooltip">Einstellungen</x:String>
 
-  <!-- Tools page -->
+  <!-- Werkzeuge -->
   <x:String x:Key="Tools.Header">Werkzeuge</x:String>
 
-  <!-- Appearance page -->
+  <!-- Darstellung -->
   <x:String x:Key="Appearance.Header">Darstellungseinstellungen</x:String>
   <x:String x:Key="Appearance.Tabs.Title">Tabs</x:String>
   <x:String x:Key="Appearance.Tabs.Sub">Tabgröße, Farben und Elemente anpassen</x:String>
@@ -83,9 +104,9 @@
   <x:String x:Key="Appearance.OtherWindows.Title">Weitere Fenster</x:String>
   <x:String x:Key="Appearance.OtherWindows.Sub">Darstellung anderer Browserfenster</x:String>
 
-  <!-- History -->
+  <!-- Verlauf -->
   <x:String x:Key="History.Header">Verlauf</x:String>
-  <x:String x:Key="History.Search.Watermark">Verlauf durchsuchen…</x:String>
+  <x:String x:Key="History.Search.Watermark">🔍 Verlauf durchsuchen…</x:String>
   <x:String x:Key="History.Filter.All">Alles</x:String>
   <x:String x:Key="History.Filter.1Day">1 Tag</x:String>
   <x:String x:Key="History.Filter.7Days">7 Tage</x:String>
@@ -95,7 +116,7 @@
   <x:String x:Key="History.Filter.OlderThanYear">Älter als ein Jahr</x:String>
   <x:String x:Key="History.Visits">Besuche</x:String>
 
-  <!-- Console -->
+  <!-- Konsole -->
   <x:String x:Key="Console.SearchLogs">Logs durchsuchen…</x:String>
   <x:String x:Key="Console.AutoRefresh">Automatisch aktualisieren</x:String>
   <x:String x:Key="Console.ExportLogs">Logs exportieren</x:String>
@@ -113,7 +134,7 @@
   <x:String x:Key="Tools.BackToList">Zurück zur Liste</x:String>
   <x:String x:Key="Tools.ToolTitle">Werkzeug</x:String>
 
-  <!-- Appearance Tabs page -->
+  <!-- Darstellung Tabs-Seite -->
   <x:String x:Key="Appearance.Tabs.Header">Tab-Einstellungen</x:String>
   <x:String x:Key="Appearance.Tabs.Width">Tab-Breite</x:String>
   <x:String x:Key="Appearance.Tabs.WidthPx">Breite (px):</x:String>
@@ -127,13 +148,13 @@
   <x:String x:Key="Appearance.ColorHex">Farbe (HEX):</x:String>
   <x:String x:Key="Appearance.SaveSettings">Einstellungen speichern</x:String>
 
-  <!-- Common size/labels -->
+  <!-- Größen und Symbole -->
   <x:String x:Key="Common.WidthPx">Breite (px):</x:String>
   <x:String x:Key="Common.HeightPx">Höhe (px):</x:String>
   <x:String x:Key="Common.SizePx">Größe (px):</x:String>
   <x:String x:Key="Common.IconSizePx">Symbolgröße (px):</x:String>
 
-  <!-- Appearance Main Window -->
+  <!-- Darstellung Hauptfenster -->
   <x:String x:Key="Appearance.MainWindow.Header">Einstellungen des Hauptfensters</x:String>
   <x:String x:Key="Appearance.MainWindow.NavBarColor">Farbe der Navigationsleiste</x:String>
   <x:String x:Key="Appearance.MainWindow.NavBarHeight">Höhe der Navigationsleiste</x:String>
@@ -143,7 +164,7 @@
   <x:String x:Key="Appearance.MainWindow.ButtonSize">Schaltflächengröße</x:String>
   <x:String x:Key="Appearance.MainWindow.ButtonIconSize">Symbolgröße in Schaltflächen</x:String>
 
-  <!-- Appearance Other Windows -->
+  <!-- Darstellung Andere Fenster -->
   <x:String x:Key="Appearance.OtherWindows.Header">Einstellungen anderer Fenster</x:String>
   <x:String x:Key="Appearance.OtherWindows.Description">Darstellung zusätzlicher Fenster (Einstellungen, Lesezeichen, Verlauf usw.)</x:String>
   <x:String x:Key="Appearance.OtherWindows.BackgroundColor">Fensterhintergrundfarbe</x:String>
@@ -154,11 +175,11 @@
   <x:String x:Key="Appearance.OtherWindows.Info1">Diese Einstellungen gelten für alle zusätzlichen Browserfenster wie Einstellungen, Lesezeichen, Verlauf und andere Dienstfenster.</x:String>
   <x:String x:Key="Appearance.OtherWindows.Info2">Änderungen werden wirksam, nachdem die Einstellungen gespeichert und die entsprechenden Fenster neu geöffnet wurden.</x:String>
 
-  <!-- Search custom -->
+  <!-- Benutzerdefinierte Suche -->
   <x:String x:Key="Search.Custom.Title">Benutzerdefiniert</x:String>
   <x:String x:Key="Search.Custom.Hint">Geben Sie die URL der Suchmaschine ein. Verwenden Sie {0} als Platzhalter für die Anfrage.</x:String>
 
-  <!-- Tools page - list items -->
+  <!-- Werkzeuge Seite - Liste -->
   <x:String x:Key="Tools.VetaleAI.Name">Vetale AI Chat</x:String>
   <x:String x:Key="Tools.VetaleAI.Description">Chat mit künstlicher Intelligenz Vetale</x:String>
   
@@ -183,10 +204,154 @@
   <x:String x:Key="Tools.Console.Name">Konsole</x:String>
   <x:String x:Key="Tools.Console.Description">Entwicklerkonsole mit Logs und Diagnose</x:String>
   
+  <x:String x:Key="Tools.UserAgreement.Name">Nutzungsvereinbarung</x:String>
+  <x:String x:Key="Tools.UserAgreement.Description">DSGVO-Datenschutzrichtlinie und Nutzungsvereinbarung anzeigen</x:String>
+  
   <x:String x:Key="Tools.NavigateButton">→ Im Browser öffnen</x:String>
 
-  <!-- Browser Error Pages -->
-  <!-- Network Errors -->
+  <!-- DevTools -->
+  <x:String x:Key="DevTools.Header">Entwicklertools</x:String>
+  <x:String x:Key="DevTools.Tab.Main">Hauptseite</x:String>
+  <x:String x:Key="DevTools.Tab.Elements">Elemente</x:String>
+  <x:String x:Key="DevTools.Tab.Console">Konsole</x:String>
+  <x:String x:Key="DevTools.Tab.Network">Netzwerk</x:String>
+  <x:String x:Key="DevTools.Tab.Sources">Quellen</x:String>
+  <x:String x:Key="DevTools.Tab.HtmlEditor">HTML-Editor</x:String>
+  <x:String x:Key="DevTools.Tab.Application">Anwendung</x:String>
+  <x:String x:Key="DevTools.Tab.Performance">Leistung</x:String>
+  <x:String x:Key="DevTools.Tab.WebViewWorker">WebView Worker</x:String>
+
+  <!-- DevTools Werkzeugliste -->
+  <x:String x:Key="DevTools.Tool.Elements.Title">Elemente-Inspektor</x:String>
+  <x:String x:Key="DevTools.Tool.Elements.Description">DOM-Struktur der aktuellen Seite anzeigen und bearbeiten</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Console.Title">JavaScript-Konsole</x:String>
+  <x:String x:Key="DevTools.Tool.Console.Description">Logs, Fehler und JavaScript-Konsolenausgabe anzeigen (separates Fenster)</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Network.Title">Netzwerk-Monitor</x:String>
+  <x:String x:Key="DevTools.Tool.Network.Description">Alle HTTP/HTTPS-Anfragen und -Antworten überwachen</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Sources.Title">Quellen-Viewer</x:String>
+  <x:String x:Key="DevTools.Tool.Sources.Description">JavaScript, CSS und HTML-Dateien anzeigen und debuggen</x:String>
+  
+  <x:String x:Key="DevTools.Tool.HtmlEditor.Title">HTML-Editor</x:String>
+  <x:String x:Key="DevTools.Tool.HtmlEditor.Description">Professioneller HTML-Editor mit Live-Vorschau und Syntaxhervorhebung</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Application.Title">Anwendungsspeicher</x:String>
+  <x:String x:Key="DevTools.Tool.Application.Description">Cookies, Local Storage, Session Storage und Cache verwalten</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Performance.Title">Leistungsanalysator</x:String>
+  <x:String x:Key="DevTools.Tool.Performance.Description">CPU, Speicher profilieren und Seitenleistung analysieren</x:String>
+
+  <!-- DevTools - Leistungsseite -->
+  <x:String x:Key="DevTools.Performance.CapturePerformance">Leistung erfassen</x:String>
+  <x:String x:Key="DevTools.Performance.GetWebVitals">Web Vitals abrufen</x:String>
+  <x:String x:Key="DevTools.Performance.LoadTime">Ladezeit</x:String>
+  <x:String x:Key="DevTools.Performance.DomContentLoaded">DOM geladen</x:String>
+  <x:String x:Key="DevTools.Performance.FirstPaint">Erster Paint</x:String>
+  <x:String x:Key="DevTools.Performance.MemoryUsage">Speicherverbrauch</x:String>
+  <x:String x:Key="DevTools.Performance.CoreWebVitals">Core Web Vitals</x:String>
+  <x:String x:Key="DevTools.Performance.ResourceTimings">Ressourcen-Timings</x:String>
+
+  <!-- DevTools - Elementeseite -->
+  <x:String x:Key="DevTools.Elements.Query">Abfrage</x:String>
+  <x:String x:Key="DevTools.Elements.CaptureDom">DOM erfassen</x:String>
+  <x:String x:Key="DevTools.Elements.DomTree">DOM-Baum</x:String>
+  <x:String x:Key="DevTools.Elements.SelectElement">Element auswählen</x:String>
+  <x:String x:Key="DevTools.Elements.Attributes">Attribute</x:String>
+  <x:String x:Key="DevTools.Elements.ComputedStyles">Berechnete Stile</x:String>
+
+  <!-- DevTools - Anwendungsseite -->
+  <x:String x:Key="DevTools.Application.CaptureStorage">Speicher erfassen</x:String>
+  <x:String x:Key="DevTools.Application.ClearCookies">Cookies löschen</x:String>
+  <x:String x:Key="DevTools.Application.StorageTypes">Speichertypen</x:String>
+  <x:String x:Key="DevTools.Application.LocalStorage">Lokaler Speicher</x:String>
+  <x:String x:Key="DevTools.Application.SessionStorage">Sitzungsspeicher</x:String>
+  <x:String x:Key="DevTools.Application.Cookies">Cookies</x:String>
+  <x:String x:Key="DevTools.Application.IndexedDB">IndexedDB</x:String>
+  <x:String x:Key="DevTools.Application.SelectStorageType">Speichertyp auswählen</x:String>
+  <x:String x:Key="DevTools.Application.Key">Schlüssel:</x:String>
+  <x:String x:Key="DevTools.Application.Value">Wert:</x:String>
+
+  <!-- DevTools - Quellenseite -->
+  <x:String x:Key="DevTools.Sources.CaptureSources">Quellen erfassen</x:String>
+  <x:String x:Key="DevTools.Sources.GetHtml">HTML abrufen</x:String>
+  <x:String x:Key="DevTools.Sources.FileTree">Dateibaum</x:String>
+  <x:String x:Key="DevTools.Sources.FilterByType">Nach Typ filtern:</x:String>
+  <x:String x:Key="DevTools.Sources.All">Alle</x:String>
+  <x:String x:Key="DevTools.Sources.Scripts">Skripte</x:String>
+  <x:String x:Key="DevTools.Sources.Stylesheets">Stylesheets</x:String>
+  <x:String x:Key="DevTools.Sources.Images">Bilder</x:String>
+  <x:String x:Key="DevTools.Sources.Inline">Inline</x:String>
+  <x:String x:Key="DevTools.Sources.SelectFile">Datei auswählen</x:String>
+  <x:String x:Key="DevTools.Sources.Type">Typ:</x:String>
+  <x:String x:Key="DevTools.Sources.Size">Größe:</x:String>
+  <x:String x:Key="DevTools.Sources.ExecuteJavaScript">JavaScript ausführen:</x:String>
+  <x:String x:Key="DevTools.Sources.EnterJavaScriptCode">JavaScript-Code eingeben...</x:String>
+  <x:String x:Key="DevTools.Sources.Execute">Ausführen</x:String>
+
+  <!-- HTML-Editor -->
+  <x:String x:Key="HtmlEditor.New">Neu</x:String>
+  <x:String x:Key="HtmlEditor.Open">Öffnen</x:String>
+  <x:String x:Key="HtmlEditor.Save">Speichern</x:String>
+  <x:String x:Key="HtmlEditor.Preview">Vorschau</x:String>
+  <x:String x:Key="HtmlEditor.Format">Code formatieren</x:String>
+  <x:String x:Key="HtmlEditor.Validate">HTML validieren</x:String>
+
+  <!-- WebView Worker -->
+  <x:String x:Key="DevTools.WebViewWorker.Title">WebView Worker</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Description">Separate WebView-Instanz zum Testen und Debuggen von Webseiten</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.CurrentTab">Aktueller aktiver Tab:</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.NoActiveTab">Kein aktiver Tab</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.LoadCurrentTab">Vom aktuellen Tab laden</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.EnterUrl">URL oder Suchanfrage eingeben...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Go">Los</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Back">Zurück</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Forward">Vor</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Refresh">Aktualisieren</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Placeholder">WebView Worker ist bereit. Geben Sie eine URL ein oder laden Sie vom aktuellen Tab.</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Ready">Bereit</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.WebViewReady">WebView initialisiert und bereit</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Loading">Wird geladen...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Loaded">Seite geladen</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Refreshing">Seite wird aktualisiert...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Navigating">Navigation...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.NoUrlToLoad">Keine URL vom aktuellen Tab zum Laden</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.LoadingFromTab">URL vom aktuellen Tab wird geladen...</x:String>
+
+  <!-- VetaleAI Chat -->
+  <x:String x:Key="VetaleAI.Header">Vetale AI Chat</x:String>
+  <x:String x:Key="VetaleAI.InputPlaceholder">Geben Sie Ihre Nachricht ein...</x:String>
+  <x:String x:Key="VetaleAI.Send">Senden</x:String>
+  <x:String x:Key="VetaleAI.Stop">Stoppen</x:String>
+  <x:String x:Key="VetaleAI.NewChat">Neuer Chat</x:String>
+  <x:String x:Key="VetaleAI.ClearHistory">Verlauf löschen</x:String>
+  <x:String x:Key="VetaleAI.Settings">Einstellungen</x:String>
+  <x:String x:Key="VetaleAI.EnableReasoning">Überlegungen aktivieren</x:String>
+  <x:String x:Key="VetaleAI.CreateWebPage">Webseite erstellen</x:String>
+  <x:String x:Key="VetaleAI.CreateWebPage.Tooltip">Webseite aus aktueller Anfrage erstellen</x:String>
+  <x:String x:Key="VetaleAI.ScrollToBottom">Nach unten scrollen</x:String>
+  <x:String x:Key="VetaleAI.ResponseLanguage">Antwortsprache</x:String>
+  <x:String x:Key="VetaleAI.Language.Auto">Automatische Erkennung</x:String>
+  <x:String x:Key="VetaleAI.Language.English">Englisch</x:String>
+  <x:String x:Key="VetaleAI.Language.Ukrainian">Ukrainisch</x:String>
+  <x:String x:Key="VetaleAI.Language.Russian">Russisch</x:String>
+  <x:String x:Key="VetaleAI.Language.German">Deutsch</x:String>
+  <x:String x:Key="VetaleAI.Language.French">Französisch</x:String>
+  <x:String x:Key="VetaleAI.Language.Spanish">Spanisch</x:String>
+  <x:String x:Key="VetaleAI.Language.Turkish">Türkisch</x:String>
+  <x:String x:Key="VetaleAI.WelcomeMessage">Hallo! Ich bin Vetale AI. Wie kann ich Ihnen heute helfen?</x:String>
+  <x:String x:Key="VetaleAI.Thinking">Denke nach...</x:String>
+  <x:String x:Key="VetaleAI.User">Sie</x:String>
+  <x:String x:Key="VetaleAI.Assistant">Vetale AI</x:String>
+  <x:String x:Key="VetaleAI.CopyMessage">Kopieren</x:String>
+  <x:String x:Key="VetaleAI.RegenerateResponse">Neu generieren</x:String>
+  <x:String x:Key="VetaleAI.ModelLoading">AI-Modell wird geladen...</x:String>
+  <x:String x:Key="VetaleAI.ModelLoaded">Modell erfolgreich geladen</x:String>
+  <x:String x:Key="VetaleAI.ModelError">Fehler beim Laden des Modells</x:String>
+
+  <!-- Browser-Fehlerseiten -->
+  <!-- Netzwerkfehler -->
   <x:String x:Key="BrowserError.NameNotResolved.Title">Webseite nicht gefunden</x:String>
   <x:String x:Key="BrowserError.NameNotResolved.Description">Die IP-Adresse des Servers für diesen Domainnamen konnte nicht gefunden werden. Die Webseite existiert möglicherweise nicht oder es liegt ein Tippfehler vor.</x:String>
   <x:String x:Key="BrowserError.NameNotResolved.Tip1">Überprüfen Sie die Schreibweise der Adresse</x:String>
@@ -217,14 +382,14 @@
   <x:String x:Key="BrowserError.ConnectionReset.Tip2">Überprüfen Sie Ihre Internetverbindung</x:String>
   <x:String x:Key="BrowserError.ConnectionReset.Tip3">Deaktivieren Sie VPN oder Proxy, falls verwendet</x:String>
 
-  <!-- Security Errors -->
+  <!-- Sicherheitsfehler -->
   <x:String x:Key="BrowserError.SSLError.Title">Unsichere Verbindung</x:String>
   <x:String x:Key="BrowserError.SSLError.Description">Das Sicherheitszertifikat dieser Webseite ist ungültig oder abgelaufen. Ihre Daten könnten gefährdet sein.</x:String>
   <x:String x:Key="BrowserError.SSLError.Tip1">Geben Sie keine persönlichen Daten auf dieser Seite ein</x:String>
   <x:String x:Key="BrowserError.SSLError.Tip2">Überprüfen Sie Datum und Uhrzeit auf Ihrem Gerät</x:String>
   <x:String x:Key="BrowserError.SSLError.Tip3">Kontaktieren Sie den Webseiten-Administrator</x:String>
 
-  <!-- Server Errors -->
+  <!-- Serverfehler -->
   <x:String x:Key="BrowserError.EmptyResponse.Title">Leere Antwort</x:String>
   <x:String x:Key="BrowserError.EmptyResponse.Description">Der Server hat keine Daten gesendet. Der Server ist möglicherweise überlastet oder defekt.</x:String>
   <x:String x:Key="BrowserError.EmptyResponse.Tip1">Versuchen Sie, die Seite zu aktualisieren</x:String>
@@ -237,7 +402,7 @@
   <x:String x:Key="BrowserError.TooManyRedirects.Tip2">Versuchen Sie einen anderen Browser</x:String>
   <x:String x:Key="BrowserError.TooManyRedirects.Tip3">Kontaktieren Sie den Support der Seite</x:String>
 
-  <!-- General Errors -->
+  <!-- Allgemeine Fehler -->
   <x:String x:Key="BrowserError.BlockedByClient.Title">Blockiert</x:String>
   <x:String x:Key="BrowserError.BlockedByClient.Description">Das Laden dieser Ressource wurde vom Browser oder einer Erweiterung blockiert.</x:String>
   <x:String x:Key="BrowserError.BlockedByClient.Tip1">Überprüfen Sie die Werbeblocker-Einstellungen</x:String>
@@ -268,7 +433,7 @@
   <x:String x:Key="BrowserError.Unknown.Tip2">Überprüfen Sie Ihre Internetverbindung</x:String>
   <x:String x:Key="BrowserError.Unknown.Tip3">Versuchen Sie es später erneut</x:String>
 
-  <!-- HTTP Error Pages -->
+  <!-- HTTP-Fehlerseiten -->
   <x:String x:Key="BrowserError.Http400.Title">Fehlerhafte Anfrage</x:String>
   <x:String x:Key="BrowserError.Http400.Description">Der Server kann Ihre Anfrage wegen eines Syntaxfehlers nicht verarbeiten.</x:String>
 
@@ -302,7 +467,7 @@
   <x:String x:Key="BrowserError.HttpUnknown.Title">Serverfehler</x:String>
   <x:String x:Key="BrowserError.HttpUnknown.Description">Der Server hat einen Fehler zurückgegeben.</x:String>
 
-  <!-- Error Page UI Elements -->
+  <!-- Fehlerseite UI-Elemente -->
   <x:String x:Key="BrowserError.Retry">Erneut versuchen</x:String>
   <x:String x:Key="BrowserError.GoBack">Zurück</x:String>
   <x:String x:Key="BrowserError.GoHome">Startseite</x:String>
@@ -314,7 +479,7 @@
   <x:String x:Key="BrowserError.Category.Security">Sicherheitsproblem</x:String>
   <x:String x:Key="BrowserError.Category.General">Allgemeiner Fehler</x:String>
 
-  <!-- Error Page Modern UI (ErrorPage.*) -->
+  <!-- Fehlerseite Moderne UI -->
   <x:String x:Key="ErrorPage.TipsHeader">💡 Was Sie versuchen können</x:String>
   <x:String x:Key="ErrorPage.SearchHeader">🔍 Im Internet suchen</x:String>
   <x:String x:Key="ErrorPage.SearchWatermark">Suchanfrage eingeben...</x:String>
@@ -328,7 +493,7 @@
   <x:String x:Key="ErrorPage.Category.General">⚠️ Allgemeiner Fehler</x:String>
   <x:String x:Key="ErrorPage.Category.Error">Fehler</x:String>
 
-  <!-- Security Status -->
+  <!-- Sicherheitsstatus -->
   <x:String x:Key="Security.Safe.Tooltip">✓ Sichere Webseite</x:String>
   <x:String x:Key="Security.Safe.Text">Geprüft: sicher</x:String>
   <x:String x:Key="Security.Dangerous.Tooltip">⚠️ GEFÄHRLICHE WEBSEITE (Phishing)!</x:String>
@@ -340,7 +505,7 @@
   <x:String x:Key="Security.Unknown.Tooltip">? Status unbekannt</x:String>
   <x:String x:Key="Security.Unknown.Text">Status unbekannt</x:String>
 
-  <!-- Gemini API Key Window -->
+  <!-- Gemini API-Schlüssel Fenster -->
   <x:String x:Key="Gemini.ApiKey.Title">Gemini API-Schlüssel konfigurieren</x:String>
   <x:String x:Key="Gemini.ApiKey.Header">Gemini AI konfigurieren</x:String>
   <x:String x:Key="Gemini.ApiKey.Description">Um Gemini AI-Funktionen in Vetale Search zu nutzen, benötigen Sie einen Google API-Schlüssel. Sie können Ihren eigenen Schlüssel verwenden oder mit dem Standardschlüssel fortfahren.</x:String>
@@ -355,7 +520,7 @@
   <x:String x:Key="Gemini.ApiKey.UseDefaultKey">Mit Standard fortfahren</x:String>
   <x:String x:Key="Gemini.ApiKey.Note">💡 Ihr API-Schlüssel wird lokal gespeichert und niemals geteilt. Der Standardschlüssel hat Nutzungsbeschränkungen.</x:String>
 
-  <!-- Vetale Search Results -->
+  <!-- Vetale Suchergebnisse -->
   <x:String x:Key="Search.Results.Stats">{0} Ergebnisse in {1} Sek. gefunden</x:String>
   <x:String x:Key="Search.Results.StatsWithPage">{0} Ergebnisse in {1} Sek. gefunden (Seite {2})</x:String>
   <x:String x:Key="Search.Results.Searching">Suche läuft...</x:String>
@@ -367,19 +532,19 @@
   <x:String x:Key="Search.Results.Prompt">Geben Sie eine Suchanfrage ein, um lokale Ergebnisse zu sehen.</x:String>
   <x:String x:Key="Search.Results.Found">Ergebnisse gefunden</x:String>
   
-  <!-- Pagination -->
+  <!-- Seitennavigation -->
   <x:String x:Key="Search.Pagination.Previous">← Zurück</x:String>
   <x:String x:Key="Search.Pagination.Next">Weiter →</x:String>
   <x:String x:Key="Search.Pagination.Page">Seite {0}</x:String>
   <x:String x:Key="Search.Pagination.First">Erste</x:String>
   <x:String x:Key="Search.Pagination.Last">Letzte</x:String>
   
-  <!-- Related Queries / Suggestions -->
+  <!-- Ähnliche Suchanfragen / Vorschläge -->
   <x:String x:Key="Search.Related.Title">Ähnliche Suchanfragen</x:String>
   <x:String x:Key="Search.Related.AlsoSearch">Andere suchen auch:</x:String>
   <x:String x:Key="Search.Suggestions.Title">Vorschläge</x:String>
   
-  <!-- Search Sources -->
+  <!-- Suchquellen -->
   <x:String x:Key="Search.Source.Wikipedia">Wikipedia</x:String>
   <x:String x:Key="Search.Source.WebArchive">Web-Archiv</x:String>
   <x:String x:Key="Search.Source.YouTube">YouTube</x:String>
@@ -387,15 +552,124 @@
   <x:String x:Key="Search.Source.Curlie">Curlie</x:String>
   <x:String x:Key="Search.Source.DirectUrl">Direkter Link</x:String>
   
-  <!-- Search Modes -->
+  <!-- Suchmodi -->
   <x:String x:Key="Search.Mode.Sites">Webseiten</x:String>
   <x:String x:Key="Search.Mode.Images">Bilder</x:String>
   <x:String x:Key="Search.Mode.Videos">Videos</x:String>
   
-  <!-- Search Actions -->
+  <!-- Suchaktionen -->
   <x:String x:Key="Search.Action.Search">Suchen</x:String>
   <x:String x:Key="Search.Action.SearchImages">Bilder suchen</x:String>
   <x:String x:Key="Search.Action.SearchVideos">Videos suchen</x:String>
   <x:String x:Key="Search.Action.OpenOnYouTube">Auf YouTube öffnen</x:String>
   <x:String x:Key="Search.Action.ViewSource">Quelle anzeigen</x:String>
+
+  <!-- Downloads -->
+  <x:String x:Key="Downloads.Title">Downloads — Vetale Browser</x:String>
+  <x:String x:Key="Downloads.Search">Downloads durchsuchen…</x:String>
+  <x:String x:Key="Downloads.Empty">Noch keine Downloads</x:String>
+  <x:String x:Key="Downloads.Empty.Hint">Starten Sie einen Download, um den Fortschritt hier zu sehen</x:String>
+  <x:String x:Key="Downloads.OpenFile">Datei öffnen</x:String>
+  <x:String x:Key="Downloads.OpenFolder">Ordner öffnen</x:String>
+  <x:String x:Key="Downloads.Cancel">Abbrechen</x:String>
+  <x:String x:Key="Downloads.Retry">Wiederholen</x:String>
+  <x:String x:Key="Downloads.ClearCompleted">Alte archivieren</x:String>
+  <x:String x:Key="Downloads.Status.Pending">Ausstehend</x:String>
+  <x:String x:Key="Downloads.Status.Downloading">Wird heruntergeladen</x:String>
+  <x:String x:Key="Downloads.Status.Completed">Abgeschlossen</x:String>
+  <x:String x:Key="Downloads.Status.Error">Fehler</x:String>
+  <x:String x:Key="Downloads.Status.Cancelled">Abgebrochen</x:String>
+  <x:String x:Key="Downloads.FolderLabel">Download-Ordner:</x:String>
+  <x:String x:Key="Downloads.OpenFolderButton">Öffnen</x:String>
+  
+  <x:String x:Key="Tools.Downloads.Name">Download-Manager</x:String>
+  <x:String x:Key="Tools.Downloads.Description">Verwalten Sie Ihre Downloads</x:String>
+
+  <!-- Vetale Search Startseite -->
+  <x:String x:Key="VetaleSearch.Logo.Vetale">Vetale</x:String>
+  <x:String x:Key="VetaleSearch.Logo.Search">Search</x:String>
+  <x:String x:Key="VetaleSearch.Subtitle">Lokale Suchmaschine</x:String>
+  <x:String x:Key="VetaleSearch.SearchWatermark">Suchanfrage eingeben...</x:String>
+  <x:String x:Key="VetaleSearch.VoiceSearch">Sprachsuche</x:String>
+  <x:String x:Key="VetaleSearch.ImageSearch">Bildersuche</x:String>
+  <x:String x:Key="VetaleSearch.VideoSearch">Videosuche</x:String>
+  <x:String x:Key="VetaleSearch.GeoSearch">Standortsuche</x:String>
+  <x:String x:Key="VetaleSearch.SearchEngineLabel">Suchmaschine:</x:String>
+  <x:String x:Key="VetaleSearch.Engine.Local">Vetale Search (Lokal)</x:String>
+  <x:String x:Key="VetaleSearch.Engine.Maps">Karten (OpenStreetMap)</x:String>
+  <x:String x:Key="VetaleSearch.SearchButton">Suchen</x:String>
+  <x:String x:Key="VetaleSearch.LuckyButton">Auf gut Glück!</x:String>
+  <x:String x:Key="VetaleSearch.QuickLinks">Schnellzugriffe</x:String>
+  <x:String x:Key="VetaleSearch.Link.Bookmarks">📚 Lesezeichen</x:String>
+  <x:String x:Key="VetaleSearch.Link.History">📜 Verlauf</x:String>
+  <x:String x:Key="VetaleSearch.Link.SearchSettings">🔍 Sucheinstellungen</x:String>
+  <x:String x:Key="VetaleSearch.Link.Settings">⚙️ Einstellungen</x:String>
+
+  <!-- Gemini Chat Panel -->
+  <x:String x:Key="GeminiChat.Title">Gemini Chat</x:String>
+  <x:String x:Key="GeminiChat.Subtitle">Unterstützt von Google AI</x:String>
+  <x:String x:Key="GeminiChat.ClearChat">Chat löschen</x:String>
+  <x:String x:Key="GeminiChat.Welcome">Hallo! Ich bin Gemini</x:String>
+  <x:String x:Key="GeminiChat.WelcomeHint">Fragen Sie mich alles</x:String>
+  <x:String x:Key="GeminiChat.ScrollToBottom">Nach unten</x:String>
+  <x:String x:Key="GeminiChat.InputPlaceholder">Fragen Sie Gemini...</x:String>
+  <x:String x:Key="GeminiChat.Send.Tooltip">Senden (Strg+Eingabe)</x:String>
+  <x:String x:Key="GeminiChat.Stop.Tooltip">Generierung stoppen</x:String>
+  <x:String x:Key="GeminiChat.User">Sie</x:String>
+  <x:String x:Key="GeminiChat.Assistant">Gemini</x:String>
+  <x:String x:Key="GeminiChat.Thinking">Gemini denkt nach...</x:String>
+  <x:String x:Key="GeminiChat.Error">Fehler</x:String>
+  <x:String x:Key="GeminiChat.Error.ServiceNotInitialized">Gemini-Dienst ist nicht initialisiert</x:String>
+  <x:String x:Key="GeminiChat.Error.NoResponse">Konnte keine Antwort von Gemini erhalten</x:String>
+  <x:String x:Key="GeminiChat.Error.ApiKeyRequired">Sie müssen einen API-Schlüssel einrichten, um Gemini zu verwenden. Bitte versuchen Sie es erneut.</x:String>
+  <x:String x:Key="GeminiChat.Error.ApiKeySet">API-Schlüssel gesetzt! Anfrage wird wiederholt...</x:String>
+  <x:String x:Key="GeminiChat.Error.RetrySaved">Nachricht gespeichert. Bitte versuchen Sie es erneut.</x:String>
+
+  <!-- ErrorPage Zusätzliche Schlüssel -->
+  <x:String x:Key="ErrorPage.PlayGame">Spiel spielen</x:String>
+  <x:String x:Key="ErrorPage.GameDeveloper">HexGL Spiel von Thibaut Despoulain</x:String>
+
+  <!-- API Key Config Window - Allgemein -->
+  <x:String x:Key="ApiKey.Save">Schlüssel speichern</x:String>
+  <x:String x:Key="ApiKey.Skip">Überspringen</x:String>
+  <x:String x:Key="ApiKey.Note">💡 Ihr API-Schlüssel wird lokal verschlüsselt gespeichert und niemals weitergegeben.</x:String>
+  
+  <!-- Pexels API -->
+  <x:String x:Key="Pexels.ApiKey.Title">Pexels API konfigurieren</x:String>
+  <x:String x:Key="Pexels.ApiKey.Header">Pexels konfigurieren</x:String>
+  <x:String x:Key="Pexels.ApiKey.Description">Geben Sie Ihren API-Schlüssel ein, um hochwertige Bilder von Pexels zu suchen.</x:String>
+  <x:String x:Key="Pexels.ApiKey.Label">Pexels API-Schlüssel</x:String>
+  <x:String x:Key="Pexels.ApiKey.Watermark">Geben Sie Ihren Pexels API-Schlüssel ein...</x:String>
+  <x:String x:Key="Pexels.ApiKey.HowToGet">📋 So erhalten Sie einen kostenlosen API-Schlüssel:</x:String>
+  <x:String x:Key="Pexels.ApiKey.Step1">1. Gehen Sie zu Pexels.com</x:String>
+  <x:String x:Key="Pexels.ApiKey.Step2">2. Registrieren Sie sich oder melden Sie sich an</x:String>
+  <x:String x:Key="Pexels.ApiKey.Step3">3. Navigieren Sie zu API und erstellen Sie einen neuen Schlüssel</x:String>
+  <x:String x:Key="Pexels.ApiKey.OpenPortal">🔗 Pexels API öffnen</x:String>
+  <x:String x:Key="Pexels.ApiKey.Note">💡 Pexels API ist kostenlos für persönliche und kommerzielle Nutzung.</x:String>
+  
+  <!-- Unsplash API -->
+  <x:String x:Key="Unsplash.ApiKey.Title">Unsplash API konfigurieren</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Header">Unsplash konfigurieren</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Description">Geben Sie Ihren Access Key ein, um Bilder von Unsplash zu suchen.</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Label">Unsplash Access Key</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Watermark">Geben Sie Ihren Unsplash Access Key ein...</x:String>
+  <x:String x:Key="Unsplash.ApiKey.HowToGet">📋 So erhalten Sie einen kostenlosen API-Schlüssel:</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Step1">1. Gehen Sie zu Unsplash Developers</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Step2">2. Registrieren Sie sich und erstellen Sie eine Anwendung</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Step3">3. Kopieren Sie den Access Key aus Ihren App-Einstellungen</x:String>
+  <x:String x:Key="Unsplash.ApiKey.OpenPortal">🔗 Unsplash Developers öffnen</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Note">💡 Unsplash API ist kostenlos mit einem Limit von 50 Anfragen/Stunde für Demo-Apps.</x:String>
+  
+  <!-- YouTube API -->
+  <x:String x:Key="YouTube.ApiKey.Title">YouTube API konfigurieren</x:String>
+  <x:String x:Key="YouTube.ApiKey.Header">YouTube Data API konfigurieren</x:String>
+  <x:String x:Key="YouTube.ApiKey.Description">Geben Sie Ihren API-Schlüssel ein, um Videos auf YouTube zu suchen.</x:String>
+  <x:String x:Key="YouTube.ApiKey.Label">YouTube API-Schlüssel</x:String>
+  <x:String x:Key="YouTube.ApiKey.Watermark">Geben Sie Ihren YouTube API-Schlüssel ein...</x:String>
+  <x:String x:Key="YouTube.ApiKey.HowToGet">📋 So erhalten Sie einen API-Schlüssel:</x:String>
+  <x:String x:Key="YouTube.ApiKey.Step1">1. Gehen Sie zur Google Cloud Console</x:String>
+  <x:String x:Key="YouTube.ApiKey.Step2">2. Erstellen Sie ein Projekt und aktivieren Sie YouTube Data API v3</x:String>
+  <x:String x:Key="YouTube.ApiKey.Step3">3. Erstellen Sie einen API-Schlüssel im Bereich Anmeldedaten</x:String>
+  <x:String x:Key="YouTube.ApiKey.OpenPortal">🔗 Google Cloud Console öffnen</x:String>
+  <x:String x:Key="YouTube.ApiKey.Note">💡 YouTube Data API hat ein kostenloses Limit von 10.000 Einheiten/Tag.</x:String>
 </ResourceDictionary>

@@ -59,7 +59,6 @@
             <Setter Property="MaxHeight" Value="150"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="AcceptsReturn" Value="True"/>
-            <Setter Property="Watermark" Value="Запитайте Gemini..."/>
         </Style>
 
         <Style Selector="TextBox.chat-input:focus">
@@ -156,8 +155,8 @@
                            Margin="0,0,8,0"/>
                 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                    <TextBlock Classes="header-title" Text="Gemini Chat"/>
-                    <TextBlock Classes="header-subtitle" Text="Працює на Google AI"/>
+                    <TextBlock Classes="header-title" Text="{DynamicResource GeminiChat.Title}"/>
+                    <TextBlock Classes="header-subtitle" Text="{DynamicResource GeminiChat.Subtitle}"/>
                 </StackPanel>
 
                 <Button Grid.Column="2"
@@ -166,7 +165,7 @@
                         BorderThickness="0"
                         Foreground="White"
                         Padding="8"
-                        ToolTip.Tip="Очистити чат"
+                        ToolTip.Tip="{DynamicResource GeminiChat.ClearChat}"
                         Click="ClearButton_Click">
                     <TextBlock Text="🗑️" FontSize="16"/>
                 </Button>
@@ -186,12 +185,12 @@
                             <TextBlock Text="✨" 
                                        FontSize="48" 
                                        HorizontalAlignment="Center"/>
-                            <TextBlock Text="Привіт! Я Gemini" 
+                            <TextBlock Text="{DynamicResource GeminiChat.Welcome}" 
                                        FontSize="20" 
                                        FontWeight="SemiBold"
                                        HorizontalAlignment="Center"
                                        Foreground="#1F1F1F"/>
-                            <TextBlock Text="Запитайте мене про що завгодно" 
+                            <TextBlock Text="{DynamicResource GeminiChat.WelcomeHint}" 
                                        FontSize="14" 
                                        TextAlignment="Center"
                                        Foreground="#666666"
@@ -213,7 +212,7 @@
                     Click="ScrollToBottomButton_Click">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <TextBlock Text="↓"/>
-                    <TextBlock Text="До низу"/>
+                    <TextBlock Text="{DynamicResource GeminiChat.ScrollToBottom}"/>
                 </StackPanel>
             </Button>
         </Grid>
@@ -227,6 +226,7 @@
             <Grid>
                 <TextBox x:Name="MessageInput"
                          Classes="chat-input"
+                         Watermark="{DynamicResource GeminiChat.InputPlaceholder}"
                          TextChanged="MessageInput_TextChanged"
                          KeyDown="MessageInput_KeyDown"/>
 
@@ -238,7 +238,7 @@
                         Margin="0,0,8,0"
                         Click="SendButton_Click"
                         IsEnabled="False"
-                        ToolTip.Tip="Надіслати (Ctrl+Enter)">
+                        ToolTip.Tip="{DynamicResource GeminiChat.Send.Tooltip}">
                     <TextBlock Text="➤" FontSize="16"/>
                 </Button>
 
@@ -250,7 +250,7 @@
                         Margin="0,0,8,0"
                         Click="StopButton_Click"
                         IsVisible="False"
-                        ToolTip.Tip="Зупинити генерацію">
+                        ToolTip.Tip="{DynamicResource GeminiChat.Stop.Tooltip}">
                     <TextBlock Text="■" FontSize="14"/>
                 </Button>
             </Grid>

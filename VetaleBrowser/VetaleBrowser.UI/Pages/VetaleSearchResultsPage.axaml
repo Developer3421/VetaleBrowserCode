@@ -279,8 +279,8 @@
                             Spacing="0"
                             Margin="24,0,24,0"
                             HorizontalAlignment="Left">
-                    <TextBlock Text="Vetale" FontSize="24" FontWeight="Bold" Foreground="White"/>
-                    <TextBlock Text="Search" FontSize="14" Foreground="White" Opacity="0.9"/>
+                    <TextBlock Text="{DynamicResource VetaleSearch.Logo.Vetale}" FontSize="24" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock Text="{DynamicResource VetaleSearch.Logo.Search}" FontSize="14" Foreground="White" Opacity="0.9"/>
                 </StackPanel>
 
                 <!-- Пошуковий рядок + всі кнопки в одному рядку, розтягнутий на всю ширину -->
@@ -296,7 +296,7 @@
                                 <TextBox x:Name="SearchInput"
                                          Grid.Column="0"
                                          Classes="search-input"
-                                         Watermark="Введіть пошуковий запит..."
+                                         Watermark="{DynamicResource VetaleSearch.SearchWatermark}"
                                          KeyDown="SearchInput_KeyDown"
                                          TextChanged="SearchInput_TextChanged"
                                          TextWrapping="NoWrap"
@@ -307,16 +307,16 @@
                                             Orientation="Horizontal"
                                             Spacing="4"
                                             Margin="0,0,8,0">
-                                    <Button x:Name="VoiceButton" Classes="icon-button" ToolTip.Tip="Пошук по голосу" Click="VoiceButton_Click">
+                                    <Button x:Name="VoiceButton" Classes="icon-button" ToolTip.Tip="{DynamicResource VetaleSearch.VoiceSearch}" Click="VoiceButton_Click">
                                         <TextBlock Text="🎤" FontSize="18"/>
                                     </Button>
-                                    <Button Classes="icon-button" ToolTip.Tip="Пошук за зображенням">
+                                    <Button Classes="icon-button" ToolTip.Tip="{DynamicResource VetaleSearch.ImageSearch}">
                                         <TextBlock Text="📷" FontSize="18"/>
                                     </Button>
-                                    <Button Classes="icon-button" ToolTip.Tip="Пошук по відео">
+                                    <Button Classes="icon-button" ToolTip.Tip="{DynamicResource VetaleSearch.VideoSearch}">
                                         <TextBlock Text="📹" FontSize="18"/>
                                     </Button>
-                                    <Button Classes="icon-button" ToolTip.Tip="Пошук по геолокації" Click="GeoSearch_Click">
+                                    <Button Classes="icon-button" ToolTip.Tip="{DynamicResource VetaleSearch.GeoSearch}" Click="GeoSearch_Click">
                                         <TextBlock Text="📍" FontSize="18"/>
                                     </Button>
                                 </StackPanel>

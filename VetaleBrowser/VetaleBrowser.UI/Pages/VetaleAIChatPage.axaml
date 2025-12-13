@@ -230,10 +230,10 @@
                         <Button x:Name="CreateWebPageButton" 
                                 Classes="icon-button"
                                 Click="CreateWebPage_Click"
-                                ToolTip.Tip="Створити веб-сторінку з поточного запиту">
+                                ToolTip.Tip="{DynamicResource VetaleAI.CreateWebPage.Tooltip}">
                             <StackPanel Orientation="Horizontal" Spacing="4">
                                 <TextBlock Text="🌐" FontSize="14"/>
-                                <TextBlock Text="Створити веб сторінку"/>
+                                <TextBlock Text="{DynamicResource VetaleAI.CreateWebPage}"/>
                             </StackPanel>
                         </Button>
                         <Button x:Name="NewChatButton" 

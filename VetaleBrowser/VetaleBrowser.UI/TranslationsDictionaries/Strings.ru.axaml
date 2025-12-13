@@ -7,15 +7,36 @@
   <x:String x:Key="Console.Title">Консоль — Vetale Browser</x:String>
   <x:String x:Key="History.Title">История — Vetale Browser</x:String>
   <x:String x:Key="Bookmarks.Title">Закладки — Vetale Browser</x:String>
+  <x:String x:Key="DevTools.Title">Инструменты разработчика — Vetale Browser</x:String>
+  <x:String x:Key="VetaleAI.Title">Vetale AI Чат — Vetale Browser</x:String>
+  <x:String x:Key="About.Title">О программе — Vetale Browser</x:String>
+
+  <!-- Окно "О программе" -->
+  <x:String x:Key="About.Version">Версия 1.0</x:String>
+  <x:String x:Key="About.Creator.Label">Создатель</x:String>
+  <x:String x:Key="About.Creator.Name">Олег Курило</x:String>
+  <x:String x:Key="About.CreationDate.Label">Дата создания</x:String>
+  <x:String x:Key="About.CreationDate.Value">15 декабря 2025 года</x:String>
+  <x:String x:Key="About.Description">Vetale Browser — это современный веб-браузер, созданный с нуля. Создатель прошёл долгий путь от самой первой WPF версии до этой текущей версии на Avalonia UI. Браузер имеет встроенный AI-ассистент, инструменты разработчика, менеджер загрузок и множество других функций, разработанных для комфортного веб-сёрфинга.</x:String>
+  <x:String x:Key="About.Technologies.Label">Технологии</x:String>
+  <x:String x:Key="About.Copyright">© 2025 Олег Курило. Все права защищены.</x:String>
+  
+  <!-- Инструменты - О программе -->
+  <x:String x:Key="Tools.About.Name">О программе</x:String>
+  <x:String x:Key="Tools.About.Description">Информация о браузере и его создателе</x:String>
 
   <!-- Главная страница настроек -->
   <x:String x:Key="Settings.Header">Настройки</x:String>
+  <x:String x:Key="Settings.Back">Назад</x:String>
   <x:String x:Key="Settings.Language.Title">Язык</x:String>
   <x:String x:Key="Settings.Language.Sub">Выберите язык интерфейса</x:String>
   <x:String x:Key="Settings.Appearance.Title">Внешний вид</x:String>
   <x:String x:Key="Settings.Appearance.Sub">Настройка внешнего вида</x:String>
   <x:String x:Key="Settings.Search.Title">Поисковая система</x:String>
   <x:String x:Key="Settings.Search.Sub">Выберите поисковую систему по умолчанию</x:String>
+  <x:String x:Key="Settings.Search.VetaleSearch.Subtitle">Локальная поисковая система</x:String>
+  <x:String x:Key="Settings.Search.VetaleSearch.Description">Быстрый поиск среди посещённых страниц в локальной базе данных без использования интернета.</x:String>
+  <x:String x:Key="Settings.Search.OnlineEngines">Онлайн поисковые системы:</x:String>
 
   <!-- Кнопки окна -->
   <x:String x:Key="Window.Minimize">Свернуть</x:String>
@@ -177,10 +198,10 @@
   <x:String x:Key="Tools.Console.Name">Консоль</x:String>
   <x:String x:Key="Tools.Console.Description">Консоль разработчика с логами и диагностикой</x:String>
   
-  <x:String x:Key="Tools.NavigateButton">→ Перейти в браузере</x:String>
+  <x:String x:Key="Tools.UserAgreement.Name">Пользовательское соглашение</x:String>
+  <x:String x:Key="Tools.UserAgreement.Description">Просмотр политики конфиденциальности GDPR и пользовательского соглашения</x:String>
   
-  <x:String x:Key="Tools.Downloads.Name">Загрузки</x:String>
-  <x:String x:Key="Tools.Downloads.Description">Управление загрузками файлов</x:String>
+  <x:String x:Key="Tools.NavigateButton">→ Перейти в браузере</x:String>
 
   <!-- Browser Error Pages -->
   <!-- Network Errors -->
@@ -395,4 +416,254 @@
   <x:String x:Key="Search.Action.SearchVideos">Поиск видео</x:String>
   <x:String x:Key="Search.Action.OpenOnYouTube">Открыть на YouTube</x:String>
   <x:String x:Key="Search.Action.ViewSource">Просмотреть источник</x:String>
+
+  <!-- DevTools -->
+  <x:String x:Key="DevTools.Header">Инструменты разработчика</x:String>
+  <x:String x:Key="DevTools.Tab.Main">Главная</x:String>
+  <x:String x:Key="DevTools.Tab.Elements">Элементы</x:String>
+  <x:String x:Key="DevTools.Tab.Console">Консоль</x:String>
+  <x:String x:Key="DevTools.Tab.Network">Сеть</x:String>
+  <x:String x:Key="DevTools.Tab.Sources">Источники</x:String>
+  <x:String x:Key="DevTools.Tab.HtmlEditor">Редактор HTML</x:String>
+  <x:String x:Key="DevTools.Tab.Application">Приложение</x:String>
+  <x:String x:Key="DevTools.Tab.Performance">Производительность</x:String>
+  <x:String x:Key="DevTools.Tab.WebViewWorker">WebView Worker</x:String>
+
+  <!-- DevTools Список инструментов -->
+  <x:String x:Key="DevTools.Tool.Elements.Title">Инспектор элементов</x:String>
+  <x:String x:Key="DevTools.Tool.Elements.Description">Просмотр и редактирование DOM структуры текущей страницы</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Console.Title">Консоль JavaScript</x:String>
+  <x:String x:Key="DevTools.Tool.Console.Description">Просмотр логов, ошибок и вывода JavaScript консоли (отдельное окно)</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Network.Title">Монитор сети</x:String>
+  <x:String x:Key="DevTools.Tool.Network.Description">Мониторинг всех HTTP/HTTPS запросов и ответов</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Sources.Title">Просмотр источников</x:String>
+  <x:String x:Key="DevTools.Tool.Sources.Description">Просмотр и отладка JavaScript, CSS и HTML файлов</x:String>
+  
+  <x:String x:Key="DevTools.Tool.HtmlEditor.Title">Редактор HTML</x:String>
+  <x:String x:Key="DevTools.Tool.HtmlEditor.Description">Профессиональный редактор HTML с предпросмотром и подсветкой синтаксиса</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Application.Title">Хранилище приложения</x:String>
+  <x:String x:Key="DevTools.Tool.Application.Description">Управление Cookies, Local Storage, Session Storage и кешем</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Performance.Title">Анализатор производительности</x:String>
+  <x:String x:Key="DevTools.Tool.Performance.Description">Профилирование CPU, памяти и анализ производительности страницы</x:String>
+
+  <!-- DevTools - Страница производительности -->
+  <x:String x:Key="DevTools.Performance.CapturePerformance">Захватить производительность</x:String>
+  <x:String x:Key="DevTools.Performance.GetWebVitals">Получить Web Vitals</x:String>
+  <x:String x:Key="DevTools.Performance.LoadTime">Время загрузки</x:String>
+  <x:String x:Key="DevTools.Performance.DomContentLoaded">DOM загружен</x:String>
+  <x:String x:Key="DevTools.Performance.FirstPaint">Первая отрисовка</x:String>
+  <x:String x:Key="DevTools.Performance.MemoryUsage">Использование памяти</x:String>
+  <x:String x:Key="DevTools.Performance.CoreWebVitals">Core Web Vitals</x:String>
+  <x:String x:Key="DevTools.Performance.ResourceTimings">Тайминги ресурсов</x:String>
+
+  <!-- DevTools - Страница элементов -->
+  <x:String x:Key="DevTools.Elements.Query">Запрос</x:String>
+  <x:String x:Key="DevTools.Elements.CaptureDom">Захватить DOM</x:String>
+  <x:String x:Key="DevTools.Elements.DomTree">Дерево DOM</x:String>
+  <x:String x:Key="DevTools.Elements.SelectElement">Выберите элемент</x:String>
+  <x:String x:Key="DevTools.Elements.Attributes">Атрибуты</x:String>
+  <x:String x:Key="DevTools.Elements.ComputedStyles">Вычисленные стили</x:String>
+
+  <!-- DevTools - Страница приложения -->
+  <x:String x:Key="DevTools.Application.CaptureStorage">Захватить хранилище</x:String>
+  <x:String x:Key="DevTools.Application.ClearCookies">Очистить Cookies</x:String>
+  <x:String x:Key="DevTools.Application.StorageTypes">Типы хранилищ</x:String>
+  <x:String x:Key="DevTools.Application.LocalStorage">Local Storage</x:String>
+  <x:String x:Key="DevTools.Application.SessionStorage">Session Storage</x:String>
+  <x:String x:Key="DevTools.Application.Cookies">Cookies</x:String>
+  <x:String x:Key="DevTools.Application.IndexedDB">IndexedDB</x:String>
+  <x:String x:Key="DevTools.Application.SelectStorageType">Выберите тип хранилища</x:String>
+  <x:String x:Key="DevTools.Application.Key">Ключ:</x:String>
+  <x:String x:Key="DevTools.Application.Value">Значение:</x:String>
+
+  <!-- DevTools - Страница источников -->
+  <x:String x:Key="DevTools.Sources.CaptureSources">Захватить источники</x:String>
+  <x:String x:Key="DevTools.Sources.GetHtml">Получить HTML</x:String>
+  <x:String x:Key="DevTools.Sources.FileTree">Дерево файлов</x:String>
+  <x:String x:Key="DevTools.Sources.FilterByType">Фильтр по типу:</x:String>
+  <x:String x:Key="DevTools.Sources.All">Все</x:String>
+  <x:String x:Key="DevTools.Sources.Scripts">Скрипты</x:String>
+  <x:String x:Key="DevTools.Sources.Stylesheets">Таблицы стилей</x:String>
+  <x:String x:Key="DevTools.Sources.Images">Изображения</x:String>
+  <x:String x:Key="DevTools.Sources.Inline">Встроенные</x:String>
+  <x:String x:Key="DevTools.Sources.SelectFile">Выберите файл</x:String>
+  <x:String x:Key="DevTools.Sources.Type">Тип:</x:String>
+  <x:String x:Key="DevTools.Sources.Size">Размер:</x:String>
+  <x:String x:Key="DevTools.Sources.ExecuteJavaScript">Выполнить JavaScript:</x:String>
+  <x:String x:Key="DevTools.Sources.EnterJavaScriptCode">Введите JavaScript код...</x:String>
+  <x:String x:Key="DevTools.Sources.Execute">Выполнить</x:String>
+
+  <!-- HTML Editor -->
+  <x:String x:Key="HtmlEditor.New">Новый</x:String>
+  <x:String x:Key="HtmlEditor.Open">Открыть</x:String>
+  <x:String x:Key="HtmlEditor.Save">Сохранить</x:String>
+  <x:String x:Key="HtmlEditor.Preview">Предпросмотр</x:String>
+  <x:String x:Key="HtmlEditor.Format">Форматировать код</x:String>
+  <x:String x:Key="HtmlEditor.Validate">Проверить HTML</x:String>
+
+  <!-- WebView Worker -->
+  <x:String x:Key="DevTools.WebViewWorker.Title">WebView Worker</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Description">Отдельный экземпляр WebView для тестирования и отладки веб-страниц</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.CurrentTab">Текущая активная вкладка:</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.NoActiveTab">Нет активной вкладки</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.LoadCurrentTab">Загрузить с текущей вкладки</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.EnterUrl">Введите URL или поисковый запрос...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Go">Перейти</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Back">Назад</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Forward">Вперед</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Refresh">Обновить</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Placeholder">WebView Worker готов. Введите URL или загрузите с текущей вкладки.</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Ready">Готово</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.WebViewReady">WebView инициализирован и готов</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Loading">Загрузка...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Loaded">Страница загружена</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Refreshing">Обновление страницы...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Navigating">Навигация...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.NoUrlToLoad">Нет URL для загрузки с текущей вкладки</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.LoadingFromTab">Загрузка URL с текущей вкладки...</x:String>
+
+  <!-- VetaleAI Chat -->
+  <x:String x:Key="VetaleAI.Header">Vetale AI Чат</x:String>
+  <x:String x:Key="VetaleAI.InputPlaceholder">Введите ваше сообщение...</x:String>
+  <x:String x:Key="VetaleAI.Send">Отправить</x:String>
+  <x:String x:Key="VetaleAI.Stop">Остановить</x:String>
+  <x:String x:Key="VetaleAI.NewChat">Новый чат</x:String>
+  <x:String x:Key="VetaleAI.ClearHistory">Очистить историю</x:String>
+  <x:String x:Key="VetaleAI.Settings">Настройки</x:String>
+  <x:String x:Key="VetaleAI.EnableReasoning">Включить рассуждения</x:String>
+  <x:String x:Key="VetaleAI.CreateWebPage">Создать веб-страницу</x:String>
+  <x:String x:Key="VetaleAI.CreateWebPage.Tooltip">Создать веб-страницу из текущего запроса</x:String>
+  <x:String x:Key="VetaleAI.ScrollToBottom">Прокрутить вниз</x:String>
+  <x:String x:Key="VetaleAI.ResponseLanguage">Язык ответов</x:String>
+  <x:String x:Key="VetaleAI.Language.Auto">Автоопределение</x:String>
+  <x:String x:Key="VetaleAI.Language.English">Английский</x:String>
+  <x:String x:Key="VetaleAI.Language.Ukrainian">Украинский</x:String>
+  <x:String x:Key="VetaleAI.Language.Russian">Русский</x:String>
+  <x:String x:Key="VetaleAI.Language.German">Немецкий</x:String>
+  <x:String x:Key="VetaleAI.Language.French">Французский</x:String>
+  <x:String x:Key="VetaleAI.Language.Spanish">Испанский</x:String>
+  <x:String x:Key="VetaleAI.Language.Turkish">Турецкий</x:String>
+  <x:String x:Key="VetaleAI.WelcomeMessage">Привет! Я Vetale AI. Чем я могу вам помочь сегодня?</x:String>
+  <x:String x:Key="VetaleAI.Thinking">Думаю...</x:String>
+  <x:String x:Key="VetaleAI.User">Вы</x:String>
+  <x:String x:Key="VetaleAI.Assistant">Vetale AI</x:String>
+  <x:String x:Key="VetaleAI.CopyMessage">Копировать</x:String>
+  <x:String x:Key="VetaleAI.RegenerateResponse">Сгенерировать заново</x:String>
+  <x:String x:Key="VetaleAI.ModelLoading">Загрузка AI модели...</x:String>
+  <x:String x:Key="VetaleAI.ModelLoaded">Модель успешно загружена</x:String>
+  <x:String x:Key="VetaleAI.ModelError">Ошибка загрузки модели</x:String>
+
+  <!-- Загрузки -->
+  <x:String x:Key="Downloads.Title">Загрузки — Vetale Browser</x:String>
+  <x:String x:Key="Downloads.Search">Поиск загрузок…</x:String>
+  <x:String x:Key="Downloads.Empty">Загрузок пока нет</x:String>
+  <x:String x:Key="Downloads.Empty.Hint">Начните загрузку файла, чтобы увидеть прогресс здесь</x:String>
+  <x:String x:Key="Downloads.OpenFile">Открыть файл</x:String>
+  <x:String x:Key="Downloads.OpenFolder">Открыть папку</x:String>
+  <x:String x:Key="Downloads.Cancel">Отмена</x:String>
+  <x:String x:Key="Downloads.Retry">Повторить</x:String>
+  <x:String x:Key="Downloads.ClearCompleted">Архивировать старые</x:String>
+  <x:String x:Key="Downloads.Status.Pending">Ожидает</x:String>
+  <x:String x:Key="Downloads.Status.Downloading">Загружается</x:String>
+  <x:String x:Key="Downloads.Status.Completed">Завершено</x:String>
+  <x:String x:Key="Downloads.Status.Error">Ошибка</x:String>
+  <x:String x:Key="Downloads.Status.Cancelled">Отменено</x:String>
+  <x:String x:Key="Downloads.FolderLabel">Папка загрузок:</x:String>
+  <x:String x:Key="Downloads.OpenFolderButton">Открыть</x:String>
+  
+  <x:String x:Key="Tools.Downloads.Name">Менеджер загрузок</x:String>
+  <x:String x:Key="Tools.Downloads.Description">Управление вашими загрузками</x:String>
+
+  <!-- Vetale Search Главная страница -->
+  <x:String x:Key="VetaleSearch.Logo.Vetale">Vetale</x:String>
+  <x:String x:Key="VetaleSearch.Logo.Search">Search</x:String>
+  <x:String x:Key="VetaleSearch.Subtitle">Локальная поисковая система</x:String>
+  <x:String x:Key="VetaleSearch.SearchWatermark">Введите поисковый запрос...</x:String>
+  <x:String x:Key="VetaleSearch.VoiceSearch">Голосовой поиск</x:String>
+  <x:String x:Key="VetaleSearch.ImageSearch">Поиск по изображению</x:String>
+  <x:String x:Key="VetaleSearch.VideoSearch">Поиск по видео</x:String>
+  <x:String x:Key="VetaleSearch.GeoSearch">Поиск по геолокации</x:String>
+  <x:String x:Key="VetaleSearch.SearchEngineLabel">Поисковая система:</x:String>
+  <x:String x:Key="VetaleSearch.Engine.Local">Vetale Search (Локальный)</x:String>
+  <x:String x:Key="VetaleSearch.Engine.Maps">Карты (OpenStreetMap)</x:String>
+  <x:String x:Key="VetaleSearch.SearchButton">Поиск</x:String>
+  <x:String x:Key="VetaleSearch.LuckyButton">Мне повезёт</x:String>
+  <x:String x:Key="VetaleSearch.QuickLinks">Быстрые ссылки</x:String>
+  <x:String x:Key="VetaleSearch.Link.Bookmarks">📚 Закладки</x:String>
+  <x:String x:Key="VetaleSearch.Link.History">📜 История</x:String>
+  <x:String x:Key="VetaleSearch.Link.SearchSettings">🔍 Настройки поиска</x:String>
+  <x:String x:Key="VetaleSearch.Link.Settings">⚙️ Настройки</x:String>
+
+  <!-- Gemini Chat Panel -->
+  <x:String x:Key="GeminiChat.Title">Gemini Chat</x:String>
+  <x:String x:Key="GeminiChat.Subtitle">Работает на Google AI</x:String>
+  <x:String x:Key="GeminiChat.ClearChat">Очистить чат</x:String>
+  <x:String x:Key="GeminiChat.Welcome">Привет! Я Gemini</x:String>
+  <x:String x:Key="GeminiChat.WelcomeHint">Спросите меня о чём угодно</x:String>
+  <x:String x:Key="GeminiChat.ScrollToBottom">Вниз</x:String>
+  <x:String x:Key="GeminiChat.InputPlaceholder">Спросите Gemini...</x:String>
+  <x:String x:Key="GeminiChat.Send.Tooltip">Отправить (Ctrl+Enter)</x:String>
+  <x:String x:Key="GeminiChat.Stop.Tooltip">Остановить генерацию</x:String>
+  <x:String x:Key="GeminiChat.User">Вы</x:String>
+  <x:String x:Key="GeminiChat.Assistant">Gemini</x:String>
+  <x:String x:Key="GeminiChat.Thinking">Gemini думает...</x:String>
+  <x:String x:Key="GeminiChat.Error">Ошибка</x:String>
+  <x:String x:Key="GeminiChat.Error.ServiceNotInitialized">сервис Gemini не инициализирован</x:String>
+  <x:String x:Key="GeminiChat.Error.NoResponse">Не удалось получить ответ от Gemini</x:String>
+  <x:String x:Key="GeminiChat.Error.ApiKeyRequired">Необходимо настроить API ключ для работы с Gemini. Попробуйте ещё раз.</x:String>
+  <x:String x:Key="GeminiChat.Error.ApiKeySet">API ключ установлен! Повторяю запрос...</x:String>
+  <x:String x:Key="GeminiChat.Error.RetrySaved">Сообщение сохранено. Попробуйте ещё раз.</x:String>
+
+  <!-- ErrorPage дополнительные ключи -->
+  <x:String x:Key="ErrorPage.PlayGame">Играть в игру</x:String>
+  <x:String x:Key="ErrorPage.GameDeveloper">Игра HexGL от Thibaut Despoulain</x:String>
+
+  <!-- API Key Config Window - Общее -->
+  <x:String x:Key="ApiKey.Save">Сохранить ключ</x:String>
+  <x:String x:Key="ApiKey.Skip">Пропустить</x:String>
+  <x:String x:Key="ApiKey.Note">💡 Ваш API ключ хранится локально с шифрованием и никогда не передается.</x:String>
+  
+  <!-- Pexels API -->
+  <x:String x:Key="Pexels.ApiKey.Title">Настройка Pexels API</x:String>
+  <x:String x:Key="Pexels.ApiKey.Header">Настройка Pexels</x:String>
+  <x:String x:Key="Pexels.ApiKey.Description">Введите ваш API ключ для поиска качественных изображений из Pexels.</x:String>
+  <x:String x:Key="Pexels.ApiKey.Label">Pexels API ключ</x:String>
+  <x:String x:Key="Pexels.ApiKey.Watermark">Введите ваш Pexels API ключ...</x:String>
+  <x:String x:Key="Pexels.ApiKey.HowToGet">📋 Как получить бесплатный API ключ:</x:String>
+  <x:String x:Key="Pexels.ApiKey.Step1">1. Перейдите на Pexels.com</x:String>
+  <x:String x:Key="Pexels.ApiKey.Step2">2. Зарегистрируйтесь или войдите</x:String>
+  <x:String x:Key="Pexels.ApiKey.Step3">3. Перейдите в API и создайте новый ключ</x:String>
+  <x:String x:Key="Pexels.ApiKey.OpenPortal">🔗 Открыть Pexels API</x:String>
+  <x:String x:Key="Pexels.ApiKey.Note">💡 Pexels API бесплатен для личного и коммерческого использования.</x:String>
+  
+  <!-- Unsplash API -->
+  <x:String x:Key="Unsplash.ApiKey.Title">Настройка Unsplash API</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Header">Настройка Unsplash</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Description">Введите ваш Access Key для поиска изображений из Unsplash.</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Label">Unsplash Access Key</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Watermark">Введите ваш Unsplash Access Key...</x:String>
+  <x:String x:Key="Unsplash.ApiKey.HowToGet">📋 Как получить бесплатный API ключ:</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Step1">1. Перейдите на Unsplash Developers</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Step2">2. Зарегистрируйтесь и создайте приложение</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Step3">3. Скопируйте Access Key из настроек приложения</x:String>
+  <x:String x:Key="Unsplash.ApiKey.OpenPortal">🔗 Открыть Unsplash Developers</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Note">💡 Unsplash API бесплатен с лимитом 50 запросов/час для демо-приложений.</x:String>
+  
+  <!-- YouTube API -->
+  <x:String x:Key="YouTube.ApiKey.Title">Настройка YouTube API</x:String>
+  <x:String x:Key="YouTube.ApiKey.Header">Настройка YouTube Data API</x:String>
+  <x:String x:Key="YouTube.ApiKey.Description">Введите ваш API ключ для поиска видео на YouTube.</x:String>
+  <x:String x:Key="YouTube.ApiKey.Label">YouTube API ключ</x:String>
+  <x:String x:Key="YouTube.ApiKey.Watermark">Введите ваш YouTube API ключ...</x:String>
+  <x:String x:Key="YouTube.ApiKey.HowToGet">📋 Как получить API ключ:</x:String>
+  <x:String x:Key="YouTube.ApiKey.Step1">1. Перейдите на Google Cloud Console</x:String>
+  <x:String x:Key="YouTube.ApiKey.Step2">2. Создайте проект и включите YouTube Data API v3</x:String>
+  <x:String x:Key="YouTube.ApiKey.Step3">3. Создайте API ключ в разделе Credentials</x:String>
+  <x:String x:Key="YouTube.ApiKey.OpenPortal">🔗 Открыть Google Cloud Console</x:String>
+  <x:String x:Key="YouTube.ApiKey.Note">💡 YouTube Data API имеет бесплатный лимит 10,000 единиц/день.</x:String>
 </ResourceDictionary>

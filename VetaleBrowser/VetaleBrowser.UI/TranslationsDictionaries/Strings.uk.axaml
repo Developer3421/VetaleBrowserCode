@@ -9,6 +9,21 @@
   <x:String x:Key="Bookmarks.Title">Закладки — Vetale Browser</x:String>
   <x:String x:Key="DevTools.Title">Інструменти розробника — Vetale Browser</x:String>
   <x:String x:Key="VetaleAI.Title">Vetale AI Chat — Vetale Browser</x:String>
+  <x:String x:Key="About.Title">Про програму — Vetale Browser</x:String>
+
+  <!-- Вікно "Про програму" -->
+  <x:String x:Key="About.Version">Версія 1.0</x:String>
+  <x:String x:Key="About.Creator.Label">Творець</x:String>
+  <x:String x:Key="About.Creator.Name">Олег Курило</x:String>
+  <x:String x:Key="About.CreationDate.Label">Дата створення</x:String>
+  <x:String x:Key="About.CreationDate.Value">15 грудня 2025 року</x:String>
+  <x:String x:Key="About.Description">Vetale Browser — це сучасний веб-браузер, створений з нуля. Творець пройшов довгий шлях від найпершої WPF версії до цієї поточної версії на Avalonia UI. Браузер має вбудований AI-асистент, інструменти розробника, менеджер завантажень та багато інших функцій, розроблених для комфортного перегляду веб-сторінок.</x:String>
+  <x:String x:Key="About.Technologies.Label">Технології</x:String>
+  <x:String x:Key="About.Copyright">© 2025 Олег Курило. Всі права захищено.</x:String>
+  
+  <!-- Інструменти - Про програму -->
+  <x:String x:Key="Tools.About.Name">Про програму</x:String>
+  <x:String x:Key="Tools.About.Description">Інформація про браузер та його творця</x:String>
 
   <!-- Головна сторінка налаштувань -->
   <x:String x:Key="Settings.Header">Налаштування</x:String>
@@ -19,6 +34,9 @@
   <x:String x:Key="Settings.Appearance.Sub">Налаштувати вигляд та стиль</x:String>
   <x:String x:Key="Settings.Search.Title">Пошукова система</x:String>
   <x:String x:Key="Settings.Search.Sub">Виберіть пошукову систему за замовчуванням</x:String>
+  <x:String x:Key="Settings.Search.VetaleSearch.Subtitle">Локальна пошукова система</x:String>
+  <x:String x:Key="Settings.Search.VetaleSearch.Description">Швидкий пошук серед відвіданих сторінок у локальній базі даних без використання інтернету.</x:String>
+  <x:String x:Key="Settings.Search.OnlineEngines">Онлайн пошукові системи:</x:String>
 
   <!-- Кнопки вікна -->
   <x:String x:Key="Window.Minimize">Згорнути</x:String>
@@ -186,6 +204,9 @@
   <x:String x:Key="Tools.Console.Name">Консоль</x:String>
   <x:String x:Key="Tools.Console.Description">Консоль розробника з логами та діагностикою</x:String>
   
+  <x:String x:Key="Tools.UserAgreement.Name">Угода користувача</x:String>
+  <x:String x:Key="Tools.UserAgreement.Description">Переглянути політику конфіденційності GDPR та угоду користувача</x:String>
+  
   <x:String x:Key="Tools.NavigateButton">→ Перейти в браузері</x:String>
 
   <!-- DevTools -->
@@ -224,24 +245,44 @@
 
   <!-- DevTools - Performance Page -->
   <x:String x:Key="DevTools.Performance.CapturePerformance">Захопити продуктивність</x:String>
+  <x:String x:Key="DevTools.Performance.CapturePerformance.Tooltip">Захопити дані продуктивності з WebView Worker</x:String>
   <x:String x:Key="DevTools.Performance.GetWebVitals">Отримати Web Vitals</x:String>
   <x:String x:Key="DevTools.Performance.LoadTime">Час завантаження</x:String>
   <x:String x:Key="DevTools.Performance.DomContentLoaded">DOM завантажено</x:String>
   <x:String x:Key="DevTools.Performance.FirstPaint">Перша відрисовка</x:String>
   <x:String x:Key="DevTools.Performance.MemoryUsage">Використання пам'яті</x:String>
+  <x:String x:Key="DevTools.Performance.JsHeapSize">Розмір JavaScript Heap</x:String>
   <x:String x:Key="DevTools.Performance.CoreWebVitals">Core Web Vitals</x:String>
   <x:String x:Key="DevTools.Performance.ResourceTimings">Таймінги ресурсів</x:String>
+  <x:String x:Key="DevTools.Performance.Summary">Підсумок</x:String>
+  <x:String x:Key="DevTools.Performance.CurrentUrl">Поточний URL</x:String>
+  <x:String x:Key="DevTools.Performance.NoData">Немає захоплених даних</x:String>
 
   <!-- DevTools - Elements Page -->
   <x:String x:Key="DevTools.Elements.Query">Запит</x:String>
   <x:String x:Key="DevTools.Elements.CaptureDom">Захопити DOM</x:String>
+  <x:String x:Key="DevTools.Elements.CaptureDom.Tooltip">Захопити DOM з WebView Worker</x:String>
+  <x:String x:Key="DevTools.Elements.ClearDom.Tooltip">Очистити дерево DOM</x:String>
   <x:String x:Key="DevTools.Elements.DomTree">Дерево DOM</x:String>
   <x:String x:Key="DevTools.Elements.SelectElement">Виберіть елемент</x:String>
   <x:String x:Key="DevTools.Elements.Attributes">Атрибути</x:String>
   <x:String x:Key="DevTools.Elements.ComputedStyles">Обчислені стилі</x:String>
 
+  <!-- DevTools - Network Page -->
+  <x:String x:Key="DevTools.Network.CaptureNetwork">Захопити мережу</x:String>
+  <x:String x:Key="DevTools.Network.CaptureNetwork.Tooltip">Захопити мережеві ресурси з WebView</x:String>
+  <x:String x:Key="DevTools.Network.ClearNetwork.Tooltip">Очистити дані мережі</x:String>
+  <x:String x:Key="DevTools.Network.Type">Тип</x:String>
+  <x:String x:Key="DevTools.Network.Url">URL</x:String>
+  <x:String x:Key="DevTools.Network.Size">Розмір</x:String>
+  <x:String x:Key="DevTools.Network.Duration">Тривалість</x:String>
+  <x:String x:Key="DevTools.Network.Status">Статус</x:String>
+  <x:String x:Key="DevTools.Network.SelectResource">Виберіть ресурс для перегляду деталей</x:String>
+
   <!-- DevTools - Application Page -->
   <x:String x:Key="DevTools.Application.CaptureStorage">Захопити сховище</x:String>
+  <x:String x:Key="DevTools.Application.CaptureStorage.Tooltip">Захопити дані сховища з WebView Worker</x:String>
+  <x:String x:Key="DevTools.Application.ClearStorage.Tooltip">Очистити захоплені дані</x:String>
   <x:String x:Key="DevTools.Application.ClearCookies">Очистити Cookies</x:String>
   <x:String x:Key="DevTools.Application.StorageTypes">Типи сховищ</x:String>
   <x:String x:Key="DevTools.Application.LocalStorage">Local Storage</x:String>
@@ -254,8 +295,11 @@
 
   <!-- DevTools - Sources Page -->
   <x:String x:Key="DevTools.Sources.CaptureSources">Захопити джерела</x:String>
+  <x:String x:Key="DevTools.Sources.CaptureSources.Tooltip">Захопити джерела з WebView Worker</x:String>
+  <x:String x:Key="DevTools.Sources.CaptureFromWebView">Захопити з WebView</x:String>
   <x:String x:Key="DevTools.Sources.GetHtml">Отримати HTML</x:String>
   <x:String x:Key="DevTools.Sources.FileTree">Дерево файлів</x:String>
+  <x:String x:Key="DevTools.Sources.Files">Файли</x:String>
   <x:String x:Key="DevTools.Sources.FilterByType">Фільтр за типом:</x:String>
   <x:String x:Key="DevTools.Sources.All">Всі</x:String>
   <x:String x:Key="DevTools.Sources.Scripts">Скрипти</x:String>
@@ -298,14 +342,79 @@
   <x:String x:Key="DevTools.WebViewWorker.NoUrlToLoad">Немає URL для завантаження з поточної вкладки</x:String>
   <x:String x:Key="DevTools.WebViewWorker.LoadingFromTab">Завантаження URL з поточної вкладки...</x:String>
 
+  <!-- Завантаження -->
+  <x:String x:Key="Downloads.Title">Завантаження — Vetale Browser</x:String>
+  <x:String x:Key="Downloads.Search">Пошук завантажень…</x:String>
+  <x:String x:Key="Downloads.Empty">Завантажень ще немає</x:String>
+  <x:String x:Key="Downloads.Empty.Hint">Почніть завантаження файлу, щоб побачити прогрес тут</x:String>
+  <x:String x:Key="Downloads.OpenFile">Відкрити файл</x:String>
+  <x:String x:Key="Downloads.OpenFolder">Відкрити папку</x:String>
+  <x:String x:Key="Downloads.Cancel">Скасувати</x:String>
+  <x:String x:Key="Downloads.Retry">Повторити</x:String>
+  <x:String x:Key="Downloads.ClearCompleted">Архівувати старі</x:String>
+  <x:String x:Key="Downloads.Status.Pending">Очікує</x:String>
+  <x:String x:Key="Downloads.Status.Downloading">Завантажується</x:String>
+  <x:String x:Key="Downloads.Status.Completed">Завершено</x:String>
+  <x:String x:Key="Downloads.Status.Error">Помилка</x:String>
+  <x:String x:Key="Downloads.Status.Cancelled">Скасовано</x:String>
+  <x:String x:Key="Downloads.FolderLabel">Папка завантажень:</x:String>
+  <x:String x:Key="Downloads.OpenFolderButton">Відкрити</x:String>
+  
+  <x:String x:Key="Tools.Downloads.Name">Менеджер завантажень</x:String>
+  <x:String x:Key="Tools.Downloads.Description">Керування вашими завантаженнями</x:String>
+
+  <!-- Vetale Search Головна сторінка -->
+  <x:String x:Key="VetaleSearch.Logo.Vetale">Vetale</x:String>
+  <x:String x:Key="VetaleSearch.Logo.Search">Search</x:String>
+  <x:String x:Key="VetaleSearch.Subtitle">Локальна пошукова система</x:String>
+  <x:String x:Key="VetaleSearch.SearchWatermark">Введіть пошуковий запит...</x:String>
+  <x:String x:Key="VetaleSearch.VoiceSearch">Голосовий пошук</x:String>
+  <x:String x:Key="VetaleSearch.ImageSearch">Пошук за зображенням</x:String>
+  <x:String x:Key="VetaleSearch.VideoSearch">Пошук по відео</x:String>
+  <x:String x:Key="VetaleSearch.GeoSearch">Пошук по геолокації</x:String>
+  <x:String x:Key="VetaleSearch.SearchEngineLabel">Пошукова система:</x:String>
+  <x:String x:Key="VetaleSearch.Engine.Local">Vetale Search (Локальний)</x:String>
+  <x:String x:Key="VetaleSearch.Engine.Maps">Карти (OpenStreetMap)</x:String>
+  <x:String x:Key="VetaleSearch.SearchButton">Пошук</x:String>
+  <x:String x:Key="VetaleSearch.LuckyButton">Мені пощастить</x:String>
+  <x:String x:Key="VetaleSearch.QuickLinks">Швидкі посилання</x:String>
+  <x:String x:Key="VetaleSearch.Link.Bookmarks">📚 Закладки</x:String>
+  <x:String x:Key="VetaleSearch.Link.History">📜 Історія</x:String>
+  <x:String x:Key="VetaleSearch.Link.SearchSettings">🔍 Налаштування пошуку</x:String>
+  <x:String x:Key="VetaleSearch.Link.Settings">⚙️ Налаштування</x:String>
+
+  <!-- Gemini Chat Panel -->
+  <x:String x:Key="GeminiChat.Title">Gemini Chat</x:String>
+  <x:String x:Key="GeminiChat.Subtitle">Працює на Google AI</x:String>
+  <x:String x:Key="GeminiChat.ClearChat">Очистити чат</x:String>
+  <x:String x:Key="GeminiChat.Welcome">Привіт! Я Gemini</x:String>
+  <x:String x:Key="GeminiChat.WelcomeHint">Запитайте мене про що завгодно</x:String>
+  <x:String x:Key="GeminiChat.ScrollToBottom">До низу</x:String>
+  <x:String x:Key="GeminiChat.InputPlaceholder">Запитайте Gemini...</x:String>
+  <x:String x:Key="GeminiChat.Send.Tooltip">Надіслати (Ctrl+Enter)</x:String>
+  <x:String x:Key="GeminiChat.Stop.Tooltip">Зупинити генерацію</x:String>
+  <x:String x:Key="GeminiChat.User">Ви</x:String>
+  <x:String x:Key="GeminiChat.Assistant">Gemini</x:String>
+  <x:String x:Key="GeminiChat.Thinking">Gemini думає...</x:String>
+  <x:String x:Key="GeminiChat.Error">Помилка</x:String>
+  <x:String x:Key="GeminiChat.Error.ServiceNotInitialized">сервіс Gemini не ініціалізовано</x:String>
+  <x:String x:Key="GeminiChat.Error.NoResponse">Не вдалося отримати відповідь від Gemini</x:String>
+  <x:String x:Key="GeminiChat.Error.ApiKeyRequired">Потрібно налаштувати API ключ для роботи з Gemini. Спробуйте ще раз.</x:String>
+  <x:String x:Key="GeminiChat.Error.ApiKeySet">API ключ встановлено! Повторюю запит...</x:String>
+  <x:String x:Key="GeminiChat.Error.RetrySaved">Повідомлення збережено. Спробуйте ще раз.</x:String>
+
   <!-- VetaleAI Chat -->
   <x:String x:Key="VetaleAI.Header">Vetale AI Chat</x:String>
   <x:String x:Key="VetaleAI.InputPlaceholder">Введіть ваше повідомлення...</x:String>
   <x:String x:Key="VetaleAI.Send">Надіслати</x:String>
+  <x:String x:Key="VetaleAI.Stop">Зупинити</x:String>
   <x:String x:Key="VetaleAI.NewChat">Новий чат</x:String>
   <x:String x:Key="VetaleAI.ClearHistory">Очистити історію</x:String>
   <x:String x:Key="VetaleAI.Settings">Налаштування</x:String>
   <x:String x:Key="VetaleAI.EnableReasoning">Увімкнути міркування</x:String>
+  <x:String x:Key="VetaleAI.CreateWebPage">Створити веб-сторінку</x:String>
+  <x:String x:Key="VetaleAI.CreateWebPage.Tooltip">Створити веб-сторінку з поточного запиту</x:String>
+  <x:String x:Key="VetaleAI.ScrollToBottom">Прокрутити вниз</x:String>
   <x:String x:Key="VetaleAI.ResponseLanguage">Мова відповідей</x:String>
   <x:String x:Key="VetaleAI.Language.Auto">Авто-визначення</x:String>
   <x:String x:Key="VetaleAI.Language.English">Англійська</x:String>
@@ -467,6 +576,8 @@
   <x:String x:Key="ErrorPage.Category.Security">🔒 Проблема безпеки</x:String>
   <x:String x:Key="ErrorPage.Category.General">⚠️ Загальна помилка</x:String>
   <x:String x:Key="ErrorPage.Category.Error">Помилка</x:String>
+  <x:String x:Key="ErrorPage.PlayGame">Грати в гру</x:String>
+  <x:String x:Key="ErrorPage.GameDeveloper">Гра HexGL від Thibaut Despoulain</x:String>
 
   <!-- Security Status -->
   <x:String x:Key="Security.Safe.Tooltip">✓ Безпечний сайт</x:String>
@@ -538,4 +649,48 @@
   <x:String x:Key="Search.Action.SearchVideos">Пошук відео</x:String>
   <x:String x:Key="Search.Action.OpenOnYouTube">Відкрити на YouTube</x:String>
   <x:String x:Key="Search.Action.ViewSource">Переглянути джерело</x:String>
+
+  <!-- API Key Config Window - General -->
+  <x:String x:Key="ApiKey.Save">Зберегти ключ</x:String>
+  <x:String x:Key="ApiKey.Skip">Пропустити</x:String>
+  <x:String x:Key="ApiKey.Note">💡 Ваш API ключ зберігається локально з шифруванням і ніколи не передається.</x:String>
+  
+  <!-- Pexels API -->
+  <x:String x:Key="Pexels.ApiKey.Title">Налаштування Pexels API</x:String>
+  <x:String x:Key="Pexels.ApiKey.Header">Налаштування Pexels</x:String>
+  <x:String x:Key="Pexels.ApiKey.Description">Введіть ваш API ключ для пошуку високоякісних зображень з Pexels.</x:String>
+  <x:String x:Key="Pexels.ApiKey.Label">Pexels API ключ</x:String>
+  <x:String x:Key="Pexels.ApiKey.Watermark">Введіть ваш Pexels API ключ...</x:String>
+  <x:String x:Key="Pexels.ApiKey.HowToGet">📋 Як отримати безкоштовний API ключ:</x:String>
+  <x:String x:Key="Pexels.ApiKey.Step1">1. Перейдіть на Pexels.com</x:String>
+  <x:String x:Key="Pexels.ApiKey.Step2">2. Зареєструйтесь або увійдіть</x:String>
+  <x:String x:Key="Pexels.ApiKey.Step3">3. Перейдіть до API та створіть новий ключ</x:String>
+  <x:String x:Key="Pexels.ApiKey.OpenPortal">🔗 Відкрити Pexels API</x:String>
+  <x:String x:Key="Pexels.ApiKey.Note">💡 Pexels API безкоштовний для особистого та комерційного використання.</x:String>
+  
+  <!-- Unsplash API -->
+  <x:String x:Key="Unsplash.ApiKey.Title">Налаштування Unsplash API</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Header">Налаштування Unsplash</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Description">Введіть ваш Access Key для пошуку зображень з Unsplash.</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Label">Unsplash Access Key</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Watermark">Введіть ваш Unsplash Access Key...</x:String>
+  <x:String x:Key="Unsplash.ApiKey.HowToGet">📋 Як отримати безкоштовний API ключ:</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Step1">1. Перейдіть на Unsplash Developers</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Step2">2. Зареєструйтесь та створіть додаток</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Step3">3. Скопіюйте Access Key з налаштувань додатку</x:String>
+  <x:String x:Key="Unsplash.ApiKey.OpenPortal">🔗 Відкрити Unsplash Developers</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Note">💡 Unsplash API безкоштовний з лімітом 50 запитів/годину для демо-додатків.</x:String>
+  
+  <!-- YouTube API -->
+  <x:String x:Key="YouTube.ApiKey.Title">Налаштування YouTube API</x:String>
+  <x:String x:Key="YouTube.ApiKey.Header">Налаштування YouTube Data API</x:String>
+  <x:String x:Key="YouTube.ApiKey.Description">Введіть ваш API ключ для пошуку відео на YouTube.</x:String>
+  <x:String x:Key="YouTube.ApiKey.Label">YouTube API ключ</x:String>
+  <x:String x:Key="YouTube.ApiKey.Watermark">Введіть ваш YouTube API ключ...</x:String>
+  <x:String x:Key="YouTube.ApiKey.HowToGet">📋 Як отримати API ключ:</x:String>
+  <x:String x:Key="YouTube.ApiKey.Step1">1. Перейдіть на Google Cloud Console</x:String>
+  <x:String x:Key="YouTube.ApiKey.Step2">2. Створіть проект та увімкніть YouTube Data API v3</x:String>
+  <x:String x:Key="YouTube.ApiKey.Step3">3. Створіть API ключ в розділі Credentials</x:String>
+  <x:String x:Key="YouTube.ApiKey.OpenPortal">🔗 Відкрити Google Cloud Console</x:String>
+  <x:String x:Key="YouTube.ApiKey.Note">💡 YouTube Data API має безкоштовний ліміт 10,000 одиниць/день.</x:String>
 </ResourceDictionary>

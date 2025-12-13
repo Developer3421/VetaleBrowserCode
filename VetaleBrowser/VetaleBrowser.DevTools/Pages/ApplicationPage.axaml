@@ -27,24 +27,24 @@
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
                     <TextBlock Text="💾" FontSize="20" VerticalAlignment="Center"/>
-                    <TextBlock Text="Application Storage" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Text="{DynamicResource DevTools.Tool.Application.Title}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
                 </StackPanel>
                 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
                     <Button Classes="action-btn"
                             Click="CaptureStorageFromWebView"
-                            ToolTip.Tip="Capture storage data from WebView Worker">
+                            ToolTip.Tip="{DynamicResource DevTools.Application.CaptureStorage.Tooltip}">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <TextBlock Text="🔄" FontSize="14"/>
-                            <TextBlock Text="Capture Storage"/>
+                            <TextBlock Text="{DynamicResource DevTools.Application.CaptureStorage}"/>
                         </StackPanel>
                     </Button>
                     <Button Classes="action-btn"
                             Click="ClearAllStorage"
-                            ToolTip.Tip="Clear captured data">
+                            ToolTip.Tip="{DynamicResource DevTools.Application.ClearStorage.Tooltip}">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <TextBlock Text="🗑️" FontSize="14"/>
-                            <TextBlock Text="Clear"/>
+                            <TextBlock Text="{DynamicResource Common.Clear}"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -57,24 +57,24 @@
             <!-- Storage Types -->
             <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0" Background="#FAFAFA">
                 <Grid RowDefinitions="Auto,*">
-                    <TextBlock Grid.Row="0" Text="Storage Types" FontWeight="SemiBold" Padding="10,8" Background="#F0F0F0"/>
+                    <TextBlock Grid.Row="0" Text="{DynamicResource DevTools.Application.StorageTypes}" FontWeight="SemiBold" Padding="10,8" Background="#F0F0F0"/>
                     <ListBox Grid.Row="1" x:Name="StorageTypesList" SelectionChanged="OnStorageTypeSelected">
                         <ListBoxItem Tag="localStorage">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock Text="📦"/>
-                                <TextBlock Text="Local Storage"/>
+                                <TextBlock Text="{DynamicResource DevTools.Application.LocalStorage}"/>
                             </StackPanel>
                         </ListBoxItem>
                         <ListBoxItem Tag="sessionStorage">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock Text="📋"/>
-                                <TextBlock Text="Session Storage"/>
+                                <TextBlock Text="{DynamicResource DevTools.Application.SessionStorage}"/>
                             </StackPanel>
                         </ListBoxItem>
                         <ListBoxItem Tag="cookies">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock Text="🍪"/>
-                                <TextBlock Text="Cookies"/>
+                                <TextBlock Text="{DynamicResource DevTools.Application.Cookies}"/>
                             </StackPanel>
                         </ListBoxItem>
                     </ListBox>
@@ -87,7 +87,7 @@
             <!-- Storage Data -->
             <Grid Grid.Column="2" RowDefinitions="Auto,*">
                 <Border Grid.Row="0" Background="#F0F0F0" Padding="10,6" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
-                    <TextBlock x:Name="StorageTypeTitle" Text="Select storage type" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="StorageTypeTitle" Text="{DynamicResource DevTools.Application.SelectStorageType}" FontWeight="SemiBold"/>
                 </Border>
                 
                 <ScrollViewer Grid.Row="1" Background="White">

@@ -179,7 +179,9 @@ public partial class GeminiChatPanel : UserControl, IDisposable
     {
         if (_geminiService == null)
         {
-            AddAssistantMessage("❌ Помилка: сервіс Gemini не ініціалізовано");
+            var errorLabel = GetLocalizedString("GeminiChat.Error", "Помилка");
+            var errorMsg = GetLocalizedString("GeminiChat.Error.ServiceNotInitialized", "сервіс Gemini не ініціалізовано");
+            AddAssistantMessage($"❌ {errorLabel}: {errorMsg}");
             return;
         }
 
@@ -228,12 +230,14 @@ public partial class GeminiChatPanel : UserControl, IDisposable
                 }
                 else
                 {
-                    AddAssistantMessage($"❌ Помилка: {summary.ErrorMessage}");
+                    var errorLabel = GetLocalizedString("GeminiChat.Error", "Помилка");
+                    AddAssistantMessage($"❌ {errorLabel}: {summary.ErrorMessage}");
                 }
             }
             else
             {
-                AddAssistantMessage("❌ Не вдалося отримати відповідь від Gemini");
+                var noResponseMsg = GetLocalizedString("GeminiChat.Error.NoResponse", "Не вдалося отримати відповідь від Gemini");
+                AddAssistantMessage($"❌ {noResponseMsg}");
             }
         }
         catch (TaskCanceledException)
@@ -251,7 +255,8 @@ public partial class GeminiChatPanel : UserControl, IDisposable
             {
                 _messagesPanel.Children.Remove(loadingBorder);
             }
-            AddAssistantMessage($"❌ Помилка: {ex.Message}");
+            var errorLabel = GetLocalizedString("GeminiChat.Error", "Помилка");
+            AddAssistantMessage($"❌ {errorLabel}: {ex.Message}");
         }
         finally
         {
@@ -297,7 +302,7 @@ public partial class GeminiChatPanel : UserControl, IDisposable
                 new TextBlock
                 {
                     Classes = { "message-header", "user-header" },
-                    Text = "Ви"
+                    Text = GetLocalizedString("GeminiChat.User", "You")
                 },
                 new TextBlock
                 {
@@ -332,7 +337,7 @@ public partial class GeminiChatPanel : UserControl, IDisposable
                 new TextBlock
                 {
                     Classes = { "message-header", "assistant-header" },
-                    Text = "Gemini"
+                    Text = GetLocalizedString("GeminiChat.Assistant", "Gemini")
                 },
                 new TextBlock
                 {
@@ -372,7 +377,7 @@ public partial class GeminiChatPanel : UserControl, IDisposable
                 },
                 new TextBlock
                 {
-                    Text = "Gemini думає...",
+                    Text = GetLocalizedString("GeminiChat.Thinking", "Gemini is thinking..."),
                     FontSize = 13,
                     Foreground = new SolidColorBrush(Color.Parse("#666666"))
                 }
@@ -392,6 +397,25 @@ public partial class GeminiChatPanel : UserControl, IDisposable
 
         return loadingBorder;
     }
+    
+    /// <summary>
+    /// Get localized string from resources
+    /// </summary>
+    private string GetLocalizedString(string key, string defaultValue)
+    {
+        try
+        {
+            if (Application.Current?.TryFindResource(key, out var resource) == true && resource is string str)
+            {
+                return str;
+            }
+        }
+        catch
+        {
+            // Ignore localization errors
+        }
+        return defaultValue;
+    }
 
     /// <summary>
     /// Show API key configuration window and retry the request if successful
@@ -410,7 +434,8 @@ public partial class GeminiChatPanel : UserControl, IDisposable
 
             if (result.Cancelled)
             {
-                AddAssistantMessage("ℹ️ Потрібно налаштувати API ключ для роботи з Gemini. Спробуйте ще раз.");
+                var apiKeyRequiredMsg = GetLocalizedString("GeminiChat.Error.ApiKeyRequired", "Потрібно налаштувати API ключ для роботи з Gemini. Спробуйте ще раз.");
+                AddAssistantMessage($"ℹ️ {apiKeyRequiredMsg}");
                 return;
             }
 
@@ -432,13 +457,15 @@ public partial class GeminiChatPanel : UserControl, IDisposable
             _geminiService = new GeminiAiSummaryService();
 
             // Повторюємо запит
-            AddAssistantMessage("✨ API ключ налаштовано. Обробляю ваш запит...");
+            var apiKeySetMsg = GetLocalizedString("GeminiChat.Error.ApiKeySet", "API ключ налаштовано. Обробляю ваш запит...");
+            AddAssistantMessage($"✨ {apiKeySetMsg}");
             await GenerateResponseAsync(originalMessage);
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[GeminiChat] Error showing API key window: {ex}");
-            AddAssistantMessage($"❌ Помилка налаштування API ключа: {ex.Message}");
+            var errorLabel = GetLocalizedString("GeminiChat.Error", "Помилка");
+            AddAssistantMessage($"❌ {errorLabel}: {ex.Message}");
         }
     }
 

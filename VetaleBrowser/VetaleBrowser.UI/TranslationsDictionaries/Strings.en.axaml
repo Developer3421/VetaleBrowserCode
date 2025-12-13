@@ -9,6 +9,21 @@
   <x:String x:Key="Bookmarks.Title">Bookmarks — Vetale Browser</x:String>
   <x:String x:Key="DevTools.Title">Developer Tools — Vetale Browser</x:String>
   <x:String x:Key="VetaleAI.Title">Vetale AI Chat — Vetale Browser</x:String>
+  <x:String x:Key="About.Title">About — Vetale Browser</x:String>
+
+  <!-- About Window -->
+  <x:String x:Key="About.Version">Version 1.0</x:String>
+  <x:String x:Key="About.Creator.Label">Creator</x:String>
+  <x:String x:Key="About.Creator.Name">Oleg Kurylo</x:String>
+  <x:String x:Key="About.CreationDate.Label">Creation Date</x:String>
+  <x:String x:Key="About.CreationDate.Value">December 15, 2025</x:String>
+  <x:String x:Key="About.Description">Vetale Browser is a modern web browser built from scratch. The creator went through a long journey from the very first WPF version to this current Avalonia UI version. The browser features built-in AI assistant, developer tools, download manager, and many other features designed for comfortable web browsing.</x:String>
+  <x:String x:Key="About.Technologies.Label">Technologies</x:String>
+  <x:String x:Key="About.Copyright">© 2025 Oleg Kurylo. All rights reserved.</x:String>
+  
+  <!-- Tools - About -->
+  <x:String x:Key="Tools.About.Name">About</x:String>
+  <x:String x:Key="Tools.About.Description">Information about the browser and its creator</x:String>
 
   <!-- Settings main page -->
   <x:String x:Key="Settings.Header">Settings</x:String>
@@ -19,6 +34,9 @@
   <x:String x:Key="Settings.Appearance.Sub">Customize the look and feel</x:String>
   <x:String x:Key="Settings.Search.Title">Search Engine</x:String>
   <x:String x:Key="Settings.Search.Sub">Select your default search engine</x:String>
+  <x:String x:Key="Settings.Search.VetaleSearch.Subtitle">Local search engine</x:String>
+  <x:String x:Key="Settings.Search.VetaleSearch.Description">Fast search among visited pages in local database without using the internet.</x:String>
+  <x:String x:Key="Settings.Search.OnlineEngines">Online search engines:</x:String>
 
   <!-- Window controls tooltips -->
   <x:String x:Key="Window.Minimize">Minimize</x:String>
@@ -189,6 +207,9 @@
   <x:String x:Key="Tools.Console.Name">Console</x:String>
   <x:String x:Key="Tools.Console.Description">Developer console with logs and diagnostics</x:String>
   
+  <x:String x:Key="Tools.UserAgreement.Name">User Agreement</x:String>
+  <x:String x:Key="Tools.UserAgreement.Description">View GDPR privacy policy and user agreement</x:String>
+  
   <x:String x:Key="Tools.NavigateButton">→ Open in browser</x:String>
 
   <!-- DevTools -->
@@ -227,21 +248,39 @@
 
   <!-- DevTools - Performance Page -->
   <x:String x:Key="DevTools.Performance.CapturePerformance">Capture Performance</x:String>
+  <x:String x:Key="DevTools.Performance.CapturePerformance.Tooltip">Capture performance data from WebView Worker</x:String>
   <x:String x:Key="DevTools.Performance.GetWebVitals">Get Web Vitals</x:String>
   <x:String x:Key="DevTools.Performance.LoadTime">Load Time</x:String>
   <x:String x:Key="DevTools.Performance.DomContentLoaded">DOM Content Loaded</x:String>
   <x:String x:Key="DevTools.Performance.FirstPaint">First Paint</x:String>
   <x:String x:Key="DevTools.Performance.MemoryUsage">Memory Usage</x:String>
+  <x:String x:Key="DevTools.Performance.JsHeapSize">JavaScript Heap Size</x:String>
   <x:String x:Key="DevTools.Performance.CoreWebVitals">Core Web Vitals</x:String>
   <x:String x:Key="DevTools.Performance.ResourceTimings">Resource Timings</x:String>
+  <x:String x:Key="DevTools.Performance.Summary">Summary</x:String>
+  <x:String x:Key="DevTools.Performance.CurrentUrl">Current URL</x:String>
+  <x:String x:Key="DevTools.Performance.NoData">No data captured</x:String>
 
   <!-- DevTools - Elements Page -->
   <x:String x:Key="DevTools.Elements.Query">Query</x:String>
   <x:String x:Key="DevTools.Elements.CaptureDom">Capture DOM</x:String>
+  <x:String x:Key="DevTools.Elements.CaptureDom.Tooltip">Capture DOM from WebView Worker</x:String>
+  <x:String x:Key="DevTools.Elements.ClearDom.Tooltip">Clear DOM tree</x:String>
   <x:String x:Key="DevTools.Elements.DomTree">DOM Tree</x:String>
   <x:String x:Key="DevTools.Elements.SelectElement">Select an element</x:String>
   <x:String x:Key="DevTools.Elements.Attributes">Attributes</x:String>
   <x:String x:Key="DevTools.Elements.ComputedStyles">Computed Styles</x:String>
+
+  <!-- DevTools - Network Page -->
+  <x:String x:Key="DevTools.Network.CaptureNetwork">Capture Network</x:String>
+  <x:String x:Key="DevTools.Network.CaptureNetwork.Tooltip">Capture network resources from WebView</x:String>
+  <x:String x:Key="DevTools.Network.ClearNetwork.Tooltip">Clear network data</x:String>
+  <x:String x:Key="DevTools.Network.Type">Type</x:String>
+  <x:String x:Key="DevTools.Network.Url">URL</x:String>
+  <x:String x:Key="DevTools.Network.Size">Size</x:String>
+  <x:String x:Key="DevTools.Network.Duration">Duration</x:String>
+  <x:String x:Key="DevTools.Network.Status">Status</x:String>
+  <x:String x:Key="DevTools.Network.SelectResource">Select a resource to view details</x:String>
 
   <!-- DevTools - Application Page -->
   <x:String x:Key="DevTools.Application.CaptureStorage">Capture Storage</x:String>
@@ -252,20 +291,25 @@
   <x:String x:Key="DevTools.Application.Cookies">Cookies</x:String>
   <x:String x:Key="DevTools.Application.IndexedDB">IndexedDB</x:String>
   <x:String x:Key="DevTools.Application.SelectStorageType">Select storage type</x:String>
+  <x:String x:Key="DevTools.Application.CaptureStorage.Tooltip">Capture storage data from WebView Worker</x:String>
+  <x:String x:Key="DevTools.Application.ClearStorage.Tooltip">Clear captured data</x:String>
   <x:String x:Key="DevTools.Application.Key">Key:</x:String>
   <x:String x:Key="DevTools.Application.Value">Value:</x:String>
 
   <!-- DevTools - Sources Page -->
   <x:String x:Key="DevTools.Sources.CaptureSources">Capture Sources</x:String>
+  <x:String x:Key="DevTools.Sources.CaptureSources.Tooltip">Capture sources from WebView Worker</x:String>
+  <x:String x:Key="DevTools.Sources.CaptureFromWebView">Capture from WebView</x:String>
   <x:String x:Key="DevTools.Sources.GetHtml">Get HTML</x:String>
   <x:String x:Key="DevTools.Sources.FileTree">File Tree</x:String>
+  <x:String x:Key="DevTools.Sources.Files">Files</x:String>
   <x:String x:Key="DevTools.Sources.FilterByType">Filter by type:</x:String>
   <x:String x:Key="DevTools.Sources.All">All</x:String>
   <x:String x:Key="DevTools.Sources.Scripts">Scripts</x:String>
   <x:String x:Key="DevTools.Sources.Stylesheets">Stylesheets</x:String>
   <x:String x:Key="DevTools.Sources.Images">Images</x:String>
   <x:String x:Key="DevTools.Sources.Inline">Inline</x:String>
-  <x:String x:Key="DevTools.Sources.SelectFile">Select a file</x:String>
+  <x:String x:Key="DevTools.Sources.SelectFile">Select a file to view</x:String>
   <x:String x:Key="DevTools.Sources.Type">Type:</x:String>
   <x:String x:Key="DevTools.Sources.Size">Size:</x:String>
   <x:String x:Key="DevTools.Sources.ExecuteJavaScript">Execute JavaScript:</x:String>
@@ -305,10 +349,14 @@
   <x:String x:Key="VetaleAI.Header">Vetale AI Chat</x:String>
   <x:String x:Key="VetaleAI.InputPlaceholder">Type your message...</x:String>
   <x:String x:Key="VetaleAI.Send">Send</x:String>
+  <x:String x:Key="VetaleAI.Stop">Stop</x:String>
   <x:String x:Key="VetaleAI.NewChat">New Chat</x:String>
   <x:String x:Key="VetaleAI.ClearHistory">Clear History</x:String>
   <x:String x:Key="VetaleAI.Settings">Settings</x:String>
   <x:String x:Key="VetaleAI.EnableReasoning">Enable Reasoning</x:String>
+  <x:String x:Key="VetaleAI.CreateWebPage">Create Web Page</x:String>
+  <x:String x:Key="VetaleAI.CreateWebPage.Tooltip">Create web page from current request</x:String>
+  <x:String x:Key="VetaleAI.ScrollToBottom">Scroll to bottom</x:String>
   <x:String x:Key="VetaleAI.ResponseLanguage">Response Language</x:String>
   <x:String x:Key="VetaleAI.Language.Auto">Auto-detect</x:String>
   <x:String x:Key="VetaleAI.Language.English">English</x:String>
@@ -343,6 +391,48 @@
   <x:String x:Key="Downloads.Status.Completed">Completed</x:String>
   <x:String x:Key="Downloads.Status.Error">Error</x:String>
   <x:String x:Key="Downloads.Status.Cancelled">Cancelled</x:String>
+  <x:String x:Key="Downloads.FolderLabel">Downloads folder:</x:String>
+  <x:String x:Key="Downloads.OpenFolderButton">Open</x:String>
+
+  <!-- Vetale Search Home Page -->
+  <x:String x:Key="VetaleSearch.Logo.Vetale">Vetale</x:String>
+  <x:String x:Key="VetaleSearch.Logo.Search">Search</x:String>
+  <x:String x:Key="VetaleSearch.Subtitle">Local search engine</x:String>
+  <x:String x:Key="VetaleSearch.SearchWatermark">Enter search query...</x:String>
+  <x:String x:Key="VetaleSearch.VoiceSearch">Voice search</x:String>
+  <x:String x:Key="VetaleSearch.ImageSearch">Search by image</x:String>
+  <x:String x:Key="VetaleSearch.VideoSearch">Search by video</x:String>
+  <x:String x:Key="VetaleSearch.GeoSearch">Search by location</x:String>
+  <x:String x:Key="VetaleSearch.SearchEngineLabel">Search engine:</x:String>
+  <x:String x:Key="VetaleSearch.Engine.Local">Vetale Search (Local)</x:String>
+  <x:String x:Key="VetaleSearch.Engine.Maps">Maps (OpenStreetMap)</x:String>
+  <x:String x:Key="VetaleSearch.SearchButton">Search</x:String>
+  <x:String x:Key="VetaleSearch.LuckyButton">I'm Feeling Lucky</x:String>
+  <x:String x:Key="VetaleSearch.QuickLinks">Quick Links</x:String>
+  <x:String x:Key="VetaleSearch.Link.Bookmarks">📚 Bookmarks</x:String>
+  <x:String x:Key="VetaleSearch.Link.History">📜 History</x:String>
+  <x:String x:Key="VetaleSearch.Link.SearchSettings">🔍 Search Settings</x:String>
+  <x:String x:Key="VetaleSearch.Link.Settings">⚙️ Settings</x:String>
+
+  <!-- Gemini Chat Panel -->
+  <x:String x:Key="GeminiChat.Title">Gemini Chat</x:String>
+  <x:String x:Key="GeminiChat.Subtitle">Powered by Google AI</x:String>
+  <x:String x:Key="GeminiChat.ClearChat">Clear chat</x:String>
+  <x:String x:Key="GeminiChat.Welcome">Hello! I'm Gemini</x:String>
+  <x:String x:Key="GeminiChat.WelcomeHint">Ask me anything</x:String>
+  <x:String x:Key="GeminiChat.ScrollToBottom">To bottom</x:String>
+  <x:String x:Key="GeminiChat.InputPlaceholder">Ask Gemini...</x:String>
+  <x:String x:Key="GeminiChat.Send.Tooltip">Send (Ctrl+Enter)</x:String>
+  <x:String x:Key="GeminiChat.Stop.Tooltip">Stop generation</x:String>
+  <x:String x:Key="GeminiChat.User">You</x:String>
+  <x:String x:Key="GeminiChat.Assistant">Gemini</x:String>
+  <x:String x:Key="GeminiChat.Thinking">Gemini is thinking...</x:String>
+  <x:String x:Key="GeminiChat.Error">Error</x:String>
+  <x:String x:Key="GeminiChat.Error.ServiceNotInitialized">Gemini service is not initialized</x:String>
+  <x:String x:Key="GeminiChat.Error.NoResponse">Could not get a response from Gemini</x:String>
+  <x:String x:Key="GeminiChat.Error.ApiKeyRequired">You need to set up an API key to use Gemini. Please try again.</x:String>
+  <x:String x:Key="GeminiChat.Error.ApiKeySet">API key set! Retrying request...</x:String>
+  <x:String x:Key="GeminiChat.Error.RetrySaved">Message saved. Please try again.</x:String>
 
   <!-- Browser Error Pages -->
   <!-- Network Errors -->
@@ -559,4 +649,48 @@
   <x:String x:Key="Search.Action.SearchVideos">Search Videos</x:String>
   <x:String x:Key="Search.Action.OpenOnYouTube">Open on YouTube</x:String>
   <x:String x:Key="Search.Action.ViewSource">View Source</x:String>
+
+  <!-- API Key Config Window - General -->
+  <x:String x:Key="ApiKey.Save">Save Key</x:String>
+  <x:String x:Key="ApiKey.Skip">Skip</x:String>
+  <x:String x:Key="ApiKey.Note">💡 Your API key is stored locally with encryption and never shared.</x:String>
+  
+  <!-- Pexels API -->
+  <x:String x:Key="Pexels.ApiKey.Title">Pexels API Configuration</x:String>
+  <x:String x:Key="Pexels.ApiKey.Header">Configure Pexels</x:String>
+  <x:String x:Key="Pexels.ApiKey.Description">Enter your API key to search high-quality images from Pexels.</x:String>
+  <x:String x:Key="Pexels.ApiKey.Label">Pexels API Key</x:String>
+  <x:String x:Key="Pexels.ApiKey.Watermark">Enter your Pexels API key...</x:String>
+  <x:String x:Key="Pexels.ApiKey.HowToGet">📋 How to get a free API key:</x:String>
+  <x:String x:Key="Pexels.ApiKey.Step1">1. Go to Pexels.com</x:String>
+  <x:String x:Key="Pexels.ApiKey.Step2">2. Sign up or log in</x:String>
+  <x:String x:Key="Pexels.ApiKey.Step3">3. Navigate to API and create a new key</x:String>
+  <x:String x:Key="Pexels.ApiKey.OpenPortal">🔗 Open Pexels API</x:String>
+  <x:String x:Key="Pexels.ApiKey.Note">💡 Pexels API is free for personal and commercial use.</x:String>
+  
+  <!-- Unsplash API -->
+  <x:String x:Key="Unsplash.ApiKey.Title">Unsplash API Configuration</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Header">Configure Unsplash</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Description">Enter your Access Key to search images from Unsplash.</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Label">Unsplash Access Key</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Watermark">Enter your Unsplash Access Key...</x:String>
+  <x:String x:Key="Unsplash.ApiKey.HowToGet">📋 How to get a free API key:</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Step1">1. Go to Unsplash Developers</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Step2">2. Sign up and create an application</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Step3">3. Copy the Access Key from your app settings</x:String>
+  <x:String x:Key="Unsplash.ApiKey.OpenPortal">🔗 Open Unsplash Developers</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Note">💡 Unsplash API is free with a limit of 50 requests/hour for demo apps.</x:String>
+  
+  <!-- YouTube API -->
+  <x:String x:Key="YouTube.ApiKey.Title">YouTube API Configuration</x:String>
+  <x:String x:Key="YouTube.ApiKey.Header">Configure YouTube Data API</x:String>
+  <x:String x:Key="YouTube.ApiKey.Description">Enter your API key to search videos on YouTube.</x:String>
+  <x:String x:Key="YouTube.ApiKey.Label">YouTube API Key</x:String>
+  <x:String x:Key="YouTube.ApiKey.Watermark">Enter your YouTube API key...</x:String>
+  <x:String x:Key="YouTube.ApiKey.HowToGet">📋 How to get an API key:</x:String>
+  <x:String x:Key="YouTube.ApiKey.Step1">1. Go to Google Cloud Console</x:String>
+  <x:String x:Key="YouTube.ApiKey.Step2">2. Create a project and enable YouTube Data API v3</x:String>
+  <x:String x:Key="YouTube.ApiKey.Step3">3. Create an API key in the Credentials section</x:String>
+  <x:String x:Key="YouTube.ApiKey.OpenPortal">🔗 Open Google Cloud Console</x:String>
+  <x:String x:Key="YouTube.ApiKey.Note">💡 YouTube Data API has a free limit of 10,000 units/day.</x:String>
 </ResourceDictionary>

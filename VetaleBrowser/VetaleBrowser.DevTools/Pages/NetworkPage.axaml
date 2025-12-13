@@ -27,24 +27,24 @@
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
                     <TextBlock Text="🌐" FontSize="20" VerticalAlignment="Center"/>
-                    <TextBlock Text="Network Monitor" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Text="{DynamicResource DevTools.Tool.Network.Title}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
                 </StackPanel>
                 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
                     <Button Classes="action-btn"
                             Click="CaptureNetworkFromWebView"
-                            ToolTip.Tip="Capture network resources from WebView">
+                            ToolTip.Tip="{DynamicResource DevTools.Network.CaptureNetwork.Tooltip}">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <TextBlock Text="🔄" FontSize="14"/>
-                            <TextBlock Text="Capture Network"/>
+                            <TextBlock Text="{DynamicResource DevTools.Network.CaptureNetwork}"/>
                         </StackPanel>
                     </Button>
                     <Button Classes="action-btn"
                             Click="ClearNetworkData"
-                            ToolTip.Tip="Clear network data">
+                            ToolTip.Tip="{DynamicResource DevTools.Network.ClearNetwork.Tooltip}">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <TextBlock Text="🗑️" FontSize="14"/>
-                            <TextBlock Text="Clear"/>
+                            <TextBlock Text="{DynamicResource Common.Clear}"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -59,11 +59,11 @@
                 <Grid RowDefinitions="Auto,*">
                     <Border Grid.Row="0" Background="#F0F0F0" Padding="10,6" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
                         <Grid ColumnDefinitions="50,*,100,100,100">
-                            <TextBlock Grid.Column="0" Text="Type" FontWeight="SemiBold" FontSize="12"/>
-                            <TextBlock Grid.Column="1" Text="URL" FontWeight="SemiBold" FontSize="12"/>
-                            <TextBlock Grid.Column="2" Text="Size" FontWeight="SemiBold" FontSize="12"/>
-                            <TextBlock Grid.Column="3" Text="Duration" FontWeight="SemiBold" FontSize="12"/>
-                            <TextBlock Grid.Column="4" Text="Status" FontWeight="SemiBold" FontSize="12"/>
+                            <TextBlock Grid.Column="0" Text="{DynamicResource DevTools.Network.Type}" FontWeight="SemiBold" FontSize="12"/>
+                            <TextBlock Grid.Column="1" Text="{DynamicResource DevTools.Network.Url}" FontWeight="SemiBold" FontSize="12"/>
+                            <TextBlock Grid.Column="2" Text="{DynamicResource DevTools.Network.Size}" FontWeight="SemiBold" FontSize="12"/>
+                            <TextBlock Grid.Column="3" Text="{DynamicResource DevTools.Network.Duration}" FontWeight="SemiBold" FontSize="12"/>
+                            <TextBlock Grid.Column="4" Text="{DynamicResource DevTools.Network.Status}" FontWeight="SemiBold" FontSize="12"/>
                         </Grid>
                     </Border>
                     
@@ -84,7 +84,7 @@
             <Border Grid.Row="2" Background="#FAFAFA" Padding="15" MinHeight="150" MaxHeight="300">
                 <ScrollViewer>
                     <StackPanel Spacing="10">
-                        <TextBlock x:Name="ResourceDetailsTitle" Text="Select a resource to view details" FontWeight="SemiBold" FontSize="14"/>
+                        <TextBlock x:Name="ResourceDetailsTitle" Text="{DynamicResource DevTools.Network.SelectResource}" FontWeight="SemiBold" FontSize="14"/>
                         <TextBox x:Name="ResourceDetailsText"
                                  IsReadOnly="True"
                                  AcceptsReturn="True"

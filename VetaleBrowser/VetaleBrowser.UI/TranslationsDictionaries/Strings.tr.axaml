@@ -1,41 +1,62 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-  <!-- Turkish translations (tr) -->
+  <!-- Başlıklar -->
   <x:String x:Key="App.Title">Vetale Tarayıcı</x:String>
   <x:String x:Key="Settings.Title">Ayarlar — Vetale Tarayıcı</x:String>
   <x:String x:Key="Tools.Title">Araçlar — Vetale Tarayıcı</x:String>
   <x:String x:Key="Console.Title">Konsol — Vetale Tarayıcı</x:String>
   <x:String x:Key="History.Title">Geçmiş — Vetale Tarayıcı</x:String>
   <x:String x:Key="Bookmarks.Title">Yer İmleri — Vetale Tarayıcı</x:String>
+  <x:String x:Key="DevTools.Title">Geliştirici Araçları — Vetale Tarayıcı</x:String>
+  <x:String x:Key="VetaleAI.Title">Vetale AI Sohbet — Vetale Tarayıcı</x:String>
+  <x:String x:Key="About.Title">Hakkında — Vetale Tarayıcı</x:String>
 
-  <!-- Settings main page -->
+  <!-- Hakkında Penceresi -->
+  <x:String x:Key="About.Version">Sürüm 1.0</x:String>
+  <x:String x:Key="About.Creator.Label">Yaratıcı</x:String>
+  <x:String x:Key="About.Creator.Name">Oleg Kurylo</x:String>
+  <x:String x:Key="About.CreationDate.Label">Oluşturma Tarihi</x:String>
+  <x:String x:Key="About.CreationDate.Value">15 Aralık 2025</x:String>
+  <x:String x:Key="About.Description">Vetale Browser, sıfırdan oluşturulmuş modern bir web tarayıcısıdır. Yaratıcı, ilk WPF sürümünden bu güncel Avalonia UI sürümüne kadar uzun bir yol kat etti. Tarayıcı, yerleşik AI asistanı, geliştirici araçları, indirme yöneticisi ve rahat web taraması için tasarlanmış birçok başka özelliğe sahiptir.</x:String>
+  <x:String x:Key="About.Technologies.Label">Teknolojiler</x:String>
+  <x:String x:Key="About.Copyright">© 2025 Oleg Kurylo. Tüm hakları saklıdır.</x:String>
+  
+  <!-- Araçlar - Hakkında -->
+  <x:String x:Key="Tools.About.Name">Hakkında</x:String>
+  <x:String x:Key="Tools.About.Description">Tarayıcı ve yaratıcısı hakkında bilgi</x:String>
+
+  <!-- Ayarlar ana sayfası -->
   <x:String x:Key="Settings.Header">Ayarlar</x:String>
+  <x:String x:Key="Settings.Back">Geri</x:String>
   <x:String x:Key="Settings.Language.Title">Dil</x:String>
   <x:String x:Key="Settings.Language.Sub">Tercih ettiğiniz dili seçin</x:String>
   <x:String x:Key="Settings.Appearance.Title">Görünüm</x:String>
   <x:String x:Key="Settings.Appearance.Sub">Görünümü ve stili özelleştirin</x:String>
   <x:String x:Key="Settings.Search.Title">Arama Motoru</x:String>
   <x:String x:Key="Settings.Search.Sub">Varsayılan arama motorunuzu seçin</x:String>
+  <x:String x:Key="Settings.Search.VetaleSearch.Subtitle">Yerel arama motoru</x:String>
+  <x:String x:Key="Settings.Search.VetaleSearch.Description">İnternet kullanmadan yerel veritabanında ziyaret edilen sayfalar arasında hızlı arama.</x:String>
+  <x:String x:Key="Settings.Search.OnlineEngines">Çevrimiçi arama motorları:</x:String>
 
-  <!-- Window controls tooltips -->
+  <!-- Pencere kontrolleri -->
   <x:String x:Key="Window.Minimize">Küçült</x:String>
   <x:String x:Key="Window.Maximize">Büyüt</x:String>
   <x:String x:Key="Window.Close">Kapat</x:String>
 
-  <!-- Language page -->
+  <!-- Dil sayfası -->
   <x:String x:Key="Language.Header">Dil</x:String>
   <x:String x:Key="Language.SelectPrompt">Arayüz dilini seçin</x:String>
   <x:String x:Key="Language.RestartHint">Bazı değişiklikler pencereyi yeniden açmayı gerektirebilir</x:String>
   <x:String x:Key="Common.Save">Kaydet</x:String>
   <x:String x:Key="Common.Back">Geri</x:String>
 
-  <!-- Navigation -->
+  <!-- Navigasyon -->
   <x:String x:Key="Nav.Back">Geri</x:String>
   <x:String x:Key="Nav.Forward">İleri</x:String>
   <x:String x:Key="Nav.Home">Ana Sayfa</x:String>
   <x:String x:Key="Nav.AddressBar.Watermark">URL veya arama sorgusu girin…</x:String>
 
-  <!-- Common actions -->
+  <!-- Genel eylemler -->
   <x:String x:Key="Common.Refresh">Yenile</x:String>
   <x:String x:Key="Common.Clear">Temizle</x:String>
   <x:String x:Key="Common.ClearAll">Hepsini temizle</x:String>
@@ -50,31 +71,31 @@
   <x:String x:Key="Common.Loading">Yükleniyor...</x:String>
   <x:String x:Key="Common.ResetDefaults">Varsayılanlara sıfırla</x:String>
 
-  <!-- Tab -->
+  <!-- Sekme -->
   <x:String x:Key="Tab.Mute.Toggle">Sesi değiştir</x:String>
 
-  <!-- Bookmarks -->
+  <!-- Yer İmleri -->
   <x:String x:Key="Bookmarks.Header">Yer İmleri</x:String>
   <x:String x:Key="Bookmarks.Add">Yer imi ekle</x:String>
   <x:String x:Key="Bookmarks.Folder.Default">Yer İmleri</x:String>
   <x:String x:Key="Bookmarks.Folder.Work">İş</x:String>
   <x:String x:Key="Bookmarks.Folder.Personal">Kişisel</x:String>
   <x:String x:Key="Bookmarks.Folder.News">Haberler</x:String>
-
-  <!-- Add Bookmark dialog -->
+  
+  <!-- Yer imi ekleme dialogu -->
   <x:String x:Key="Bookmarks.Add.Header">Yer imlerine ekle</x:String>
   <x:String x:Key="Bookmarks.Add.Name">Ad:</x:String>
   <x:String x:Key="Bookmarks.Add.Name.Watermark">Yer imi adı girin</x:String>
   <x:String x:Key="Bookmarks.Add.Folder">Klasör:</x:String>
 
-  <!-- Tools / Settings button tooltips -->
+  <!-- Düğme ipuçları -->
   <x:String x:Key="Tools.Button.Tooltip">Araçlar</x:String>
   <x:String x:Key="Settings.Button.Tooltip">Ayarlar</x:String>
 
-  <!-- Tools page -->
+  <!-- Araçlar -->
   <x:String x:Key="Tools.Header">Araçlar</x:String>
 
-  <!-- Appearance page -->
+  <!-- Görünüm -->
   <x:String x:Key="Appearance.Header">Görünüm ayarları</x:String>
   <x:String x:Key="Appearance.Tabs.Title">Sekmeler</x:String>
   <x:String x:Key="Appearance.Tabs.Sub">Sekme boyutu, renkleri ve öğeleri özelleştirin</x:String>
@@ -83,6 +104,37 @@
   <x:String x:Key="Appearance.OtherWindows.Title">Diğer pencereler</x:String>
   <x:String x:Key="Appearance.OtherWindows.Sub">Diğer tarayıcı pencerelerinin görünümü</x:String>
 
+  <!-- Geçmiş -->
+  <x:String x:Key="History.Header">Geçmiş</x:String>
+  <x:String x:Key="History.Search.Watermark">🔍 Geçmişte ara…</x:String>
+  <x:String x:Key="History.Filter.All">Hepsi</x:String>
+  <x:String x:Key="History.Filter.1Day">1 gün</x:String>
+  <x:String x:Key="History.Filter.7Days">7 gün</x:String>
+  <x:String x:Key="History.Filter.1Month">1 ay</x:String>
+  <x:String x:Key="History.Filter.6Months">6 ay</x:String>
+  <x:String x:Key="History.Filter.1Year">1 yıl</x:String>
+  <x:String x:Key="History.Filter.OlderThanYear">Bir yıldan eski</x:String>
+  <x:String x:Key="History.Visits">ziyaret</x:String>
+
+  <!-- Konsol -->
+  <x:String x:Key="Console.SearchLogs">Günlüklerde ara…</x:String>
+  <x:String x:Key="Console.AutoRefresh">Otomatik yenile</x:String>
+  <x:String x:Key="Console.ExportLogs">Günlükleri dışa aktar</x:String>
+  <x:String x:Key="Console.CopyAll">Tüm görünen günlükleri kopyala</x:String>
+  <x:String x:Key="Console.CopyMessage">Mesajı kopyala</x:String>
+  <x:String x:Key="Console.CopyRow">Satırı kopyala</x:String>
+  <x:String x:Key="Console.NoLogs">Görüntülenecek günlük yok</x:String>
+  <x:String x:Key="Console.NoLogs.Hint">Günlükler burada otomatik olarak görünecek</x:String>
+  <x:String x:Key="Console.InitBanner">Konsol başlatıldı</x:String>
+  <x:String x:Key="Console.ClearConfirm">Bu işlem tüm konsol girişlerini silecek. Devam edilsin mi?</x:String>
+  <x:String x:Key="Console.Level.All">Tüm seviyeler</x:String>
+  <x:String x:Key="Console.ExportLogs.FilePrefix">console_logs_</x:String>
+
+  <!-- Araçlar WebView -->
+  <x:String x:Key="Tools.BackToList">Listeye geri dön</x:String>
+  <x:String x:Key="Tools.ToolTitle">Araç</x:String>
+
+  <!-- Görünüm Sekmeler sayfası -->
   <x:String x:Key="Appearance.Tabs.Header">Sekme ayarları</x:String>
   <x:String x:Key="Appearance.Tabs.Width">Sekme genişliği</x:String>
   <x:String x:Key="Appearance.Tabs.WidthPx">Genişlik (px):</x:String>
@@ -96,63 +148,210 @@
   <x:String x:Key="Appearance.ColorHex">Renk (HEX):</x:String>
   <x:String x:Key="Appearance.SaveSettings">Ayarları kaydet</x:String>
 
-  <!-- Common -->
+  <!-- Boyutlar ve simgeler -->
   <x:String x:Key="Common.WidthPx">Genişlik (px):</x:String>
   <x:String x:Key="Common.HeightPx">Yükseklik (px):</x:String>
   <x:String x:Key="Common.SizePx">Boyut (px):</x:String>
   <x:String x:Key="Common.IconSizePx">Simge boyutu (px):</x:String>
 
-  <!-- Appearance Main Window -->
+  <!-- Görünüm Ana Pencere -->
   <x:String x:Key="Appearance.MainWindow.Header">Ana pencere ayarları</x:String>
   <x:String x:Key="Appearance.MainWindow.NavBarColor">Gezinme çubuğu rengi</x:String>
   <x:String x:Key="Appearance.MainWindow.NavBarHeight">Gezinme çubuğu yüksekliği</x:String>
   <x:String x:Key="Appearance.MainWindow.Width">Ana pencere genişliği</x:String>
   <x:String x:Key="Appearance.MainWindow.Height">Ana pencere yüksekliği</x:String>
-  <x:String x:Key="Appearance.MainWindow.TopBarBackgroundColor">Üst bar arka plan rengi</x:String>
+  <x:String x:Key="Appearance.MainWindow.TopBarBackgroundColor">Üst çubuk arka plan rengi</x:String>
   <x:String x:Key="Appearance.MainWindow.ButtonSize">Düğme boyutu</x:String>
   <x:String x:Key="Appearance.MainWindow.ButtonIconSize">Düğme simge boyutu</x:String>
 
-  <!-- Appearance Other Windows -->
+  <!-- Görünüm Diğer Pencereler -->
   <x:String x:Key="Appearance.OtherWindows.Header">Diğer pencere ayarları</x:String>
-  <x:String x:Key="Appearance.OtherWindows.Description">Ayarlar ek pencere türlerine uygulanır</x:String>
-  <x:String x:Key="Appearance.OtherWindows.BackgroundColor">Pencereler arka plan rengi</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Description">Ek pencerelerin görünümü (ayarlar, yer imleri, geçmiş vb.)</x:String>
+  <x:String x:Key="Appearance.OtherWindows.BackgroundColor">Pencere arka plan rengi</x:String>
   <x:String x:Key="Appearance.OtherWindows.BackgroundColor.Sub">Tüm ikincil pencereler için birincil arka plan rengi</x:String>
-  <x:String x:Key="Appearance.OtherWindows.TopBarColor">Üst bar rengi</x:String>
-  <x:String x:Key="Appearance.OtherWindows.TopBarColor.Sub">Başlık ve pencere kontrolünün üst bar rengi</x:String>
+  <x:String x:Key="Appearance.OtherWindows.TopBarColor">Üst çubuk rengi</x:String>
+  <x:String x:Key="Appearance.OtherWindows.TopBarColor.Sub">Başlık ve pencere kontrolleri olan üst çubuğun rengi</x:String>
+  <x:String x:Key="Appearance.OtherWindows.InfoHeader">ℹ️ Ek bilgi</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Info1">Bu ayarlar ayarlar, yer imleri, geçmiş ve diğer hizmet pencereleri gibi tüm ek tarayıcı pencerelerine uygulanır.</x:String>
+  <x:String x:Key="Appearance.OtherWindows.Info2">Değişiklikler ayarlar kaydedildikten ve ilgili pencereler yeniden açıldıktan sonra geçerli olacaktır.</x:String>
 
-  <!-- Search custom -->
+  <!-- Özel arama -->
   <x:String x:Key="Search.Custom.Title">Özel</x:String>
   <x:String x:Key="Search.Custom.Hint">Arama motoru URL'si girin. Sorgu için {0} yer tutucusunu kullanın.</x:String>
 
-  <!-- Tools page - list items -->
+  <!-- Araçlar sayfası - liste -->
   <x:String x:Key="Tools.VetaleAI.Name">Vetale AI Sohbet</x:String>
   <x:String x:Key="Tools.VetaleAI.Description">Vetale yapay zekasıyla sohbet</x:String>
-
+  
   <x:String x:Key="Tools.DuckDuckGoAI.Name">DuckDuckGo AI Sohbet</x:String>
   <x:String x:Key="Tools.DuckDuckGoAI.Description">DuckDuckGo'dan ücretsiz AI sohbet</x:String>
-
+  
   <x:String x:Key="Tools.Copilot.Name">Microsoft Copilot</x:String>
   <x:String x:Key="Tools.Copilot.Description">Microsoft'tan AI asistanı</x:String>
-
+  
   <x:String x:Key="Tools.Gemini.Name">Google Gemini</x:String>
   <x:String x:Key="Tools.Gemini.Description">Google'dan AI</x:String>
-
+  
   <x:String x:Key="Tools.Replika.Name">Replika AI</x:String>
   <x:String x:Key="Tools.Replika.Description">Sohbet için AI arkadaşı</x:String>
-
+  
   <x:String x:Key="Tools.DevTools.Name">Vetale DevTools</x:String>
   <x:String x:Key="Tools.DevTools.Description">Geliştirici araçları</x:String>
-
+  
   <x:String x:Key="Tools.History.Name">Geçmiş</x:String>
   <x:String x:Key="Tools.History.Description">Gözatma geçmişi</x:String>
-
+  
   <x:String x:Key="Tools.Console.Name">Konsol</x:String>
   <x:String x:Key="Tools.Console.Description">Günlükler ve teşhislerle geliştirici konsolu</x:String>
-
+  
+  <x:String x:Key="Tools.UserAgreement.Name">Kullanıcı Sözleşmesi</x:String>
+  <x:String x:Key="Tools.UserAgreement.Description">GDPR gizlilik politikasını ve kullanıcı sözleşmesini görüntüle</x:String>
+  
   <x:String x:Key="Tools.NavigateButton">→ Tarayıcıda aç</x:String>
 
-  <!-- Browser Error Pages -->
-  <!-- Network Errors -->
+  <!-- DevTools -->
+  <x:String x:Key="DevTools.Header">Geliştirici Araçları</x:String>
+  <x:String x:Key="DevTools.Tab.Main">Ana Sayfa</x:String>
+  <x:String x:Key="DevTools.Tab.Elements">Öğeler</x:String>
+  <x:String x:Key="DevTools.Tab.Console">Konsol</x:String>
+  <x:String x:Key="DevTools.Tab.Network">Ağ</x:String>
+  <x:String x:Key="DevTools.Tab.Sources">Kaynaklar</x:String>
+  <x:String x:Key="DevTools.Tab.HtmlEditor">HTML Editörü</x:String>
+  <x:String x:Key="DevTools.Tab.Application">Uygulama</x:String>
+  <x:String x:Key="DevTools.Tab.Performance">Performans</x:String>
+  <x:String x:Key="DevTools.Tab.WebViewWorker">WebView Worker</x:String>
+
+  <!-- DevTools Araç Listesi -->
+  <x:String x:Key="DevTools.Tool.Elements.Title">Öğe Denetleyicisi</x:String>
+  <x:String x:Key="DevTools.Tool.Elements.Description">Mevcut sayfanın DOM yapısını görüntüle ve düzenle</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Console.Title">JavaScript Konsolu</x:String>
+  <x:String x:Key="DevTools.Tool.Console.Description">Günlükleri, hataları ve JavaScript konsol çıktısını görüntüle (ayrı pencere)</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Network.Title">Ağ Monitörü</x:String>
+  <x:String x:Key="DevTools.Tool.Network.Description">Tüm HTTP/HTTPS isteklerini ve yanıtlarını izle</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Sources.Title">Kaynak Görüntüleyici</x:String>
+  <x:String x:Key="DevTools.Tool.Sources.Description">JavaScript, CSS ve HTML dosyalarını görüntüle ve hata ayıkla</x:String>
+  
+  <x:String x:Key="DevTools.Tool.HtmlEditor.Title">HTML Editörü</x:String>
+  <x:String x:Key="DevTools.Tool.HtmlEditor.Description">Canlı önizleme ve sözdizimi vurgulamalı profesyonel HTML editörü</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Application.Title">Uygulama Depolama</x:String>
+  <x:String x:Key="DevTools.Tool.Application.Description">Cookies, Local Storage, Session Storage ve Önbelleği yönet</x:String>
+  
+  <x:String x:Key="DevTools.Tool.Performance.Title">Performans Analizörü</x:String>
+  <x:String x:Key="DevTools.Tool.Performance.Description">CPU, Bellek profilini çıkar ve sayfa performansını analiz et</x:String>
+
+  <!-- DevTools - Performans Sayfası -->
+  <x:String x:Key="DevTools.Performance.CapturePerformance">Performansı yakala</x:String>
+  <x:String x:Key="DevTools.Performance.GetWebVitals">Web Vitals al</x:String>
+  <x:String x:Key="DevTools.Performance.LoadTime">Yükleme süresi</x:String>
+  <x:String x:Key="DevTools.Performance.DomContentLoaded">DOM yüklendi</x:String>
+  <x:String x:Key="DevTools.Performance.FirstPaint">İlk boyama</x:String>
+  <x:String x:Key="DevTools.Performance.MemoryUsage">Bellek kullanımı</x:String>
+  <x:String x:Key="DevTools.Performance.CoreWebVitals">Core Web Vitals</x:String>
+  <x:String x:Key="DevTools.Performance.ResourceTimings">Kaynak zamanlamaları</x:String>
+
+  <!-- DevTools - Öğeler Sayfası -->
+  <x:String x:Key="DevTools.Elements.Query">Sorgu</x:String>
+  <x:String x:Key="DevTools.Elements.CaptureDom">DOM yakala</x:String>
+  <x:String x:Key="DevTools.Elements.DomTree">DOM ağacı</x:String>
+  <x:String x:Key="DevTools.Elements.SelectElement">Öğe seç</x:String>
+  <x:String x:Key="DevTools.Elements.Attributes">Öznitelikler</x:String>
+  <x:String x:Key="DevTools.Elements.ComputedStyles">Hesaplanan stiller</x:String>
+
+  <!-- DevTools - Uygulama Sayfası -->
+  <x:String x:Key="DevTools.Application.CaptureStorage">Depolamayı yakala</x:String>
+  <x:String x:Key="DevTools.Application.ClearCookies">Cookies temizle</x:String>
+  <x:String x:Key="DevTools.Application.StorageTypes">Depolama türleri</x:String>
+  <x:String x:Key="DevTools.Application.LocalStorage">Yerel Depolama</x:String>
+  <x:String x:Key="DevTools.Application.SessionStorage">Oturum Depolama</x:String>
+  <x:String x:Key="DevTools.Application.Cookies">Cookies</x:String>
+  <x:String x:Key="DevTools.Application.IndexedDB">IndexedDB</x:String>
+  <x:String x:Key="DevTools.Application.SelectStorageType">Depolama türü seç</x:String>
+  <x:String x:Key="DevTools.Application.Key">Anahtar:</x:String>
+  <x:String x:Key="DevTools.Application.Value">Değer:</x:String>
+
+  <!-- DevTools - Kaynaklar Sayfası -->
+  <x:String x:Key="DevTools.Sources.CaptureSources">Kaynakları yakala</x:String>
+  <x:String x:Key="DevTools.Sources.GetHtml">HTML al</x:String>
+  <x:String x:Key="DevTools.Sources.FileTree">Dosya ağacı</x:String>
+  <x:String x:Key="DevTools.Sources.FilterByType">Türe göre filtrele:</x:String>
+  <x:String x:Key="DevTools.Sources.All">Hepsi</x:String>
+  <x:String x:Key="DevTools.Sources.Scripts">Betikler</x:String>
+  <x:String x:Key="DevTools.Sources.Stylesheets">Stil sayfaları</x:String>
+  <x:String x:Key="DevTools.Sources.Images">Görseller</x:String>
+  <x:String x:Key="DevTools.Sources.Inline">Satır içi</x:String>
+  <x:String x:Key="DevTools.Sources.SelectFile">Dosya seç</x:String>
+  <x:String x:Key="DevTools.Sources.Type">Tür:</x:String>
+  <x:String x:Key="DevTools.Sources.Size">Boyut:</x:String>
+  <x:String x:Key="DevTools.Sources.ExecuteJavaScript">JavaScript çalıştır:</x:String>
+  <x:String x:Key="DevTools.Sources.EnterJavaScriptCode">JavaScript kodu girin...</x:String>
+  <x:String x:Key="DevTools.Sources.Execute">Çalıştır</x:String>
+
+  <!-- HTML Editörü -->
+  <x:String x:Key="HtmlEditor.New">Yeni</x:String>
+  <x:String x:Key="HtmlEditor.Open">Aç</x:String>
+  <x:String x:Key="HtmlEditor.Save">Kaydet</x:String>
+  <x:String x:Key="HtmlEditor.Preview">Önizleme</x:String>
+  <x:String x:Key="HtmlEditor.Format">Kodu formatla</x:String>
+  <x:String x:Key="HtmlEditor.Validate">HTML doğrula</x:String>
+
+  <!-- WebView Worker -->
+  <x:String x:Key="DevTools.WebViewWorker.Title">WebView Worker</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Description">Web sayfalarını test etmek ve hata ayıklamak için ayrı WebView örneği</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.CurrentTab">Mevcut aktif sekme:</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.NoActiveTab">Aktif sekme yok</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.LoadCurrentTab">Mevcut sekmeden yükle</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.EnterUrl">URL veya arama sorgusu girin...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Go">Git</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Back">Geri</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Forward">İleri</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Refresh">Yenile</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Placeholder">WebView Worker hazır. URL girin veya mevcut sekmeden yükleyin.</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Ready">Hazır</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.WebViewReady">WebView başlatıldı ve hazır</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Loading">Yükleniyor...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Loaded">Sayfa yüklendi</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Refreshing">Sayfa yenileniyor...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.Navigating">Geziniyor...</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.NoUrlToLoad">Mevcut sekmeden yüklenecek URL yok</x:String>
+  <x:String x:Key="DevTools.WebViewWorker.LoadingFromTab">Mevcut sekmeden URL yükleniyor...</x:String>
+
+  <!-- VetaleAI Sohbet -->
+  <x:String x:Key="VetaleAI.Header">Vetale AI Sohbet</x:String>
+  <x:String x:Key="VetaleAI.InputPlaceholder">Mesajınızı yazın...</x:String>
+  <x:String x:Key="VetaleAI.Send">Gönder</x:String>
+  <x:String x:Key="VetaleAI.Stop">Durdur</x:String>
+  <x:String x:Key="VetaleAI.NewChat">Yeni sohbet</x:String>
+  <x:String x:Key="VetaleAI.ClearHistory">Geçmişi temizle</x:String>
+  <x:String x:Key="VetaleAI.Settings">Ayarlar</x:String>
+  <x:String x:Key="VetaleAI.EnableReasoning">Akıl yürütmeyi etkinleştir</x:String>
+  <x:String x:Key="VetaleAI.CreateWebPage">Web sayfası oluştur</x:String>
+  <x:String x:Key="VetaleAI.CreateWebPage.Tooltip">Mevcut istekten web sayfası oluştur</x:String>
+  <x:String x:Key="VetaleAI.ScrollToBottom">Aşağı kaydır</x:String>
+  <x:String x:Key="VetaleAI.ResponseLanguage">Yanıt dili</x:String>
+  <x:String x:Key="VetaleAI.Language.Auto">Otomatik algıla</x:String>
+  <x:String x:Key="VetaleAI.Language.English">İngilizce</x:String>
+  <x:String x:Key="VetaleAI.Language.Ukrainian">Ukraynaca</x:String>
+  <x:String x:Key="VetaleAI.Language.Russian">Rusça</x:String>
+  <x:String x:Key="VetaleAI.Language.German">Almanca</x:String>
+  <x:String x:Key="VetaleAI.Language.French">Fransızca</x:String>
+  <x:String x:Key="VetaleAI.Language.Spanish">İspanyolca</x:String>
+  <x:String x:Key="VetaleAI.Language.Turkish">Türkçe</x:String>
+  <x:String x:Key="VetaleAI.WelcomeMessage">Merhaba! Ben Vetale AI. Size bugün nasıl yardımcı olabilirim?</x:String>
+  <x:String x:Key="VetaleAI.Thinking">Düşünüyorum...</x:String>
+  <x:String x:Key="VetaleAI.User">Siz</x:String>
+  <x:String x:Key="VetaleAI.Assistant">Vetale AI</x:String>
+  <x:String x:Key="VetaleAI.CopyMessage">Kopyala</x:String>
+  <x:String x:Key="VetaleAI.RegenerateResponse">Yeniden oluştur</x:String>
+  <x:String x:Key="VetaleAI.ModelLoading">AI modeli yükleniyor...</x:String>
+  <x:String x:Key="VetaleAI.ModelLoaded">Model başarıyla yüklendi</x:String>
+  <x:String x:Key="VetaleAI.ModelError">Model yüklenirken hata oluştu</x:String>
+
+  <!-- Tarayıcı Hata Sayfaları -->
+  <!-- Ağ Hataları -->
   <x:String x:Key="BrowserError.NameNotResolved.Title">Site bulunamadı</x:String>
   <x:String x:Key="BrowserError.NameNotResolved.Description">Bu alan adı için sunucu IP adresi bulunamadı. Site mevcut olmayabilir veya yazım hatası olabilir.</x:String>
   <x:String x:Key="BrowserError.NameNotResolved.Tip1">Adres yazımını kontrol edin</x:String>
@@ -183,14 +382,14 @@
   <x:String x:Key="BrowserError.ConnectionReset.Tip2">İnternet bağlantınızı kontrol edin</x:String>
   <x:String x:Key="BrowserError.ConnectionReset.Tip3">VPN veya proxy kullanıyorsanız devre dışı bırakın</x:String>
 
-  <!-- Security Errors -->
+  <!-- Güvenlik Hataları -->
   <x:String x:Key="BrowserError.SSLError.Title">Güvenli olmayan bağlantı</x:String>
   <x:String x:Key="BrowserError.SSLError.Description">Bu sitenin güvenlik sertifikası geçersiz veya süresi dolmuş. Verileriniz risk altında olabilir.</x:String>
   <x:String x:Key="BrowserError.SSLError.Tip1">Bu siteye kişisel bilgi girmeyin</x:String>
   <x:String x:Key="BrowserError.SSLError.Tip2">Cihazınızdaki tarih ve saati kontrol edin</x:String>
   <x:String x:Key="BrowserError.SSLError.Tip3">Site yöneticisiyle iletişime geçin</x:String>
 
-  <!-- Server Errors -->
+  <!-- Sunucu Hataları -->
   <x:String x:Key="BrowserError.EmptyResponse.Title">Boş yanıt</x:String>
   <x:String x:Key="BrowserError.EmptyResponse.Description">Sunucu hiçbir veri göndermedi. Sunucu aşırı yüklenmiş veya arızalı olabilir.</x:String>
   <x:String x:Key="BrowserError.EmptyResponse.Tip1">Sayfayı yenilemeyi deneyin</x:String>
@@ -199,11 +398,11 @@
 
   <x:String x:Key="BrowserError.TooManyRedirects.Title">Çok fazla yönlendirme</x:String>
   <x:String x:Key="BrowserError.TooManyRedirects.Description">Sayfa bir yönlendirme döngüsü oluşturdu. Sunucu yanlış yapılandırılmış.</x:String>
-  <x:String x:Key="BrowserError.TooManyRedirects.Tip1">Bu site için çerezleri temizleyin</x:String>
+  <x:String x:Key="BrowserError.TooManyRedirects.Tip1">Bu site için cookies temizleyin</x:String>
   <x:String x:Key="BrowserError.TooManyRedirects.Tip2">Farklı bir tarayıcı deneyin</x:String>
   <x:String x:Key="BrowserError.TooManyRedirects.Tip3">Site desteğiyle iletişime geçin</x:String>
 
-  <!-- General Errors -->
+  <!-- Genel Hatalar -->
   <x:String x:Key="BrowserError.BlockedByClient.Title">Engellendi</x:String>
   <x:String x:Key="BrowserError.BlockedByClient.Description">Bu kaynağın yüklenmesi tarayıcı veya bir uzantı tarafından engellendi.</x:String>
   <x:String x:Key="BrowserError.BlockedByClient.Tip1">Reklam engelleyici ayarlarını kontrol edin</x:String>
@@ -211,7 +410,7 @@
   <x:String x:Key="BrowserError.BlockedByClient.Tip3">Siteyi istisna listesine ekleyin</x:String>
 
   <x:String x:Key="BrowserError.InvalidUrl.Title">Geçersiz adres</x:String>
-  <x:String x:Key="BrowserError.InvalidUrl.Description">Girilen adres yanlış biçimde ve işlenemiyor.</x:String>
+  <x:String x:Key="BrowserError.InvalidUrl.Description">Girilen adres yanlış formatta ve işlenemiyor.</x:String>
   <x:String x:Key="BrowserError.InvalidUrl.Tip1">URL yazımını kontrol edin</x:String>
   <x:String x:Key="BrowserError.InvalidUrl.Tip2">URL'nin http:// veya https:// ile başladığından emin olun</x:String>
   <x:String x:Key="BrowserError.InvalidUrl.Tip3">Siteyi arama yoluyla bulmayı deneyin</x:String>
@@ -234,7 +433,7 @@
   <x:String x:Key="BrowserError.Unknown.Tip2">İnternet bağlantınızı kontrol edin</x:String>
   <x:String x:Key="BrowserError.Unknown.Tip3">Daha sonra tekrar deneyin</x:String>
 
-  <!-- HTTP Error Pages -->
+  <!-- HTTP Hata Sayfaları -->
   <x:String x:Key="BrowserError.Http400.Title">Hatalı istek</x:String>
   <x:String x:Key="BrowserError.Http400.Description">Sunucu sözdizimi hatası nedeniyle isteğinizi işleyemiyor.</x:String>
 
@@ -245,7 +444,7 @@
   <x:String x:Key="BrowserError.Http403.Description">Bu sayfayı görüntüleme izniniz yok.</x:String>
 
   <x:String x:Key="BrowserError.Http404.Title">Sayfa bulunamadı</x:String>
-  <x:String x:Key="BrowserError.Http404.Description">İstenen sayfa bu sunucuda mevcut değil. Kaldırılmış veya taşınmış olabilir.</x:String>
+  <x:String x:Key="BrowserError.Http404.Description">İstenen sayfa bu sunucuda mevcut değil. Silinmiş veya taşınmış olabilir.</x:String>
 
   <x:String x:Key="BrowserError.Http408.Title">İstek zaman aşımı</x:String>
   <x:String x:Key="BrowserError.Http408.Description">Sunucu uzun bekleme nedeniyle bağlantıyı kapattı.</x:String>
@@ -253,35 +452,35 @@
   <x:String x:Key="BrowserError.Http429.Title">Çok fazla istek</x:String>
   <x:String x:Key="BrowserError.Http429.Description">Çok fazla istek gönderdiniz. Bekleyin ve tekrar deneyin.</x:String>
 
-  <x:String x:Key="BrowserError.Http500.Title">Dahili sunucu hatası</x:String>
-  <x:String x:Key="BrowserError.Http500.Description">Sunucuda beklenmeyen bir hata oluştu. Bu bağlantınızla değil, site sorunudur.</x:String>
+  <x:String x:Key="BrowserError.Http500.Title">İç sunucu hatası</x:String>
+  <x:String x:Key="BrowserError.Http500.Description">Sunucuda beklenmeyen bir hata oluştu. Bu site sorunu, bağlantınız değil.</x:String>
 
   <x:String x:Key="BrowserError.Http502.Title">Hatalı ağ geçidi</x:String>
-  <x:String x:Key="BrowserError.Http502.Description">Proxy sunucu başka bir sunucudan geçersiz yanıt aldı.</x:String>
+  <x:String x:Key="BrowserError.Http502.Description">Proxy sunucusu başka bir sunucudan geçersiz yanıt aldı.</x:String>
 
   <x:String x:Key="BrowserError.Http503.Title">Hizmet kullanılamıyor</x:String>
   <x:String x:Key="BrowserError.Http503.Description">Sunucu bakım veya aşırı yük nedeniyle geçici olarak kullanılamıyor.</x:String>
 
   <x:String x:Key="BrowserError.Http504.Title">Ağ geçidi zaman aşımı</x:String>
-  <x:String x:Key="BrowserError.Http504.Description">Proxy sunucu başka bir sunucudan zamanında yanıt alamadı.</x:String>
+  <x:String x:Key="BrowserError.Http504.Description">Proxy sunucusu başka bir sunucudan zamanında yanıt alamadı.</x:String>
 
   <x:String x:Key="BrowserError.HttpUnknown.Title">Sunucu hatası</x:String>
   <x:String x:Key="BrowserError.HttpUnknown.Description">Sunucu bir hata döndürdü.</x:String>
 
-  <!-- Error Page UI Elements -->
+  <!-- Hata Sayfası UI Öğeleri -->
   <x:String x:Key="BrowserError.Retry">Tekrar dene</x:String>
   <x:String x:Key="BrowserError.GoBack">Geri</x:String>
   <x:String x:Key="BrowserError.GoHome">Ana Sayfa</x:String>
   <x:String x:Key="BrowserError.Search">Ara</x:String>
   <x:String x:Key="BrowserError.SearchPlaceholder">Arama sorgusu girin...</x:String>
-  <x:String x:Key="BrowserError.Tips">Deneyebileceğiniz şeyler:</x:String>
+  <x:String x:Key="BrowserError.Tips">Deneyebilecekleriniz:</x:String>
   <x:String x:Key="BrowserError.Category.Network">Ağ sorunu</x:String>
   <x:String x:Key="BrowserError.Category.Server">Sunucu sorunu</x:String>
   <x:String x:Key="BrowserError.Category.Security">Güvenlik sorunu</x:String>
   <x:String x:Key="BrowserError.Category.General">Genel hata</x:String>
 
-  <!-- Error Page Modern UI (ErrorPage.*) -->
-  <x:String x:Key="ErrorPage.TipsHeader">💡 Deneyebileceğiniz şeyler</x:String>
+  <!-- Hata Sayfası Modern UI -->
+  <x:String x:Key="ErrorPage.TipsHeader">💡 Deneyebilecekleriniz</x:String>
   <x:String x:Key="ErrorPage.SearchHeader">🔍 İnternette ara</x:String>
   <x:String x:Key="ErrorPage.SearchWatermark">Arama sorgusu girin...</x:String>
   <x:String x:Key="ErrorPage.Search">Ara</x:String>
@@ -294,10 +493,10 @@
   <x:String x:Key="ErrorPage.Category.General">⚠️ Genel hata</x:String>
   <x:String x:Key="ErrorPage.Category.Error">Hata</x:String>
 
-  <!-- Security Status -->
+  <!-- Güvenlik Durumu -->
   <x:String x:Key="Security.Safe.Tooltip">✓ Güvenli site</x:String>
   <x:String x:Key="Security.Safe.Text">Doğrulandı: güvenli</x:String>
-  <x:String x:Key="Security.Dangerous.Tooltip">⚠️ TEHLİKELİ SİTE (oltalama)!</x:String>
+  <x:String x:Key="Security.Dangerous.Tooltip">⚠️ TEHLİKELİ SİTE (kimlik avı)!</x:String>
   <x:String x:Key="Security.Dangerous.Text">TEHLİKELİ!</x:String>
   <x:String x:Key="Security.Checking.Tooltip">⏳ Güvenlik kontrol ediliyor...</x:String>
   <x:String x:Key="Security.Checking.Text">Kontrol ediliyor…</x:String>
@@ -306,62 +505,172 @@
   <x:String x:Key="Security.Unknown.Tooltip">? Durum bilinmiyor</x:String>
   <x:String x:Key="Security.Unknown.Text">Durum bilinmiyor</x:String>
 
-  <!-- Gemini API Key Window -->
+  <!-- Gemini API Anahtarı Penceresi -->
   <x:String x:Key="Gemini.ApiKey.Title">Gemini API Anahtarı Yapılandırması</x:String>
   <x:String x:Key="Gemini.ApiKey.Header">Gemini AI Yapılandır</x:String>
-  <x:String x:Key="Gemini.ApiKey.Description">Vetale Search'te Gemini AI özelliklerini kullanmak için Google API anahtarı gereklidir. Kendi anahtarınızı kullanabilir veya varsayılanla devam edebilirsiniz.</x:String>
+  <x:String x:Key="Gemini.ApiKey.Description">Vetale Search'te Gemini AI özelliklerini kullanmak için Google API anahtarına ihtiyacınız var. Kendi anahtarınızı kullanabilir veya varsayılanla devam edebilirsiniz.</x:String>
   <x:String x:Key="Gemini.ApiKey.Label">API Anahtarı</x:String>
   <x:String x:Key="Gemini.ApiKey.Watermark">Gemini API anahtarınızı girin...</x:String>
   <x:String x:Key="Gemini.ApiKey.HowToGet">📋 Ücretsiz API anahtarı nasıl alınır:</x:String>
   <x:String x:Key="Gemini.ApiKey.Step1">1. Google AI Studio'ya gidin</x:String>
   <x:String x:Key="Gemini.ApiKey.Step2">2. Google hesabınızla giriş yapın</x:String>
   <x:String x:Key="Gemini.ApiKey.Step3">3. "Get API key"e tıklayın ve kopyalayın</x:String>
-  <x:String x:Key="Gemini.ApiKey.OpenAIStudio">🔗 Google AI Studio'yu Aç</x:String>
-  <x:String x:Key="Gemini.ApiKey.UseCustomKey">Anahtarımı Kullan</x:String>
-  <x:String x:Key="Gemini.ApiKey.UseDefaultKey">Varsayılanla Devam Et</x:String>
-  <x:String x:Key="Gemini.ApiKey.Note">💡 API anahtarınız yerel olarak saklanır ve asla paylaşılmaz. Varsayılan anahtarın kullanım sınırları vardır.</x:String>
+  <x:String x:Key="Gemini.ApiKey.OpenAIStudio">🔗 Google AI Studio'yu aç</x:String>
+  <x:String x:Key="Gemini.ApiKey.UseCustomKey">Anahtarımı kullan</x:String>
+  <x:String x:Key="Gemini.ApiKey.UseDefaultKey">Varsayılanla devam et</x:String>
+  <x:String x:Key="Gemini.ApiKey.Note">💡 API anahtarınız yerel olarak saklanır ve asla paylaşılmaz. Varsayılan anahtarın kullanım sınırlamaları vardır.</x:String>
 
-  <!-- Vetale Search Results -->
-  <x:String x:Key="Search.Results.Stats">{0} sonuç {1} saniyede bulundu</x:String>
-  <x:String x:Key="Search.Results.StatsWithPage">{0} sonuç {1} saniyede bulundu (sayfa {2})</x:String>
+  <!-- Vetale Arama Sonuçları -->
+  <x:String x:Key="Search.Results.Stats">{1} sn içinde {0} sonuç bulundu</x:String>
+  <x:String x:Key="Search.Results.StatsWithPage">{1} sn içinde {0} sonuç bulundu (sayfa {2})</x:String>
   <x:String x:Key="Search.Results.Searching">Aranıyor...</x:String>
   <x:String x:Key="Search.Results.SearchingIn">Wikipedia, WebArchive, MetaSearx'te aranıyor…</x:String>
   <x:String x:Key="Search.Results.LoadingPage">Sayfa {0} yükleniyor…</x:String>
   <x:String x:Key="Search.Results.NoResults">Sonuç bulunamadı</x:String>
   <x:String x:Key="Search.Results.Error">Arama sırasında bir hata oluştu. Lütfen tekrar deneyin.</x:String>
   <x:String x:Key="Search.Results.Heading">Vetale Yerel Arama</x:String>
-  <x:String x:Key="Search.Results.Prompt">Yerel sonuçları görmek için bir sorgu girin.</x:String>
+  <x:String x:Key="Search.Results.Prompt">Yerel sonuçları görmek için sorgu girin.</x:String>
   <x:String x:Key="Search.Results.Found">Sonuç bulundu</x:String>
   
-  <!-- Pagination -->
+  <!-- Sayfalama -->
   <x:String x:Key="Search.Pagination.Previous">← Önceki</x:String>
   <x:String x:Key="Search.Pagination.Next">Sonraki →</x:String>
   <x:String x:Key="Search.Pagination.Page">Sayfa {0}</x:String>
   <x:String x:Key="Search.Pagination.First">İlk</x:String>
   <x:String x:Key="Search.Pagination.Last">Son</x:String>
   
-  <!-- Related Queries / Suggestions -->
+  <!-- İlgili Sorgular / Öneriler -->
   <x:String x:Key="Search.Related.Title">İlgili aramalar</x:String>
-  <x:String x:Key="Search.Related.AlsoSearch">Diğerleri de aradı:</x:String>
+  <x:String x:Key="Search.Related.AlsoSearch">İnsanlar ayrıca arıyor:</x:String>
   <x:String x:Key="Search.Suggestions.Title">Öneriler</x:String>
   
-  <!-- Search Sources -->
-  <x:String x:Key="Search.Source.Wikipedia">Vikipedi</x:String>
+  <!-- Arama Kaynakları -->
+  <x:String x:Key="Search.Source.Wikipedia">Wikipedia</x:String>
   <x:String x:Key="Search.Source.WebArchive">Web Arşivi</x:String>
   <x:String x:Key="Search.Source.YouTube">YouTube</x:String>
   <x:String x:Key="Search.Source.MetaSearx">MetaSearx</x:String>
   <x:String x:Key="Search.Source.Curlie">Curlie</x:String>
   <x:String x:Key="Search.Source.DirectUrl">Doğrudan Bağlantı</x:String>
   
-  <!-- Search Modes -->
+  <!-- Arama Modları -->
   <x:String x:Key="Search.Mode.Sites">Siteler</x:String>
   <x:String x:Key="Search.Mode.Images">Görseller</x:String>
   <x:String x:Key="Search.Mode.Videos">Videolar</x:String>
   
-  <!-- Search Actions -->
+  <!-- Arama Eylemleri -->
   <x:String x:Key="Search.Action.Search">Ara</x:String>
   <x:String x:Key="Search.Action.SearchImages">Görsel Ara</x:String>
   <x:String x:Key="Search.Action.SearchVideos">Video Ara</x:String>
-  <x:String x:Key="Search.Action.OpenOnYouTube">YouTube'da Aç</x:String>
-  <x:String x:Key="Search.Action.ViewSource">Kaynağı Görüntüle</x:String>
+  <x:String x:Key="Search.Action.OpenOnYouTube">YouTube'da aç</x:String>
+  <x:String x:Key="Search.Action.ViewSource">Kaynağı görüntüle</x:String>
+
+  <!-- İndirmeler -->
+  <x:String x:Key="Downloads.Title">İndirmeler — Vetale Tarayıcı</x:String>
+  <x:String x:Key="Downloads.Search">İndirmelerde ara…</x:String>
+  <x:String x:Key="Downloads.Empty">Henüz indirme yok</x:String>
+  <x:String x:Key="Downloads.Empty.Hint">İlerlemeyi görmek için dosya indirmeye başlayın</x:String>
+  <x:String x:Key="Downloads.OpenFile">Dosyayı aç</x:String>
+  <x:String x:Key="Downloads.OpenFolder">Klasörü aç</x:String>
+  <x:String x:Key="Downloads.Cancel">İptal</x:String>
+  <x:String x:Key="Downloads.Retry">Tekrar dene</x:String>
+  <x:String x:Key="Downloads.ClearCompleted">Eskileri arşivle</x:String>
+  <x:String x:Key="Downloads.Status.Pending">Bekliyor</x:String>
+  <x:String x:Key="Downloads.Status.Downloading">İndiriliyor</x:String>
+  <x:String x:Key="Downloads.Status.Completed">Tamamlandı</x:String>
+  <x:String x:Key="Downloads.Status.Error">Hata</x:String>
+  <x:String x:Key="Downloads.Status.Cancelled">İptal edildi</x:String>
+  <x:String x:Key="Downloads.FolderLabel">İndirme klasörü:</x:String>
+  <x:String x:Key="Downloads.OpenFolderButton">Aç</x:String>
+  
+  <x:String x:Key="Tools.Downloads.Name">İndirme Yöneticisi</x:String>
+  <x:String x:Key="Tools.Downloads.Description">İndirmelerinizi yönetin</x:String>
+
+  <!-- Vetale Search Ana Sayfa -->
+  <x:String x:Key="VetaleSearch.Logo.Vetale">Vetale</x:String>
+  <x:String x:Key="VetaleSearch.Logo.Search">Search</x:String>
+  <x:String x:Key="VetaleSearch.Subtitle">Yerel arama motoru</x:String>
+  <x:String x:Key="VetaleSearch.SearchWatermark">Arama sorgusu girin...</x:String>
+  <x:String x:Key="VetaleSearch.VoiceSearch">Sesli arama</x:String>
+  <x:String x:Key="VetaleSearch.ImageSearch">Görsel ile ara</x:String>
+  <x:String x:Key="VetaleSearch.VideoSearch">Video ile ara</x:String>
+  <x:String x:Key="VetaleSearch.GeoSearch">Konum ile ara</x:String>
+  <x:String x:Key="VetaleSearch.SearchEngineLabel">Arama motoru:</x:String>
+  <x:String x:Key="VetaleSearch.Engine.Local">Vetale Search (Yerel)</x:String>
+  <x:String x:Key="VetaleSearch.Engine.Maps">Haritalar (OpenStreetMap)</x:String>
+  <x:String x:Key="VetaleSearch.SearchButton">Ara</x:String>
+  <x:String x:Key="VetaleSearch.LuckyButton">Şanslı Hissediyorum</x:String>
+  <x:String x:Key="VetaleSearch.QuickLinks">Hızlı Bağlantılar</x:String>
+  <x:String x:Key="VetaleSearch.Link.Bookmarks">📚 Yer İmleri</x:String>
+  <x:String x:Key="VetaleSearch.Link.History">📜 Geçmiş</x:String>
+  <x:String x:Key="VetaleSearch.Link.SearchSettings">🔍 Arama Ayarları</x:String>
+  <x:String x:Key="VetaleSearch.Link.Settings">⚙️ Ayarlar</x:String>
+
+  <!-- Gemini Chat Panel -->
+  <x:String x:Key="GeminiChat.Title">Gemini Sohbet</x:String>
+  <x:String x:Key="GeminiChat.Subtitle">Google AI ile çalışır</x:String>
+  <x:String x:Key="GeminiChat.ClearChat">Sohbeti temizle</x:String>
+  <x:String x:Key="GeminiChat.Welcome">Merhaba! Ben Gemini</x:String>
+  <x:String x:Key="GeminiChat.WelcomeHint">Bana her şeyi sorabilirsiniz</x:String>
+  <x:String x:Key="GeminiChat.ScrollToBottom">Aşağıya</x:String>
+  <x:String x:Key="GeminiChat.InputPlaceholder">Gemini'ye sorun...</x:String>
+  <x:String x:Key="GeminiChat.Send.Tooltip">Gönder (Ctrl+Enter)</x:String>
+  <x:String x:Key="GeminiChat.Stop.Tooltip">Oluşturmayı durdur</x:String>
+  <x:String x:Key="GeminiChat.User">Siz</x:String>
+  <x:String x:Key="GeminiChat.Assistant">Gemini</x:String>
+  <x:String x:Key="GeminiChat.Thinking">Gemini düşünüyor...</x:String>
+  <x:String x:Key="GeminiChat.Error">Hata</x:String>
+  <x:String x:Key="GeminiChat.Error.ServiceNotInitialized">Gemini hizmeti başlatılmadı</x:String>
+  <x:String x:Key="GeminiChat.Error.NoResponse">Gemini'den yanıt alınamadı</x:String>
+  <x:String x:Key="GeminiChat.Error.ApiKeyRequired">Gemini'yi kullanmak için bir API anahtarı ayarlamanız gerekiyor. Lütfen tekrar deneyin.</x:String>
+  <x:String x:Key="GeminiChat.Error.ApiKeySet">API anahtarı ayarlandı! İstek yeniden deneniyor...</x:String>
+  <x:String x:Key="GeminiChat.Error.RetrySaved">Mesaj kaydedildi. Lütfen tekrar deneyin.</x:String>
+
+  <!-- ErrorPage ek anahtarlar -->
+  <x:String x:Key="ErrorPage.PlayGame">Oyun oyna</x:String>
+  <x:String x:Key="ErrorPage.GameDeveloper">Thibaut Despoulain tarafından HexGL oyunu</x:String>
+
+  <!-- API Key Config Window - Genel -->
+  <x:String x:Key="ApiKey.Save">Anahtarı kaydet</x:String>
+  <x:String x:Key="ApiKey.Skip">Atla</x:String>
+  <x:String x:Key="ApiKey.Note">💡 API anahtarınız yerel olarak şifrelenmiş olarak saklanır ve asla paylaşılmaz.</x:String>
+  
+  <!-- Pexels API -->
+  <x:String x:Key="Pexels.ApiKey.Title">Pexels API Yapılandırması</x:String>
+  <x:String x:Key="Pexels.ApiKey.Header">Pexels Yapılandır</x:String>
+  <x:String x:Key="Pexels.ApiKey.Description">Pexels'ten yüksek kaliteli görüntüler aramak için API anahtarınızı girin.</x:String>
+  <x:String x:Key="Pexels.ApiKey.Label">Pexels API Anahtarı</x:String>
+  <x:String x:Key="Pexels.ApiKey.Watermark">Pexels API anahtarınızı girin...</x:String>
+  <x:String x:Key="Pexels.ApiKey.HowToGet">📋 Ücretsiz API anahtarı nasıl alınır:</x:String>
+  <x:String x:Key="Pexels.ApiKey.Step1">1. Pexels.com'a gidin</x:String>
+  <x:String x:Key="Pexels.ApiKey.Step2">2. Kaydolun veya giriş yapın</x:String>
+  <x:String x:Key="Pexels.ApiKey.Step3">3. API'ye gidin ve yeni bir anahtar oluşturun</x:String>
+  <x:String x:Key="Pexels.ApiKey.OpenPortal">🔗 Pexels API'yi aç</x:String>
+  <x:String x:Key="Pexels.ApiKey.Note">💡 Pexels API kişisel ve ticari kullanım için ücretsizdir.</x:String>
+  
+  <!-- Unsplash API -->
+  <x:String x:Key="Unsplash.ApiKey.Title">Unsplash API Yapılandırması</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Header">Unsplash Yapılandır</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Description">Unsplash'tan görüntü aramak için Access Key'inizi girin.</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Label">Unsplash Access Key</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Watermark">Unsplash Access Key'inizi girin...</x:String>
+  <x:String x:Key="Unsplash.ApiKey.HowToGet">📋 Ücretsiz API anahtarı nasıl alınır:</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Step1">1. Unsplash Developers'a gidin</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Step2">2. Kaydolun ve bir uygulama oluşturun</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Step3">3. Uygulama ayarlarından Access Key'i kopyalayın</x:String>
+  <x:String x:Key="Unsplash.ApiKey.OpenPortal">🔗 Unsplash Developers'ı aç</x:String>
+  <x:String x:Key="Unsplash.ApiKey.Note">💡 Unsplash API demo uygulamalar için saatte 50 istek sınırıyla ücretsizdir.</x:String>
+  
+  <!-- YouTube API -->
+  <x:String x:Key="YouTube.ApiKey.Title">YouTube API Yapılandırması</x:String>
+  <x:String x:Key="YouTube.ApiKey.Header">YouTube Data API Yapılandır</x:String>
+  <x:String x:Key="YouTube.ApiKey.Description">YouTube'da video aramak için API anahtarınızı girin.</x:String>
+  <x:String x:Key="YouTube.ApiKey.Label">YouTube API Anahtarı</x:String>
+  <x:String x:Key="YouTube.ApiKey.Watermark">YouTube API anahtarınızı girin...</x:String>
+  <x:String x:Key="YouTube.ApiKey.HowToGet">📋 API anahtarı nasıl alınır:</x:String>
+  <x:String x:Key="YouTube.ApiKey.Step1">1. Google Cloud Console'a gidin</x:String>
+  <x:String x:Key="YouTube.ApiKey.Step2">2. Bir proje oluşturun ve YouTube Data API v3'ü etkinleştirin</x:String>
+  <x:String x:Key="YouTube.ApiKey.Step3">3. Kimlik Bilgileri bölümünde bir API anahtarı oluşturun</x:String>
+  <x:String x:Key="YouTube.ApiKey.OpenPortal">🔗 Google Cloud Console'u aç</x:String>
+  <x:String x:Key="YouTube.ApiKey.Note">💡 YouTube Data API günde 10.000 birim ücretsiz sınıra sahiptir.</x:String>
 </ResourceDictionary>
+

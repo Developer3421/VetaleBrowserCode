@@ -142,7 +142,7 @@
             <!-- Logo -->
             <StackPanel Spacing="8">
                 <TextBlock Classes="logo" Text="Vetale Search"/>
-                <TextBlock Classes="logo-subtitle" Text="Локальна пошукова система"/>
+                <TextBlock Classes="logo-subtitle" Text="{DynamicResource VetaleSearch.Subtitle}"/>
             </StackPanel>
 
             <!-- Search box -->
@@ -152,7 +152,7 @@
                         <TextBox x:Name="SearchInput"
                                  Grid.Row="0" Grid.Column="0"
                                  Classes="search-input"
-                                 Watermark="Введіть пошуковий запит..."
+                                 Watermark="{DynamicResource VetaleSearch.SearchWatermark}"
                                  KeyDown="SearchInput_KeyDown"
                                  TextChanged="SearchInput_TextChanged"
                                  TextWrapping="NoWrap"
@@ -161,13 +161,13 @@
                                     Orientation="Horizontal"
                                     Spacing="4"
                                     Margin="0,0,8,0">
-                            <Button x:Name="VoiceButton" Classes="icon-button" ToolTip.Tip="Голосовий пошук" Click="VoiceButton_Click">
+                            <Button x:Name="VoiceButton" Classes="icon-button" ToolTip.Tip="{DynamicResource VetaleSearch.VoiceSearch}" Click="VoiceButton_Click">
                                 <TextBlock Text="🎤" FontSize="20"/>
                             </Button>
-                            <Button x:Name="ImageSearchButton" Classes="icon-button" ToolTip.Tip="Пошук за зображенням" Click="ImageSearch_Click">
+                            <Button x:Name="ImageSearchButton" Classes="icon-button" ToolTip.Tip="{DynamicResource VetaleSearch.ImageSearch}" Click="ImageSearch_Click">
                                 <TextBlock Text="📷" FontSize="20"/>
                             </Button>
-                            <Button x:Name="GeoSearchButton" Classes="icon-button" ToolTip.Tip="Пошук по геолокації" Click="GeoSearch_Click">
+                            <Button x:Name="GeoSearchButton" Classes="icon-button" ToolTip.Tip="{DynamicResource VetaleSearch.GeoSearch}" Click="GeoSearch_Click">
                                 <TextBlock Text="📍" FontSize="20"/>
                             </Button>
                         </StackPanel>
@@ -209,7 +209,7 @@
                             BoxShadow="0 2 8 #1A000000"
                             HorizontalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <TextBlock Text="Пошукова система:"
+                            <TextBlock Text="{DynamicResource VetaleSearch.SearchEngineLabel}"
                                        VerticalAlignment="Center"
                                        FontWeight="SemiBold"
                                        Foreground="#333"/>
@@ -221,7 +221,7 @@
                                 <ComboBoxItem>
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <TextBlock Text="🔍"/>
-                                        <TextBlock Text="Vetale Search (Локальний)"/>
+                                        <TextBlock Text="{DynamicResource VetaleSearch.Engine.Local}"/>
                                     </StackPanel>
                                 </ComboBoxItem>
                                 <ComboBoxItem>
@@ -242,16 +242,12 @@
                                         <TextBlock Text="DuckDuckGo"/>
                                     </StackPanel>
                                 </ComboBoxItem>
-                                <ComboBoxItem>
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <TextBlock Text="🔍"/>
-                                        <TextBlock Text="Yandex"/>
-                                    </StackPanel>
-                                </ComboBoxItem>
+                             
+
                                 <ComboBoxItem>
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <TextBlock Text="🗺️"/>
-                                        <TextBlock Text="Карти (OpenStreetMap)"/>
+                                        <TextBlock Text="{DynamicResource VetaleSearch.Engine.Maps}"/>
                                     </StackPanel>
                                 </ComboBoxItem>
                             </ComboBox>
@@ -268,14 +264,14 @@
                                 IsDefault="True">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock Text="🔍"/>
-                                <TextBlock Text="Пошук"/>
+                                <TextBlock Text="{DynamicResource VetaleSearch.SearchButton}"/>
                             </StackPanel>
                         </Button>
                         <Button Classes="search-button"
                                 Click="LuckySearch_Click">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock Text="⭐"/>
-                                <TextBlock Text="Мені пощастить"/>
+                                <TextBlock Text="{DynamicResource VetaleSearch.LuckyButton}"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -284,24 +280,24 @@
 
             <!-- Footer info -->
             <StackPanel Spacing="12" HorizontalAlignment="Center">
-                <TextBlock Text="Швидкі посилання"
+                <TextBlock Text="{DynamicResource VetaleSearch.QuickLinks}"
                            Foreground="White"
                            FontSize="16"
                            FontWeight="SemiBold"
                            HorizontalAlignment="Center"
                            Margin="0,20,0,0"/>
                 <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
-                    <Button Content="📚 Закладки"
+                    <Button Content="{DynamicResource VetaleSearch.Link.Bookmarks}"
                             Classes="search-button"
                             Padding="20,10"/>
-                    <Button Content="📜 Історія"
+                    <Button Content="{DynamicResource VetaleSearch.Link.History}"
                             Classes="search-button"
                             Padding="20,10"/>
-                    <Button Content="🔍 Налаштування пошуку"
+                    <Button Content="{DynamicResource VetaleSearch.Link.SearchSettings}"
                             Classes="search-button"
                             Padding="20,10"
                             Click="SearchSettings_Click"/>
-                    <Button Content="⚙️ Налаштування"
+                    <Button Content="{DynamicResource VetaleSearch.Link.Settings}"
                             Classes="search-button"
                             Padding="20,10"/>
                 </StackPanel>

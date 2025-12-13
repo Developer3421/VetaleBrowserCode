@@ -282,12 +282,18 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
             State = AiSummaryState.Loading
         };
 
+        // Отримуємо поточну мову інтерфейсу на початку
+        var currentLanguage = GetCurrentInterfaceLanguage();
+        var languageName = GetLanguageName(currentLanguage);
+        
+        System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Current interface language: {currentLanguage}, Language name: {languageName}");
+
         try
         {
             if (string.IsNullOrWhiteSpace(query))
             {
                 summary.State = AiSummaryState.NoSummary;
-                summary.ErrorMessage = "Порожній запит";
+                summary.ErrorMessage = LocalizeMessage("EmptyQuery", currentLanguage);
                 return summary;
             }
 
@@ -299,38 +305,19 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
                 System.Diagnostics.Debug.WriteLine("[GeminiAiSummary] API key not configured");
                 return summary;
             }
-
-            // Створюємо промпт для Gemini
+            
+            // Створюємо промпт для Gemini на основі поточної мови
             string prompt;
             
             if (isChat)
             {
                 // Промпт для чату - природна розмова
-                prompt = $@"Ти - Gemini, розумний AI-асистент від Google, вбудований у браузер Vetale Browser. Ти допомагаєш користувачам відповідаючи на їхні запитання.
-
-Користувач запитав: ""{query}""
-
-Твоє завдання:
-1. Дати корисну та детальну відповідь українською мовою
-2. Бути дружнім та професійним
-3. Якщо питання потребує коду або прикладів - надай їх
-4. Відповідай природно, як у бесіді
-
-Твоя відповідь:";
+                prompt = GetChatPrompt(query, currentLanguage, languageName);
             }
             else
             {
                 // Промпт для підсумування пошуку
-                prompt = $@"Ти - асистент пошукової системи Vetale Search. Користувач ввів пошуковий запит: ""{query}""
-
-Твоє завдання:
-1. Зрозуміти намір користувача та що саме він шукає
-2. Написати короткий та зрозумілий підсумок (2-3 речення) українською мовою
-3. Дати корисну пораду або контекст для пошуку
-
-Відповідай ТІЛЬКИ українською мовою, коротко та по суті. Без зайвих пояснень, без повторення запиту.
-
-Підсумок:";
+                prompt = GetSearchSummaryPrompt(query, currentLanguage, languageName);
             }
 
             // Gemini API використовує формат generateContent
@@ -388,23 +375,23 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
                 
                 summary.State = AiSummaryState.Error;
                 
-                // Детальний аналіз помилок
+                // Детальний аналіз помилок з локалізацією
                 if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
                 {
-                    summary.ErrorMessage = "Невірний запит до API. Перевірте налаштування.";
+                    summary.ErrorMessage = LocalizeMessage("BadRequest", currentLanguage);
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden || 
                          response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
-                    summary.ErrorMessage = "Невірний API ключ. Перевірте ключ або отримайте новий на https://aistudio.google.com/app/apikey";
+                    summary.ErrorMessage = LocalizeMessage("InvalidApiKey", currentLanguage);
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
                 {
-                    summary.ErrorMessage = "Перевищено ліміт запитів. Зачекайте хвилину та спробуйте знову.";
+                    summary.ErrorMessage = LocalizeMessage("DailyLimitExceeded", currentLanguage);
                 }
                 else
                 {
-                    summary.ErrorMessage = $"Помилка API: {response.StatusCode} - {response.ReasonPhrase}";
+                    summary.ErrorMessage = LocalizeMessage("ApiError", currentLanguage) + $": {response.StatusCode}";
                 }
                 
                 return summary;
@@ -429,7 +416,7 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
                     if (finishReason == "SAFETY")
                     {
                         summary.State = AiSummaryState.NoSummary;
-                        summary.ErrorMessage = "Запит заблоковано фільтрами безпеки Gemini";
+                        summary.ErrorMessage = LocalizeMessage("SafetyBlocked", currentLanguage);
                         System.Diagnostics.Debug.WriteLine("[GeminiAiSummary] Content blocked by safety filters");
                         return summary;
                     }
@@ -472,41 +459,339 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
                 
                 System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] ERROR: Invalid response structure");
                 summary.State = AiSummaryState.NoSummary;
-                summary.ErrorMessage = "Не вдалося отримати текст з відповіді Gemini";
+                summary.ErrorMessage = LocalizeMessage("InvalidResponse", currentLanguage);
             }
             else
             {
                 System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] ERROR: No candidates in response");
                 summary.State = AiSummaryState.NoSummary;
-                summary.ErrorMessage = "Gemini не згенерував відповідь";
+                summary.ErrorMessage = LocalizeMessage("NoCandidates", currentLanguage);
             }
         }
         catch (TaskCanceledException)
         {
             summary.State = AiSummaryState.Error;
-            summary.ErrorMessage = "Час очікування вичерпано (30 сек)";
+            summary.ErrorMessage = LocalizeMessage("Timeout", currentLanguage);
             System.Diagnostics.Debug.WriteLine("[GeminiAiSummary] Request timeout");
         }
         catch (HttpRequestException ex)
         {
             summary.State = AiSummaryState.Error;
-            summary.ErrorMessage = $"Помилка мережі: {ex.Message}";
+            summary.ErrorMessage = LocalizeMessage("NetworkError", currentLanguage) + $": {ex.Message}";
             System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Network error: {ex}");
         }
         catch (JsonException ex)
         {
             summary.State = AiSummaryState.Error;
-            summary.ErrorMessage = "Помилка парсингу відповіді API";
+            summary.ErrorMessage = LocalizeMessage("JsonParseError", currentLanguage);
             System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] JSON parsing error: {ex}");
         }
         catch (Exception ex)
         {
             summary.State = AiSummaryState.Error;
-            summary.ErrorMessage = $"Помилка: {ex.Message}";
+            summary.ErrorMessage = LocalizeMessage("GenericError", currentLanguage) + $": {ex.Message}";
             System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Exception: {ex}");
         }
 
         return summary;
+    }
+
+    /// <summary>
+    /// Отримати поточну мову інтерфейсу з LocalizationService
+    /// </summary>
+    private static string GetCurrentInterfaceLanguage()
+    {
+        try
+        {
+            // Отримуємо мову безпосередньо з LocalizationService (UI)
+            var langCode = VetaleBrowser.UI.Services.LocalizationService.CurrentLanguageCode;
+            System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Got langCode from LocalizationService: '{langCode}'");
+            
+            if (!string.IsNullOrWhiteSpace(langCode))
+            {
+                return langCode;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Error getting interface language from LocalizationService: {ex.Message}");
+        }
+        
+        // Fallback: спробуємо отримати мову з налаштувань через базу даних
+        try
+        {
+            var settingsService = DatabaseServicesFactory.TryGetSettingsService();
+            if (settingsService != null)
+            {
+                var langCode = Task.Run(async () => await settingsService.GetLanguageAsync().ConfigureAwait(false)).GetAwaiter().GetResult();
+                System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Got langCode from DB settings: '{langCode}'");
+                
+                if (!string.IsNullOrWhiteSpace(langCode))
+                {
+                    return langCode;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Error getting interface language from DB: {ex.Message}");
+        }
+        
+        System.Diagnostics.Debug.WriteLine("[GeminiAiSummary] Returning default language: en");
+        // За замовчуванням - англійська (стандарт)
+        return "en";
+    }
+
+    /// <summary>
+    /// Генерувати промпт для чату на основі мови
+    /// </summary>
+    private static string GetChatPrompt(string query, string langCode, string languageName)
+    {
+        return langCode switch
+        {
+            "uk" => $@"Ти - Gemini, розумний AI-асистент від Google, вбудований у браузер Vetale Browser. Ти допомагаєш користувачам відповідаючи на їхні запитання.
+
+Користувач запитав: ""{query}""
+
+Твоє завдання:
+1. Дати корисну та детальну відповідь українською мовою
+2. Бути дружнім та професійним
+3. Якщо питання потребує коду або прикладів - надай їх
+4. Відповідай природно, як у бесіді
+
+Твоя відповідь:",
+
+            "en" => $@"You are Gemini, an intelligent AI assistant from Google, built into the Vetale Browser. You help users by answering their questions.
+
+User asked: ""{query}""
+
+Your task:
+1. Give a useful and detailed answer in English
+2. Be friendly and professional
+3. If the question requires code or examples - provide them
+4. Respond naturally, as in a conversation
+
+Your response:",
+
+            "de" => $@"Du bist Gemini, ein intelligenter KI-Assistent von Google, eingebaut in den Vetale Browser. Du hilfst Benutzern, indem du ihre Fragen beantwortest.
+
+Benutzer fragte: ""{query}""
+
+Deine Aufgabe:
+1. Gib eine nützliche und detaillierte Antwort auf Deutsch
+2. Sei freundlich und professionell
+3. Wenn die Frage Code oder Beispiele erfordert - stelle sie bereit
+4. Antworte natürlich, wie in einem Gespräch
+
+Deine Antwort:",
+
+            "ru" => $@"Ты - Gemini, умный AI-ассистент от Google, встроенный в браузер Vetale Browser. Ты помогаешь пользователям, отвечая на их вопросы.
+
+Пользователь спросил: ""{query}""
+
+Твоя задача:
+1. Дать полезный и подробный ответ на русском языке
+2. Быть дружелюбным и профессиональным
+3. Если вопрос требует кода или примеров - предоставь их
+4. Отвечай естественно, как в беседе
+
+Твой ответ:",
+
+            "tr" => $@"Sen Gemini'sin, Vetale Browser'a entegre edilmiş Google'dan akıllı bir yapay zeka asistanı. Kullanıcılara sorularını yanıtlayarak yardım ediyorsun.
+
+Kullanıcı sordu: ""{query}""
+
+Görevin:
+1. Türkçe olarak faydalı ve ayrıntılı bir cevap ver
+2. Arkadaş canlısı ve profesyonel ol
+3. Soru kod veya örnekler gerektiriyorsa - sağla
+4. Doğal bir şekilde, bir sohbetteki gibi yanıt ver
+
+Cevabın:",
+
+            _ => $@"You are Gemini, an intelligent AI assistant from Google, built into the Vetale Browser. You help users by answering their questions.
+
+User asked: ""{query}""
+
+Your task:
+1. Give a useful and detailed answer in {languageName}
+2. Be friendly and professional
+3. If the question requires code or examples - provide them
+4. Respond naturally, as in a conversation
+
+Your response:"
+        };
+    }
+
+    /// <summary>
+    /// Генерувати промпт для пошукового підсумку на основі мови
+    /// </summary>
+    private static string GetSearchSummaryPrompt(string query, string langCode, string languageName)
+    {
+        return langCode switch
+        {
+            "uk" => $@"Ти - асистент пошукової системи Vetale Search. Користувач ввів пошуковий запит: ""{query}""
+
+Твоє завдання:
+1. Зрозуміти намір користувача та що саме він шукає
+2. Написати короткий та зрозумілий підсумок (2-3 речення) українською мовою
+3. Дати корисну пораду або контекст для пошуку
+
+Відповідай ТІЛЬКИ українською мовою, коротко та по суті. Без зайвих пояснень, без повторення запиту.
+
+Підсумок:",
+
+            "en" => $@"You are an assistant for the Vetale Search engine. User entered search query: ""{query}""
+
+Your task:
+1. Understand the user's intent and what they are looking for
+2. Write a short and clear summary (2-3 sentences) in English
+3. Give useful advice or context for the search
+
+Respond ONLY in English, briefly and to the point. No unnecessary explanations, no repeating the query.
+
+Summary:",
+
+            "de" => $@"Du bist ein Assistent für die Vetale-Suchmaschine. Benutzer gab Suchanfrage ein: ""{query}""
+
+Deine Aufgabe:
+1. Verstehe die Absicht des Benutzers und wonach er sucht
+2. Schreibe eine kurze und klare Zusammenfassung (2-3 Sätze) auf Deutsch
+3. Gib nützliche Ratschläge oder Kontext für die Suche
+
+Antworte NUR auf Deutsch, kurz und prägnant. Keine unnötigen Erklärungen, keine Wiederholung der Anfrage.
+
+Zusammenfassung:",
+
+            "ru" => $@"Ты - ассистент поисковой системы Vetale Search. Пользователь ввёл поисковый запрос: ""{query}""
+
+Твоя задача:
+1. Понять намерение пользователя и что именно он ищет
+2. Написать короткое и понятное резюме (2-3 предложения) на русском языке
+3. Дать полезный совет или контекст для поиска
+
+Отвечай ТОЛЬКО на русском языке, кратко и по существу. Без лишних объяснений, без повторения запроса.
+
+Резюме:",
+
+            "tr" => $@"Sen Vetale Search arama motoru için bir asistansın. Kullanıcı arama sorgusu girdi: ""{query}""
+
+Görevin:
+1. Kullanıcının amacını ve ne aradığını anla
+2. Türkçe olarak kısa ve net bir özet yaz (2-3 cümle)
+3. Arama için faydalı tavsiye veya bağlam ver
+
+SADECE Türkçe olarak yanıt ver, kısa ve öz. Gereksiz açıklama yok, sorguyu tekrarlama yok.
+
+Özet:",
+
+            _ => $@"You are an assistant for the Vetale Search engine. User entered search query: ""{query}""
+
+Your task:
+1. Understand the user's intent and what they are looking for
+2. Write a short and clear summary (2-3 sentences) in {languageName}
+3. Give useful advice or context for the search
+
+Respond ONLY in {languageName}, briefly and to the point. No unnecessary explanations, no repeating the query.
+
+Summary:"
+        };
+    }
+
+    /// <summary>
+    /// Локалізація повідомлень про помилки
+    /// </summary>
+    private static string LocalizeMessage(string key, string langCode)
+    {
+        return (langCode, key) switch
+        {
+            // Empty query
+            ("uk", "EmptyQuery") => "Порожній запит",
+            ("en", "EmptyQuery") => "Empty query",
+            ("de", "EmptyQuery") => "Leere Anfrage",
+            ("ru", "EmptyQuery") => "Пустой запрос",
+            ("tr", "EmptyQuery") => "Boş sorgu",
+
+            // Daily limit exceeded
+            ("uk", "DailyLimitExceeded") => "Перевищено ліміт запитів за день. Спробуйте пізніше.",
+            ("en", "DailyLimitExceeded") => "Daily request limit exceeded. Please try again later.",
+            ("de", "DailyLimitExceeded") => "Tägliches Anfragelimit überschritten. Bitte später erneut versuchen.",
+            ("ru", "DailyLimitExceeded") => "Превышен дневной лимит запросов. Повторите попытку позже.",
+            ("tr", "DailyLimitExceeded") => "Günlük istek limiti aşıldı. Lütfen daha sonra tekrar deneyin.",
+
+            // Bad request
+            ("uk", "BadRequest") => "Невірний запит до API. Перевірте налаштування.",
+            ("en", "BadRequest") => "Invalid API request. Check your settings.",
+            ("de", "BadRequest") => "Ungültige API-Anfrage. Überprüfen Sie Ihre Einstellungen.",
+            ("ru", "BadRequest") => "Неверный запрос к API. Проверьте настройки.",
+            ("tr", "BadRequest") => "Geçersiz API isteği. Ayarlarınızı kontrol edin.",
+
+            // Invalid API key
+            ("uk", "InvalidApiKey") => "Невірний API ключ. Перевірте ключ або отримайте новий на https://aistudio.google.com/app/apikey",
+            ("en", "InvalidApiKey") => "Invalid API key. Check your key or get a new one at https://aistudio.google.com/app/apikey",
+            ("de", "InvalidApiKey") => "Ungültiger API-Schlüssel. Überprüfen Sie Ihren Schlüssel oder erhalten Sie einen neuen unter https://aistudio.google.com/app/apikey",
+            ("ru", "InvalidApiKey") => "Неверный API ключ. Проверьте ключ или получите новый на https://aistudio.google.com/app/apikey",
+            ("tr", "InvalidApiKey") => "Geçersiz API anahtarı. Anahtarınızı kontrol edin veya https://aistudio.google.com/app/apikey adresinden yeni bir tane alın",
+
+            // API error
+            ("uk", "ApiError") => "Помилка API",
+            ("en", "ApiError") => "API error",
+            ("de", "ApiError") => "API-Fehler",
+            ("ru", "ApiError") => "Ошибка API",
+            ("tr", "ApiError") => "API hatası",
+
+            // Safety blocked
+            ("uk", "SafetyBlocked") => "Запит заблоковано фільтрами безпеки Gemini",
+            ("en", "SafetyBlocked") => "Request blocked by Gemini safety filters",
+            ("de", "SafetyBlocked") => "Anfrage durch Gemini-Sicherheitsfilter blockiert",
+            ("ru", "SafetyBlocked") => "Запрос заблокирован фильтрами безопасности Gemini",
+            ("tr", "SafetyBlocked") => "İstek Gemini güvenlik filtreleri tarafından engellendi",
+
+            // Invalid response
+            ("uk", "InvalidResponse") => "Не вдалося отримати текст з відповіді Gemini",
+            ("en", "InvalidResponse") => "Failed to get text from Gemini response",
+            ("de", "InvalidResponse") => "Fehler beim Abrufen des Textes aus der Gemini-Antwort",
+            ("ru", "InvalidResponse") => "Не удалось получить текст из ответа Gemini",
+            ("tr", "InvalidResponse") => "Gemini yanıtından metin alınamadı",
+
+            // No candidates
+            ("uk", "NoCandidates") => "Gemini не згенерував відповідь",
+            ("en", "NoCandidates") => "Gemini did not generate a response",
+            ("de", "NoCandidates") => "Gemini hat keine Antwort generiert",
+            ("ru", "NoCandidates") => "Gemini не сгенерировал ответ",
+            ("tr", "NoCandidates") => "Gemini yanıt oluşturmadı",
+
+            // Timeout
+            ("uk", "Timeout") => "Час очікування вичерпано (30 сек)",
+            ("en", "Timeout") => "Request timeout (30 sec)",
+            ("de", "Timeout") => "Zeitüberschreitung der Anfrage (30 Sek.)",
+            ("ru", "Timeout") => "Время ожидания истекло (30 сек)",
+            ("tr", "Timeout") => "İstek zaman aşımı (30 sn)",
+
+            // Network error
+            ("uk", "NetworkError") => "Помилка мережі",
+            ("en", "NetworkError") => "Network error",
+            ("de", "NetworkError") => "Netzwerkfehler",
+            ("ru", "NetworkError") => "Ошибка сети",
+            ("tr", "NetworkError") => "Ağ hatası",
+
+            // JSON parse error
+            ("uk", "JsonParseError") => "Помилка парсингу відповіді API",
+            ("en", "JsonParseError") => "API response parsing error",
+            ("de", "JsonParseError") => "Fehler beim Parsen der API-Antwort",
+            ("ru", "JsonParseError") => "Ошибка парсинга ответа API",
+            ("tr", "JsonParseError") => "API yanıtı ayrıştırma hatası",
+
+            // Generic error
+            ("uk", "GenericError") => "Помилка",
+            ("en", "GenericError") => "Error",
+            ("de", "GenericError") => "Fehler",
+            ("ru", "GenericError") => "Ошибка",
+            ("tr", "GenericError") => "Hata",
+
+            // Default fallback
+            _ => key
+        };
     }
 
     public void Dispose()
@@ -520,4 +805,3 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
         System.Diagnostics.Debug.WriteLine("[GeminiAiSummary] Service disposed");
     }
 }
-

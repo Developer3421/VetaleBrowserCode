@@ -24,16 +24,16 @@
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
                     <TextBlock Text="📁" FontSize="20" VerticalAlignment="Center"/>
-                    <TextBlock Text="Sources Viewer" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Text="{DynamicResource DevTools.Tool.Sources.Title}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
                 </StackPanel>
                 
                 <Button Grid.Column="2" 
                         Classes="action-btn"
                         Click="CaptureSourcesFromWebView"
-                        ToolTip.Tip="Capture sources from WebView Worker">
+                        ToolTip.Tip="{DynamicResource DevTools.Sources.CaptureSources.Tooltip}">
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <TextBlock Text="🔄" FontSize="14"/>
-                        <TextBlock Text="Capture from WebView"/>
+                        <TextBlock Text="{DynamicResource DevTools.Sources.CaptureFromWebView}"/>
                     </StackPanel>
                 </Button>
             </Grid>
@@ -45,7 +45,7 @@
             <!-- File Tree -->
             <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0" Background="#FAFAFA">
                 <Grid RowDefinitions="Auto,*">
-                    <TextBlock Grid.Row="0" Text="Files" FontWeight="SemiBold" Padding="10,8" Background="#F0F0F0"/>
+                    <TextBlock Grid.Row="0" Text="{DynamicResource DevTools.Sources.Files}" FontWeight="SemiBold" Padding="10,8" Background="#F0F0F0"/>
                     <ScrollViewer Grid.Row="1">
                         <TreeView x:Name="FileTree" SelectionChanged="OnFileSelected" Padding="5">
                             <!-- Will be populated dynamically -->
@@ -60,7 +60,7 @@
             <!-- Code Viewer -->
             <Grid Grid.Column="2" RowDefinitions="Auto,*">
                 <Border Grid.Row="0" Background="#F0F0F0" Padding="10,6" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
-                    <TextBlock x:Name="FileNameText" Text="Select a file to view" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="FileNameText" Text="{DynamicResource DevTools.Sources.SelectFile}" FontWeight="SemiBold"/>
                 </Border>
                 
                 <ScrollViewer Grid.Row="1" Background="White">
