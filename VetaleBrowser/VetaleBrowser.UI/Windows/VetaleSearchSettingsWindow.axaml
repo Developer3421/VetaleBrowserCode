@@ -1,0 +1,85 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="750"
+        x:Class="VetaleBrowser.VetaleBrowser.UI.Windows.VetaleSearchSettingsWindow"
+        Title="{DynamicResource VetaleSearch.Settings.Header}"
+        WindowStartupLocation="CenterScreen"
+        SystemDecorations="None"
+        Background="#FF8B4513"
+        BorderThickness="1"
+        BorderBrush="#22000000"
+        CanResize="True"
+        MinWidth="550"
+        MinHeight="500"
+        Width="700"
+        Height="750"
+        Padding="8"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="42"
+        UseLayoutRounding="True"
+        TransparencyLevelHint="AcrylicBlur">
+
+    <Window.Resources>
+        <LinearGradientBrush x:Key="GrayGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#FFE0E0E0" Offset="0"/>
+            <GradientStop Color="#FFD0D0D0" Offset="0.3"/>
+            <GradientStop Color="#FFC5C5C5" Offset="0.7"/>
+            <GradientStop Color="#FFC0C0C0" Offset="1"/>
+        </LinearGradientBrush>
+    </Window.Resources>
+
+    <Window.Styles>
+        <Style Selector="Button.window-control">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#303030"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.window-control:pointerover">
+            <Setter Property="Background" Value="#40FFFFFF"/>
+        </Style>
+        <Style Selector="Button.window-control.close">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#FF000000"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.window-control.close:pointerover">
+            <Setter Property="Background" Value="#40FF5C5C"/>
+            <Setter Property="Foreground" Value="#FF000000"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- Top bar -->
+        <Grid x:Name="TopBarGrid" Grid.Row="0" Height="42" Background="{StaticResource GrayGradient}" PointerPressed="TopBar_PointerPressed">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+                <!-- Left: search icon -->
+                <TextBlock Grid.Column="0" Text="🔍" FontSize="20" VerticalAlignment="Center" Margin="12,0,8,0"/>
+
+                <!-- Title -->
+                <TextBlock Grid.Column="1" Text="{DynamicResource VetaleSearch.Settings.Header}" FontWeight="SemiBold" Foreground="#202020" VerticalAlignment="Center"/>
+
+                <!-- Spacer -->
+                <Border Grid.Column="2"/>
+
+                <!-- Close button -->
+                <Button Grid.Column="3" Classes="window-control close" Click="CloseWindow" ToolTip.Tip="{DynamicResource Window.Close}" Padding="0" BorderThickness="0">
+                    <Image Source="{DynamicResource CloseButtonImage}" Stretch="UniformToFill"/>
+                </Button>
+            </Grid>
+        </Grid>
+
+        <!-- Content area -->
+        <Border Grid.Row="1" Background="#FF9800" CornerRadius="0,0,4,4" ClipToBounds="True">
+            <ContentControl x:Name="ContentHost"/>
+        </Border>
+    </Grid>
+</Window>
+

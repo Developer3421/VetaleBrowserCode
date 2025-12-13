@@ -715,4 +715,24 @@
   <x:String x:Key="UserAgreement.Checkbox">Ich habe die obigen Bedingungen gelesen und stimme ihnen zu</x:String>
   <x:String x:Key="UserAgreement.Decline">Ablehnen</x:String>
   <x:String x:Key="UserAgreement.Accept">Akzeptieren &amp; Fortfahren</x:String>
+
+  <!-- VetaleSearch Einstellungsseite -->
+  <x:String x:Key="VetaleSearch.Settings.Header">Vetale Search Einstellungen</x:String>
+  <x:String x:Key="VetaleSearch.Settings.ApiKeys.Title">API-Schlüssel</x:String>
+  <x:String x:Key="VetaleSearch.Settings.ApiKeys.Description">Geben Sie Ihre API-Schlüssel für jeden Dienst ein. Die Schlüssel werden lokal gespeichert und verschlüsselt. Diese Schlüssel werden für die Bild-, Video- und AI-Funktionen benötigt.</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Gemini.Watermark">Geben Sie Ihren Gemini API-Schlüssel ein...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Pexels.Watermark">Geben Sie Ihren Pexels API-Schlüssel ein...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Unsplash.Watermark">Geben Sie Ihren Unsplash Access Key ein...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.YouTube.Watermark">Geben Sie Ihren YouTube API-Schlüssel ein...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Appearance.Title">Aussehen</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Appearance.Description">Passen Sie die Farben auf den Vetale Search-Seiten an.</x:String>
+  <x:String x:Key="VetaleSearch.Settings.GradientStart">Verlauf-Startfarbe:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.GradientEnd">Verlauf-Endfarbe:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.CardBackground">Karten-Hintergrundfarbe:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.LinkColor">Linkfarbe:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Note">Ihre API-Schlüssel werden lokal verschlüsselt gespeichert und niemals an unsere Server gesendet. Sie können kostenlose API-Schlüssel von den oben genannten Diensten erhalten.</x:String>
+  
+  <!-- Werkzeuge - VetaleSearch Einstellungen -->
+  <x:String x:Key="Tools.VetaleSearchSettings.Name">Vetale Search Einstellungen</x:String>
+  <x:String x:Key="Tools.VetaleSearchSettings.Description">API-Schlüssel und Aussehen für Vetale Search konfigurieren</x:String>
 </ResourceDictionary>

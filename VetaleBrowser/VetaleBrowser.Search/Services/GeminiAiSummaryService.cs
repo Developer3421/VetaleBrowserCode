@@ -41,7 +41,7 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
     // - 1500 запитів на день
     
     // ВСТАВТЕ ВАШ GEMINI API КЛЮЧ ТУТ:
-    private const string DefaultApiKey = "AIzaSyBshGWGaj30VLU00caUUFgquscL5reQfhU";
+    private const string DefaultApiKey = ""; // ← API ключ видалено для безпеки. Користувачі повинні ввести свій ключ.
     // Або встановіть змінну середовища: GEMINI_API_KEY
     
     private bool _isDisposed;

@@ -20,6 +20,7 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
     
     /// <summary>
     /// Дефолтні API ключі для пошуку
+    /// ВАЖЛИВО: Дефолтні ключі видалені для безпеки. Користувачі повинні ввести свої власні ключі.
     /// </summary>
     public static class DefaultApiKeys
     {
@@ -28,21 +29,21 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
         // Отримати: https://www.pexels.com/api/
         // Безкоштовно: 200 запитів/годину, 20,000 запитів/місяць
         // =====================================================================
-        public const string PexelsApiKey = "zGnL0MfSCjjLbq7KrOgtVXKoDs0TX1wHMCZoDKJtgt4KWGY37CNVZIbj"; // ← ВСТАВТЕ ВАШ PEXELS API KEY ТУТ
+        public const string PexelsApiKey = ""; // ← ВСТАВТЕ ВАШ PEXELS API KEY ТУТ
         
         // =====================================================================
         // 🔑 UNSPLASH ACCESS KEY
         // Отримати: https://unsplash.com/developers
         // Безкоштовно: 50 запитів/годину для демо, необмежено для production
         // =====================================================================
-        public const string UnsplashAccessKey = "-_hfnNlMh9CQ-dojmvWqkathOaIqZFpmAk-Tdv6uuzc"; // ← ВСТАВТЕ ВАШ UNSPLASH ACCESS KEY ТУТ
+        public const string UnsplashAccessKey = ""; // ← ВСТАВТЕ ВАШ UNSPLASH ACCESS KEY ТУТ
         
         // =====================================================================
         // 🔑 YOUTUBE DATA API KEY
         // Отримати: https://console.cloud.google.com/apis/library/youtube.googleapis.com
         // Безкоштовно: 10,000 одиниць/день
         // =====================================================================
-        public const string YouTubeApiKey = "AIzaSyD3WKiUcX1vdclWhLBFm3s8l9Z2bDGZiWs"; // ← ВСТАВТЕ ВАШ YOUTUBE API KEY ТУТ
+        public const string YouTubeApiKey = ""; // ← ВСТАВТЕ ВАШ YOUTUBE API KEY ТУТ
     }
 
     /// <summary>

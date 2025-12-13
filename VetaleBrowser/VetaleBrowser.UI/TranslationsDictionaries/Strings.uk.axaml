@@ -736,4 +736,24 @@
   <x:String x:Key="UserAgreement.Checkbox">Я прочитав та погоджуюся з умовами вище</x:String>
   <x:String x:Key="UserAgreement.Decline">Відхилити</x:String>
   <x:String x:Key="UserAgreement.Accept">Прийняти та продовжити</x:String>
+
+  <!-- Сторінка налаштувань VetaleSearch -->
+  <x:String x:Key="VetaleSearch.Settings.Header">Налаштування Vetale Search</x:String>
+  <x:String x:Key="VetaleSearch.Settings.ApiKeys.Title">API ключі</x:String>
+  <x:String x:Key="VetaleSearch.Settings.ApiKeys.Description">Введіть ваші API ключі для кожного сервісу. Ключі зберігаються локально та зашифровані. Ці ключі потрібні для пошуку зображень, відео та функцій AI.</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Gemini.Watermark">Введіть ваш Gemini API ключ...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Pexels.Watermark">Введіть ваш Pexels API ключ...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Unsplash.Watermark">Введіть ваш Unsplash Access Key...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.YouTube.Watermark">Введіть ваш YouTube API ключ...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Appearance.Title">Зовнішній вигляд</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Appearance.Description">Налаштуйте кольори, які використовуються на сторінках Vetale Search.</x:String>
+  <x:String x:Key="VetaleSearch.Settings.GradientStart">Початковий колір градієнту:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.GradientEnd">Кінцевий колір градієнту:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.CardBackground">Колір фону карток:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.LinkColor">Колір посилань:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Note">Ваші API ключі зберігаються локально з шифруванням і ніколи не надсилаються на наші сервери. Ви можете отримати безкоштовні API ключі з сервісів вище.</x:String>
+  
+  <!-- Інструменти - Налаштування VetaleSearch -->
+  <x:String x:Key="Tools.VetaleSearchSettings.Name">Налаштування Vetale Search</x:String>
+  <x:String x:Key="Tools.VetaleSearchSettings.Description">Налаштування API ключів та зовнішнього вигляду Vetale Search</x:String>
 </ResourceDictionary>

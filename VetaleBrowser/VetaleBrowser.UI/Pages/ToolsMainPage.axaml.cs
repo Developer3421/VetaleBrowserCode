@@ -23,6 +23,7 @@ public partial class ToolsMainPage : UserControl
     private static Windows.DownloadsWindow? _downloadsWindowInstance;
     private static Windows.UserAgreementWindow? _userAgreementWindowInstance;
     private static Windows.AboutWindow? _aboutWindowInstance;
+    private static Windows.VetaleSearchSettingsWindow? _vetaleSearchSettingsWindowInstance;
 
     public event EventHandler<ToolNavigationEventArgs>? NavigateInWebView;
     public event EventHandler<string>? NavigateInMainTab;
@@ -126,6 +127,14 @@ public partial class ToolsMainPage : UserControl
                 IconUrl = null,
                 IconEmoji = "🛡️",
                 Action = () => OpenUserAgreement()
+            },
+            new ToolItem
+            {
+                NameKey = "Tools.VetaleSearchSettings.Name",
+                DescriptionKey = "Tools.VetaleSearchSettings.Description",
+                IconUrl = null,
+                IconEmoji = "🔍",
+                Action = () => OpenVetaleSearchSettings()
             },
             new ToolItem
             {
@@ -687,6 +696,53 @@ public partial class ToolsMainPage : UserControl
             System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] ERROR opening About: {ex.Message}");
             System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Stack trace: {ex.StackTrace}");
             _aboutWindowInstance = null;
+        }
+    }
+
+    private void OpenVetaleSearchSettings()
+    {
+        System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Opening VetaleSearch Settings...");
+        
+        try
+        {
+            // Перевіряємо, чи існує вже відкрите вікно
+            if (_vetaleSearchSettingsWindowInstance != null)
+            {
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Reusing existing VetaleSearchSettingsWindow");
+                    _vetaleSearchSettingsWindowInstance.Activate();
+                    _vetaleSearchSettingsWindowInstance.WindowState = WindowState.Normal;
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] VetaleSearchSettings window activated");
+                    return;
+                }
+                catch
+                {
+                    // Вікно закрите, очищаємо посилання
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Previous VetaleSearchSettings window was closed, creating new one");
+                    _vetaleSearchSettingsWindowInstance = null;
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Creating new VetaleSearchSettingsWindow instance...");
+            _vetaleSearchSettingsWindowInstance = new Windows.VetaleSearchSettingsWindow();
+            
+            // Підписуємося на закриття вікна для очищення посилання
+            _vetaleSearchSettingsWindowInstance.Closed += (s, e) =>
+            {
+                System.Diagnostics.Debug.WriteLine("[ToolsMainPage] VetaleSearchSettingsWindow closed, clearing reference");
+                _vetaleSearchSettingsWindowInstance = null;
+            };
+            
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Showing VetaleSearchSettings window...");
+            _vetaleSearchSettingsWindowInstance.Show();
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] VetaleSearchSettings window opened successfully");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] ERROR opening VetaleSearchSettings: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Stack trace: {ex.StackTrace}");
+            _vetaleSearchSettingsWindowInstance = null;
         }
     }
 

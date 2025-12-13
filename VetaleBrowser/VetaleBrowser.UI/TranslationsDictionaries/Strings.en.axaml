@@ -736,4 +736,24 @@
   <x:String x:Key="UserAgreement.Checkbox">I have read and agree to the terms above</x:String>
   <x:String x:Key="UserAgreement.Decline">Decline</x:String>
   <x:String x:Key="UserAgreement.Accept">Accept &amp; Continue</x:String>
+
+  <!-- VetaleSearch Settings Page -->
+  <x:String x:Key="VetaleSearch.Settings.Header">Vetale Search Settings</x:String>
+  <x:String x:Key="VetaleSearch.Settings.ApiKeys.Title">API Keys</x:String>
+  <x:String x:Key="VetaleSearch.Settings.ApiKeys.Description">Enter your API keys for each service. Keys are stored locally and encrypted. You need these keys to use image search, video search, and AI features.</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Gemini.Watermark">Enter your Gemini API key...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Pexels.Watermark">Enter your Pexels API key...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Unsplash.Watermark">Enter your Unsplash Access Key...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.YouTube.Watermark">Enter your YouTube API key...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Appearance.Title">Appearance</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Appearance.Description">Customize the colors used on the Vetale Search pages.</x:String>
+  <x:String x:Key="VetaleSearch.Settings.GradientStart">Gradient start color:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.GradientEnd">Gradient end color:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.CardBackground">Card background color:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.LinkColor">Link color:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Note">Your API keys are stored locally with encryption and never sent to our servers. You can get free API keys from the services above.</x:String>
+  
+  <!-- Tools - VetaleSearch Settings -->
+  <x:String x:Key="Tools.VetaleSearchSettings.Name">Vetale Search Settings</x:String>
+  <x:String x:Key="Tools.VetaleSearchSettings.Description">Configure API keys and appearance for Vetale Search</x:String>
 </ResourceDictionary>

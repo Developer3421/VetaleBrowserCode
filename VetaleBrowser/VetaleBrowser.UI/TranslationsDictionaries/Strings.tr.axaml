@@ -715,5 +715,25 @@
   <x:String x:Key="UserAgreement.Checkbox">Yukarıdaki şartları okudum ve kabul ediyorum</x:String>
   <x:String x:Key="UserAgreement.Decline">Reddet</x:String>
   <x:String x:Key="UserAgreement.Accept">Kabul Et ve Devam Et</x:String>
+
+  <!-- VetaleSearch Ayarları Sayfası -->
+  <x:String x:Key="VetaleSearch.Settings.Header">Vetale Search Ayarları</x:String>
+  <x:String x:Key="VetaleSearch.Settings.ApiKeys.Title">API Anahtarları</x:String>
+  <x:String x:Key="VetaleSearch.Settings.ApiKeys.Description">Her hizmet için API anahtarlarınızı girin. Anahtarlar yerel olarak saklanır ve şifrelenir. Bu anahtarlar resim arama, video arama ve AI özellikleri için gereklidir.</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Gemini.Watermark">Gemini API anahtarınızı girin...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Pexels.Watermark">Pexels API anahtarınızı girin...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Unsplash.Watermark">Unsplash Access Key girin...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.YouTube.Watermark">YouTube API anahtarınızı girin...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Appearance.Title">Görünüm</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Appearance.Description">Vetale Search sayfalarında kullanılan renkleri özelleştirin.</x:String>
+  <x:String x:Key="VetaleSearch.Settings.GradientStart">Gradyan başlangıç rengi:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.GradientEnd">Gradyan bitiş rengi:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.CardBackground">Kart arka plan rengi:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.LinkColor">Bağlantı rengi:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Note">API anahtarlarınız şifreli olarak yerel olarak saklanır ve asla sunucularımıza gönderilmez. Yukarıdaki hizmetlerden ücretsiz API anahtarları alabilirsiniz.</x:String>
+  
+  <!-- Araçlar - VetaleSearch Ayarları -->
+  <x:String x:Key="Tools.VetaleSearchSettings.Name">Vetale Search Ayarları</x:String>
+  <x:String x:Key="Tools.VetaleSearchSettings.Description">Vetale Search için API anahtarlarını ve görünümü yapılandırın</x:String>
 </ResourceDictionary>
 

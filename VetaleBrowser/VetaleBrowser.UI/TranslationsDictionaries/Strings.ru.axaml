@@ -709,4 +709,24 @@
   <x:String x:Key="UserAgreement.Checkbox">Я прочитал и соглашаюсь с условиями выше</x:String>
   <x:String x:Key="UserAgreement.Decline">Отклонить</x:String>
   <x:String x:Key="UserAgreement.Accept">Принять и продолжить</x:String>
+
+  <!-- Страница настроек VetaleSearch -->
+  <x:String x:Key="VetaleSearch.Settings.Header">Настройки Vetale Search</x:String>
+  <x:String x:Key="VetaleSearch.Settings.ApiKeys.Title">API ключи</x:String>
+  <x:String x:Key="VetaleSearch.Settings.ApiKeys.Description">Введите ваши API ключи для каждого сервиса. Ключи хранятся локально и зашифрованы. Эти ключи нужны для поиска изображений, видео и функций AI.</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Gemini.Watermark">Введите ваш Gemini API ключ...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Pexels.Watermark">Введите ваш Pexels API ключ...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Unsplash.Watermark">Введите ваш Unsplash Access Key...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.YouTube.Watermark">Введите ваш YouTube API ключ...</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Appearance.Title">Внешний вид</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Appearance.Description">Настройте цвета, используемые на страницах Vetale Search.</x:String>
+  <x:String x:Key="VetaleSearch.Settings.GradientStart">Начальный цвет градиента:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.GradientEnd">Конечный цвет градиента:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.CardBackground">Цвет фона карточек:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.LinkColor">Цвет ссылок:</x:String>
+  <x:String x:Key="VetaleSearch.Settings.Note">Ваши API ключи хранятся локально с шифрованием и никогда не отправляются на наши серверы. Вы можете получить бесплатные API ключи на сервисах выше.</x:String>
+  
+  <!-- Инструменты - Настройки VetaleSearch -->
+  <x:String x:Key="Tools.VetaleSearchSettings.Name">Настройки Vetale Search</x:String>
+  <x:String x:Key="Tools.VetaleSearchSettings.Description">Настройка API ключей и внешнего вида Vetale Search</x:String>
 </ResourceDictionary>
