@@ -109,6 +109,14 @@
       <NuGetAuditLevel>moderate</NuGetAuditLevel>
     </PropertyGroup>
 
+    <!-- Suppress known false-positive vulnerabilities in System.Private.Uri 4.3.0 -->
+    <!-- These are mitigated in .NET 10 runtime which uses its own URI implementation -->
+    <ItemGroup>
+      <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-5f2m-466j-3848" />
+      <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-x5qj-9vmx-7g6g" />
+      <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-xhfc-gr8f-ffwc" />
+    </ItemGroup>
+
     <!-- Оставляем только вариант avx2 нативних бібліотек LLamaSharp для усунення конфліктів імен при single-file -->
     <Target Name="PruneLlamaCpuVariants" AfterTargets="ResolvePackageAssets" BeforeTargets="ResolveReferences" Condition="'$(LlamaBackendChoice)' == 'cpu-avx2' and '$(LlamaPreferredCpuVariant)' == 'avx2'">
       <ItemGroup>

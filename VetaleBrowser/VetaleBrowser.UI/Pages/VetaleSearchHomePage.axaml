@@ -278,28 +278,97 @@
                 </StackPanel>
             </StackPanel>
 
-            <!-- Footer info -->
-            <StackPanel Spacing="12" HorizontalAlignment="Center">
-                <TextBlock Text="{DynamicResource VetaleSearch.QuickLinks}"
+            <!-- Sponsors Section -->
+            <StackPanel Spacing="16" HorizontalAlignment="Center" Margin="0,20,0,0">
+                <TextBlock Text="{DynamicResource VetaleSearch.Sponsors.Title}"
                            Foreground="White"
                            FontSize="16"
                            FontWeight="SemiBold"
                            HorizontalAlignment="Center"
-                           Margin="0,20,0,0"/>
-                <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
+                           Opacity="0.9"/>
+                
+                <!-- Sponsors Grid - 6 sponsors in one row -->
+                <Border Background="#20FFFFFF" CornerRadius="16" Padding="20">
+                    <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
+                        <!-- Sponsor 1 -->
+                        <Border Background="#30FFFFFF" CornerRadius="12" Width="120" Height="70"
+                                BorderBrush="#40FFFFFF" BorderThickness="1"
+                                ToolTip.Tip="Sponsor slot available">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <TextBlock Text="💎" FontSize="24" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Sponsor" FontSize="10" Foreground="White" Opacity="0.7" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Sponsor 2 -->
+                        <Border Background="#30FFFFFF" CornerRadius="12" Width="120" Height="70"
+                                BorderBrush="#40FFFFFF" BorderThickness="1"
+                                ToolTip.Tip="Sponsor slot available">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <TextBlock Text="💎" FontSize="24" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Sponsor" FontSize="10" Foreground="White" Opacity="0.7" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Sponsor 3 -->
+                        <Border Background="#30FFFFFF" CornerRadius="12" Width="120" Height="70"
+                                BorderBrush="#40FFFFFF" BorderThickness="1"
+                                ToolTip.Tip="Sponsor slot available">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <TextBlock Text="💎" FontSize="24" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Sponsor" FontSize="10" Foreground="White" Opacity="0.7" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Sponsor 4 -->
+                        <Border Background="#30FFFFFF" CornerRadius="12" Width="120" Height="70"
+                                BorderBrush="#40FFFFFF" BorderThickness="1"
+                                ToolTip.Tip="Sponsor slot available">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <TextBlock Text="💎" FontSize="24" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Sponsor" FontSize="10" Foreground="White" Opacity="0.7" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Sponsor 5 -->
+                        <Border Background="#30FFFFFF" CornerRadius="12" Width="120" Height="70"
+                                BorderBrush="#40FFFFFF" BorderThickness="1"
+                                ToolTip.Tip="Sponsor slot available">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <TextBlock Text="💎" FontSize="24" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Sponsor" FontSize="10" Foreground="White" Opacity="0.7" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Sponsor 6 -->
+                        <Border Background="#30FFFFFF" CornerRadius="12" Width="120" Height="70"
+                                BorderBrush="#40FFFFFF" BorderThickness="1"
+                                ToolTip.Tip="Sponsor slot available">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <TextBlock Text="💎" FontSize="24" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Sponsor" FontSize="10" Foreground="White" Opacity="0.7" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Quick links row (reduced) -->
+                <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center" Margin="0,10,0,0">
                     <Button Content="{DynamicResource VetaleSearch.Link.Bookmarks}"
                             Classes="search-button"
-                            Padding="20,10"/>
+                            Padding="16,8"
+                            FontSize="12"
+                            Click="Bookmarks_Click"/>
                     <Button Content="{DynamicResource VetaleSearch.Link.History}"
                             Classes="search-button"
-                            Padding="20,10"/>
+                            Padding="16,8"
+                            FontSize="12"
+                            Click="History_Click"/>
                     <Button Content="{DynamicResource VetaleSearch.Link.SearchSettings}"
                             Classes="search-button"
-                            Padding="20,10"
+                            Padding="16,8"
+                            FontSize="12"
                             Click="SearchSettings_Click"/>
-                    <Button Content="{DynamicResource VetaleSearch.Link.Settings}"
-                            Classes="search-button"
-                            Padding="20,10"/>
                 </StackPanel>
             </StackPanel>
         </StackPanel>

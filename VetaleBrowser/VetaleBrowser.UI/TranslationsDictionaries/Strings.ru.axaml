@@ -594,6 +594,7 @@
   <x:String x:Key="VetaleSearch.SearchButton">Поиск</x:String>
   <x:String x:Key="VetaleSearch.LuckyButton">Мне повезёт</x:String>
   <x:String x:Key="VetaleSearch.QuickLinks">Быстрые ссылки</x:String>
+  <x:String x:Key="VetaleSearch.Sponsors.Title">Наши спонсоры</x:String>
   <x:String x:Key="VetaleSearch.Link.Bookmarks">📚 Закладки</x:String>
   <x:String x:Key="VetaleSearch.Link.History">📜 История</x:String>
   <x:String x:Key="VetaleSearch.Link.SearchSettings">🔍 Настройки поиска</x:String>
@@ -703,6 +704,9 @@
   <x:String x:Key="UserAgreement.Rights.Item3">• Право на удаление ("право быть забытым")</x:String>
   <x:String x:Key="UserAgreement.Rights.Item4">• Право на перенос данных</x:String>
   <x:String x:Key="UserAgreement.Rights.Item5">• Право отозвать согласие в любое время</x:String>
+  <x:String x:Key="UserAgreement.Disclaimer.Title">⚠️ Отказ от ответственности</x:String>
+  <x:String x:Key="UserAgreement.Disclaimer.VetaleSearch">Vetale Search предоставляет функции поиска изображений, видео и загрузки файлов. Результаты поиска и загрузки НЕ фильтруются и не модерируются. Вы имеете полную свободу действий при использовании этих функций.</x:String>
+  <x:String x:Key="UserAgreement.Disclaimer.NoResponsibility">Разработчик НЕ несёт ответственности за любые повреждения вашей системы, устройства или иной вред, причинённый вашими поисками или загрузками. Вы используете эти функции на свой страх и риск.</x:String>
   <x:String x:Key="UserAgreement.Contact.Title">📧 Контакты</x:String>
   <x:String x:Key="UserAgreement.Contact.Description">Если у вас есть вопросы об этом соглашении или ваших данных, вы можете очистить все локальные данные через настройки браузера или связаться с нами через репозиторий проекта.</x:String>
   <x:String x:Key="UserAgreement.Version">Версия соглашения 1.0 | Последнее обновление: декабрь 2024</x:String>

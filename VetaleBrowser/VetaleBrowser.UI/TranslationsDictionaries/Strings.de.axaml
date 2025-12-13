@@ -600,6 +600,7 @@
   <x:String x:Key="VetaleSearch.SearchButton">Suchen</x:String>
   <x:String x:Key="VetaleSearch.LuckyButton">Auf gut Glück!</x:String>
   <x:String x:Key="VetaleSearch.QuickLinks">Schnellzugriffe</x:String>
+  <x:String x:Key="VetaleSearch.Sponsors.Title">Unsere Sponsoren</x:String>
   <x:String x:Key="VetaleSearch.Link.Bookmarks">📚 Lesezeichen</x:String>
   <x:String x:Key="VetaleSearch.Link.History">📜 Verlauf</x:String>
   <x:String x:Key="VetaleSearch.Link.SearchSettings">🔍 Sucheinstellungen</x:String>
@@ -709,6 +710,9 @@
   <x:String x:Key="UserAgreement.Rights.Item3">• Recht auf Löschung ("Recht auf Vergessenwerden")</x:String>
   <x:String x:Key="UserAgreement.Rights.Item4">• Recht auf Datenübertragbarkeit</x:String>
   <x:String x:Key="UserAgreement.Rights.Item5">• Recht, die Einwilligung jederzeit zu widerrufen</x:String>
+  <x:String x:Key="UserAgreement.Disclaimer.Title">⚠️ Haftungsausschluss</x:String>
+  <x:String x:Key="UserAgreement.Disclaimer.VetaleSearch">Vetale Search bietet Bildsuche, Videosuche und Datei-Download-Funktionen. Suchergebnisse und Downloads werden NICHT gefiltert oder moderiert. Sie haben bei der Nutzung dieser Funktionen völlige Handlungsfreiheit.</x:String>
+  <x:String x:Key="UserAgreement.Disclaimer.NoResponsibility">Der Entwickler ist NICHT verantwortlich für Schäden an Ihrem System, Gerät oder andere Schäden, die durch Ihre Suchen oder Downloads verursacht werden. Sie nutzen diese Funktionen auf eigenes Risiko.</x:String>
   <x:String x:Key="UserAgreement.Contact.Title">📧 Kontakt</x:String>
   <x:String x:Key="UserAgreement.Contact.Description">Wenn Sie Fragen zu dieser Vereinbarung oder Ihren Daten haben, können Sie alle lokalen Daten über die Browsereinstellungen löschen oder uns über das Projekt-Repository kontaktieren.</x:String>
   <x:String x:Key="UserAgreement.Version">Vereinbarungsversion 1.0 | Letzte Aktualisierung: Dezember 2024</x:String>

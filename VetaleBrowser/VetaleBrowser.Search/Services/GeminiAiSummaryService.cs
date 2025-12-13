@@ -338,7 +338,7 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
                     temperature = 0.7,
                     topK = 40,
                     topP = 0.95,
-                    maxOutputTokens = isChat ? 1000 : 300, // Більше токенів для чату
+                    maxOutputTokens = 8192, // Максимум токенів без обмежень
                     candidateCount = 1
                 },
                 safetySettings = new[]
@@ -354,7 +354,6 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
             { 
                 WriteIndented = false 
             });
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
             // Формуємо URL з API ключем
             var apiUrl = $"{ApiBaseUrl}/{ModelName}:generateContent?key={_apiKeyToUse}";
@@ -363,9 +362,47 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
             System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Model: {ModelName}");
             System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Request size: {jsonContent.Length} bytes");
 
-            var response = await _httpClient.PostAsync(apiUrl, content, cancellationToken);
-
-            System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Response Status: {response.StatusCode} ({(int)response.StatusCode})");
+            // Retry логіка для rate limits (429) - чекаємо без показу помилки
+            HttpResponseMessage response;
+            int maxRetries = 10; // Більше спроб
+            int retryCount = 0;
+            int delayMs = 2000; // Починаємо з 2 секунд
+            
+            while (true)
+            {
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                response = await _httpClient.PostAsync(apiUrl, content, cancellationToken);
+                
+                System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Response Status: {response.StatusCode} ({(int)response.StatusCode}), Attempt: {retryCount + 1}");
+                
+                // Якщо успіх - виходимо
+                if (response.IsSuccessStatusCode)
+                {
+                    break;
+                }
+                
+                // Якщо rate limit (429) - чекаємо і пробуємо знову (без показу помилки)
+                if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                {
+                    retryCount++;
+                    if (retryCount >= maxRetries)
+                    {
+                        // Після багатьох спроб - просто повертаємо пусту відповідь без помилки
+                        System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Max retries reached, returning empty response");
+                        summary.State = AiSummaryState.NoSummary;
+                        summary.SummaryText = "";
+                        return summary;
+                    }
+                    
+                    System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Rate limited, waiting {delayMs}ms before retry...");
+                    await Task.Delay(delayMs, cancellationToken);
+                    delayMs = Math.Min(delayMs * 2, 30000); // Exponential backoff до 30 секунд
+                    continue;
+                }
+                
+                // Інші помилки - виходимо з циклу
+                break;
+            }
 
             if (!response.IsSuccessStatusCode)
             {
@@ -385,13 +422,10 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
                 {
                     summary.ErrorMessage = LocalizeMessage("InvalidApiKey", currentLanguage);
                 }
-                else if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
-                {
-                    summary.ErrorMessage = LocalizeMessage("DailyLimitExceeded", currentLanguage);
-                }
                 else
                 {
-                    summary.ErrorMessage = LocalizeMessage("ApiError", currentLanguage) + $": {response.StatusCode}";
+                    // Для всіх інших помилок - загальне повідомлення без деталей
+                    summary.ErrorMessage = LocalizeMessage("ApiError", currentLanguage);
                 }
                 
                 return summary;
@@ -712,12 +746,6 @@ Summary:"
             ("ru", "EmptyQuery") => "Пустой запрос",
             ("tr", "EmptyQuery") => "Boş sorgu",
 
-            // Daily limit exceeded
-            ("uk", "DailyLimitExceeded") => "Перевищено ліміт запитів за день. Спробуйте пізніше.",
-            ("en", "DailyLimitExceeded") => "Daily request limit exceeded. Please try again later.",
-            ("de", "DailyLimitExceeded") => "Tägliches Anfragelimit überschritten. Bitte später erneut versuchen.",
-            ("ru", "DailyLimitExceeded") => "Превышен дневной лимит запросов. Повторите попытку позже.",
-            ("tr", "DailyLimitExceeded") => "Günlük istek limiti aşıldı. Lütfen daha sonra tekrar deneyin.",
 
             // Bad request
             ("uk", "BadRequest") => "Невірний запит до API. Перевірте налаштування.",

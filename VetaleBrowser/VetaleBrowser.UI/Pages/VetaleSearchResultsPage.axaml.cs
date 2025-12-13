@@ -76,9 +76,7 @@ public partial class VetaleSearchResultsPage : UserControl
     
     // Прапорці для контролю показу вікон API ключів
     // true = треба показати вікно, false = вже показали
-    private static bool _shouldShowGeminiApiKeyPrompt = true;
-    private static bool _shouldShowImageSearchApiKeyPrompt = true;
-    private static bool _shouldShowVideoSearchApiKeyPrompt = true;
+    // Налаштування API ключів тепер в Tools → VetaleSearch Settings
 
     public VetaleSearchResultsPage()
     {
@@ -1230,15 +1228,8 @@ public partial class VetaleSearchResultsPage : UserControl
             _videoResultsHost.IsVisible = _currentMode == SearchMode.Videos;
     }
 
-    private async void ModeSites_Click(object? sender, RoutedEventArgs e)
+    private void ModeSites_Click(object? sender, RoutedEventArgs e)
     {
-        // Показуємо вікно Gemini API при першому пошуку сайтів (якщо ще не показували)
-        if (_shouldShowGeminiApiKeyPrompt)
-        {
-            _shouldShowGeminiApiKeyPrompt = false; // Більше не показувати
-            await ShowGeminiApiKeyPromptAsync();
-        }
-        
         SetMode(SearchMode.Sites);
         if (_currentQuery != null)
         {
@@ -1246,15 +1237,8 @@ public partial class VetaleSearchResultsPage : UserControl
         }
     }
 
-    private async void ModeImages_Click(object? sender, RoutedEventArgs e)
+    private void ModeImages_Click(object? sender, RoutedEventArgs e)
     {
-        // Показуємо вікно API ключів для пошуку зображень при першому використанні
-        if (_shouldShowImageSearchApiKeyPrompt)
-        {
-            _shouldShowImageSearchApiKeyPrompt = false; // Більше не показувати
-            await ShowImageSearchApiKeyPromptAsync();
-        }
-        
         SetMode(SearchMode.Images);
         if (_currentQuery != null && _imageResultsView != null)
         {
@@ -1340,15 +1324,9 @@ public partial class VetaleSearchResultsPage : UserControl
         }
     }
     
-    private async void ModeVideos_Click(object? sender, RoutedEventArgs e)
+    private void ModeVideos_Click(object? sender, RoutedEventArgs e)
     {
-        // Показуємо вікно API ключів для пошуку відео при першому використанні
-        if (_shouldShowVideoSearchApiKeyPrompt)
-        {
-            _shouldShowVideoSearchApiKeyPrompt = false; // Більше не показувати
-            await ShowVideoSearchApiKeyPromptAsync();
-        }
-        
+
         SetMode(SearchMode.Videos);
         
         // Запускаємо пошук відео

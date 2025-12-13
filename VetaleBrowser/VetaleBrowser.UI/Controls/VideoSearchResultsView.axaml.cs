@@ -112,6 +112,8 @@ public partial class VideoSearchResultsView : UserControl
         
         _loadCts?.Cancel();
         _loadCts = new CancellationTokenSource();
+        // Додаємо таймаут 15 секунд щоб уникнути зависання
+        _loadCts.CancelAfter(TimeSpan.FromSeconds(15));
         var ct = _loadCts.Token;
 
         try
@@ -120,10 +122,20 @@ public partial class VideoSearchResultsView : UserControl
             
             if (string.IsNullOrWhiteSpace(apiKey))
             {
-                // Немає API ключа - показуємо повідомлення
-                System.Diagnostics.Debug.WriteLine("[VideoSearch] No YouTube API key configured");
-                if (_noResultsMessage != null) _noResultsMessage.IsVisible = true;
+                // Немає API ключа - показуємо повідомлення і завершуємо
+                System.Diagnostics.Debug.WriteLine("[VideoSearch] No YouTube API key configured - skipping search");
                 _hasNextPage = false;
+                
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    if (_noResultsMessage != null)
+                    {
+                        _noResultsMessage.IsVisible = true;
+                    }
+                    if (_loadingIndicator != null) _loadingIndicator.IsVisible = false;
+                });
+                
+                _isLoading = false;
                 return;
             }
 
@@ -142,6 +154,10 @@ public partial class VideoSearchResultsView : UserControl
             {
                 _noResultsMessage.IsVisible = true;
             }
+        }
+        catch (OperationCanceledException)
+        {
+            System.Diagnostics.Debug.WriteLine("[VideoSearch] Search was cancelled or timed out");
         }
         catch (Exception ex)
         {

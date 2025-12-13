@@ -600,6 +600,7 @@
   <x:String x:Key="VetaleSearch.SearchButton">Ara</x:String>
   <x:String x:Key="VetaleSearch.LuckyButton">Şanslı Hissediyorum</x:String>
   <x:String x:Key="VetaleSearch.QuickLinks">Hızlı Bağlantılar</x:String>
+  <x:String x:Key="VetaleSearch.Sponsors.Title">Sponsorlarımız</x:String>
   <x:String x:Key="VetaleSearch.Link.Bookmarks">📚 Yer İmleri</x:String>
   <x:String x:Key="VetaleSearch.Link.History">📜 Geçmiş</x:String>
   <x:String x:Key="VetaleSearch.Link.SearchSettings">🔍 Arama Ayarları</x:String>
@@ -709,6 +710,9 @@
   <x:String x:Key="UserAgreement.Rights.Item3">• Silme hakkı ("unutulma hakkı")</x:String>
   <x:String x:Key="UserAgreement.Rights.Item4">• Veri taşınabilirliği hakkı</x:String>
   <x:String x:Key="UserAgreement.Rights.Item5">• İstediğiniz zaman onayı geri çekme hakkı</x:String>
+  <x:String x:Key="UserAgreement.Disclaimer.Title">⚠️ Sorumluluk Reddi</x:String>
+  <x:String x:Key="UserAgreement.Disclaimer.VetaleSearch">Vetale Search görsel arama, video arama ve dosya indirme işlevleri sağlar. Arama sonuçları ve indirmeler filtrelenmez veya denetlenmez. Bu özellikleri kullanırken tam hareket özgürlüğüne sahipsiniz.</x:String>
+  <x:String x:Key="UserAgreement.Disclaimer.NoResponsibility">Geliştirici, aramalarınız veya indirmelerinizden kaynaklanan sisteminize, cihazınıza veya başka herhangi bir zarara ilişkin sorumlu DEĞİLDİR. Bu özellikleri kendi riskinizle kullanırsınız.</x:String>
   <x:String x:Key="UserAgreement.Contact.Title">📧 İletişim</x:String>
   <x:String x:Key="UserAgreement.Contact.Description">Bu sözleşme veya verileriniz hakkında sorularınız varsa, tarayıcı ayarları aracılığıyla tüm yerel verileri temizleyebilir veya proje deposu aracılığıyla bizimle iletişime geçebilirsiniz.</x:String>
   <x:String x:Key="UserAgreement.Version">Sözleşme Sürümü 1.0 | Son Güncelleme: Aralık 2024</x:String>

@@ -223,10 +223,11 @@ public partial class GeminiChatPanel : UserControl, IDisposable
             {
                 System.Diagnostics.Debug.WriteLine($"[GeminiChat] Error: {summary.ErrorMessage}");
                 
-                // Перевіряємо чи потрібно показати вікно API ключа
+                // Перевіряємо чи потрібен API ключ
                 if (summary.ErrorMessage == "API_KEY_REQUIRED")
                 {
-                    await ShowApiKeyWindowAsync(userMessage);
+                    // Показуємо повідомлення що треба налаштувати ключ в налаштуваннях VetaleSearch
+                    AddAssistantMessage("⚠️ Gemini API key is not configured. Please add your API key in Tools → VetaleSearch Settings.");
                 }
                 else
                 {

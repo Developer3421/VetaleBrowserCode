@@ -7,47 +7,18 @@ using VetaleBrowser.VetaleBrowser.Database.Services;
 
 namespace VetaleBrowser.VetaleBrowser.Search.Services
 {
-    // ================== КОНФІГУРАЦІЯ API КЛЮЧІВ ДЛЯ ПОШУКУ ==================
-    // 
-    // ⚠️ ДЕФОЛТНІ API КЛЮЧІ - ВСТАВТЕ СВОЇ КЛЮЧІ НИЖЧЕ:
-    // 
-    // Пріоритет завантаження ключів:
-    //   1. Дефолтні константи (нижче)
-    //   2. База даних (api_keys.db) - якщо користувач ввів свій ключ
-    //   3. Змінні середовища
-    //   4. MockImageSearchService (якщо ключів немає)
-    // ===========================================================================
-    
     /// <summary>
     /// Дефолтні API ключі для пошуку
-    /// ВАЖЛИВО: Дефолтні ключі видалені для безпеки. Користувачі повинні ввести свої власні ключі.
     /// </summary>
     public static class DefaultApiKeys
     {
-        // =====================================================================
-        // 🔑 PEXELS API KEY
-        // Отримати: https://www.pexels.com/api/
-        // Безкоштовно: 200 запитів/годину, 20,000 запитів/місяць
-        // =====================================================================
-        public const string PexelsApiKey = ""; // ← ВСТАВТЕ ВАШ PEXELS API KEY ТУТ
-        
-        // =====================================================================
-        // 🔑 UNSPLASH ACCESS KEY
-        // Отримати: https://unsplash.com/developers
-        // Безкоштовно: 50 запитів/годину для демо, необмежено для production
-        // =====================================================================
-        public const string UnsplashAccessKey = ""; // ← ВСТАВТЕ ВАШ UNSPLASH ACCESS KEY ТУТ
-        
-        // =====================================================================
-        // 🔑 YOUTUBE DATA API KEY
-        // Отримати: https://console.cloud.google.com/apis/library/youtube.googleapis.com
-        // Безкоштовно: 10,000 одиниць/день
-        // =====================================================================
-        public const string YouTubeApiKey = ""; // ← ВСТАВТЕ ВАШ YOUTUBE API KEY ТУТ
+        public const string PexelsApiKey = "";
+        public const string UnsplashAccessKey = "";
+        public const string YouTubeApiKey = "";
     }
 
     /// <summary>
-    /// Інтерфейс для провайдерів пошуку зображень (legacy, для сумісності з Provider класами)
+    /// Інтерфейс для провайдерів пошуку зображень
     /// </summary>
     public interface IImageSearchProvider
     {
@@ -56,84 +27,171 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
 
     public static class ImageSearchServiceFactory
     {
-        /// <summary>
-        /// Максимальна кількість результатів на сторінку
-        /// </summary>
         public const int MaxResultsPerPage = 50;
         
-        /// <summary>
-        /// Створює сервіс пошуку зображень, підхоплюючи ключі з різних джерел.
-        /// </summary>
-        public static IImageSearchService Create()
+        private static string? _cachedPexelsKey;
+        private static string? _cachedUnsplashKey;
+        private static string? _cachedYouTubeKey;
+        private static string? _serviceCreatedWithPexelsKey;
+        private static string? _serviceCreatedWithUnsplashKey;
+        private static IImageSearchService? _cachedService;
+        
+        public static void SetPexelsApiKey(string? apiKey)
         {
-            // 1. Дефолтні ключі з констант
-            var pexelsKey = DefaultApiKeys.PexelsApiKey;
-            var unsplashKey = DefaultApiKeys.UnsplashAccessKey;
-            
-            // 2. Якщо дефолтні порожні - пробуємо БД
-            if (string.IsNullOrWhiteSpace(pexelsKey))
-            {
-                pexelsKey = LoadApiKeyFromDatabase(ApiServiceIds.Pexels);
-            }
-            if (string.IsNullOrWhiteSpace(unsplashKey))
-            {
-                unsplashKey = LoadApiKeyFromDatabase(ApiServiceIds.Unsplash);
-            }
-            
-            // 3. Fallback на змінні середовища
-            if (string.IsNullOrWhiteSpace(pexelsKey))
-            {
-                pexelsKey = Environment.GetEnvironmentVariable("VETALE_PEXELS_API_KEY");
-            }
-            if (string.IsNullOrWhiteSpace(unsplashKey))
-            {
-                unsplashKey = Environment.GetEnvironmentVariable("VETALE_UNSPLASH_ACCESS_KEY");
-            }
-
-            // Якщо є ключі - повертаємо UnifiedImageSearchService
-            if (!string.IsNullOrWhiteSpace(pexelsKey) || !string.IsNullOrWhiteSpace(unsplashKey))
-            {
-                System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Creating UnifiedImageSearchService with Pexels={!string.IsNullOrWhiteSpace(pexelsKey)}, Unsplash={!string.IsNullOrWhiteSpace(unsplashKey)}");
-                return new UnifiedImageSearchService(pexelsKey, unsplashKey);
-            }
-
-            // Інакше - повертаємо mock
-            System.Diagnostics.Debug.WriteLine("[ImageSearchServiceFactory] No API keys found, returning MockImageSearchService");
-            return new MockImageSearchService();
+            var cleanKey = apiKey?.Trim();
+            System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] SetPexelsApiKey called");
+            System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Key length: {cleanKey?.Length ?? 0}");
+            System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Key preview: {(string.IsNullOrWhiteSpace(cleanKey) ? "EMPTY" : cleanKey.Substring(0, Math.Min(15, cleanKey.Length)) + "...")}");
+            _cachedPexelsKey = cleanKey;
+            _cachedService = null;
+            _serviceCreatedWithPexelsKey = null;
         }
         
-        /// <summary>
-        /// Завантажує API ключ з бази даних
-        /// </summary>
+        public static void SetUnsplashApiKey(string? apiKey)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] SetUnsplashApiKey: {(string.IsNullOrWhiteSpace(apiKey) ? "null/empty" : "***")}");
+            _cachedUnsplashKey = apiKey;
+            _cachedService = null;
+            _serviceCreatedWithUnsplashKey = null;
+        }
+        
+        public static void SetYouTubeApiKey(string? apiKey)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] SetYouTubeApiKey: {(string.IsNullOrWhiteSpace(apiKey) ? "null/empty" : "***")}");
+            _cachedYouTubeKey = apiKey;
+        }
+        
+        public static void InvalidateCache()
+        {
+            _cachedService = null;
+            _serviceCreatedWithPexelsKey = null;
+            _serviceCreatedWithUnsplashKey = null;
+            System.Diagnostics.Debug.WriteLine("[ImageSearchServiceFactory] Cache invalidated");
+        }
+        
+        private static string? GetEffectivePexelsKey()
+        {
+            System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] GetEffectivePexelsKey called");
+            System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] _cachedPexelsKey: {(_cachedPexelsKey == null ? "null" : _cachedPexelsKey.Length + " chars")}");
+            
+            // 1. Кешований ключ
+            if (!string.IsNullOrWhiteSpace(_cachedPexelsKey))
+            {
+                System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Returning cached Pexels key: {_cachedPexelsKey.Substring(0, Math.Min(15, _cachedPexelsKey.Length))}...");
+                return _cachedPexelsKey;
+            }
+            
+            // 2. Дефолтний
+            if (!string.IsNullOrWhiteSpace(DefaultApiKeys.PexelsApiKey))
+            {
+                System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Returning default Pexels key");
+                return DefaultApiKeys.PexelsApiKey;
+            }
+            
+            // 3. БД
+            System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Trying to load Pexels key from DB...");
+            var dbKey = LoadApiKeyFromDatabase(ApiServiceIds.Pexels);
+            if (!string.IsNullOrWhiteSpace(dbKey))
+            {
+                System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Got Pexels key from DB: {dbKey.Substring(0, Math.Min(15, dbKey.Length))}...");
+                _cachedPexelsKey = dbKey;
+                return dbKey;
+            }
+            
+            // 4. ENV
+            var envKey = Environment.GetEnvironmentVariable("VETALE_PEXELS_API_KEY");
+            if (!string.IsNullOrWhiteSpace(envKey))
+            {
+                System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Got Pexels key from ENV");
+                return envKey;
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] No Pexels key found!");
+            return null;
+        }
+        
+        private static string? GetEffectiveUnsplashKey()
+        {
+            if (!string.IsNullOrWhiteSpace(_cachedUnsplashKey))
+                return _cachedUnsplashKey;
+            
+            if (!string.IsNullOrWhiteSpace(DefaultApiKeys.UnsplashAccessKey))
+                return DefaultApiKeys.UnsplashAccessKey;
+            
+            var dbKey = LoadApiKeyFromDatabase(ApiServiceIds.Unsplash);
+            if (!string.IsNullOrWhiteSpace(dbKey))
+            {
+                _cachedUnsplashKey = dbKey;
+                return dbKey;
+            }
+            
+            return Environment.GetEnvironmentVariable("VETALE_UNSPLASH_ACCESS_KEY");
+        }
+        
+        public static IImageSearchService Create()
+        {
+            var pexelsKey = GetEffectivePexelsKey();
+            var unsplashKey = GetEffectiveUnsplashKey();
+            
+            if (_cachedService != null && 
+                _serviceCreatedWithPexelsKey == pexelsKey && 
+                _serviceCreatedWithUnsplashKey == unsplashKey)
+            {
+                return _cachedService;
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Creating service: Pexels={!string.IsNullOrWhiteSpace(pexelsKey)}, Unsplash={!string.IsNullOrWhiteSpace(unsplashKey)}");
+
+            if (!string.IsNullOrWhiteSpace(pexelsKey) || !string.IsNullOrWhiteSpace(unsplashKey))
+            {
+                _cachedService = new UnifiedImageSearchService(pexelsKey, unsplashKey);
+                _serviceCreatedWithPexelsKey = pexelsKey;
+                _serviceCreatedWithUnsplashKey = unsplashKey;
+                return _cachedService;
+            }
+
+            System.Diagnostics.Debug.WriteLine("[ImageSearchServiceFactory] No API keys, returning MockImageSearchService");
+            _cachedService = new MockImageSearchService();
+            _serviceCreatedWithPexelsKey = null;
+            _serviceCreatedWithUnsplashKey = null;
+            return _cachedService;
+        }
+        
         private static string? LoadApiKeyFromDatabase(string serviceId)
         {
             try
             {
                 var apiKeysService = DatabaseServicesFactory.TryGetApiKeysService();
-                if (apiKeysService != null)
+                if (apiKeysService == null)
+                    return null;
+                
+                var key = Task.Run(async () => 
                 {
-                    // Використовуємо Task.Run щоб уникнути deadlock в UI потоці
-                    var key = Task.Run(async () => await apiKeysService.GetApiKeyAsync(serviceId).ConfigureAwait(false)).GetAwaiter().GetResult();
-                    if (!string.IsNullOrWhiteSpace(key))
+                    try
                     {
-                        System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Loaded {serviceId} API key from database");
-                        return key;
+                        return await apiKeysService.GetApiKeyAsync(serviceId).ConfigureAwait(false);
                     }
+                    catch
+                    {
+                        return null;
+                    }
+                }).GetAwaiter().GetResult();
+                
+                if (!string.IsNullOrWhiteSpace(key))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Loaded {serviceId} from DB");
+                    return key;
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Error loading {serviceId} API key: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Error: {ex.Message}");
             }
             return null;
         }
         
-        /// <summary>
-        /// Перевіряє чи є API ключ для сервісу (швидка перевірка)
-        /// </summary>
         public static bool HasApiKey(string serviceId)
         {
-            // 1. Перевіряємо дефолтні ключі (найшвидше)
             var hasDefaultKey = serviceId switch
             {
                 ApiServiceIds.Pexels => !string.IsNullOrWhiteSpace(DefaultApiKeys.PexelsApiKey),
@@ -143,7 +201,6 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
             };
             if (hasDefaultKey) return true;
             
-            // 2. Перевіряємо ENV (швидко)
             var hasEnvKey = serviceId switch
             {
                 ApiServiceIds.Pexels => !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("VETALE_PEXELS_API_KEY")),
@@ -153,56 +210,44 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
             };
             if (hasEnvKey) return true;
             
-            // 3. Перевіряємо БД (може бути повільно)
             var key = LoadApiKeyFromDatabase(serviceId);
             return !string.IsNullOrWhiteSpace(key);
         }
         
-        /// <summary>
-        /// Перевіряє чи є хоча б один API ключ для пошуку зображень
-        /// </summary>
         public static bool HasAnyImageSearchApiKey()
         {
-            // 1. Дефолтні ключі
             if (!string.IsNullOrWhiteSpace(DefaultApiKeys.PexelsApiKey) ||
                 !string.IsNullOrWhiteSpace(DefaultApiKeys.UnsplashAccessKey))
-            {
                 return true;
-            }
             
-            // 2. Швидка перевірка ENV
             if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("VETALE_PEXELS_API_KEY")) ||
                 !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("VETALE_UNSPLASH_ACCESS_KEY")))
-            {
                 return true;
-            }
             
-            // 3. Повільна перевірка БД
             return HasApiKey(ApiServiceIds.Pexels) || HasApiKey(ApiServiceIds.Unsplash);
         }
         
-        /// <summary>
-        /// Отримує YouTube API ключ
-        /// </summary>
         public static string? GetYouTubeApiKey()
         {
-            // 1. Дефолтний
+            if (!string.IsNullOrWhiteSpace(_cachedYouTubeKey))
+                return _cachedYouTubeKey;
+            
             if (!string.IsNullOrWhiteSpace(DefaultApiKeys.YouTubeApiKey))
                 return DefaultApiKeys.YouTubeApiKey;
             
-            // 2. БД
             var dbKey = LoadApiKeyFromDatabase(ApiServiceIds.YouTube);
             if (!string.IsNullOrWhiteSpace(dbKey))
+            {
+                _cachedYouTubeKey = dbKey;
                 return dbKey;
+            }
             
-            // 3. ENV
             return Environment.GetEnvironmentVariable("YOUTUBE_API_KEY");
         }
     }
 
     /// <summary>
-    /// Мок-реалізація для тестування без API ключів.
-    /// ПРИМІТКА: Використовується як fallback, якщо фабрика не знайде ключі.
+    /// Мок-реалізація для тестування без API ключів
     /// </summary>
     public class MockImageSearchService : IImageSearchService
     {
@@ -223,17 +268,17 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
                     Id = index.ToString(),
                     Provider = "Mock",
                     Source = ImageSource.Mock,
-                    Title = $"{query} - демо зображення {index}",
-                    Description = $"Демонстраційне зображення для запиту '{query}'",
+                    Title = $"{query} - demo image {index}",
+                    Description = $"Demo image for '{query}'",
                     ThumbnailUrl = "https://via.placeholder.com/150",
                     MediumUrl = "https://via.placeholder.com/600",
                     LargeUrl = "https://via.placeholder.com/1200",
                     OriginalUrl = "https://via.placeholder.com/1920",
                     ImageUrl = "https://via.placeholder.com/600",
-                    PhotographerName = "Demo Photographer",
-                    Photographer = "Demo Photographer",
-                    PhotographerUrl = "https://example.com/photographer",
-                    SourcePageUrl = "https://example.com/image",
+                    PhotographerName = "Demo",
+                    Photographer = "Demo",
+                    PhotographerUrl = "https://example.com",
+                    SourcePageUrl = "https://example.com",
                     Urls = new ImageUrlSet
                     {
                         ThumbUrl = "https://via.placeholder.com/150",
@@ -248,7 +293,7 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
                 });
             }
 
-            var pageResult = new ImageSearchPage
+            return Task.FromResult(new ImageSearchPage
             {
                 Query = query,
                 Page = page,
@@ -260,9 +305,7 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
                 SearchTime = 0.1,
                 Provider = "Mock",
                 Results = results
-            };
-
-            return Task.FromResult(pageResult);
+            });
         }
 
         public Task<ImageSearchPage> GetCuratedAsync(
@@ -270,7 +313,6 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
             int perPage = 30,
             CancellationToken cancellationToken = default)
         {
-            // Повертаємо куровані зображення (просто використовуємо SearchAsync з запитом "curated")
             return SearchAsync("curated", page, perPage, null, cancellationToken);
         }
     }

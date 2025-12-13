@@ -230,9 +230,55 @@ public partial class VetaleSearchHomePage : UserControl
         // You can store the selected engine for later use
     }
 
-    private void SearchSettings_Click(object? sender, RoutedEventArgs e)
+    private async void SearchSettings_Click(object? sender, RoutedEventArgs e)
     {
-        // TODO: open settings window
+        try
+        {
+            var parentWindow = TopLevel.GetTopLevel(this) as Window;
+            if (parentWindow != null)
+            {
+                var settingsWindow = new Windows.VetaleSearchSettingsWindow();
+                await settingsWindow.ShowDialog(parentWindow);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] SearchSettings_Click ERROR: {ex.Message}");
+        }
+    }
+
+    private async void Bookmarks_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var parentWindow = TopLevel.GetTopLevel(this) as Window;
+            if (parentWindow != null)
+            {
+                var bookmarksWindow = new Windows.BookmarksWindow();
+                await bookmarksWindow.ShowDialog(parentWindow);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] Bookmarks_Click ERROR: {ex.Message}");
+        }
+    }
+
+    private async void History_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var parentWindow = TopLevel.GetTopLevel(this) as Window;
+            if (parentWindow != null)
+            {
+                var historyWindow = new Windows.HistoryWindow();
+                await historyWindow.ShowDialog(parentWindow);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] History_Click ERROR: {ex.Message}");
+        }
     }
 
     private void GeoSearch_Click(object? sender, RoutedEventArgs e)
