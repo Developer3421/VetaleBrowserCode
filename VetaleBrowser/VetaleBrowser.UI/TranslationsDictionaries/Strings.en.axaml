@@ -693,4 +693,47 @@
   <x:String x:Key="YouTube.ApiKey.Step3">3. Create an API key in the Credentials section</x:String>
   <x:String x:Key="YouTube.ApiKey.OpenPortal">🔗 Open Google Cloud Console</x:String>
   <x:String x:Key="YouTube.ApiKey.Note">💡 YouTube Data API has a free limit of 10,000 units/day.</x:String>
+
+  <!-- User Agreement Window -->
+  <x:String x:Key="UserAgreement.Title">User Agreement - Vetale Browser</x:String>
+  <x:String x:Key="UserAgreement.TitleView">User Agreement - Vetale Browser (View)</x:String>
+  <x:String x:Key="UserAgreement.Header">User Agreement</x:String>
+  <x:String x:Key="UserAgreement.Welcome">Welcome to Vetale Browser</x:String>
+  <x:String x:Key="UserAgreement.Introduction">Before using Vetale Browser, please read and accept this User Agreement. This agreement explains what data we collect and how we use internet services to provide you with the best browsing experience.</x:String>
+  <x:String x:Key="UserAgreement.GDPR.Title">GDPR Compliance Notice</x:String>
+  <x:String x:Key="UserAgreement.GDPR.Description">In compliance with the European Union's General Data Protection Regulation (GDPR), we are required to inform you about data collection and obtain your consent before processing any personal data.</x:String>
+  <x:String x:Key="UserAgreement.Components.Title">📊 Components That May Collect Data</x:String>
+  <x:String x:Key="UserAgreement.Search.Title">Search Engine Integration</x:String>
+  <x:String x:Key="UserAgreement.Search.Description">Your search queries are sent to selected search providers (Google, DuckDuckGo, Bing, etc.). Each provider has their own privacy policy.</x:String>
+  <x:String x:Key="UserAgreement.AI.Title">AI Chat Services (Vetale AI)</x:String>
+  <x:String x:Key="UserAgreement.AI.Description">When using AI features, your messages are sent to AI providers (OpenAI, Google Gemini). API keys are stored locally and encrypted.</x:String>
+  <x:String x:Key="UserAgreement.Voice.Title">Voice Recognition (Whisper)</x:String>
+  <x:String x:Key="UserAgreement.Voice.Description">If you use voice input, audio may be processed by OpenAI Whisper API for speech-to-text conversion.</x:String>
+  <x:String x:Key="UserAgreement.Web.Title">Web Browsing</x:String>
+  <x:String x:Key="UserAgreement.Web.Description">Websites you visit may set cookies and collect data according to their policies. We use CefSharp (Chromium) for web rendering.</x:String>
+  <x:String x:Key="UserAgreement.Favicon.Title">Favicon Service</x:String>
+  <x:String x:Key="UserAgreement.Favicon.Description">Website icons are fetched from external services to display in tabs and bookmarks.</x:String>
+  <x:String x:Key="UserAgreement.Download.Title">Download Manager</x:String>
+  <x:String x:Key="UserAgreement.Download.Description">Files are downloaded directly from source websites. Download history is stored locally on your device.</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Title">💾 Data Stored Locally</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Description">The following data is stored only on your device and is not transmitted to any external servers:</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item1">• Browsing history and bookmarks</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item2">• Browser settings and preferences</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item3">• Tab sessions for restoration</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item4">• Console/DevTools logs</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item5">• Downloaded files metadata</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item6">• API keys (encrypted with local encryption)</x:String>
+  <x:String x:Key="UserAgreement.Rights.Title">⚖️ Your Rights Under GDPR</x:String>
+  <x:String x:Key="UserAgreement.Rights.Description">As a user in the European Union, you have the following rights:</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item1">• Right to access your personal data</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item2">• Right to rectification of inaccurate data</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item3">• Right to erasure ("right to be forgotten")</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item4">• Right to data portability</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item5">• Right to withdraw consent at any time</x:String>
+  <x:String x:Key="UserAgreement.Contact.Title">📧 Contact</x:String>
+  <x:String x:Key="UserAgreement.Contact.Description">If you have any questions about this agreement or your data, you can clear all local data through browser settings or contact us through the project repository.</x:String>
+  <x:String x:Key="UserAgreement.Version">Agreement Version 1.0 | Last Updated: December 2024</x:String>
+  <x:String x:Key="UserAgreement.Checkbox">I have read and agree to the terms above</x:String>
+  <x:String x:Key="UserAgreement.Decline">Decline</x:String>
+  <x:String x:Key="UserAgreement.Accept">Accept &amp; Continue</x:String>
 </ResourceDictionary>

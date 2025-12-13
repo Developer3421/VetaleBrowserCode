@@ -672,4 +672,47 @@
   <x:String x:Key="YouTube.ApiKey.Step3">3. Erstellen Sie einen API-Schlüssel im Bereich Anmeldedaten</x:String>
   <x:String x:Key="YouTube.ApiKey.OpenPortal">🔗 Google Cloud Console öffnen</x:String>
   <x:String x:Key="YouTube.ApiKey.Note">💡 YouTube Data API hat ein kostenloses Limit von 10.000 Einheiten/Tag.</x:String>
+
+  <!-- Benutzervereinbarung Fenster -->
+  <x:String x:Key="UserAgreement.Title">Benutzervereinbarung - Vetale Browser</x:String>
+  <x:String x:Key="UserAgreement.TitleView">Benutzervereinbarung - Vetale Browser (Ansicht)</x:String>
+  <x:String x:Key="UserAgreement.Header">Benutzervereinbarung</x:String>
+  <x:String x:Key="UserAgreement.Welcome">Willkommen bei Vetale Browser</x:String>
+  <x:String x:Key="UserAgreement.Introduction">Bevor Sie Vetale Browser verwenden, lesen und akzeptieren Sie bitte diese Benutzervereinbarung. Diese Vereinbarung erklärt, welche Daten wir sammeln und wie wir Internetdienste nutzen, um Ihnen das beste Surferlebnis zu bieten.</x:String>
+  <x:String x:Key="UserAgreement.GDPR.Title">DSGVO-Konformitätshinweis</x:String>
+  <x:String x:Key="UserAgreement.GDPR.Description">In Übereinstimmung mit der Datenschutz-Grundverordnung (DSGVO) der Europäischen Union sind wir verpflichtet, Sie über die Datenerhebung zu informieren und Ihre Einwilligung einzuholen, bevor wir personenbezogene Daten verarbeiten.</x:String>
+  <x:String x:Key="UserAgreement.Components.Title">📊 Komponenten, die Daten sammeln können</x:String>
+  <x:String x:Key="UserAgreement.Search.Title">Suchmaschinenintegration</x:String>
+  <x:String x:Key="UserAgreement.Search.Description">Ihre Suchanfragen werden an ausgewählte Suchanbieter (Google, DuckDuckGo, Bing usw.) gesendet. Jeder Anbieter hat seine eigene Datenschutzrichtlinie.</x:String>
+  <x:String x:Key="UserAgreement.AI.Title">KI-Chat-Dienste (Vetale AI)</x:String>
+  <x:String x:Key="UserAgreement.AI.Description">Bei der Nutzung von KI-Funktionen werden Ihre Nachrichten an KI-Anbieter (OpenAI, Google Gemini) gesendet. API-Schlüssel werden lokal und verschlüsselt gespeichert.</x:String>
+  <x:String x:Key="UserAgreement.Voice.Title">Spracherkennung (Whisper)</x:String>
+  <x:String x:Key="UserAgreement.Voice.Description">Wenn Sie Spracheingabe verwenden, kann Audio von OpenAI Whisper API zur Sprache-zu-Text-Umwandlung verarbeitet werden.</x:String>
+  <x:String x:Key="UserAgreement.Web.Title">Web-Browsing</x:String>
+  <x:String x:Key="UserAgreement.Web.Description">Websites, die Sie besuchen, können Cookies setzen und Daten gemäß ihren Richtlinien sammeln. Wir verwenden CefSharp (Chromium) für das Web-Rendering.</x:String>
+  <x:String x:Key="UserAgreement.Favicon.Title">Favicon-Dienst</x:String>
+  <x:String x:Key="UserAgreement.Favicon.Description">Website-Symbole werden von externen Diensten abgerufen, um sie in Tabs und Lesezeichen anzuzeigen.</x:String>
+  <x:String x:Key="UserAgreement.Download.Title">Download-Manager</x:String>
+  <x:String x:Key="UserAgreement.Download.Description">Dateien werden direkt von den Quellwebsites heruntergeladen. Der Download-Verlauf wird lokal auf Ihrem Gerät gespeichert.</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Title">💾 Lokal gespeicherte Daten</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Description">Die folgenden Daten werden nur auf Ihrem Gerät gespeichert und nicht an externe Server übertragen:</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item1">• Browserverlauf und Lesezeichen</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item2">• Browsereinstellungen und Präferenzen</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item3">• Tab-Sitzungen zur Wiederherstellung</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item4">• Konsolen-/DevTools-Protokolle</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item5">• Metadaten heruntergeladener Dateien</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item6">• API-Schlüssel (mit lokaler Verschlüsselung)</x:String>
+  <x:String x:Key="UserAgreement.Rights.Title">⚖️ Ihre Rechte nach der DSGVO</x:String>
+  <x:String x:Key="UserAgreement.Rights.Description">Als Nutzer in der Europäischen Union haben Sie folgende Rechte:</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item1">• Recht auf Zugang zu Ihren personenbezogenen Daten</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item2">• Recht auf Berichtigung unrichtiger Daten</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item3">• Recht auf Löschung ("Recht auf Vergessenwerden")</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item4">• Recht auf Datenübertragbarkeit</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item5">• Recht, die Einwilligung jederzeit zu widerrufen</x:String>
+  <x:String x:Key="UserAgreement.Contact.Title">📧 Kontakt</x:String>
+  <x:String x:Key="UserAgreement.Contact.Description">Wenn Sie Fragen zu dieser Vereinbarung oder Ihren Daten haben, können Sie alle lokalen Daten über die Browsereinstellungen löschen oder uns über das Projekt-Repository kontaktieren.</x:String>
+  <x:String x:Key="UserAgreement.Version">Vereinbarungsversion 1.0 | Letzte Aktualisierung: Dezember 2024</x:String>
+  <x:String x:Key="UserAgreement.Checkbox">Ich habe die obigen Bedingungen gelesen und stimme ihnen zu</x:String>
+  <x:String x:Key="UserAgreement.Decline">Ablehnen</x:String>
+  <x:String x:Key="UserAgreement.Accept">Akzeptieren &amp; Fortfahren</x:String>
 </ResourceDictionary>

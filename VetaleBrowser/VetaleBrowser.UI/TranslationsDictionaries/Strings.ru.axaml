@@ -666,4 +666,47 @@
   <x:String x:Key="YouTube.ApiKey.Step3">3. Создайте API ключ в разделе Credentials</x:String>
   <x:String x:Key="YouTube.ApiKey.OpenPortal">🔗 Открыть Google Cloud Console</x:String>
   <x:String x:Key="YouTube.ApiKey.Note">💡 YouTube Data API имеет бесплатный лимит 10,000 единиц/день.</x:String>
+
+  <!-- Окно пользовательского соглашения -->
+  <x:String x:Key="UserAgreement.Title">Пользовательское соглашение - Vetale Browser</x:String>
+  <x:String x:Key="UserAgreement.TitleView">Пользовательское соглашение - Vetale Browser (Просмотр)</x:String>
+  <x:String x:Key="UserAgreement.Header">Пользовательское соглашение</x:String>
+  <x:String x:Key="UserAgreement.Welcome">Добро пожаловать в Vetale Browser</x:String>
+  <x:String x:Key="UserAgreement.Introduction">Перед использованием Vetale Browser, пожалуйста, прочтите и примите это пользовательское соглашение. Это соглашение объясняет, какие данные мы собираем и как мы используем интернет-сервисы для обеспечения наилучшего опыта просмотра.</x:String>
+  <x:String x:Key="UserAgreement.GDPR.Title">Уведомление о соответствии GDPR</x:String>
+  <x:String x:Key="UserAgreement.GDPR.Description">В соответствии с Общим регламентом защиты данных Европейского Союза (GDPR) мы обязаны информировать вас о сборе данных и получить ваше согласие перед обработкой любых персональных данных.</x:String>
+  <x:String x:Key="UserAgreement.Components.Title">📊 Компоненты, которые могут собирать данные</x:String>
+  <x:String x:Key="UserAgreement.Search.Title">Интеграция поисковой системы</x:String>
+  <x:String x:Key="UserAgreement.Search.Description">Ваши поисковые запросы отправляются выбранным поисковым провайдерам (Google, DuckDuckGo, Bing и др.). Каждый провайдер имеет свою политику конфиденциальности.</x:String>
+  <x:String x:Key="UserAgreement.AI.Title">AI чат-сервисы (Vetale AI)</x:String>
+  <x:String x:Key="UserAgreement.AI.Description">При использовании функций AI ваши сообщения отправляются провайдерам AI (OpenAI, Google Gemini). API ключи хранятся локально и зашифрованы.</x:String>
+  <x:String x:Key="UserAgreement.Voice.Title">Распознавание голоса (Whisper)</x:String>
+  <x:String x:Key="UserAgreement.Voice.Description">Если вы используете голосовой ввод, аудио может обрабатываться OpenAI Whisper API для преобразования речи в текст.</x:String>
+  <x:String x:Key="UserAgreement.Web.Title">Веб-серфинг</x:String>
+  <x:String x:Key="UserAgreement.Web.Description">Веб-сайты, которые вы посещаете, могут устанавливать файлы cookie и собирать данные в соответствии со своими политиками. Мы используем CefSharp (Chromium) для отображения веб-страниц.</x:String>
+  <x:String x:Key="UserAgreement.Favicon.Title">Сервис иконок сайтов</x:String>
+  <x:String x:Key="UserAgreement.Favicon.Description">Иконки веб-сайтов загружаются из внешних сервисов для отображения во вкладках и закладках.</x:String>
+  <x:String x:Key="UserAgreement.Download.Title">Менеджер загрузок</x:String>
+  <x:String x:Key="UserAgreement.Download.Description">Файлы загружаются непосредственно с веб-сайтов-источников. История загрузок хранится локально на вашем устройстве.</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Title">💾 Данные, хранящиеся локально</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Description">Следующие данные хранятся только на вашем устройстве и не передаются на внешние серверы:</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item1">• История просмотров и закладки</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item2">• Настройки и параметры браузера</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item3">• Сессии вкладок для восстановления</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item4">• Логи консоли/DevTools</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item5">• Метаданные загруженных файлов</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item6">• API ключи (зашифрованные локальным шифрованием)</x:String>
+  <x:String x:Key="UserAgreement.Rights.Title">⚖️ Ваши права по GDPR</x:String>
+  <x:String x:Key="UserAgreement.Rights.Description">Как пользователь в Европейском Союзе, вы имеете следующие права:</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item1">• Право на доступ к вашим персональным данным</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item2">• Право на исправление неточных данных</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item3">• Право на удаление ("право быть забытым")</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item4">• Право на перенос данных</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item5">• Право отозвать согласие в любое время</x:String>
+  <x:String x:Key="UserAgreement.Contact.Title">📧 Контакты</x:String>
+  <x:String x:Key="UserAgreement.Contact.Description">Если у вас есть вопросы об этом соглашении или ваших данных, вы можете очистить все локальные данные через настройки браузера или связаться с нами через репозиторий проекта.</x:String>
+  <x:String x:Key="UserAgreement.Version">Версия соглашения 1.0 | Последнее обновление: декабрь 2024</x:String>
+  <x:String x:Key="UserAgreement.Checkbox">Я прочитал и соглашаюсь с условиями выше</x:String>
+  <x:String x:Key="UserAgreement.Decline">Отклонить</x:String>
+  <x:String x:Key="UserAgreement.Accept">Принять и продолжить</x:String>
 </ResourceDictionary>

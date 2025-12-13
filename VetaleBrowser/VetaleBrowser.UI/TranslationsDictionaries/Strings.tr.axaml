@@ -672,5 +672,48 @@
   <x:String x:Key="YouTube.ApiKey.Step3">3. Kimlik Bilgileri bölümünde bir API anahtarı oluşturun</x:String>
   <x:String x:Key="YouTube.ApiKey.OpenPortal">🔗 Google Cloud Console'u aç</x:String>
   <x:String x:Key="YouTube.ApiKey.Note">💡 YouTube Data API günde 10.000 birim ücretsiz sınıra sahiptir.</x:String>
+
+  <!-- Kullanıcı Sözleşmesi Penceresi -->
+  <x:String x:Key="UserAgreement.Title">Kullanıcı Sözleşmesi - Vetale Browser</x:String>
+  <x:String x:Key="UserAgreement.TitleView">Kullanıcı Sözleşmesi - Vetale Browser (Görüntüle)</x:String>
+  <x:String x:Key="UserAgreement.Header">Kullanıcı Sözleşmesi</x:String>
+  <x:String x:Key="UserAgreement.Welcome">Vetale Browser'a Hoş Geldiniz</x:String>
+  <x:String x:Key="UserAgreement.Introduction">Vetale Browser'ı kullanmadan önce lütfen bu Kullanıcı Sözleşmesini okuyun ve kabul edin. Bu sözleşme, hangi verileri topladığımızı ve size en iyi tarama deneyimini sunmak için internet hizmetlerini nasıl kullandığımızı açıklar.</x:String>
+  <x:String x:Key="UserAgreement.GDPR.Title">GDPR Uyumluluk Bildirimi</x:String>
+  <x:String x:Key="UserAgreement.GDPR.Description">Avrupa Birliği'nin Genel Veri Koruma Yönetmeliği (GDPR) uyarınca, veri toplama hakkında sizi bilgilendirmek ve kişisel verileri işlemeden önce onayınızı almak zorundayız.</x:String>
+  <x:String x:Key="UserAgreement.Components.Title">📊 Veri Toplayabilecek Bileşenler</x:String>
+  <x:String x:Key="UserAgreement.Search.Title">Arama Motoru Entegrasyonu</x:String>
+  <x:String x:Key="UserAgreement.Search.Description">Arama sorgularınız seçilen arama sağlayıcılarına (Google, DuckDuckGo, Bing vb.) gönderilir. Her sağlayıcının kendi gizlilik politikası vardır.</x:String>
+  <x:String x:Key="UserAgreement.AI.Title">AI Sohbet Hizmetleri (Vetale AI)</x:String>
+  <x:String x:Key="UserAgreement.AI.Description">AI özelliklerini kullanırken mesajlarınız AI sağlayıcılarına (OpenAI, Google Gemini) gönderilir. API anahtarları yerel olarak ve şifrelenmiş olarak saklanır.</x:String>
+  <x:String x:Key="UserAgreement.Voice.Title">Ses Tanıma (Whisper)</x:String>
+  <x:String x:Key="UserAgreement.Voice.Description">Sesli giriş kullanıyorsanız, ses konuşmadan metne dönüştürme için OpenAI Whisper API tarafından işlenebilir.</x:String>
+  <x:String x:Key="UserAgreement.Web.Title">Web Gezintisi</x:String>
+  <x:String x:Key="UserAgreement.Web.Description">Ziyaret ettiğiniz web siteleri çerezler ayarlayabilir ve politikalarına göre veri toplayabilir. Web oluşturma için CefSharp (Chromium) kullanıyoruz.</x:String>
+  <x:String x:Key="UserAgreement.Favicon.Title">Favicon Hizmeti</x:String>
+  <x:String x:Key="UserAgreement.Favicon.Description">Web sitesi simgeleri, sekmelerde ve yer imlerinde görüntülenmek üzere harici hizmetlerden alınır.</x:String>
+  <x:String x:Key="UserAgreement.Download.Title">İndirme Yöneticisi</x:String>
+  <x:String x:Key="UserAgreement.Download.Description">Dosyalar doğrudan kaynak web sitelerinden indirilir. İndirme geçmişi cihazınızda yerel olarak saklanır.</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Title">💾 Yerel Olarak Saklanan Veriler</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Description">Aşağıdaki veriler yalnızca cihazınızda saklanır ve harici sunuculara iletilmez:</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item1">• Tarama geçmişi ve yer imleri</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item2">• Tarayıcı ayarları ve tercihleri</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item3">• Geri yükleme için sekme oturumları</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item4">• Konsol/DevTools günlükleri</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item5">• İndirilen dosya meta verileri</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item6">• API anahtarları (yerel şifreleme ile)</x:String>
+  <x:String x:Key="UserAgreement.Rights.Title">⚖️ GDPR Kapsamındaki Haklarınız</x:String>
+  <x:String x:Key="UserAgreement.Rights.Description">Avrupa Birliği'ndeki bir kullanıcı olarak aşağıdaki haklara sahipsiniz:</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item1">• Kişisel verilerinize erişim hakkı</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item2">• Yanlış verilerin düzeltilmesi hakkı</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item3">• Silme hakkı ("unutulma hakkı")</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item4">• Veri taşınabilirliği hakkı</x:String>
+  <x:String x:Key="UserAgreement.Rights.Item5">• İstediğiniz zaman onayı geri çekme hakkı</x:String>
+  <x:String x:Key="UserAgreement.Contact.Title">📧 İletişim</x:String>
+  <x:String x:Key="UserAgreement.Contact.Description">Bu sözleşme veya verileriniz hakkında sorularınız varsa, tarayıcı ayarları aracılığıyla tüm yerel verileri temizleyebilir veya proje deposu aracılığıyla bizimle iletişime geçebilirsiniz.</x:String>
+  <x:String x:Key="UserAgreement.Version">Sözleşme Sürümü 1.0 | Son Güncelleme: Aralık 2024</x:String>
+  <x:String x:Key="UserAgreement.Checkbox">Yukarıdaki şartları okudum ve kabul ediyorum</x:String>
+  <x:String x:Key="UserAgreement.Decline">Reddet</x:String>
+  <x:String x:Key="UserAgreement.Accept">Kabul Et ve Devam Et</x:String>
 </ResourceDictionary>
 
