@@ -137,17 +137,11 @@ public class VetaleAIAgent : IDisposable
                 responseBuilder.Append(filteredToken);
                 hasResponse = true;
 
-                if (tokenCount <= 5 || tokenCount % 20 == 0)
-                {
-                    System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Token {tokenCount}, response length: {responseBuilder.Length}");
-                }
-
                 var currentResponse = responseBuilder.ToString();
 
                 // Пом'якшуємо умови зупинки, щоб не обрізати план/відповідь занадто рано
                 if (ShouldStopGeneration(currentResponse))
                 {
-                    System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: End/self-iteration marker at token {tokenCount}");
                     responseBuilder = new StringBuilder(RemoveEndMarkers(currentResponse));
                     break;
                 }
@@ -155,27 +149,23 @@ public class VetaleAIAgent : IDisposable
                 // Перевірка патернів тільки для довгих шматків
                 if (currentResponse.Length > 500 && HasRepetitivePattern(currentResponse))
                 {
-                    System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Repetitive pattern detected at token {tokenCount}");
                     break;
                 }
 
                 // Більш толерантний детектор повторюваних символів
                 if (HasRepeatingCharacters(currentResponse))
                 {
-                    System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Repeating characters detected at token {tokenCount}");
                     break;
                 }
 
                 // Збільшений safety‑ліміт довжини
                 if (responseBuilder.Length > 24000)
                 {
-                    System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Safety limit reached at {responseBuilder.Length} chars");
                     break;
                 }
 
                 if (DetectLoopingSequence(currentResponse))
                 {
-                    System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Instruction/Response loop detected");
                     break;
                 }
             }
@@ -256,29 +246,28 @@ public class VetaleAIAgent : IDisposable
 
                 if (current.Length > 500 && HasRepetitivePattern(current))
                 {
-                    System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Repetitive pattern detected at token {tokenCount} (streaming)");
                     break;
                 }
 
                 if (HasRepeatingCharacters(current))
                 {
-                    System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Repeating characters detected at token {tokenCount} (streaming)");
                     break;
                 }
 
                 if (responseBuilder.Length > 24000)
                 {
-                    System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: Safety limit reached at {responseBuilder.Length} chars (streaming)");
                     break;
                 }
 
+                // Report token immediately without any delay
                 try
                 {
                     progress?.Report(filtered);
                 }
                 catch { }
 
-                if (tokenCount <= 5 || tokenCount % 20 == 0)
+                // Minimal logging - only every 100 tokens to reduce overhead
+                if (tokenCount % 100 == 0)
                 {
                     System.Diagnostics.Trace.WriteLine($"VetaleAIAgent: [stream] Token {tokenCount}, length {responseBuilder.Length}");
                 }

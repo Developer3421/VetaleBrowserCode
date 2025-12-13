@@ -63,6 +63,7 @@
     <ItemGroup>
       <Folder Include="VetaleBrowser.AI\Model\" />
       <Folder Include="VetaleBrowser.DevTools\" />
+      <Folder Include="VetaleBrowser.UI\Helpers\ArchitectureTools\" />
       <Folder Include="VetaleBrowser.VoiceRecognition\Models\" />
       <Folder Include="VetaleBrowser.WebEngine\" />
       <Folder Include="VetaleBrowserOfflineGame\" />
@@ -70,7 +71,7 @@
 
     <ItemGroup>
       <AvaloniaResource Include="VetaleBrowser.UI\Sources\Icons\*.png" />
-      <AvaloniaResource Include="VetaleBrowser.UI\Еlements\*.axaml" />
+      <AvaloniaResource Include="VetaleBrowser.UI\Elements\*.axaml" />
       <!-- Include single SettingsButton.png which sits in Sources/ (not Icons/) -->
       <AvaloniaResource Include="VetaleBrowser.UI\Sources\SettingsButton.png" />
       <!-- Removed explicit localization dictionaries include to avoid duplicate assets -->

@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.Services;
 using VetaleBrowser.VetaleBrowser.Database.Models;
-using VetaleBrowser.VetaleBrowser.Database.Services; // уже є
+using VetaleBrowser.VetaleBrowser.Database.Services;
 
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
 

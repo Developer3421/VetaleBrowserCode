@@ -56,9 +56,9 @@
 
         <!-- Tools List -->
         <ScrollViewer Grid.Row="1" 
-                      Padding="30,0,30,30"
-                      VerticalScrollBarVisibility="Auto">
-            <StackPanel x:Name="ToolsListPanel" Spacing="0">
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel x:Name="ToolsListPanel" Spacing="0" Margin="30,0,30,30">
                 <!-- Tools will be added here programmatically -->
             </StackPanel>
         </ScrollViewer>

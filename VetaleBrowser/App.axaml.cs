@@ -5,6 +5,8 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
 using VetaleBrowser.VetaleBrowser.UI.Services;
+using VetaleBrowser.VetaleBrowser.UI.Windows;
+using VetaleBrowser.VetaleBrowser.Database.Services;
 
 namespace VetaleBrowser;
 
@@ -21,12 +23,70 @@ public partial class App : Application
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                // STARTUP OPTIMIZATION: Create and show MainWindow FIRST for immediate visibility
-                desktop.MainWindow = new MainWindow();
-                System.Diagnostics.Trace.WriteLine("App: MainWindow created (deferred initialization follows)");
+                // Check if user has accepted the agreement (returns false on any error)
+                bool agreementAccepted = CheckUserAgreementSync();
                 
-                // MEMORY OPTIMIZATION: Initialize heavy services in background AFTER window is shown
-                _ = InitializeServicesAsync(desktop);
+                System.Diagnostics.Trace.WriteLine($"App: Agreement accepted={agreementAccepted}");
+                
+                if (!agreementAccepted)
+                {
+                    // Prevent auto-shutdown when agreement window closes
+                    desktop.ShutdownMode = Avalonia.Controls.ShutdownMode.OnExplicitShutdown;
+                    
+                    // Show agreement window first
+                    System.Diagnostics.Trace.WriteLine("App: Creating UserAgreementWindow...");
+                    var agreementWindow = new UserAgreementWindow();
+                    desktop.MainWindow = agreementWindow;
+                    // For Avalonia, MainWindow is shown automatically, but we log for debugging
+                    System.Diagnostics.Trace.WriteLine("App: UserAgreementWindow set as MainWindow");
+                    
+                    agreementWindow.Closed += (s, e) =>
+                    {
+                        System.Diagnostics.Trace.WriteLine($"App: Agreement window closed, IsAccepted={agreementWindow.IsAccepted}");
+                        if (agreementWindow.IsAccepted)
+                        {
+                            // Now show main window on UI thread
+                            Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
+                            {
+                                // Save acceptance FIRST and wait for it
+                                try
+                                {
+                                    await SaveUserAgreementAsync();
+                                    System.Diagnostics.Trace.WriteLine("App: Agreement saved successfully before showing MainWindow");
+                                }
+                                catch (System.Exception ex)
+                                {
+                                    System.Diagnostics.Trace.WriteLine($"App: Error saving agreement: {ex.Message}");
+                                }
+                                
+                                System.Diagnostics.Trace.WriteLine("App: Creating MainWindow after agreement...");
+                                var mainWindow = new MainWindow();
+                                desktop.MainWindow = mainWindow;
+                                
+                                // Switch back to normal shutdown mode
+                                desktop.ShutdownMode = Avalonia.Controls.ShutdownMode.OnMainWindowClose;
+                                
+                                mainWindow.Show();
+                                _ = InitializeServicesAsync(desktop, skipDatabaseInit: false);
+                            });
+                        }
+                        else
+                        {
+                            // User declined - shutdown application
+                            System.Diagnostics.Trace.WriteLine("App: User declined agreement, shutting down");
+                            desktop.Shutdown();
+                        }
+                    };
+                }
+                else
+                {
+                    // Agreement already accepted - show main window directly
+                    desktop.MainWindow = new MainWindow();
+                    System.Diagnostics.Trace.WriteLine("App: MainWindow created (deferred initialization follows)");
+                    
+                    // MEMORY OPTIMIZATION: Initialize heavy services in background AFTER window is shown
+                    _ = InitializeServicesAsync(desktop, skipDatabaseInit: false);
+                }
             }
 
             base.OnFrameworkInitializationCompleted();
@@ -39,6 +99,7 @@ public partial class App : Application
             {
                 try
                 {
+                    // Fallback - just show main window without agreement
                     desktop.MainWindow = new MainWindow();
                 }
                 catch (System.Exception innerEx)
@@ -53,9 +114,97 @@ public partial class App : Application
     }
 
     /// <summary>
+    /// Check if user has accepted the agreement (sync version for startup)
+    /// Uses simple file check for reliability
+    /// </summary>
+    private bool CheckUserAgreementSync()
+    {
+        try
+        {
+            // Use simple file-based check for reliability
+            var agreementFilePath = GetAgreementFilePath();
+            System.Diagnostics.Trace.WriteLine($"App: Checking agreement file at: {agreementFilePath}");
+            
+            if (System.IO.File.Exists(agreementFilePath))
+            {
+                var content = System.IO.File.ReadAllText(agreementFilePath);
+                var result = content.Trim() == "accepted";
+                System.Diagnostics.Trace.WriteLine($"App: Agreement file exists, content='{content}', result={result}");
+                return result;
+            }
+            
+            System.Diagnostics.Trace.WriteLine("App: Agreement file does not exist");
+            return false;
+        }
+        catch (System.Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"App: Failed to check agreement: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Save user agreement acceptance
+    /// Uses simple file for reliability
+    /// </summary>
+    private async Task SaveUserAgreementAsync()
+    {
+        try
+        {
+            var agreementFilePath = GetAgreementFilePath();
+            System.Diagnostics.Trace.WriteLine($"App: Saving agreement to: {agreementFilePath}");
+            
+            // Ensure directory exists
+            var directory = System.IO.Path.GetDirectoryName(agreementFilePath);
+            System.Diagnostics.Trace.WriteLine($"App: Directory path: {directory}");
+            
+            if (!string.IsNullOrEmpty(directory))
+            {
+                if (!System.IO.Directory.Exists(directory))
+                {
+                    System.IO.Directory.CreateDirectory(directory);
+                    System.Diagnostics.Trace.WriteLine($"App: Created directory: {directory}");
+                }
+            }
+            
+            // Write file synchronously for reliability
+            System.IO.File.WriteAllText(agreementFilePath, "accepted");
+            System.Diagnostics.Trace.WriteLine($"App: Agreement written to file");
+            
+            // Verify immediately
+            if (System.IO.File.Exists(agreementFilePath))
+            {
+                var content = System.IO.File.ReadAllText(agreementFilePath);
+                System.Diagnostics.Trace.WriteLine($"App: Verified file exists with content: '{content}'");
+            }
+            else
+            {
+                System.Diagnostics.Trace.WriteLine($"App: ERROR - File does not exist after writing!");
+            }
+            
+            await Task.CompletedTask; // Make async happy
+        }
+        catch (System.Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"App: Failed to save agreement: {ex.Message}");
+            System.Diagnostics.Trace.WriteLine($"App: Stack trace: {ex.StackTrace}");
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Gets the path to the agreement status file
+    /// </summary>
+    private static string GetAgreementFilePath()
+    {
+        var appDataPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData);
+        return System.IO.Path.Combine(appDataPath, "VetaleBrowser", "Data", "user_agreement.txt");
+    }
+
+    /// <summary>
     /// STARTUP OPTIMIZATION: Initialize services in background to not block window display
     /// </summary>
-    private async Task InitializeServicesAsync(IClassicDesktopStyleApplicationLifetime desktop)
+    private async Task InitializeServicesAsync(IClassicDesktopStyleApplicationLifetime desktop, bool skipDatabaseInit = false)
     {
         await Task.Yield(); // Ensure window is shown first
         
@@ -70,19 +219,22 @@ public partial class App : Application
             System.Diagnostics.Trace.WriteLine($"App: ConsoleLogger failed: {ex.Message}");
         }
 
-        // Initialize database in background
-        await Task.Run(() =>
+        // Initialize database in background (skip if already done)
+        if (!skipDatabaseInit)
         {
-            try
+            await Task.Run(() =>
             {
-                DatabaseManager.Initialize();
-                System.Diagnostics.Trace.WriteLine("App: Database initialized");
-            }
-            catch (System.Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"App: Database init failed: {ex.Message}");
-            }
-        });
+                try
+                {
+                    DatabaseManager.Initialize();
+                    System.Diagnostics.Trace.WriteLine("App: Database initialized");
+                }
+                catch (System.Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine($"App: Database init failed: {ex.Message}");
+                }
+            });
+        }
 
         // Apply localization after DB - MUST await to ensure it completes
         try

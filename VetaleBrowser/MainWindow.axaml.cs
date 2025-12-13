@@ -8,13 +8,14 @@ using Avalonia.Markup.Xaml;
 using Avalonia.VisualTree;
 using VetaleBrowser.VetaleBrowser.UI.Scripts;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
-using VetaleBrowser.VetaleBrowser.UI.Еlements;
+
 using VetaleBrowser.VetaleBrowser.UI.Services;
 using WebViewControl;
 using Avalonia.Threading;
 using Avalonia;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.Models;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers;
+using VetaleBrowser.VetaleBrowser.Core.Scripts.Services;
 using System.Linq;
 using VetaleBrowser.VetaleBrowser.UI.Pages;
 using VetaleBrowser.VetaleBrowser.UI.Windows; // added for SettingsWindow and ToolsWindow
@@ -23,6 +24,7 @@ using VetaleBrowser.VetaleBrowser.Database.Services;
 using Avalonia.Media;
 using VetaleBrowser.VetaleBrowser.VoiceRecognition.Services;
 using VetaleBrowser.VetaleBrowser.Core.Services;
+using VetaleBrowser.VetaleBrowser.UI.Elements;
 
 namespace VetaleBrowser;
 

@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -45,6 +46,21 @@ public class ApiKeyWindowConfig
     public string Note { get; set; } = "💡 Your API key is stored locally with encryption and never shared.";
     
     /// <summary>
+    /// Get localized string from resources
+    /// </summary>
+    private static string GetLocalizedString(string key, string fallback)
+    {
+        try
+        {
+            var app = Application.Current;
+            if (app != null && app.TryFindResource(key, out var value) && value is string s)
+                return s;
+        }
+        catch { }
+        return fallback;
+    }
+    
+    /// <summary>
     /// Створює конфігурацію для Gemini
     /// </summary>
     public static ApiKeyWindowConfig CreateGemini() => new()
@@ -53,20 +69,20 @@ public class ApiKeyWindowConfig
         ServiceId = ApiServiceIds.Gemini,
         ServiceName = "Google Gemini",
         Icon = "✨",
-        WindowTitle = "Налаштування Gemini API",
-        Header = "Налаштування Google Gemini",
-        Description = "Введіть ваш API ключ для використання AI-функцій Gemini у пошуку Vetale.",
-        ApiKeyLabel = "Gemini API ключ",
-        Watermark = "Введіть ваш Gemini API ключ...",
-        HowToGetLabel = "📋 Як отримати безкоштовний API ключ:",
-        Step1 = "1. Перейдіть на Google AI Studio",
-        Step2 = "2. Увійдіть з вашим Google акаунтом",
-        Step3 = "3. Натисніть 'Get API key' та скопіюйте його",
-        PortalButtonText = "🔗 Відкрити Google AI Studio",
+        WindowTitle = GetLocalizedString("Gemini.ApiKey.Title", "Gemini API Key Configuration"),
+        Header = GetLocalizedString("Gemini.ApiKey.Header", "Configure Gemini AI"),
+        Description = GetLocalizedString("Gemini.ApiKey.Description", "To use Gemini AI features in Vetale Search, you need a Google API key."),
+        ApiKeyLabel = GetLocalizedString("Gemini.ApiKey.Label", "Gemini API Key"),
+        Watermark = GetLocalizedString("Gemini.ApiKey.Watermark", "Enter your Gemini API key..."),
+        HowToGetLabel = GetLocalizedString("Gemini.ApiKey.HowToGet", "📋 How to get a free API key:"),
+        Step1 = GetLocalizedString("Gemini.ApiKey.Step1", "1. Go to Google AI Studio"),
+        Step2 = GetLocalizedString("Gemini.ApiKey.Step2", "2. Sign in with your Google account"),
+        Step3 = GetLocalizedString("Gemini.ApiKey.Step3", "3. Click \"Get API key\" and copy it"),
+        PortalButtonText = GetLocalizedString("Gemini.ApiKey.OpenAIStudio", "🔗 Open Google AI Studio"),
         PortalUrl = "https://aistudio.google.com/app/apikey",
-        SaveButtonText = "Зберегти ключ",
-        SkipButtonText = "Пропустити",
-        Note = "💡 Ваш API ключ зберігається локально з шифруванням і ніколи не передається."
+        SaveButtonText = GetLocalizedString("ApiKey.Save", "Save Key"),
+        SkipButtonText = GetLocalizedString("ApiKey.Skip", "Skip"),
+        Note = GetLocalizedString("Gemini.ApiKey.Note", "💡 Your API key is stored locally and never shared.")
     };
     
     /// <summary>
@@ -78,20 +94,20 @@ public class ApiKeyWindowConfig
         ServiceId = ApiServiceIds.Pexels,
         ServiceName = "Pexels",
         Icon = "📷",
-        WindowTitle = "Налаштування Pexels API",
-        Header = "Налаштування Pexels",
-        Description = "Введіть ваш API ключ для пошуку зображень з Pexels.",
-        ApiKeyLabel = "Pexels API ключ",
-        Watermark = "Введіть ваш Pexels API ключ...",
-        HowToGetLabel = "📋 Як отримати безкоштовний API ключ:",
-        Step1 = "1. Перейдіть на Pexels.com",
-        Step2 = "2. Зареєструйтесь або увійдіть",
-        Step3 = "3. Перейдіть до API та створіть новий ключ",
-        PortalButtonText = "🔗 Відкрити Pexels API",
+        WindowTitle = GetLocalizedString("Pexels.ApiKey.Title", "Pexels API Configuration"),
+        Header = GetLocalizedString("Pexels.ApiKey.Header", "Configure Pexels"),
+        Description = GetLocalizedString("Pexels.ApiKey.Description", "Enter your API key to search high-quality images from Pexels."),
+        ApiKeyLabel = GetLocalizedString("Pexels.ApiKey.Label", "Pexels API Key"),
+        Watermark = GetLocalizedString("Pexels.ApiKey.Watermark", "Enter your Pexels API key..."),
+        HowToGetLabel = GetLocalizedString("Pexels.ApiKey.HowToGet", "📋 How to get a free API key:"),
+        Step1 = GetLocalizedString("Pexels.ApiKey.Step1", "1. Go to Pexels.com"),
+        Step2 = GetLocalizedString("Pexels.ApiKey.Step2", "2. Sign up or log in"),
+        Step3 = GetLocalizedString("Pexels.ApiKey.Step3", "3. Navigate to API and create a new key"),
+        PortalButtonText = GetLocalizedString("Pexels.ApiKey.OpenPortal", "🔗 Open Pexels API"),
         PortalUrl = "https://www.pexels.com/api/",
-        SaveButtonText = "Зберегти ключ",
-        SkipButtonText = "Пропустити",
-        Note = "💡 Pexels API безкоштовний для особистого та комерційного використання."
+        SaveButtonText = GetLocalizedString("ApiKey.Save", "Save Key"),
+        SkipButtonText = GetLocalizedString("ApiKey.Skip", "Skip"),
+        Note = GetLocalizedString("Pexels.ApiKey.Note", "💡 Pexels API is free for personal and commercial use.")
     };
     
     /// <summary>
@@ -103,20 +119,20 @@ public class ApiKeyWindowConfig
         ServiceId = ApiServiceIds.Unsplash,
         ServiceName = "Unsplash",
         Icon = "🖼️",
-        WindowTitle = "Налаштування Unsplash API",
-        Header = "Налаштування Unsplash",
-        Description = "Введіть ваш Access Key для пошуку зображень з Unsplash.",
-        ApiKeyLabel = "Unsplash Access Key",
-        Watermark = "Введіть ваш Unsplash Access Key...",
-        HowToGetLabel = "📋 Як отримати безкоштовний API ключ:",
-        Step1 = "1. Перейдіть на Unsplash Developers",
-        Step2 = "2. Зареєструйтесь та створіть додаток",
-        Step3 = "3. Скопіюйте Access Key з налаштувань додатку",
-        PortalButtonText = "🔗 Відкрити Unsplash Developers",
+        WindowTitle = GetLocalizedString("Unsplash.ApiKey.Title", "Unsplash API Configuration"),
+        Header = GetLocalizedString("Unsplash.ApiKey.Header", "Configure Unsplash"),
+        Description = GetLocalizedString("Unsplash.ApiKey.Description", "Enter your Access Key to search images from Unsplash."),
+        ApiKeyLabel = GetLocalizedString("Unsplash.ApiKey.Label", "Unsplash Access Key"),
+        Watermark = GetLocalizedString("Unsplash.ApiKey.Watermark", "Enter your Unsplash Access Key..."),
+        HowToGetLabel = GetLocalizedString("Unsplash.ApiKey.HowToGet", "📋 How to get a free API key:"),
+        Step1 = GetLocalizedString("Unsplash.ApiKey.Step1", "1. Go to Unsplash Developers"),
+        Step2 = GetLocalizedString("Unsplash.ApiKey.Step2", "2. Sign up and create an application"),
+        Step3 = GetLocalizedString("Unsplash.ApiKey.Step3", "3. Copy the Access Key from your app settings"),
+        PortalButtonText = GetLocalizedString("Unsplash.ApiKey.OpenPortal", "🔗 Open Unsplash Developers"),
         PortalUrl = "https://unsplash.com/developers",
-        SaveButtonText = "Зберегти ключ",
-        SkipButtonText = "Пропустити",
-        Note = "💡 Unsplash API безкоштовний з лімітом 50 запитів/годину для демо-додатків."
+        SaveButtonText = GetLocalizedString("ApiKey.Save", "Save Key"),
+        SkipButtonText = GetLocalizedString("ApiKey.Skip", "Skip"),
+        Note = GetLocalizedString("Unsplash.ApiKey.Note", "💡 Unsplash API is free with a limit of 50 requests/hour for demo apps.")
     };
     
     /// <summary>
@@ -128,20 +144,20 @@ public class ApiKeyWindowConfig
         ServiceId = ApiServiceIds.YouTube,
         ServiceName = "YouTube",
         Icon = "📺",
-        WindowTitle = "Налаштування YouTube API",
-        Header = "Налаштування YouTube Data API",
-        Description = "Введіть ваш API ключ для пошуку відео на YouTube.",
-        ApiKeyLabel = "YouTube API ключ",
-        Watermark = "Введіть ваш YouTube API ключ...",
-        HowToGetLabel = "📋 Як отримати API ключ:",
-        Step1 = "1. Перейдіть на Google Cloud Console",
-        Step2 = "2. Створіть проект та увімкніть YouTube Data API v3",
-        Step3 = "3. Створіть API ключ в розділі Credentials",
-        PortalButtonText = "🔗 Відкрити Google Cloud Console",
+        WindowTitle = GetLocalizedString("YouTube.ApiKey.Title", "YouTube API Configuration"),
+        Header = GetLocalizedString("YouTube.ApiKey.Header", "Configure YouTube Data API"),
+        Description = GetLocalizedString("YouTube.ApiKey.Description", "Enter your API key to search videos on YouTube."),
+        ApiKeyLabel = GetLocalizedString("YouTube.ApiKey.Label", "YouTube API Key"),
+        Watermark = GetLocalizedString("YouTube.ApiKey.Watermark", "Enter your YouTube API key..."),
+        HowToGetLabel = GetLocalizedString("YouTube.ApiKey.HowToGet", "📋 How to get an API key:"),
+        Step1 = GetLocalizedString("YouTube.ApiKey.Step1", "1. Go to Google Cloud Console"),
+        Step2 = GetLocalizedString("YouTube.ApiKey.Step2", "2. Create a project and enable YouTube Data API v3"),
+        Step3 = GetLocalizedString("YouTube.ApiKey.Step3", "3. Create an API key in the Credentials section"),
+        PortalButtonText = GetLocalizedString("YouTube.ApiKey.OpenPortal", "🔗 Open Google Cloud Console"),
         PortalUrl = "https://console.cloud.google.com/apis/library/youtube.googleapis.com",
-        SaveButtonText = "Зберегти ключ",
-        SkipButtonText = "Пропустити",
-        Note = "💡 YouTube Data API має безкоштовний ліміт 10,000 одиниць/день."
+        SaveButtonText = GetLocalizedString("ApiKey.Save", "Save Key"),
+        SkipButtonText = GetLocalizedString("ApiKey.Skip", "Skip"),
+        Note = GetLocalizedString("YouTube.ApiKey.Note", "💡 YouTube Data API has a free limit of 10,000 units/day.")
     };
 }
 

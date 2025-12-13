@@ -194,6 +194,101 @@ public class SettingsService : ISettingsService, IDisposable
         });
     }
 
+    public async Task<bool> IsUserAgreementAcceptedAsync()
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[SettingsService] IsUserAgreementAcceptedAsync: Checking...");
+                var setting = _settingsCollection.FindOne(x => x.Key == "UserAgreementAccepted");
+                
+                if (setting == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SettingsService] IsUserAgreementAcceptedAsync: Setting not found, returning false");
+                    return false;
+                }
+
+                var decrypted = _encryptionService.DecryptString(setting.EncryptedValue);
+                var result = decrypted == "true";
+                System.Diagnostics.Debug.WriteLine($"[SettingsService] IsUserAgreementAcceptedAsync: Found setting, decrypted='{decrypted}', result={result}");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SettingsService] IsUserAgreementAcceptedAsync ERROR: {ex.Message}");
+                return false;
+            }
+        });
+    }
+
+    public async Task SetUserAgreementAcceptedAsync(bool accepted)
+    {
+        await Task.Run(() =>
+        {
+            var value = accepted ? "true" : "false";
+            var encryptedValue = _encryptionService.EncryptString(value);
+            var existing = _settingsCollection.FindOne(x => x.Key == "UserAgreementAccepted");
+            if (existing != null)
+            {
+                existing.EncryptedValue = encryptedValue;
+                existing.UpdatedAt = DateTime.UtcNow;
+                _settingsCollection.Update(existing);
+            }
+            else
+            {
+                var setting = new SettingItem
+                {
+                    Key = "UserAgreementAccepted",
+                    EncryptedValue = encryptedValue,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _settingsCollection.Insert(setting);
+            }
+
+            // Also save the acceptance date
+            if (accepted)
+            {
+                var dateValue = DateTime.UtcNow.ToString("o");
+                var encryptedDate = _encryptionService.EncryptString(dateValue);
+                var existingDate = _settingsCollection.FindOne(x => x.Key == "UserAgreementDate");
+                if (existingDate != null)
+                {
+                    existingDate.EncryptedValue = encryptedDate;
+                    existingDate.UpdatedAt = DateTime.UtcNow;
+                    _settingsCollection.Update(existingDate);
+                }
+                else
+                {
+                    var dateSetting = new SettingItem
+                    {
+                        Key = "UserAgreementDate",
+                        EncryptedValue = encryptedDate,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    _settingsCollection.Insert(dateSetting);
+                }
+            }
+            
+            // Force checkpoint to ensure data is written to disk
+            _database.Checkpoint();
+            System.Diagnostics.Debug.WriteLine($"[SettingsService] UserAgreementAccepted set to {accepted} and checkpointed");
+        });
+    }
+
+    public async Task<DateTime?> GetUserAgreementDateAsync()
+    {
+        return await Task.Run(() =>
+        {
+            var setting = _settingsCollection.FindOne(x => x.Key == "UserAgreementDate");
+            if (setting == null) return (DateTime?)null;
+            var decrypted = _encryptionService.DecryptString(setting.EncryptedValue);
+            if (DateTime.TryParse(decrypted, out var dt))
+                return dt;
+            return (DateTime?)null;
+        });
+    }
+
     public void Dispose()
     {
         _database.Dispose();

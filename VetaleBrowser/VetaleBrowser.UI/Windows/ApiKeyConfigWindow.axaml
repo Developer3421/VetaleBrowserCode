@@ -176,17 +176,17 @@
                                 Classes="primary-btn"
                                 x:Name="SaveButton"
                                 Click="Save_Click"
-                                Content="Save API Key"/>
+                                Content="{DynamicResource ApiKey.Save}"/>
                         <Button Grid.Column="3" 
                                 Classes="secondary-btn"
                                 x:Name="SkipButton"
                                 Click="Skip_Click"
-                                Content="Skip"/>
+                                Content="{DynamicResource ApiKey.Skip}"/>
                     </Grid>
 
                     <!-- Info note -->
                     <TextBlock x:Name="NoteText" 
-                               Text="💡 Your API key is stored locally with encryption and never shared." 
+                               Text="{DynamicResource ApiKey.Note}" 
                                FontSize="12" 
                                Foreground="#777777"
                                TextWrapping="Wrap"

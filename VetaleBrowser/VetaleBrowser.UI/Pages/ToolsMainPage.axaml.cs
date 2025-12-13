@@ -21,6 +21,8 @@ public partial class ToolsMainPage : UserControl
     private static Windows.DevToolsWindow? _devToolsWindowInstance;
     private static Windows.VetaleAIWindow? _vetaleAiWindowInstance;
     private static Windows.DownloadsWindow? _downloadsWindowInstance;
+    private static Windows.UserAgreementWindow? _userAgreementWindowInstance;
+    private static Windows.AboutWindow? _aboutWindowInstance;
 
     public event EventHandler<ToolNavigationEventArgs>? NavigateInWebView;
     public event EventHandler<string>? NavigateInMainTab;
@@ -116,6 +118,22 @@ public partial class ToolsMainPage : UserControl
                 IconUrl = null,
                 IconEmoji = "🖥️",
                 Action = () => OpenConsole()
+            },
+            new ToolItem
+            {
+                NameKey = "Tools.UserAgreement.Name",
+                DescriptionKey = "Tools.UserAgreement.Description",
+                IconUrl = null,
+                IconEmoji = "🛡️",
+                Action = () => OpenUserAgreement()
+            },
+            new ToolItem
+            {
+                NameKey = "Tools.About.Name",
+                DescriptionKey = "Tools.About.Description",
+                IconUrl = null,
+                IconEmoji = "ℹ️",
+                Action = () => OpenAbout()
             }
         };
 
@@ -575,6 +593,100 @@ public partial class ToolsMainPage : UserControl
             System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] ERROR opening Downloads: {ex.Message}");
             System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Stack trace: {ex.StackTrace}");
             _downloadsWindowInstance = null;
+        }
+    }
+
+    private void OpenUserAgreement()
+    {
+        System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Opening User Agreement...");
+        
+        try
+        {
+            // Перевіряємо, чи існує вже відкрите вікно
+            if (_userAgreementWindowInstance != null)
+            {
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Reusing existing UserAgreementWindow");
+                    _userAgreementWindowInstance.Activate();
+                    _userAgreementWindowInstance.WindowState = WindowState.Normal;
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] UserAgreement window activated");
+                    return;
+                }
+                catch
+                {
+                    // Вікно закрите, очищаємо посилання
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Previous UserAgreement window was closed, creating new one");
+                    _userAgreementWindowInstance = null;
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Creating new UserAgreementWindow instance (read-only)...");
+            _userAgreementWindowInstance = new Windows.UserAgreementWindow(readOnly: true);
+            
+            // Підписуємося на закриття вікна для очищення посилання
+            _userAgreementWindowInstance.Closed += (s, e) =>
+            {
+                System.Diagnostics.Debug.WriteLine("[ToolsMainPage] UserAgreementWindow closed, clearing reference");
+                _userAgreementWindowInstance = null;
+            };
+            
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Showing UserAgreement window...");
+            _userAgreementWindowInstance.Show();
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] UserAgreement window opened successfully");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] ERROR opening UserAgreement: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Stack trace: {ex.StackTrace}");
+            _userAgreementWindowInstance = null;
+        }
+    }
+
+    private void OpenAbout()
+    {
+        System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Opening About...");
+        
+        try
+        {
+            // Перевіряємо, чи існує вже відкрите вікно
+            if (_aboutWindowInstance != null)
+            {
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Reusing existing AboutWindow");
+                    _aboutWindowInstance.Activate();
+                    _aboutWindowInstance.WindowState = WindowState.Normal;
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] About window activated");
+                    return;
+                }
+                catch
+                {
+                    // Вікно закрите, очищаємо посилання
+                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Previous About window was closed, creating new one");
+                    _aboutWindowInstance = null;
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Creating new AboutWindow instance...");
+            _aboutWindowInstance = new Windows.AboutWindow();
+            
+            // Підписуємося на закриття вікна для очищення посилання
+            _aboutWindowInstance.Closed += (s, e) =>
+            {
+                System.Diagnostics.Debug.WriteLine("[ToolsMainPage] AboutWindow closed, clearing reference");
+                _aboutWindowInstance = null;
+            };
+            
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Showing About window...");
+            _aboutWindowInstance.Show();
+            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] About window opened successfully");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] ERROR opening About: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Stack trace: {ex.StackTrace}");
+            _aboutWindowInstance = null;
         }
     }
 

@@ -1007,7 +1007,98 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                             }
                         } catch(e){}
                         
-                        console.log('[VetaleBrowser] Navigation guards v2 active');
+                        // ========== DOWNLOAD PROTECTION (SafeDownloadHandler) ==========
+                        // Перехоплюємо автоматичні завантаження без підтвердження користувача
+                        
+                        // Трекаємо чи користувач активно клікає (для визначення user-initiated)
+                        window._vetaleUserClickActive = false;
+                        window._vetaleLastClickTime = 0;
+                        
+                        document.addEventListener('mousedown', function(e){
+                            window._vetaleUserClickActive = true;
+                            window._vetaleLastClickTime = Date.now();
+                        }, true);
+                        
+                        document.addEventListener('mouseup', function(e){
+                            // Даємо невеликий час після кліку
+                            setTimeout(function(){
+                                window._vetaleUserClickActive = false;
+                            }, 500);
+                        }, true);
+                        
+                        // Перехоплюємо посилання з атрибутом download
+                        document.addEventListener('click', function(e){
+                            try {
+                                var el = e.target;
+                                while(el && el.tagName !== 'A'){ el = el.parentElement; }
+                                if(!el) return;
+                                
+                                var download = el.getAttribute('download');
+                                var href = el.getAttribute('href') || el.href || '';
+                                
+                                // Якщо є атрибут download або blob URL - потенційне завантаження
+                                if(download !== null || href.startsWith('blob:') || href.startsWith('data:')) {
+                                    var isUserClick = window._vetaleUserClickActive || (Date.now() - window._vetaleLastClickTime < 1000);
+                                    if(!isUserClick){
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        e.stopImmediatePropagation();
+                                        console.log('[VetaleBrowser] BLOCKED automatic download (no user interaction):', href);
+                                        return false;
+                                    }
+                                    console.log('[VetaleBrowser] Download allowed (user click):', href);
+                                }
+                            } catch(_){}
+                        }, true);
+                        
+                        // Перехоплюємо створення blob URL та автоматичне завантаження
+                        try {
+                            var origCreateObjectURL = URL.createObjectURL;
+                            URL.createObjectURL = function(blob){
+                                var url = origCreateObjectURL.call(URL, blob);
+                                console.log('[VetaleBrowser] Blob URL created:', url.substring(0, 50) + '...');
+                                return url;
+                            };
+                        } catch(e){}
+                        
+                        // Перехоплюємо програмне клікання на прихованих елементах (типова тактика для auto-download)
+                        try {
+                            var origClick = HTMLElement.prototype.click;
+                            HTMLElement.prototype.click = function(){
+                                var el = this;
+                                var isLink = el.tagName === 'A';
+                                var hasDownload = isLink && el.hasAttribute('download');
+                                var isHidden = (el.style.display === 'none' || el.offsetParent === null);
+                                var isUserInitiated = window._vetaleUserClickActive || (Date.now() - window._vetaleLastClickTime < 500);
+                                
+                                if(hasDownload && isHidden && !isUserInitiated){
+                                    console.log('[VetaleBrowser] BLOCKED programmatic click on hidden download link');
+                                    return;
+                                }
+                                
+                                return origClick.call(this);
+                            };
+                        } catch(e){}
+                        
+                        // Перехоплюємо динамічне додавання посилань для завантаження
+                        try {
+                            var origAppendChild = Node.prototype.appendChild;
+                            Node.prototype.appendChild = function(child){
+                                var result = origAppendChild.call(this, child);
+                                
+                                // Якщо додається прихований елемент з download - логуємо попередження
+                                if(child && child.tagName === 'A' && child.hasAttribute && child.hasAttribute('download')){
+                                    var isHidden = !child.offsetParent;
+                                    if(isHidden){
+                                        console.log('[VetaleBrowser] Warning: Hidden download link added to DOM');
+                                    }
+                                }
+                                
+                                return result;
+                            };
+                        } catch(e){}
+                        
+                        console.log('[VetaleBrowser] Navigation guards v2 + Download protection active');
                     })();
                 ";
 

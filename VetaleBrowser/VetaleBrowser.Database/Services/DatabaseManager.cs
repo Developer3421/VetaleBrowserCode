@@ -121,6 +121,8 @@ public sealed class DatabaseServiceManager : IDisposable
             if (_settingsService != null) return _settingsService;
             
             var settingsPath = Path.Combine(_basePath, "settings.db");
+            System.Diagnostics.Debug.WriteLine($"[DatabaseServiceManager] Creating SettingsService at: {settingsPath}");
+            System.Diagnostics.Debug.WriteLine($"[DatabaseServiceManager] BasePath: {_basePath}");
             _settingsService = new SettingsService(settingsPath, _configuration.EncryptionKey);
             Console.WriteLine("[DatabaseServiceManager] Settings service initialized (lazy)");
             return _settingsService;

@@ -10,7 +10,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media; // use Avalonia.Media for IImage
 using Avalonia.Threading;
-using VetaleBrowser.VetaleBrowser.UI.Еlements; // NavigationBar
+using VetaleBrowser.VetaleBrowser.UI.Elements; // NavigationBar
 using VetaleBrowser.VetaleBrowser.Search.Models;
 using VetaleBrowser.VetaleBrowser.Search.Services;
 using VetaleBrowser.VetaleBrowser.UI.Services;

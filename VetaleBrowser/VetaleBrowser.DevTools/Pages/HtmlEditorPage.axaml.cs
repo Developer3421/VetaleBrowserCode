@@ -207,32 +207,35 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
 
         private async void OpenFile(object? sender, RoutedEventArgs e)
         {
-            var dialog = new OpenFileDialog
+            var topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel == null) return;
+
+            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
             {
                 Title = "Open HTML File",
-                Filters = new System.Collections.Generic.List<FileDialogFilter>
+                AllowMultiple = false,
+                FileTypeFilter = new[]
                 {
-                    new FileDialogFilter { Name = "HTML Files", Extensions = { "html", "htm" } },
-                    new FileDialogFilter { Name = "All Files", Extensions = { "*" } }
+                    new Avalonia.Platform.Storage.FilePickerFileType("HTML Files") { Patterns = new[] { "*.html", "*.htm" } },
+                    new Avalonia.Platform.Storage.FilePickerFileType("All Files") { Patterns = new[] { "*.*" } }
                 }
-            };
+            });
 
-            var window = TopLevel.GetTopLevel(this) as Window;
-            if (window == null) return;
-
-            var result = await dialog.ShowAsync(window);
-            if (result != null && result.Length > 0)
+            if (files != null && files.Count > 0)
             {
-                var filePath = result[0];
+                var file = files[0];
                 try
                 {
-                    var content = await File.ReadAllTextAsync(filePath);
+                    await using var stream = await file.OpenReadAsync();
+                    using var reader = new StreamReader(stream);
+                    var content = await reader.ReadToEndAsync();
+                    
                     if (_codeEditor != null)
                         _codeEditor.Text = content;
                     
-                    _currentFilePath = filePath;
+                    _currentFilePath = file.Path.LocalPath;
                     if (_statusText != null)
-                        _statusText.Text = $"Opened: {Path.GetFileName(filePath)}";
+                        _statusText.Text = $"Opened: {file.Name}";
                 }
                 catch (Exception ex)
                 {
@@ -256,24 +259,24 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
 
         private async Task SaveFileAs()
         {
-            var dialog = new SaveFileDialog
+            var topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel == null) return;
+
+            var file = await topLevel.StorageProvider.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
             {
                 Title = "Save HTML File",
-                Filters = new System.Collections.Generic.List<FileDialogFilter>
+                DefaultExtension = "html",
+                SuggestedFileName = "document.html",
+                FileTypeChoices = new[]
                 {
-                    new FileDialogFilter { Name = "HTML Files", Extensions = { "html", "htm" } },
-                    new FileDialogFilter { Name = "All Files", Extensions = { "*" } }
-                },
-                DefaultExtension = "html"
-            };
+                    new Avalonia.Platform.Storage.FilePickerFileType("HTML Files") { Patterns = new[] { "*.html", "*.htm" } },
+                    new Avalonia.Platform.Storage.FilePickerFileType("All Files") { Patterns = new[] { "*.*" } }
+                }
+            });
 
-            var window = TopLevel.GetTopLevel(this) as Window;
-            if (window == null) return;
-
-            var result = await dialog.ShowAsync(window);
-            if (!string.IsNullOrEmpty(result))
+            if (file != null)
             {
-                await SaveToFile(result);
+                await SaveToFile(file.Path.LocalPath);
             }
         }
 

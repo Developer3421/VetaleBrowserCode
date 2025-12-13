@@ -64,8 +64,8 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Services
         {
             try
             {
-                // Можно было бы обновлять имя/путь в БД, но DownloadManager мониторит по TargetPath
-                // и с новой записью всё равно будет корректно отображаться.
+                // Можна оновлювати ім'я/шлях в БД, але DownloadManager моніторить по TargetPath
+                // і з новим записом все одно буде коректно відображатися.
             }
             catch { }
         }

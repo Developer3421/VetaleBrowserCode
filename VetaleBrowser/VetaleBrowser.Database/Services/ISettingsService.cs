@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
@@ -41,4 +42,19 @@ public interface ISettingsService
     /// Встановлює код мови інтерфейсу
     /// </summary>
     Task SetLanguageAsync(string code);
+
+    /// <summary>
+    /// Перевіряє чи користувач прийняв угоду (GDPR/Privacy)
+    /// </summary>
+    Task<bool> IsUserAgreementAcceptedAsync();
+
+    /// <summary>
+    /// Зберігає статус прийняття угоди
+    /// </summary>
+    Task SetUserAgreementAcceptedAsync(bool accepted);
+
+    /// <summary>
+    /// Отримує дату прийняття угоди
+    /// </summary>
+    Task<DateTime?> GetUserAgreementDateAsync();
 }

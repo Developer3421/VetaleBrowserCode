@@ -369,6 +369,8 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
             TextBlock? streamingTextBlock = null;
             string currentResponse = string.Empty;
             bool firstTokenSeen = false;
+            int tokenCount = 0;
+            DateTime lastUIUpdate = DateTime.UtcNow;
 
             _cancellationTokenSource = new CancellationTokenSource();
             var ct = _cancellationTokenSource.Token;
@@ -384,7 +386,13 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
                 // Accumulate and clean trailing User cues
                 currentResponse += token;
                 currentResponse = StripTrailingUserCue(currentResponse);
+                tokenCount++;
 
+                // FAST MODE: Update UI immediately without delay
+                // Only throttle scroll updates, not text updates
+                var now = DateTime.UtcNow;
+                var shouldScroll = (now - lastUIUpdate).TotalMilliseconds > 50; // Scroll every 50ms max
+                
                 Dispatcher.UIThread.Post(() =>
                 {
                     if (!firstTokenSeen)
@@ -400,11 +408,13 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
                         streamingTextBlock.Text = currentResponse;
                     }
 
-                    if (_autoScroll)
+                    // Only scroll periodically to reduce UI overhead
+                    if (_autoScroll && shouldScroll)
                     {
+                        lastUIUpdate = now;
                         ScrollToBottom();
                     }
-                }, DispatcherPriority.Background);
+                }, DispatcherPriority.Send); // Use Send priority for immediate updates
             });
 
             string finalText;

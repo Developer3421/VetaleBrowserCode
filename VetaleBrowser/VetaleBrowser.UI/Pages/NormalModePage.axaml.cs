@@ -1,7 +1,8 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using VetaleBrowser.VetaleBrowser.UI.Еlements;
+
 using System;
+using VetaleBrowser.VetaleBrowser.UI.Elements;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
 
