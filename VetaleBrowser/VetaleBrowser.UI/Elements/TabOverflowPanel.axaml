@@ -1,0 +1,68 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:VetaleBrowser.VetaleBrowser.UI.Elements">
+    
+    <Design.PreviewWith>
+        <controls:TabOverflowPanel Width="600" />
+    </Design.PreviewWith>
+
+    <Style Selector="controls|TabOverflowPanel">
+        <Setter Property="Height" Value="42" />
+        <Setter Property="Background" Value="#E8E8E8" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}"
+                        CornerRadius="8"
+                        BorderBrush="#CCCCCC"
+                        BorderThickness="1"
+                        Padding="4,0"
+                        BoxShadow="0 2 8 #40000000">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <!-- Overflow tabs container -->
+                        <ScrollViewer Grid.Column="0" 
+                                      HorizontalScrollBarVisibility="Hidden"
+                                      VerticalScrollBarVisibility="Disabled">
+                            <StackPanel x:Name="PART_TabsContainer"
+                                        Orientation="Horizontal"
+                                        VerticalAlignment="Center"
+                                        Spacing="4"
+                                        Margin="4,0"/>
+                        </ScrollViewer>
+                        
+                        <!-- Close all button -->
+                        <Button Grid.Column="1"
+                                x:Name="PART_CloseAllButton"
+                                Width="28"
+                                Height="28"
+                                Margin="4,0,0,0"
+                                Background="#FF5252"
+                                CornerRadius="4"
+                                ToolTip.Tip="Закрити всі додаткові вкладки"
+                                Padding="0"
+                                Cursor="Hand">
+                            <Path Data="M6,6 L18,18 M18,6 L6,18"
+                                  Stroke="White"
+                                  StrokeThickness="2"
+                                  StrokeLineCap="Round"
+                                  Width="12"
+                                  Height="12"
+                                  Stretch="Uniform"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"/>
+                        </Button>
+                    </Grid>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Hover effect for close button -->
+    <Style Selector="controls|TabOverflowPanel /template/ Button#PART_CloseAllButton:pointerover">
+        <Setter Property="Background" Value="#FF1744" />
+    </Style>
+    
+    <Style Selector="controls|TabOverflowPanel /template/ Button#PART_CloseAllButton:pressed">
+        <Setter Property="Background" Value="#D50000" />
+    </Style>
+</Styles>
+

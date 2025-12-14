@@ -25,7 +25,7 @@ public class AppearanceSettingsService : IAppearanceSettingsService, IDisposable
     
     // Default Main Window values
     private const string DefaultNavigationBarColor = ""; // keep XAML PurpleGradient by default
-    private const double DefaultNavigationBarHeight = 40.0;
+    private const double DefaultNavigationBarHeight = 36.0;
     private const double DefaultMainWindowWidth = 1200.0;
     private const double DefaultMainWindowHeight = 800.0;
     private const string DefaultTopBarBackgroundColor = ""; // keep XAML GrayGradient by default

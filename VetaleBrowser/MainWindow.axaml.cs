@@ -134,6 +134,11 @@ public partial class MainWindow : Window
 
     // Cached appearance values
     private double _tabWidth = 200.0;
+    
+    // Tab overflow system
+    private TabOverflowWindow? _tabOverflowWindow;
+    private const double WindowControlsWidth = 130; // Приблизна ширина кнопок керування вікном
+    private const double AddTabButtonWidth = 40; // Ширина кнопки додавання вкладки
 
     public MainWindow()
     {
@@ -749,6 +754,48 @@ public partial class MainWindow : Window
         var tabsHost = _normalModePage?.TabsHostPanel;
         if (tabsHost == null) return;
 
+        // Перевіряємо чи є місце в основній панелі
+        if (ShouldUseOverflow())
+        {
+            // Додаємо до overflow вікна
+            AddTabToOverflow(worker);
+            return;
+        }
+
+        var tab = CreateTabForWorker(worker, tabsHost);
+        tabsHost.Children.Add(tab);
+    }
+
+    /// <summary>
+    /// Перевіряє чи треба використовувати overflow вікно
+    /// </summary>
+    private bool ShouldUseOverflow()
+    {
+        var tabsHost = _normalModePage?.TabsHostPanel;
+        if (tabsHost == null) return false;
+        
+        // Рахуємо поточну ширину вкладок
+        double currentTabsWidth = AddTabButtonWidth; // Кнопка "+"
+        foreach (var child in tabsHost.Children)
+        {
+            if (child is Tab t)
+            {
+                currentTabsWidth += t.Width + 4; // +4 для spacing
+            }
+        }
+        
+        // Доступна ширина для вкладок
+        double availableWidth = Width - WindowControlsWidth - 20; // 20 для padding
+        
+        // Якщо нова вкладка не поміститься
+        return (currentTabsWidth + _tabWidth + 4) > availableWidth;
+    }
+
+    /// <summary>
+    /// Створює вкладку для worker
+    /// </summary>
+    private Tab CreateTabForWorker(TabWorker worker, StackPanel tabsHost)
+    {
         var tab = new Tab
         {
             Title = "New Tab",
@@ -767,82 +814,154 @@ public partial class MainWindow : Window
         };
         tab.MuteToggled += async (_, __) =>
         {
-            try
-            {
-                // Desired mute state (toggle)
-                var desired = !worker.IsMuted;
-
-                // JS to apply mute/unmute directly in the page (media elements fallback)
-                var js = desired
-                    ? "(function(){try{document.querySelectorAll('video,audio').forEach(m=>{m.muted=true; m.volume=0;});return true;}catch(e){return false;}})();"
-                    : "(function(){try{document.querySelectorAll('video,audio').forEach(m=>{m.muted=false; if(m.volume===0) m.volume=1.0;});return true;}catch(e){return false;}})();";
-
-                object? res = null;
-                try
-                {
-                    // Ensure script evaluation runs on UI thread - WebView may require being called from UI dispatcher
-                    res = await Dispatcher.UIThread.InvokeAsync(async () => await worker.WebView.EvaluateScript<object>(js));
-                }
-                catch (Exception jsEx)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Direct WebView mute JS failed: {jsEx.Message}");
-                }
-
-                static bool EvalResultAsBool(object? r)
-                {
-                    try
-                    {
-                        if (r is bool bb) return bb;
-                        if (r is string s)
-                        {
-                            var t = s.Trim();
-                            if (bool.TryParse(t, out var pb)) return pb;
-                            if (t == "1") return true;
-                            if (t == "0") return false;
-                            if (string.Equals(t, "true", StringComparison.OrdinalIgnoreCase)) return true;
-                            if (string.Equals(t, "false", StringComparison.OrdinalIgnoreCase)) return false;
-                        }
-                        if (r is int i) return i != 0;
-                        if (r is long l) return l != 0;
-                    }
-                    catch { }
-                    return false;
-                }
-
-                var applied = EvalResultAsBool(res);
-
-                if (!applied)
-                {
-                    // JS didn't confirm application; fall back to TabWorker's ToggleMute which applies system-level or JS fallback
-                    System.Diagnostics.Debug.WriteLine("[MainWindow] JS mute did not report success, falling back to TabWorker.ToggleMute()");
-                    worker.ToggleMute();
-                }
-                else
-                {
-                    // JS confirmed; update worker state to keep it consistent
-                    worker.IsMuted = desired;
-                }
-
-                // Update this tab header immediately from the worker state
-                tab.IsMuted = worker.IsMuted;
-
-                // Sync all tab headers to reflect current worker mute states
-                for (int widx = 0; widx < _tabs.Workers.Count; widx++)
-                {
-                    var childIdx2 = widx + 1;
-                    if (childIdx2 >= 0 && childIdx2 < tabsHost.Children.Count && tabsHost.Children[childIdx2] is Tab t2)
-                    {
-                        t2.IsMuted = _tabs.Workers[widx].IsMuted;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[MainWindow] Direct mute toggle failed: {ex.Message}");
-            }
+            await HandleMuteToggle(worker, tab, tabsHost);
         };
 
-        tabsHost.Children.Add(tab);
+        return tab;
+    }
+
+    /// <summary>
+    /// Обробляє toggle mute для вкладки
+    /// </summary>
+    private async Task HandleMuteToggle(TabWorker worker, Tab tab, StackPanel tabsHost)
+    {
+        try
+        {
+            // Desired mute state (toggle)
+            var desired = !worker.IsMuted;
+
+            // JS to apply mute/unmute directly in the page (media elements fallback)
+            var js = desired
+                ? "(function(){try{document.querySelectorAll('video,audio').forEach(m=>{m.muted=true; m.volume=0;});return true;}catch(e){return false;}})();"
+                : "(function(){try{document.querySelectorAll('video,audio').forEach(m=>{m.muted=false; if(m.volume===0) m.volume=1.0;});return true;}catch(e){return false;}})();";
+
+            object? res = null;
+            try
+            {
+                // Ensure script evaluation runs on UI thread - WebView may require being called from UI dispatcher
+                res = await Dispatcher.UIThread.InvokeAsync(async () => await worker.WebView.EvaluateScript<object>(js));
+            }
+            catch (Exception jsEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Direct WebView mute JS failed: {jsEx.Message}");
+            }
+
+            static bool EvalResultAsBool(object? r)
+            {
+                try
+                {
+                    if (r is bool bb) return bb;
+                    if (r is string s)
+                    {
+                        var t = s.Trim();
+                        if (bool.TryParse(t, out var pb)) return pb;
+                        if (t == "1") return true;
+                        if (t == "0") return false;
+                        if (string.Equals(t, "true", StringComparison.OrdinalIgnoreCase)) return true;
+                        if (string.Equals(t, "false", StringComparison.OrdinalIgnoreCase)) return false;
+                    }
+                    if (r is int i) return i != 0;
+                    if (r is long l) return l != 0;
+                }
+                catch { }
+                return false;
+            }
+
+            var applied = EvalResultAsBool(res);
+
+            if (!applied)
+            {
+                // JS didn't confirm application; fall back to TabWorker's ToggleMute which applies system-level or JS fallback
+                System.Diagnostics.Debug.WriteLine("[MainWindow] JS mute did not report success, falling back to TabWorker.ToggleMute()");
+                worker.ToggleMute();
+            }
+            else
+            {
+                // JS confirmed; update worker state to keep it consistent
+                worker.IsMuted = desired;
+            }
+
+            // Update this tab header immediately from the worker state
+            tab.IsMuted = worker.IsMuted;
+
+            // Sync all tab headers to reflect current worker mute states
+            for (int widx = 0; widx < _tabs.Workers.Count; widx++)
+            {
+                var childIdx2 = widx + 1;
+                if (childIdx2 >= 0 && childIdx2 < tabsHost.Children.Count && tabsHost.Children[childIdx2] is Tab t2)
+                {
+                    t2.IsMuted = _tabs.Workers[widx].IsMuted;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Direct mute toggle failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Додає вкладку до overflow вікна
+    /// </summary>
+    private void AddTabToOverflow(TabWorker worker)
+    {
+        // Ініціалізуємо overflow вікно якщо потрібно
+        if (_tabOverflowWindow == null)
+        {
+            _tabOverflowWindow = new TabOverflowWindow();
+            _tabOverflowWindow.Initialize(this, _tabWidth);
+            
+            _tabOverflowWindow.TabCloseRequested += OnOverflowTabCloseRequested;
+            _tabOverflowWindow.TabActivated += OnOverflowTabActivated;
+            _tabOverflowWindow.CloseAllTabsRequested += OnOverflowCloseAllRequested;
+            _tabOverflowWindow.BecameEmpty += OnOverflowBecameEmpty;
+        }
+        
+        // Перевіряємо чи є місце в overflow
+        if (_tabOverflowWindow.IsFull)
+        {
+            System.Diagnostics.Debug.WriteLine("[MainWindow] Overflow window is full, cannot add more tabs");
+            return;
+        }
+        
+        if (!_tabOverflowWindow.AddTab(worker))
+        {
+            System.Diagnostics.Debug.WriteLine("[MainWindow] Failed to add tab to overflow window");
+            return;
+        }
+        
+        System.Diagnostics.Debug.WriteLine($"[MainWindow] Tab added to overflow window. Total overflow tabs: {_tabOverflowWindow.TabCount}");
+    }
+
+    private void OnOverflowTabCloseRequested(object? sender, TabWorker worker)
+    {
+        _tabs.Close(worker);
+    }
+
+    private void OnOverflowTabActivated(object? sender, TabWorker worker)
+    {
+        ActivateWorker(worker);
+        _tabOverflowWindow?.SetActiveTab(worker);
+    }
+
+    private void OnOverflowCloseAllRequested(object? sender, EventArgs e)
+    {
+        if (_tabOverflowWindow == null) return;
+        
+        // Закриваємо всі workers в overflow
+        var workers = _tabOverflowWindow.GetAllWorkers().ToList();
+        foreach (var worker in workers)
+        {
+            _tabs.Close(worker);
+        }
+        
+        _tabOverflowWindow.Hide();
+    }
+
+    private void OnOverflowBecameEmpty(object? sender, EventArgs e)
+    {
+        // Overflow вікно автоматично приховається
+        System.Diagnostics.Debug.WriteLine("[MainWindow] Overflow window became empty");
     }
 
     private int GetChildIndexForWorker(TabWorker worker)
@@ -1472,6 +1591,14 @@ public partial class MainWindow : Window
             try { _subscribedWorker.WebView.PropertyChanged -= WebView_OnPropertyChanged; } catch { }
             _subscribedWorker = null;
         }
+
+        // Закриваємо overflow вікно
+        try 
+        { 
+            _tabOverflowWindow?.Close();
+            _tabOverflowWindow = null;
+        } 
+        catch { }
 
         _tabs.Dispose();
         if (_faviconService is IDisposable d) d.Dispose();

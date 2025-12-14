@@ -255,8 +255,6 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         {
             try
             {
-                _hasExplicitErrorForCurrentNav = true;
-
                 var argsType = e.GetType();
                 var errorTextProp = argsType.GetProperty("ErrorText");
                 var errorCodeProp = argsType.GetProperty("ErrorCode");
@@ -264,9 +262,36 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
 
                 var errorText = errorTextProp?.GetValue(e) as string;
                 var failedUrl = failedUrlProp?.GetValue(e) as string;
+                
+                // Отримуємо код помилки - може бути int або enum
                 int errorCode = 0;
-                if (errorCodeProp?.GetValue(e) is int ec)
-                    errorCode = ec;
+                var errorCodeValue = errorCodeProp?.GetValue(e);
+                if (errorCodeValue != null)
+                {
+                    if (errorCodeValue is int ec)
+                    {
+                        errorCode = ec;
+                    }
+                    else if (errorCodeValue.GetType().IsEnum)
+                    {
+                        // Конвертуємо enum в int
+                        errorCode = Convert.ToInt32(errorCodeValue);
+                    }
+                    else
+                    {
+                        // Спробуємо конвертувати як число
+                        int.TryParse(errorCodeValue.ToString(), out errorCode);
+                    }
+                }
+
+                // Код 0 означає успішне завантаження - не показуємо помилку
+                if (errorCode == 0)
+                {
+                    Debug.WriteLine($"[WebViewErrorHandler] Load completed successfully (code 0), ignoring");
+                    return;
+                }
+
+                _hasExplicitErrorForCurrentNav = true;
 
                 var url = !string.IsNullOrWhiteSpace(failedUrl)
                     ? failedUrl
@@ -839,9 +864,34 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
 
                 var errorText = errorTextProp?.GetValue(e) as string;
                 var failedUrl = failedUrlProp?.GetValue(e) as string;
+                
+                // Отримуємо код помилки - може бути int або enum
                 int errorCode = 0;
-                if (errorCodeProp?.GetValue(e) is int ec)
-                    errorCode = ec;
+                var errorCodeValue = errorCodeProp?.GetValue(e);
+                if (errorCodeValue != null)
+                {
+                    if (errorCodeValue is int ec)
+                    {
+                        errorCode = ec;
+                    }
+                    else if (errorCodeValue.GetType().IsEnum)
+                    {
+                        // Конвертуємо enum в int
+                        errorCode = Convert.ToInt32(errorCodeValue);
+                    }
+                    else
+                    {
+                        // Спробуємо конвертувати як число
+                        int.TryParse(errorCodeValue.ToString(), out errorCode);
+                    }
+                }
+
+                // Код 0 означає успішне завантаження - не показуємо помилку
+                if (errorCode == 0)
+                {
+                    Debug.WriteLine($"[WebViewErrorHandler] AvaloniaCefBrowser.LoadError: code 0 (success), ignoring");
+                    return;
+                }
 
                 var url = !string.IsNullOrEmpty(failedUrl)
                     ? failedUrl

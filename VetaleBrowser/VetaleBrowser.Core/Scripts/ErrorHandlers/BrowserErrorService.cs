@@ -470,6 +470,10 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         /// </summary>
         public static bool ShouldShowErrorPage(int errorCode)
         {
+            // Ігноруємо код 0 - це означає успішне завантаження, немає помилки
+            if (errorCode == 0)
+                return false;
+            
             // Ігноруємо ERR_ABORTED - це відбувається при скасуванні навігації користувачем
             if (errorCode == CefErrorCodes.ERR_ABORTED)
                 return false;

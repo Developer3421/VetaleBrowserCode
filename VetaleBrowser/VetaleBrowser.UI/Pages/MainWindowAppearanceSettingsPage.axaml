@@ -118,7 +118,7 @@
                             <TextBlock Classes="setting-label" Text="{DynamicResource Common.HeightPx}"/>
                             <TextBox Name="NavigationBarHeightTextBox" 
                                     Classes="setting-input"
-                                    Watermark="40"/>
+                                    Watermark="36"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>

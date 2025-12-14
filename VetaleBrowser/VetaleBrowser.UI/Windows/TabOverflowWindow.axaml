@@ -1,0 +1,31 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:controls="using:VetaleBrowser.VetaleBrowser.UI.Elements"
+        mc:Ignorable="d"
+        x:Class="VetaleBrowser.VetaleBrowser.UI.Windows.TabOverflowWindow"
+        Title="Додаткові вкладки"
+        Width="400"
+        Height="50"
+        MinWidth="200"
+        MinHeight="50"
+        MaxHeight="50"
+        WindowStartupLocation="Manual"
+        SystemDecorations="None"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
+        CanResize="False"
+        ShowInTaskbar="False"
+        Topmost="True">
+    
+    <Window.Styles>
+        <StyleInclude Source="avares://VetaleBrowser/VetaleBrowser.UI/Elements/Tab.axaml"/>
+        <StyleInclude Source="avares://VetaleBrowser/VetaleBrowser.UI/Elements/TabOverflowPanel.axaml"/>
+    </Window.Styles>
+    
+    <controls:TabOverflowPanel x:Name="OverflowPanel" 
+                               HorizontalAlignment="Stretch"
+                               VerticalAlignment="Stretch"/>
+</Window>
+

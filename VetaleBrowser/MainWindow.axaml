@@ -11,7 +11,8 @@
         Background="#FF8B4513"
         BorderThickness="0.5"
         BorderBrush="#22000000"
-        
+        Width="1200"
+        Height="800"
         CanResize="True"
         MinWidth="480"
         MinHeight="320"
