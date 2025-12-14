@@ -137,8 +137,11 @@ public partial class MainWindow : Window
     
     // Tab overflow system
     private TabOverflowWindow? _tabOverflowWindow;
-    private const double WindowControlsWidth = 130; // Приблизна ширина кнопок керування вікном
-    private const double AddTabButtonWidth = 40; // Ширина кнопки додавання вкладки
+    private const int MaxTabsNormalMode = 4;   // Максимум вкладок у звичайному режимі
+    private const int MaxTabsFullscreenMode = 9; // Максимум вкладок у повноекранному режимі
+    
+    /// <summary>Поточний ліміт вкладок залежно від режиму</summary>
+    private int CurrentMaxTabs => _isFullscreen ? MaxTabsFullscreenMode : MaxTabsNormalMode;
 
     public MainWindow()
     {
@@ -754,41 +757,63 @@ public partial class MainWindow : Window
         var tabsHost = _normalModePage?.TabsHostPanel;
         if (tabsHost == null) return;
 
+        var shouldOverflow = ShouldUseOverflow();
+        System.Diagnostics.Debug.WriteLine($"[MainWindow] AddTabControlForWorker: ShouldUseOverflow={shouldOverflow}, CurrentTabCount={GetMainPanelTabCount()}, MaxTabs={CurrentMaxTabs}, IsFullscreen={_isFullscreen}");
+
         // Перевіряємо чи є місце в основній панелі
-        if (ShouldUseOverflow())
+        if (shouldOverflow)
         {
             // Додаємо до overflow вікна
+            System.Diagnostics.Debug.WriteLine("[MainWindow] Adding tab to overflow window");
             AddTabToOverflow(worker);
             return;
         }
 
         var tab = CreateTabForWorker(worker, tabsHost);
         tabsHost.Children.Add(tab);
+        System.Diagnostics.Debug.WriteLine($"[MainWindow] Tab added to main panel. New count={GetMainPanelTabCount()}");
     }
 
     /// <summary>
     /// Перевіряє чи треба використовувати overflow вікно
+    /// Базується на кількості вкладок: 4 для звичайного режиму, 9 для fullscreen
     /// </summary>
     private bool ShouldUseOverflow()
     {
         var tabsHost = _normalModePage?.TabsHostPanel;
         if (tabsHost == null) return false;
         
-        // Рахуємо поточну ширину вкладок
-        double currentTabsWidth = AddTabButtonWidth; // Кнопка "+"
+        // Рахуємо поточну кількість вкладок (без кнопки "+")
+        int currentTabCount = 0;
         foreach (var child in tabsHost.Children)
         {
-            if (child is Tab t)
+            if (child is Tab)
             {
-                currentTabsWidth += t.Width + 4; // +4 для spacing
+                currentTabCount++;
             }
         }
         
-        // Доступна ширина для вкладок
-        double availableWidth = Width - WindowControlsWidth - 20; // 20 для padding
+        // Перевіряємо чи досягнуто ліміту
+        return currentTabCount >= CurrentMaxTabs;
+    }
+    
+    /// <summary>
+    /// Отримує кількість вкладок в основній панелі
+    /// </summary>
+    private int GetMainPanelTabCount()
+    {
+        var tabsHost = _normalModePage?.TabsHostPanel;
+        if (tabsHost == null) return 0;
         
-        // Якщо нова вкладка не поміститься
-        return (currentTabsWidth + _tabWidth + 4) > availableWidth;
+        int count = 0;
+        foreach (var child in tabsHost.Children)
+        {
+            if (child is Tab)
+            {
+                count++;
+            }
+        }
+        return count;
     }
 
     /// <summary>
@@ -962,6 +987,88 @@ public partial class MainWindow : Window
     {
         // Overflow вікно автоматично приховається
         System.Diagnostics.Debug.WriteLine("[MainWindow] Overflow window became empty");
+    }
+    
+    /// <summary>
+    /// Реорганізовує вкладки при зміні режиму (звичайний/fullscreen)
+    /// Переміщує вкладки між основною панеллю та overflow відповідно до нового ліміту
+    /// </summary>
+    private void ReorganizeTabsForMode()
+    {
+        var tabsHost = _normalModePage?.TabsHostPanel;
+        if (tabsHost == null) return;
+        
+        int currentTabCount = GetMainPanelTabCount();
+        int maxTabs = CurrentMaxTabs;
+        
+        System.Diagnostics.Debug.WriteLine($"[MainWindow] ReorganizeTabsForMode: currentCount={currentTabCount}, maxTabs={maxTabs}, isFullscreen={_isFullscreen}");
+        
+        // Якщо вкладок більше ніж дозволено - переміщуємо зайві в overflow
+        while (currentTabCount > maxTabs)
+        {
+            // Знаходимо останню вкладку в основній панелі
+            Tab? lastTab = null;
+            TabWorker? lastWorker = null;
+            
+            for (int i = tabsHost.Children.Count - 1; i >= 0; i--)
+            {
+                if (tabsHost.Children[i] is Tab tab)
+                {
+                    lastTab = tab;
+                    // Знаходимо відповідний worker
+                    int workerIndex = i - 1; // -1 через кнопку "+"
+                    if (workerIndex >= 0 && workerIndex < _tabs.Workers.Count)
+                    {
+                        lastWorker = _tabs.Workers.ToList()[workerIndex];
+                    }
+                    break;
+                }
+            }
+            
+            if (lastTab != null && lastWorker != null)
+            {
+                tabsHost.Children.Remove(lastTab);
+                AddTabToOverflow(lastWorker);
+                currentTabCount--;
+            }
+            else
+            {
+                break;
+            }
+        }
+        
+        // Якщо є місце в основній панелі і є вкладки в overflow - повертаємо їх
+        while (currentTabCount < maxTabs && _tabOverflowWindow != null && _tabOverflowWindow.TabCount > 0)
+        {
+            var overflowWorkers = _tabOverflowWindow.GetAllWorkers().ToList();
+            if (overflowWorkers.Count > 0)
+            {
+                var workerToMove = overflowWorkers[0];
+                
+                // Видаляємо з overflow (потрібно спочатку отримати Tab)
+                // Створюємо нову вкладку в основній панелі
+                var newTab = CreateTabForWorker(workerToMove, tabsHost);
+                tabsHost.Children.Add(newTab);
+                
+                // Видаляємо worker з overflow через закриття
+                // (TabOverflowWindow сам обробить видалення)
+                _tabOverflowWindow.RemoveWorker(workerToMove);
+                
+                currentTabCount++;
+            }
+            else
+            {
+                break;
+            }
+        }
+        
+        // Приховуємо overflow якщо порожнє
+        if (_tabOverflowWindow != null && _tabOverflowWindow.TabCount == 0)
+        {
+            _tabOverflowWindow.Hide();
+        }
+        
+        System.Diagnostics.Debug.WriteLine($"[MainWindow] ReorganizeTabsForMode complete: mainCount={GetMainPanelTabCount()}, overflowCount={_tabOverflowWindow?.TabCount ?? 0}");
     }
 
     private int GetChildIndexForWorker(TabWorker worker)
@@ -1765,6 +1872,12 @@ public partial class MainWindow : Window
         // Enter fullscreen mode
         WindowState = WindowState.FullScreen;
         SystemDecorations = SystemDecorations.None;
+        
+        // Реорганізовуємо вкладки - в fullscreen режимі дозволено більше вкладок (9 замість 4)
+        ReorganizeTabsForMode();
+        
+        // Приховуємо overflow вікно в fullscreen режимі (вкладки повертаються в основну панель)
+        _tabOverflowWindow?.Hide();
 
         System.Diagnostics.Debug.WriteLine("[MainWindow] === FULLSCREEN ENTERED ===");
     }
@@ -1796,6 +1909,10 @@ public partial class MainWindow : Window
         // Exit fullscreen mode
         SystemDecorations = SystemDecorations.BorderOnly;
         WindowState = _preFullscreenWindowState;
+        
+        // Реорганізовуємо вкладки - в звичайному режимі дозволено менше вкладок (4)
+        // Зайві вкладки переміщуються в overflow вікно
+        ReorganizeTabsForMode();
 
         System.Diagnostics.Debug.WriteLine("[MainWindow] === FULLSCREEN EXITED ===");
 

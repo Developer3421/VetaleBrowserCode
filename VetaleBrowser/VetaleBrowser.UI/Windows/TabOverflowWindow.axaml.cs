@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using VetaleBrowser.VetaleBrowser.UI.Elements;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.Models;
 
@@ -13,7 +14,8 @@ namespace VetaleBrowser.VetaleBrowser.UI.Windows;
 /// </summary>
 public partial class TabOverflowWindow : Window
 {
-    private TabOverflowPanel? _overflowPanel;
+    private StackPanel? _tabsContainer;
+    private Button? _closeButton;
     private Window? _parentWindow;
     private readonly Dictionary<Tab, TabWorker> _tabWorkerMap = new();
     private double _tabWidth = 200;
@@ -34,7 +36,7 @@ public partial class TabOverflowWindow : Window
     public bool IsFull { get; private set; }
 
     /// <summary>Кількість вкладок</summary>
-    public int TabCount => _overflowPanel?.TabCount ?? 0;
+    public int TabCount => _tabWorkerMap.Count;
 
     public TabOverflowWindow()
     {
@@ -45,14 +47,21 @@ public partial class TabOverflowWindow : Window
     {
         AvaloniaXamlLoader.Load(this);
         
-        _overflowPanel = this.FindControl<TabOverflowPanel>("OverflowPanel");
+        _tabsContainer = this.FindControl<StackPanel>("TabsContainer");
+        _closeButton = this.FindControl<Button>("CloseButton");
         
-        if (_overflowPanel != null)
+        if (_closeButton != null)
         {
-            _overflowPanel.CloseAllRequested += OnCloseAllRequested;
-            _overflowPanel.BecameEmpty += OnBecameEmpty;
-            _overflowPanel.BecameFull += OnBecameFull;
+            _closeButton.Click += OnCloseButtonClick;
         }
+        
+        System.Diagnostics.Debug.WriteLine($"[TabOverflowWindow] InitializeComponent: TabsContainer={_tabsContainer != null}, CloseButton={_closeButton != null}");
+    }
+
+    private void OnCloseButtonClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        // Закриваємо всі вкладки в overflow
+        CloseAllTabsRequested?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -69,6 +78,8 @@ public partial class TabOverflowWindow : Window
         // Підписуємося на зміни розміру батьківського вікна
         _parentWindow.PropertyChanged += OnParentPropertyChanged;
         _parentWindow.PositionChanged += OnParentPositionChanged;
+        
+        System.Diagnostics.Debug.WriteLine($"[TabOverflowWindow] Initialized with tabWidth={tabWidth}");
     }
 
     private void OnParentPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
@@ -87,12 +98,9 @@ public partial class TabOverflowWindow : Window
 
     private void UpdateMaxWidth()
     {
-        if (_parentWindow == null || _overflowPanel == null) return;
+        if (_parentWindow == null) return;
         
         double maxWidth = _parentWindow.Width - 40; // Залишаємо відступ
-        _overflowPanel.MaxPanelWidth = maxWidth;
-        
-        // Обмежуємо ширину вікна
         MaxWidth = maxWidth;
     }
 
@@ -107,7 +115,6 @@ public partial class TabOverflowWindow : Window
         {
             // Позиціонуємо під табами головного вікна
             var parentPos = _parentWindow.Position;
-            var parentBounds = _parentWindow.Bounds;
             
             // Позиція під tab bar (приблизно 50px від верху)
             int x = parentPos.X + 10;
@@ -126,7 +133,30 @@ public partial class TabOverflowWindow : Window
     /// </summary>
     public bool CanAddTab()
     {
-        return _overflowPanel?.CanAddTab(_tabWidth) ?? false;
+        if (_tabsContainer == null) return false;
+        
+        // Розрахунок поточної ширини
+        double currentWidth = CalculateCurrentWidth();
+        double closeButtonWidth = 50; // Ширина кнопки закриття + margin
+        double padding = 24; // Загальний padding
+        
+        // Перевіряємо чи є місце для нової вкладки
+        return (currentWidth + _tabWidth + closeButtonWidth + padding) <= MaxWidth;
+    }
+    
+    private double CalculateCurrentWidth()
+    {
+        if (_tabsContainer == null) return 0;
+        
+        double width = 0;
+        foreach (var child in _tabsContainer.Children)
+        {
+            if (child is Tab tab)
+            {
+                width += tab.Width + 4; // 4 - spacing між вкладками
+            }
+        }
+        return width;
     }
 
     /// <summary>
@@ -134,7 +164,11 @@ public partial class TabOverflowWindow : Window
     /// </summary>
     public bool AddTab(TabWorker worker)
     {
-        if (_overflowPanel == null || worker == null) return false;
+        if (_tabsContainer == null || worker == null)
+        {
+            System.Diagnostics.Debug.WriteLine($"[TabOverflowWindow] AddTab failed: TabsContainer={_tabsContainer != null}, worker={worker != null}");
+            return false;
+        }
 
         var tab = new Tab
         {
@@ -150,18 +184,21 @@ public partial class TabOverflowWindow : Window
         tab.CloseRequested += (_, __) =>
         {
             _tabWorkerMap.Remove(tab);
-            _overflowPanel.RemoveTab(tab);
+            _tabsContainer.Children.Remove(tab);
             TabCloseRequested?.Invoke(this, worker);
             
             // Оновлюємо ширину вікна
             UpdateWindowWidth();
+            
+            // Перевіряємо чи порожнє вікно
+            if (_tabWorkerMap.Count == 0)
+            {
+                Hide();
+                BecameEmpty?.Invoke(this, EventArgs.Empty);
+            }
         };
 
-        if (!_overflowPanel.AddTab(tab))
-        {
-            return false;
-        }
-
+        _tabsContainer.Children.Add(tab);
         _tabWorkerMap[tab] = worker;
         
         // Оновлюємо ширину вікна
@@ -174,6 +211,7 @@ public partial class TabOverflowWindow : Window
             UpdatePosition();
         }
 
+        System.Diagnostics.Debug.WriteLine($"[TabOverflowWindow] Tab added successfully. Count={_tabWorkerMap.Count}");
         return true;
     }
 
@@ -182,11 +220,9 @@ public partial class TabOverflowWindow : Window
     /// </summary>
     private void UpdateWindowWidth()
     {
-        if (_overflowPanel == null) return;
-        
-        int tabCount = _overflowPanel.TabCount;
-        double closeButtonWidth = 40;
-        double padding = 20;
+        int tabCount = _tabWorkerMap.Count;
+        double closeButtonWidth = 50;
+        double padding = 24;
         
         double newWidth = (tabCount * _tabWidth) + (tabCount * 4) + closeButtonWidth + padding;
         newWidth = Math.Min(newWidth, MaxWidth);
@@ -237,22 +273,34 @@ public partial class TabOverflowWindow : Window
     {
         return _tabWorkerMap.Values;
     }
-
-    private void OnCloseAllRequested(object? sender, EventArgs e)
+    
+    /// <summary>
+    /// Видаляє worker з overflow вікна
+    /// </summary>
+    public void RemoveWorker(TabWorker worker)
     {
-        CloseAllTabsRequested?.Invoke(this, EventArgs.Empty);
-    }
-
-    private void OnBecameEmpty(object? sender, EventArgs e)
-    {
-        IsFull = false;
-        Hide();
-        BecameEmpty?.Invoke(this, EventArgs.Empty);
-    }
-
-    private void OnBecameFull(object? sender, EventArgs e)
-    {
-        IsFull = true;
+        Tab? tabToRemove = null;
+        foreach (var kvp in _tabWorkerMap)
+        {
+            if (kvp.Value == worker)
+            {
+                tabToRemove = kvp.Key;
+                break;
+            }
+        }
+        
+        if (tabToRemove != null)
+        {
+            _tabWorkerMap.Remove(tabToRemove);
+            _tabsContainer?.Children.Remove(tabToRemove);
+            UpdateWindowWidth();
+            
+            if (_tabWorkerMap.Count == 0)
+            {
+                Hide();
+                BecameEmpty?.Invoke(this, EventArgs.Empty);
+            }
+        }
     }
 
     protected override void OnClosed(EventArgs e)
@@ -261,6 +309,11 @@ public partial class TabOverflowWindow : Window
         {
             _parentWindow.PropertyChanged -= OnParentPropertyChanged;
             _parentWindow.PositionChanged -= OnParentPositionChanged;
+        }
+        
+        if (_closeButton != null)
+        {
+            _closeButton.Click -= OnCloseButtonClick;
         }
         
         base.OnClosed(e);

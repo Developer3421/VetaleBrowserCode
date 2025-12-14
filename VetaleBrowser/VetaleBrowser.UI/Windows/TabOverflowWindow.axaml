@@ -6,26 +6,96 @@
         mc:Ignorable="d"
         x:Class="VetaleBrowser.VetaleBrowser.UI.Windows.TabOverflowWindow"
         Title="Додаткові вкладки"
-        Width="400"
-        Height="50"
-        MinWidth="200"
-        MinHeight="50"
-        MaxHeight="50"
+        Width="600"
+        Height="54"
+        MinWidth="250"
+        MinHeight="54"
+        MaxHeight="54"
         WindowStartupLocation="Manual"
-        SystemDecorations="None"
-        Background="Transparent"
-        TransparencyLevelHint="Transparent"
+        SystemDecorations="BorderOnly"
+        Background="#FF8B4513"
+        BorderThickness="0.5"
+        BorderBrush="#22000000"
         CanResize="False"
         ShowInTaskbar="False"
-        Topmost="True">
+        Topmost="True"
+        Padding="4"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="40"
+        UseLayoutRounding="True">
+    
+    <Window.Resources>
+        <!-- Сірий градієнт як в головному вікні -->
+        <LinearGradientBrush x:Key="GrayGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#FFE0E0E0" Offset="0"/>
+            <GradientStop Color="#FFD0D0D0" Offset="0.3"/>
+            <GradientStop Color="#FFC5C5C5" Offset="0.7"/>
+            <GradientStop Color="#FFC0C0C0" Offset="1"/>
+        </LinearGradientBrush>
+    </Window.Resources>
     
     <Window.Styles>
         <StyleInclude Source="avares://VetaleBrowser/VetaleBrowser.UI/Elements/Tab.axaml"/>
-        <StyleInclude Source="avares://VetaleBrowser/VetaleBrowser.UI/Elements/TabOverflowPanel.axaml"/>
+        
+        <!-- Стиль кнопки керування вікном -->
+        <Style Selector="Button.window-control">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#303030"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width" Value="36"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.window-control:pointerover">
+            <Setter Property="Background" Value="#40FFFFFF"/>
+        </Style>
+        
+        <!-- Стиль кнопки закриття -->
+        <Style Selector="Button.window-control.close">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#FF000000"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.window-control.close:pointerover">
+            <Setter Property="Background" Value="#40FF5C5C"/>
+            <Setter Property="Foreground" Value="#FF000000"/>
+        </Style>
     </Window.Styles>
     
-    <controls:TabOverflowPanel x:Name="OverflowPanel" 
-                               HorizontalAlignment="Stretch"
-                               VerticalAlignment="Stretch"/>
+    <!-- Основний контент вікна -->
+    <Border Background="{StaticResource GrayGradient}"
+            CornerRadius="8"
+            ClipToBounds="True">
+        <Grid ColumnDefinitions="*,Auto">
+            <!-- Контейнер для вкладок -->
+            <ScrollViewer Grid.Column="0" 
+                          HorizontalScrollBarVisibility="Hidden"
+                          VerticalScrollBarVisibility="Disabled"
+                          x:Name="TabsScrollViewer">
+                <StackPanel x:Name="TabsContainer"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Spacing="4"
+                            Margin="8,0,4,0"/>
+            </ScrollViewer>
+            
+            <!-- Кнопка закриття вікна -->
+            <Button Grid.Column="1"
+                    x:Name="CloseButton"
+                    Classes="window-control close"
+                    ToolTip.Tip="Закрити вікно додаткових вкладок"
+                    Margin="4,0,8,0"
+                    VerticalAlignment="Center">
+                <Path Data="M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z"
+                      Fill="#303030"
+                      Width="10"
+                      Height="10"
+                      Stretch="Uniform"/>
+            </Button>
+        </Grid>
+    </Border>
 </Window>
 
