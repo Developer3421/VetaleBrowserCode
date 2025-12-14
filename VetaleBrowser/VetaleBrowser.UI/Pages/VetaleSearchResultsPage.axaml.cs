@@ -55,9 +55,10 @@ public partial class VetaleSearchResultsPage : UserControl
     
     // Панель пагінації
     private StackPanel? _paginationPanel;
-
-    // Embed Gemini chat panel
-    private GeminiChatPanel? _geminiChat;
+    
+    // Perplexity AI Chat panel
+    private DuckDuckGoAiChatPanel? _duckDuckGoChat;
+    private Border? _duckDuckGoChatContainer;
 
     private readonly ISuggestionsService _suggestionsService;
     private readonly IUnifiedSearchService _unifiedSearchService;
@@ -107,14 +108,15 @@ public partial class VetaleSearchResultsPage : UserControl
         _voiceButton = this.FindControl<Button>("VoiceButton");
         _suggestionsPopup = this.FindControl<Popup>("SuggestionsPopup");
         _suggestionsListBox = this.FindControl<ItemsControl>("SuggestionsListBox");
-
-        // Gemini chat control
-        _geminiChat = this.FindControl<GeminiChatPanel>("GeminiChat");
         
-        // Підключаємо навігацію з GeminiChat
-        if (_geminiChat != null)
+        // Perplexity AI Chat control
+        _duckDuckGoChat = this.FindControl<DuckDuckGoAiChatPanel>("DuckDuckGoChat");
+        _duckDuckGoChatContainer = this.FindControl<Border>("DuckDuckGoChatContainer");
+        
+        // Підключаємо навігацію з Perplexity AI Chat
+        if (_duckDuckGoChat != null)
         {
-            _geminiChat.NavigateRequested += (s, url) =>
+            _duckDuckGoChat.NavigateRequested += (s, url) =>
             {
                 if (!string.IsNullOrWhiteSpace(url))
                     NavigateRequested?.Invoke(this, url);
@@ -185,8 +187,9 @@ public partial class VetaleSearchResultsPage : UserControl
 
         LoadSearchResults(query);
         
-        // Trigger Gemini chat with the query (acts like Copilot)
-        _ = _geminiChat?.AskAsync(query);
+        // Trigger Perplexity AI chat with the query
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Triggering Perplexity AI for query: {query}");
+        _ = _duckDuckGoChat?.SendMessageAsync(query);
     }
 
     /// <summary>
@@ -878,8 +881,9 @@ public partial class VetaleSearchResultsPage : UserControl
         _currentPage = 1; // Скидаємо на першу сторінку
         LoadSearchResults(query, 1);
 
-        // опційно: lucky може одразу відкривати перший результат у майбутньому
-        _ = _geminiChat?.AskAsync(query);
+        // Оновлюємо Perplexity AI з новим запитом
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Triggering Perplexity AI for query: {query}");
+        _ = _duckDuckGoChat?.SendMessageAsync(query);
     }
 
     public void ResultTitle_Click(object? sender, PointerPressedEventArgs e)
@@ -1026,6 +1030,7 @@ public partial class VetaleSearchResultsPage : UserControl
             System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] RelatedQuery_Click error: {ex.Message}");
         }
     }
+
 
     public void ResultBorder_Click(object? sender, PointerPressedEventArgs e)
     {
@@ -1191,6 +1196,50 @@ public partial class VetaleSearchResultsPage : UserControl
         NavigateRequested?.Invoke(this, mapsUrl);
     }
 
+    /// <summary>
+    /// Обробник кнопки пошуку по картинках (📷) біля пошукового бару
+    /// </summary>
+    public void ImageSearchButton_Click(object? sender, RoutedEventArgs e)
+    {
+        // Перемикаємо на режим пошуку картинок
+        SetMode(SearchMode.Images);
+        
+        // Запускаємо пошук якщо є запит
+        if (!string.IsNullOrWhiteSpace(_currentQuery) && _imageResultsView != null)
+        {
+            _imageResultsView.SetQuery(_currentQuery);
+        }
+        else if (!string.IsNullOrWhiteSpace(_searchInput?.Text) && _imageResultsView != null)
+        {
+            _currentQuery = _searchInput.Text.Trim();
+            _imageResultsView.SetQuery(_currentQuery);
+        }
+        
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Image search button clicked, query: {_currentQuery}");
+    }
+
+    /// <summary>
+    /// Обробник кнопки пошуку по відео (📹) біля пошукового бару
+    /// </summary>
+    public void VideoSearchButton_Click(object? sender, RoutedEventArgs e)
+    {
+        // Перемикаємо на режим пошуку відео
+        SetMode(SearchMode.Videos);
+        
+        // Запускаємо пошук якщо є запит
+        if (!string.IsNullOrWhiteSpace(_currentQuery) && _videoResultsView != null)
+        {
+            _videoResultsView.SetQuery(_currentQuery);
+        }
+        else if (!string.IsNullOrWhiteSpace(_searchInput?.Text) && _videoResultsView != null)
+        {
+            _currentQuery = _searchInput.Text.Trim();
+            _videoResultsView.SetQuery(_currentQuery);
+        }
+        
+        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Video search button clicked, query: {_currentQuery}");
+    }
+
     public void SetMode(SearchMode mode)
     {
         _currentMode = mode;
@@ -1246,46 +1295,7 @@ public partial class VetaleSearchResultsPage : UserControl
         }
     }
     
-    /// <summary>
-    /// Показує вікно для налаштування Gemini API ключа
-    /// </summary>
-    private async Task ShowGeminiApiKeyPromptAsync()
-    {
-        try
-        {
-            // Перевіряємо чи вже є ключ в БД
-            var apiKeysService = DatabaseServicesFactory.TryGetApiKeysService();
-            if (apiKeysService != null)
-            {
-                var existingKey = await apiKeysService.GetGeminiApiKeyAsync();
-                if (!string.IsNullOrWhiteSpace(existingKey))
-                {
-                    System.Diagnostics.Debug.WriteLine("[VetaleSearch] Gemini API key already configured");
-                    return;
-                }
-            }
-            
-            var parentWindow = TopLevel.GetTopLevel(this) as Window;
-            
-            // Передаємо callback для навігації у браузері Vetale
-            var result = await ApiKeyConfigWindow.ShowGeminiConfigAsync(parentWindow, url =>
-            {
-                NavigateRequested?.Invoke(this, url);
-            });
-            
-            if (result.Saved && !string.IsNullOrWhiteSpace(result.ApiKey))
-            {
-                // Оновлюємо сервіс Gemini
-                GeminiAiSummaryService.SetCustomApiKey(result.ApiKey);
-                System.Diagnostics.Debug.WriteLine("[VetaleSearch] Gemini API key configured");
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[VetaleSearch] Error showing Gemini API key prompt: {ex.Message}");
-        }
-    }
-    
+
     /// <summary>
     /// Показує вікна для налаштування API ключів пошуку зображень (Pexels, Unsplash)
     /// </summary>

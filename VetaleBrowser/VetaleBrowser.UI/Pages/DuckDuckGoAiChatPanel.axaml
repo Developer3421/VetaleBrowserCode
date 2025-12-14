@@ -1,0 +1,109 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="700"
+             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.DuckDuckGoAiChatPanel">
+
+    <UserControl.Styles>
+        <!-- Header panel style -->
+        <Style Selector="Border.header-panel">
+            <Setter Property="Background" Value="#1A1A2E"/>
+            <Setter Property="Padding" Value="12,8"/>
+        </Style>
+        
+        <!-- Header buttons -->
+        <Style Selector="Button.header-button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        
+        <Style Selector="Button.header-button:pointerover">
+            <Setter Property="Background" Value="#FFFFFF30"/>
+        </Style>
+        
+        <Style Selector="Button.header-button:pressed">
+            <Setter Property="Background" Value="#FFFFFF50"/>
+        </Style>
+        
+        <!-- Loading overlay -->
+        <Style Selector="Border.loading-overlay">
+            <Setter Property="Background" Value="#80000000"/>
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- Header with Perplexity branding -->
+        <Border Grid.Row="0" Classes="header-panel">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                <!-- Perplexity logo/icon -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <TextBlock Text="🔮" FontSize="20" VerticalAlignment="Center"/>
+                    <TextBlock Text="Perplexity AI" 
+                               FontWeight="SemiBold" 
+                               FontSize="14" 
+                               Foreground="White"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+                
+                <!-- Status indicator -->
+                <TextBlock Grid.Column="1" 
+                           Name="StatusText"
+                           Text=""
+                           FontSize="11"
+                           Foreground="#FFFFFFAA"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+                
+                <!-- Refresh button -->
+                <Button Grid.Column="2" 
+                        Name="RefreshButton"
+                        Classes="header-button"
+                        Click="OnRefreshClick"
+                        ToolTip.Tip="Оновити">
+                    <TextBlock Text="🔄" FontSize="14"/>
+                </Button>
+                
+                <!-- New Chat button -->
+                <Button Grid.Column="3" 
+                        Name="NewChatButton"
+                        Classes="header-button"
+                        Click="OnNewChatClick"
+                        ToolTip.Tip="Новий чат">
+                    <TextBlock Text="➕" FontSize="14"/>
+                </Button>
+            </Grid>
+        </Border>
+        
+        <!-- WebView container - розтягується на всю доступну висоту -->
+        <Grid Grid.Row="1" 
+              Name="WebViewContainer" 
+              Background="White"
+              HorizontalAlignment="Stretch"
+              VerticalAlignment="Stretch">
+            <!-- WebView буде додано програмно -->
+        </Grid>
+        
+        <!-- Loading overlay -->
+        <Border Grid.Row="1" 
+                Name="LoadingOverlay"
+                Classes="loading-overlay"
+                IsVisible="False">
+            <StackPanel HorizontalAlignment="Center" 
+                        VerticalAlignment="Center"
+                        Spacing="12">
+                <TextBlock Text="🔮" FontSize="48" HorizontalAlignment="Center"/>
+                <TextBlock Text="Завантаження Perplexity AI..." 
+                           FontSize="14" 
+                           Foreground="White"
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
+

@@ -198,6 +198,10 @@ public partial class GeminiChatPanel : UserControl, IDisposable
         try
         {
             System.Diagnostics.Debug.WriteLine("[GeminiChat] Sending request to Gemini...");
+            
+            // Оновлюємо API ключ перед запитом (на випадок якщо користувач змінив його в налаштуваннях)
+            _geminiService.RefreshApiKey();
+            System.Diagnostics.Debug.WriteLine($"[GeminiChat] API key refreshed, current key: {_geminiService.CurrentApiKey?.Substring(0, Math.Min(10, _geminiService.CurrentApiKey?.Length ?? 0))}...");
 
             // Use GeminiAiSummaryService to generate chat response
             var summary = await _geminiService.GenerateChatResponseAsync(userMessage, token);

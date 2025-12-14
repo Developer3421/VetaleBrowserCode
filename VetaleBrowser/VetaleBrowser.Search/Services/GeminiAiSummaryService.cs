@@ -23,9 +23,9 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
     private const string ApiBaseUrl = "https://generativelanguage.googleapis.com/v1beta/models";
     
     // БЕЗКОШТОВНІ моделі Google Gemini (оберіть одну):
-    // 1. "gemini-1.5-flash" - швидка та стабільна (РЕКОМЕНДОВАНО)
-    // 2. "gemini-1.5-pro" - найпотужніша, але повільніша
-    // 3. "gemini-1.0-pro" - стара версія
+    // 1. "gemini-2.5-flash" - найновіша швидка модель (РЕКОМЕНДОВАНО)
+    // 2. "gemini-1.5-flash" - попередня швидка версія
+    // 3. "gemini-1.5-pro" - найпотужніша, але повільніша
     private const string ModelName = "gemini-2.5-flash";
     
     // ===== ЯК ОТРИМАТИ API КЛЮЧ =====
@@ -98,13 +98,16 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
     
     private void InitializeApiKey()
     {
+        System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] === InitializeApiKey START ===");
+        System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] _customApiKey (static): {(_customApiKey != null ? $"'{_customApiKey.Substring(0, Math.Min(10, _customApiKey.Length))}...'" : "null")}");
+        
         // Пріоритет: 1) пам'ять (_customApiKey) > 2) дефолтний ключ > 3) база даних > 4) змінна середовища
         
         // 1. Кастомний ключ в пам'яті
         if (!string.IsNullOrWhiteSpace(_customApiKey))
         {
             _apiKeyToUse = _customApiKey;
-            System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Using custom API Key (memory): {_apiKeyToUse.Substring(0, Math.Min(10, _apiKeyToUse.Length))}...");
+            System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] ✓ Using custom API Key (memory): {_apiKeyToUse.Substring(0, Math.Min(10, _apiKeyToUse.Length))}...");
             return;
         }
         
@@ -112,28 +115,31 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
         if (!string.IsNullOrWhiteSpace(DefaultApiKey) && DefaultApiKey != "YOUR_GEMINI_API_KEY_HERE")
         {
             _apiKeyToUse = DefaultApiKey;
-            System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Using default API Key: {_apiKeyToUse.Substring(0, Math.Min(10, _apiKeyToUse.Length))}...");
+            System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] ✓ Using default API Key: {_apiKeyToUse.Substring(0, Math.Min(10, _apiKeyToUse.Length))}...");
             return;
         }
         
         // 3. Змінна середовища (швидко, без блокування)
         var envKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
+        System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] GEMINI_API_KEY env var: {(envKey != null ? $"'{envKey.Substring(0, Math.Min(10, envKey.Length))}...'" : "not set")}");
         if (!string.IsNullOrWhiteSpace(envKey))
         {
             _apiKeyToUse = envKey;
-            System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Using environment API Key: {_apiKeyToUse.Substring(0, Math.Min(10, _apiKeyToUse.Length))}...");
+            System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] ✓ Using environment API Key: {_apiKeyToUse.Substring(0, Math.Min(10, _apiKeyToUse.Length))}...");
             return;
         }
         
         // 4. Спробуємо завантажити з бази даних (може бути повільно)
         try
         {
+            System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Trying to load from database...");
             var dbKey = LoadApiKeyFromDatabase();
+            System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Database returned: {(dbKey != null ? $"'{dbKey.Substring(0, Math.Min(10, dbKey.Length))}...'" : "null")}");
             if (!string.IsNullOrWhiteSpace(dbKey))
             {
                 _customApiKey = dbKey; // Кешуємо
                 _apiKeyToUse = dbKey;
-                System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Using saved API Key (database): {_apiKeyToUse.Substring(0, Math.Min(10, _apiKeyToUse.Length))}...");
+                System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] ✓ Using saved API Key (database): {_apiKeyToUse.Substring(0, Math.Min(10, _apiKeyToUse.Length))}...");
                 return;
             }
         }
@@ -144,8 +150,9 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
         
         // Якщо нічого не знайдено - використовуємо плейсхолдер
         _apiKeyToUse = "YOUR_GEMINI_API_KEY_HERE";
-        System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] WARNING: API Key not set!");
+        System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] ⚠️ WARNING: API Key not set! Using placeholder.");
         System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Get your free key at: https://aistudio.google.com/app/apikey");
+        System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] === InitializeApiKey END ===");
     }
     
     /// <summary>
@@ -413,7 +420,13 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
                 summary.State = AiSummaryState.Error;
                 
                 // Детальний аналіз помилок з локалізацією
-                if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    // 404 - модель не знайдена
+                    summary.ErrorMessage = $"Model '{ModelName}' not found. Check model name.";
+                    System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Model not found: {ModelName}");
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
                 {
                     summary.ErrorMessage = LocalizeMessage("BadRequest", currentLanguage);
                 }

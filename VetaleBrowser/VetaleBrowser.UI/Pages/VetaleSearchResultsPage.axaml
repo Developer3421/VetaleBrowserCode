@@ -310,10 +310,10 @@
                                     <Button x:Name="VoiceButton" Classes="icon-button" ToolTip.Tip="{DynamicResource VetaleSearch.VoiceSearch}" Click="VoiceButton_Click">
                                         <TextBlock Text="🎤" FontSize="18"/>
                                     </Button>
-                                    <Button Classes="icon-button" ToolTip.Tip="{DynamicResource VetaleSearch.ImageSearch}">
+                                    <Button Classes="icon-button" ToolTip.Tip="{DynamicResource VetaleSearch.ImageSearch}" Click="ImageSearchButton_Click">
                                         <TextBlock Text="📷" FontSize="18"/>
                                     </Button>
-                                    <Button Classes="icon-button" ToolTip.Tip="{DynamicResource VetaleSearch.VideoSearch}">
+                                    <Button Classes="icon-button" ToolTip.Tip="{DynamicResource VetaleSearch.VideoSearch}" Click="VideoSearchButton_Click">
                                         <TextBlock Text="📹" FontSize="18"/>
                                     </Button>
                                     <Button Classes="icon-button" ToolTip.Tip="{DynamicResource VetaleSearch.GeoSearch}" Click="GeoSearch_Click">
@@ -376,16 +376,13 @@
             </Grid>
         </Border>
 
-        <!-- Зона результатів -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <Grid Margin="0,16,0,24">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="360"/>
-                </Grid.ColumnDefinitions>
-
-                <!-- Основний контент -->
-                <Border Grid.Column="0" Classes="results-card" Margin="32,0,16,0" HorizontalAlignment="Stretch" MaxWidth="900">
+        <!-- Зона результатів - розділена на дві частини -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,380">
+            <!-- Ліва колонка: прокручувані результати -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                <Grid Margin="0,16,0,24">
+                    <!-- Основний контент -->
+                    <Border Classes="results-card" Margin="32,0,16,0" HorizontalAlignment="Stretch" MaxWidth="900">
                     <Border Classes="results-inner-card">
                         <StackPanel>
                             <!-- Перемикач режимів пошуку -->
@@ -605,14 +602,20 @@
                     </StackPanel>
                     </Border>
                 </Border>
+                </Grid>
+            </ScrollViewer>
 
-                <!-- Права колонка: Gemini Chat (замість AI-підсумку) -->
-                <StackPanel Grid.Column="1" Margin="16,0,32,0" Spacing="12" VerticalAlignment="Stretch">
-                    <Border Background="White" CornerRadius="20" Padding="0" BoxShadow="0 4 16 #14000000">
-                        <pages:GeminiChatPanel x:Name="GeminiChat"/>
-                    </Border>
-                </StackPanel>
-            </Grid>
-        </ScrollViewer>
+            <!-- Права колонка: Perplexity AI Chat (фіксована, не прокручується з результатами) -->
+            <Border Grid.Column="1" 
+                    x:Name="DuckDuckGoChatContainer" 
+                    Background="White" 
+                    CornerRadius="20" 
+                    Padding="0" 
+                    Margin="0,16,32,24"
+                    BoxShadow="0 4 16 #14000000"
+                    IsVisible="True">
+                <pages:DuckDuckGoAiChatPanel x:Name="DuckDuckGoChat"/>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>
