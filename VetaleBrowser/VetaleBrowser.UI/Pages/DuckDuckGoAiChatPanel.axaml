@@ -81,13 +81,18 @@
         </Border>
         
         <!-- WebView container - розтягується на всю доступну висоту -->
-        <Grid Grid.Row="1" 
-              Name="WebViewContainer" 
-              Background="White"
-              HorizontalAlignment="Stretch"
-              VerticalAlignment="Stretch">
-            <!-- WebView буде додано програмно -->
-        </Grid>
+        <Border Grid.Row="1" 
+                Name="WebViewContainerBorder"
+                Background="White"
+                ClipToBounds="True">
+            <Grid Name="WebViewContainer" 
+                  Background="White"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch"
+                  MinHeight="200">
+                <!-- WebView буде додано програмно -->
+            </Grid>
+        </Border>
         
         <!-- Loading overlay -->
         <Border Grid.Row="1" 

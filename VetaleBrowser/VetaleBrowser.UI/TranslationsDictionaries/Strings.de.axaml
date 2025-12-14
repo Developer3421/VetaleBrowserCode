@@ -42,6 +42,10 @@
   <x:String x:Key="Window.Minimize">Minimieren</x:String>
   <x:String x:Key="Window.Maximize">Maximieren</x:String>
   <x:String x:Key="Window.Close">Schließen</x:String>
+  <x:String x:Key="Window.NewWindow">Neues Browserfenster öffnen</x:String>
+  <x:String x:Key="Tab.NewTab">Neuer Tab</x:String>
+  <x:String x:Key="Window.DragToMove">Ziehen zum Verschieben</x:String>
+  <x:String x:Key="Window.CloseAllTabs">Alle Tabs in diesem Fenster schließen</x:String>
 
   <!-- Sprachseite -->
   <x:String x:Key="Language.Header">Sprache</x:String>

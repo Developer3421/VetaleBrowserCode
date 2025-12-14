@@ -52,6 +52,24 @@
             <Setter Property="Background" Value="#40FF5C5C"/>
             <Setter Property="Foreground" Value="#FF000000"/>
         </Style>
+        
+        <!-- New Window Button Style -->
+        <Style Selector="Button#PART_NewWindowButton">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Opacity" Value="0.9"/>
+        </Style>
+        <Style Selector="Button#PART_NewWindowButton:pointerover">
+            <Setter Property="Opacity" Value="1"/>
+            <Setter Property="RenderTransform">
+                <ScaleTransform ScaleX="1.05" ScaleY="1.05"/>
+            </Setter>
+        </Style>
+        <Style Selector="Button#PART_NewWindowButton:pressed">
+            <Setter Property="Opacity" Value="0.8"/>
+            <Setter Property="RenderTransform">
+                <ScaleTransform ScaleX="0.95" ScaleY="0.95"/>
+            </Setter>
+        </Style>
     </UserControl.Styles>
 
     <Grid RowDefinitions="Auto,Auto,*">
@@ -62,20 +80,39 @@
                 <!-- left area - tabs -->
                 <StackPanel Name="TabsHost" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Top" Margin="8,4,0,0" Spacing="4">
                     <!-- Add Tab Button (left of tabs) -->
-                    <Button Name="PART_AddTabButton" Width="32" Height="32" Margin="0,0,8,0" Background="Transparent" Padding="0" BorderThickness="0" ToolTip.Tip="Нова вкладка">
+                    <Button Name="PART_AddTabButton" Width="32" Height="32" Margin="0,0,4,0" Background="Transparent" Padding="0" BorderThickness="0" ToolTip.Tip="{DynamicResource Tab.NewTab}">
                         <Image Source="{DynamicResource AddTabImage}" Stretch="UniformToFill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0"/>
+                    </Button>
+                    <!-- New Window Button -->
+                    <Button Name="PART_NewWindowButton" Width="32" Height="32" Margin="0,0,8,0" Padding="0" BorderThickness="0" ToolTip.Tip="{DynamicResource Window.NewWindow}" CornerRadius="6">
+                        <Button.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#FFFF6B00" Offset="0"/>
+                                <GradientStop Color="#FFFF8C00" Offset="0.3"/>
+                                <GradientStop Color="#FF9B30FF" Offset="0.7"/>
+                                <GradientStop Color="#FF8A2BE2" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Button.Background>
+                        <Viewbox Width="20" Height="20">
+                            <Canvas Width="24" Height="24">
+                                <!-- Window icon with plus -->
+                                <Rectangle Width="16" Height="12" Canvas.Left="2" Canvas.Top="6" Stroke="White" StrokeThickness="2" Fill="Transparent" RadiusX="1" RadiusY="1"/>
+                                <Line StartPoint="18,4" EndPoint="18,12" Stroke="White" StrokeThickness="2.5"/>
+                                <Line StartPoint="14,8" EndPoint="22,8" Stroke="White" StrokeThickness="2.5"/>
+                            </Canvas>
+                        </Viewbox>
                     </Button>
                 </StackPanel>
                 
                 <!-- window controls on the right -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Name="MinimizeButton" Classes="window-control" ToolTip.Tip="Minimize" Padding="0">
+                    <Button Name="MinimizeButton" Classes="window-control" ToolTip.Tip="{DynamicResource Window.Minimize}" Padding="0">
                         <Image Source="{DynamicResource MinButtonImage}" Stretch="Uniform"/>
                     </Button>
-                    <Button Name="MaximizeButton" Classes="window-control" ToolTip.Tip="Maximize" Padding="0">
+                    <Button Name="MaximizeButton" Classes="window-control" ToolTip.Tip="{DynamicResource Window.Maximize}" Padding="0">
                         <Image Source="{DynamicResource MaxButtonImage}" Stretch="Uniform"/>
                     </Button>
-                    <Button Name="CloseButton" Classes="window-control close" ToolTip.Tip="Close" Padding="0" BorderThickness="0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                    <Button Name="CloseButton" Classes="window-control close" ToolTip.Tip="{DynamicResource Window.Close}" Padding="0" BorderThickness="0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
                         <Image Source="{DynamicResource CloseButtonImage}" Stretch="UniformToFill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0"/>
                     </Button>
                 </StackPanel>

@@ -42,6 +42,10 @@
   <x:String x:Key="Window.Minimize">Згорнути</x:String>
   <x:String x:Key="Window.Maximize">Розгорнути</x:String>
   <x:String x:Key="Window.Close">Закрити</x:String>
+  <x:String x:Key="Window.NewWindow">Відкрити нове вікно браузера</x:String>
+  <x:String x:Key="Tab.NewTab">Нова вкладка</x:String>
+  <x:String x:Key="Window.DragToMove">Перетягніть щоб перемістити</x:String>
+  <x:String x:Key="Window.CloseAllTabs">Закрити всі вкладки в цьому вікні</x:String>
 
   <!-- Сторінка мови -->
   <x:String x:Key="Language.Header">Мова</x:String>

@@ -10,6 +10,7 @@ public partial class NormalModePage : UserControl
 {
     private StackPanel? _tabsHost;
     private Button? _addTabButton;
+    private Button? _newWindowButton;
     private Grid? _webViewContainer;
     private NavigationBar? _navigationBar;
     private Grid? _navigationBarRow;
@@ -22,6 +23,7 @@ public partial class NormalModePage : UserControl
 
     public StackPanel? TabsHostPanel => _tabsHost;
     public Button? AddTabBtn => _addTabButton;
+    public Button? NewWindowBtn => _newWindowButton;
     public Grid? WebViewGrid => _webViewContainer;
     public NavigationBar? NavBar => _navigationBar;
     public Grid? NavBarRow => _navigationBarRow;
@@ -82,6 +84,9 @@ public partial class NormalModePage : UserControl
             
             _addTabButton = this.FindControl<Button>("PART_AddTabButton");
             System.Diagnostics.Debug.WriteLine($"[NormalModePage] AddTabButton: {(_addTabButton != null ? "Found" : "NULL")}");
+            
+            _newWindowButton = this.FindControl<Button>("PART_NewWindowButton");
+            System.Diagnostics.Debug.WriteLine($"[NormalModePage] NewWindowButton: {(_newWindowButton != null ? "Found" : "NULL")}");
             
             _webViewContainer = this.FindControl<Grid>("WebViewContainer");
             System.Diagnostics.Debug.WriteLine($"[NormalModePage] WebViewContainer: {(_webViewContainer != null ? "Found" : "NULL")}");

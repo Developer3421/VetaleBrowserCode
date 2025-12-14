@@ -12,27 +12,31 @@
         MinHeight="54"
         MaxHeight="54"
         WindowStartupLocation="Manual"
-        SystemDecorations="BorderOnly"
-        Background="#FF8B4513"
-        BorderThickness="0.5"
-        BorderBrush="#22000000"
+        SystemDecorations="None"
+        Background="Transparent"
+        BorderThickness="0"
         CanResize="False"
         ShowInTaskbar="False"
         Topmost="True"
-        Padding="4"
-        ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaChromeHints="NoChrome"
-        ExtendClientAreaTitleBarHeightHint="40"
+        Padding="0"
+        TransparencyLevelHint="Transparent"
         UseLayoutRounding="True">
     
     <Window.Resources>
-        <!-- Сірий градієнт як в головному вікні -->
-        <LinearGradientBrush x:Key="GrayGradient" StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Color="#FFE0E0E0" Offset="0"/>
-            <GradientStop Color="#FFD0D0D0" Offset="0.3"/>
-            <GradientStop Color="#FFC5C5C5" Offset="0.7"/>
-            <GradientStop Color="#FFC0C0C0" Offset="1"/>
-        </LinearGradientBrush>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Завантажуємо іконки -->
+                <ResourceInclude Source="avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/IconResources.axaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            
+            <!-- Сірий градієнт як в головному вікні -->
+            <LinearGradientBrush x:Key="GrayGradient" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#FFE0E0E0" Offset="0"/>
+                <GradientStop Color="#FFD0D0D0" Offset="0.3"/>
+                <GradientStop Color="#FFC5C5C5" Offset="0.7"/>
+                <GradientStop Color="#FFC0C0C0" Offset="1"/>
+            </LinearGradientBrush>
+        </ResourceDictionary>
     </Window.Resources>
     
     <Window.Styles>
@@ -68,10 +72,30 @@
     <!-- Основний контент вікна -->
     <Border Background="{StaticResource GrayGradient}"
             CornerRadius="8"
-            ClipToBounds="True">
-        <Grid ColumnDefinitions="*,Auto">
+            ClipToBounds="True"
+            BorderThickness="1"
+            BorderBrush="#44000000"
+            Margin="4"
+            x:Name="DragBorder"
+            PointerPressed="OnDragBorderPointerPressed">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+            <!-- Drag handle -->
+            <Border Grid.Column="0"
+                    Width="24"
+                    Background="Transparent"
+                    Cursor="SizeAll"
+                    ToolTip.Tip="{DynamicResource Window.DragToMove}"
+                    x:Name="DragHandle"
+                    PointerPressed="OnDragHandlePointerPressed">
+                <TextBlock Text="⋮⋮" 
+                           FontSize="14" 
+                           VerticalAlignment="Center" 
+                           HorizontalAlignment="Center"
+                           Foreground="#666666"/>
+            </Border>
+            
             <!-- Контейнер для вкладок -->
-            <ScrollViewer Grid.Column="0" 
+            <ScrollViewer Grid.Column="1" 
                           HorizontalScrollBarVisibility="Hidden"
                           VerticalScrollBarVisibility="Disabled"
                           x:Name="TabsScrollViewer">
@@ -79,21 +103,22 @@
                             Orientation="Horizontal"
                             VerticalAlignment="Center"
                             Spacing="4"
-                            Margin="8,0,4,0"/>
+                            Margin="4,0,4,0"/>
             </ScrollViewer>
             
             <!-- Кнопка закриття вікна -->
-            <Button Grid.Column="1"
+            <Button Grid.Column="2"
                     x:Name="CloseButton"
                     Classes="window-control close"
-                    ToolTip.Tip="Закрити вікно додаткових вкладок"
+                    ToolTip.Tip="{DynamicResource Window.CloseAllTabs}"
                     Margin="4,0,8,0"
+                    Width="28"
+                    Height="28"
                     VerticalAlignment="Center">
-                <Path Data="M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z"
-                      Fill="#303030"
-                      Width="10"
-                      Height="10"
-                      Stretch="Uniform"/>
+                <Image Source="{DynamicResource CloseButtonImage}" 
+                       Stretch="UniformToFill"
+                       Width="16"
+                       Height="16"/>
             </Button>
         </Grid>
     </Border>

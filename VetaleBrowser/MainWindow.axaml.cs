@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -135,16 +136,37 @@ public partial class MainWindow : Window
     // Cached appearance values
     private double _tabWidth = 200.0;
     
-    // Tab overflow system
-    private TabOverflowWindow? _tabOverflowWindow;
+    // Tab overflow system - підтримка множинних overflow вікон
+    private readonly List<TabOverflowWindow> _tabOverflowWindows = new();
+    private readonly Dictionary<Tab, TabWorker> _mainPanelTabWorkerMap = new();
     private const int MaxTabsNormalMode = 4;   // Максимум вкладок у звичайному режимі
+    private const int MaxTabsMaximizedMode = 8; // Максимум вкладок у розгорнутому вікні
     private const int MaxTabsFullscreenMode = 9; // Максимум вкладок у повноекранному режимі
+    private const int MaxTabsPerOverflowWindow = 6; // Максимум вкладок в одному overflow вікні
+    
+    // Drag-and-drop support for main tabs panel
+    private Border? _mainTabsDropIndicator;
+    private int _mainTabsDropTargetIndex = -1;
+    
+    // Статичний список всіх екземплярів MainWindow для drag-and-drop між вікнами
+    private static readonly List<MainWindow> _allMainWindows = new();
     
     /// <summary>Поточний ліміт вкладок залежно від режиму</summary>
-    private int CurrentMaxTabs => _isFullscreen ? MaxTabsFullscreenMode : MaxTabsNormalMode;
+    private int CurrentMaxTabs
+    {
+        get
+        {
+            if (_isFullscreen) return MaxTabsFullscreenMode;
+            if (WindowState == WindowState.Maximized) return MaxTabsMaximizedMode;
+            return MaxTabsNormalMode;
+        }
+    }
 
     public MainWindow()
     {
+        // Реєструємо це вікно в статичному списку
+        _allMainWindows.Add(this);
+        
         try
         {
             InitializeComponent();
@@ -194,6 +216,9 @@ public partial class MainWindow : Window
         this.Loaded += OnWindowLoaded;
         this.Closed += OnWindowClosed;
         this.KeyDown += OnWindowKeyDown;
+        
+        // Handle window state changes (maximized/restored) to reorganize tabs
+        this.PropertyChanged += OnMainWindowPropertyChanged;
 
         _tabs.TabActivated += OnTabActivated;
         _tabs.TabClosed += OnTabClosed;
@@ -307,6 +332,17 @@ public partial class MainWindow : Window
                 System.Diagnostics.Debug.WriteLine("[MainWindow] WARNING: AddTabBtn is null");
             }
             
+            // Setup new window button handler
+            if (_normalModePage.NewWindowBtn != null)
+            {
+                _normalModePage.NewWindowBtn.Click += OnNewWindowBtnClick;
+                System.Diagnostics.Debug.WriteLine("[MainWindow] InitializeComponent: NewWindowBtn handler attached");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] WARNING: NewWindowBtn is null");
+            }
+            
             // Setup window control buttons
             if (_normalModePage.MinBtn != null)
             {
@@ -349,6 +385,9 @@ public partial class MainWindow : Window
             {
                 System.Diagnostics.Debug.WriteLine("[MainWindow] WARNING: TabBar is null");
             }
+            
+            // Setup drag-and-drop for main tabs panel
+            SetupMainTabsDragDrop();
             
             System.Diagnostics.Debug.WriteLine("[MainWindow] InitializeComponent: Completed successfully");
         }
@@ -737,6 +776,29 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Створює новий екземпляр головного вікна браузера
+    /// </summary>
+    private void OnNewWindowBtnClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("[MainWindow] Creating new browser window...");
+            
+            var newWindow = new MainWindow();
+            newWindow.Show();
+            
+            // Позиціонуємо нове вікно з невеликим зміщенням
+            newWindow.Position = new Avalonia.PixelPoint(this.Position.X + 30, this.Position.Y + 30);
+            
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] New browser window created. Total windows: {_allMainWindows.Count}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] OnNewWindowBtnClick error: {ex.Message}");
+        }
+    }
+
     // Open a new tab using the selected search engine homepage
     private async void OnAddTabBtnClickAsync(object? sender, RoutedEventArgs e)
     {
@@ -835,15 +897,414 @@ public partial class MainWindow : Window
         {
             // Remove the specific Tab control that was clicked, then close its worker
             tabsHost.Children.Remove(tab);
+            _mainPanelTabWorkerMap.Remove(tab);
             _tabs.Close(worker);
         };
         tab.MuteToggled += async (_, __) =>
         {
             await HandleMuteToggle(worker, tab, tabsHost);
         };
+        
+        // Підтримка перетягування (правою кнопкою миші)
+        tab.DragStarted += (_, args) =>
+        {
+            if (args is TabDragStartedEventArgs dragArgs)
+            {
+                StartMainTabDrag(tab, worker, dragArgs.PointerEvent);
+            }
+        };
+
+        // Додаємо до мапи для швидкого пошуку
+        _mainPanelTabWorkerMap[tab] = worker;
 
         return tab;
     }
+
+    /// <summary>
+    /// Знаходить Tab в основній панелі по Worker
+    /// </summary>
+    private Tab? FindTabByWorker(TabWorker worker)
+    {
+        foreach (var kvp in _mainPanelTabWorkerMap)
+        {
+            if (kvp.Value == worker)
+            {
+                return kvp.Key;
+            }
+        }
+        return null;
+    }
+    
+    /// <summary>
+    /// Публічний метод для видалення вкладки з основної панелі (для drag-and-drop між вікнами)
+    /// </summary>
+    public void RemoveTabFromMainPanel(TabWorker worker)
+    {
+        var tabsHost = _normalModePage?.TabsHostPanel;
+        if (tabsHost == null) return;
+        
+        var existingTab = FindTabByWorker(worker);
+        if (existingTab != null)
+        {
+            tabsHost.Children.Remove(existingTab);
+            _mainPanelTabWorkerMap.Remove(existingTab);
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] RemoveTabFromMainPanel: Removed tab {existingTab.Title}");
+        }
+    }
+
+    #region Main Tabs Drag-and-Drop
+    
+    /// <summary>
+    /// Налаштовує drag-and-drop для основної панелі вкладок
+    /// </summary>
+    private void SetupMainTabsDragDrop()
+    {
+        var tabsHost = _normalModePage?.TabsHostPanel;
+        if (tabsHost == null)
+        {
+            System.Diagnostics.Debug.WriteLine("[MainWindow] SetupMainTabsDragDrop: TabsHostPanel is null");
+            return;
+        }
+        
+        // Створюємо індикатор місця вставки
+        _mainTabsDropIndicator = new Border
+        {
+            Width = 3,
+            Height = 30,
+            Background = new SolidColorBrush(Color.Parse("#7CB342")),
+            CornerRadius = new CornerRadius(2),
+            IsVisible = false,
+            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+            Margin = new Thickness(-1.5, 0, -1.5, 0)
+        };
+        
+        // Додаємо підтримку drop
+        tabsHost.AddHandler(DragDrop.DropEvent, OnMainTabsDrop);
+        tabsHost.AddHandler(DragDrop.DragOverEvent, OnMainTabsDragOver);
+        tabsHost.AddHandler(DragDrop.DragLeaveEvent, OnMainTabsDragLeave);
+        DragDrop.SetAllowDrop(tabsHost, true);
+        
+        System.Diagnostics.Debug.WriteLine("[MainWindow] SetupMainTabsDragDrop: Drag-and-drop configured");
+    }
+    
+    /// <summary>
+    /// Обробник DragOver для основної панелі вкладок
+    /// </summary>
+    private void OnMainTabsDragOver(object? sender, DragEventArgs e)
+    {
+        var tabsHost = _normalModePage?.TabsHostPanel;
+        if (tabsHost == null) return;
+        
+#pragma warning disable CS0618 // Data is obsolete
+        if (e.Data.Contains("TabDragData"))
+        {
+            e.DragEffects = DragDropEffects.Move;
+            
+            // Визначаємо позицію для вставки
+            var position = e.GetPosition(tabsHost);
+            _mainTabsDropTargetIndex = CalculateMainTabsDropIndex(position.X, tabsHost);
+            
+            // Показуємо індикатор
+            ShowMainTabsDropIndicator(_mainTabsDropTargetIndex, tabsHost);
+        }
+        else
+        {
+            e.DragEffects = DragDropEffects.None;
+            HideMainTabsDropIndicator(tabsHost);
+        }
+#pragma warning restore CS0618
+    }
+    
+    /// <summary>
+    /// Обробник DragLeave для основної панелі вкладок
+    /// </summary>
+    private void OnMainTabsDragLeave(object? sender, DragEventArgs e)
+    {
+        var tabsHost = _normalModePage?.TabsHostPanel;
+        if (tabsHost != null)
+        {
+            HideMainTabsDropIndicator(tabsHost);
+        }
+    }
+    
+    /// <summary>
+    /// Обробник Drop для основної панелі вкладок
+    /// </summary>
+    private void OnMainTabsDrop(object? sender, DragEventArgs e)
+    {
+        var tabsHost = _normalModePage?.TabsHostPanel;
+        if (tabsHost == null) return;
+        
+        // Приховуємо індикатор
+        int insertIndex = _mainTabsDropTargetIndex;
+        HideMainTabsDropIndicator(tabsHost);
+        
+#pragma warning disable CS0618 // Data is obsolete
+        if (e.Data.Get("TabDragData") is TabDragData dragData)
+#pragma warning restore CS0618
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Tab dropped from {(dragData.SourceWindow != null ? "overflow" : "main")} at index {insertIndex}");
+            
+            // Видаляємо з вікна-джерела (overflow window)
+            if (dragData.SourceWindow != null)
+            {
+                dragData.SourceWindow.RemoveWorker(dragData.Worker);
+            }
+            else if (dragData.SourceMainWindow is MainWindow sourceMainWindow)
+            {
+                // Вкладка з іншого MainWindow або з цього ж
+                if (sourceMainWindow == this)
+                {
+                    // Це вкладка з цього ж вікна - видаляємо стару вкладку повністю
+                    var existingTab = FindTabByWorker(dragData.Worker);
+                    if (existingTab != null)
+                    {
+                        tabsHost.Children.Remove(existingTab);
+                        _mainPanelTabWorkerMap.Remove(existingTab);
+                        System.Diagnostics.Debug.WriteLine($"[MainWindow] Removed existing tab from this main panel: {existingTab.Title}");
+                    }
+                }
+                else
+                {
+                    // Вкладка з іншого MainWindow - викликаємо видалення в тому вікні
+                    sourceMainWindow.RemoveTabFromMainPanel(dragData.Worker);
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Removed tab from other MainWindow: {dragData.Title}");
+                }
+            }
+            
+            // Скидаємо візуальний стан вкладки-джерела (вона більше не потрібна)
+            dragData.SourceTab.ResetDragState();
+            
+            // Додаємо до основної панелі в потрібну позицію (створюємо нову вкладку)
+            AddTabToMainPanelAtIndex(dragData.Worker, insertIndex, tabsHost);
+            
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Tab added to main panel: {dragData.Title}");
+        }
+    }
+    
+    /// <summary>
+    /// Обчислює індекс для вставки в основну панель
+    /// </summary>
+    private int CalculateMainTabsDropIndex(double x, StackPanel tabsHost)
+    {
+        double currentX = 0;
+        int index = 0;
+        
+        foreach (var child in tabsHost.Children)
+        {
+            if (child is Tab tab)
+            {
+                double tabCenter = currentX + (tab.Width + 4) / 2;
+                
+                if (x < tabCenter)
+                {
+                    return index;
+                }
+                
+                currentX += tab.Width + 4;
+                index++;
+            }
+        }
+        
+        return index; // Вставка в кінець
+    }
+    
+    /// <summary>
+    /// Показує індикатор місця вставки в основній панелі
+    /// </summary>
+    private void ShowMainTabsDropIndicator(int index, StackPanel tabsHost)
+    {
+        if (_mainTabsDropIndicator == null) return;
+        
+        // Видаляємо індикатор якщо він вже є
+        if (tabsHost.Children.Contains(_mainTabsDropIndicator))
+        {
+            tabsHost.Children.Remove(_mainTabsDropIndicator);
+        }
+        
+        // Обчислюємо позицію для вставки індикатора
+        int insertIndex = 0;
+        int tabIndex = 0;
+        
+        for (int i = 0; i < tabsHost.Children.Count; i++)
+        {
+            if (tabsHost.Children[i] is Tab)
+            {
+                if (tabIndex == index)
+                {
+                    insertIndex = i;
+                    break;
+                }
+                tabIndex++;
+                insertIndex = i + 1;
+            }
+        }
+        
+        // Вставляємо індикатор
+        _mainTabsDropIndicator.IsVisible = true;
+        
+        if (insertIndex >= tabsHost.Children.Count)
+        {
+            tabsHost.Children.Add(_mainTabsDropIndicator);
+        }
+        else
+        {
+            tabsHost.Children.Insert(insertIndex, _mainTabsDropIndicator);
+        }
+    }
+    
+    /// <summary>
+    /// Приховує індикатор місця вставки в основній панелі
+    /// </summary>
+    private void HideMainTabsDropIndicator(StackPanel tabsHost)
+    {
+        if (_mainTabsDropIndicator != null)
+        {
+            _mainTabsDropIndicator.IsVisible = false;
+            tabsHost.Children.Remove(_mainTabsDropIndicator);
+        }
+        _mainTabsDropTargetIndex = -1;
+    }
+    
+    /// <summary>
+    /// Додає вкладку до основної панелі в конкретну позицію
+    /// </summary>
+    private void AddTabToMainPanelAtIndex(TabWorker worker, int index, StackPanel tabsHost)
+    {
+        var tab = new Tab
+        {
+            Title = worker.Title ?? "New Tab",
+            IsActive = worker.IsActive,
+            IsCloseButtonVisible = true,
+            IsMuted = worker.IsMuted,
+            Width = _tabWidth
+        };
+
+        tab.Clicked += (_, __) => ActivateWorker(worker);
+        tab.CloseRequested += (_, __) =>
+        {
+            tabsHost.Children.Remove(tab);
+            _mainPanelTabWorkerMap.Remove(tab);
+            _tabs.Close(worker);
+        };
+        tab.MuteToggled += async (_, __) =>
+        {
+            await HandleMuteToggle(worker, tab, tabsHost);
+        };
+        
+        // Підтримка перетягування (правою кнопкою миші)
+        tab.DragStarted += (_, args) =>
+        {
+            if (args is TabDragStartedEventArgs dragArgs)
+            {
+                StartMainTabDrag(tab, worker, dragArgs.PointerEvent);
+            }
+        };
+
+        // Обчислюємо позицію для вставки
+        int actualIndex = 0;
+        int tabIndex = 0;
+        
+        for (int i = 0; i < tabsHost.Children.Count; i++)
+        {
+            if (tabsHost.Children[i] is Tab)
+            {
+                if (tabIndex == index)
+                {
+                    actualIndex = i;
+                    break;
+                }
+                tabIndex++;
+                actualIndex = i + 1;
+            }
+        }
+        
+        // Вставляємо вкладку
+        if (actualIndex >= tabsHost.Children.Count)
+        {
+            tabsHost.Children.Add(tab);
+        }
+        else
+        {
+            tabsHost.Children.Insert(actualIndex, tab);
+        }
+        
+        _mainPanelTabWorkerMap[tab] = worker;
+        
+        // Оновлюємо favicon для нової вкладки
+        if (!string.IsNullOrEmpty(worker.Address))
+        {
+            _ = UpdateFaviconForTab(worker, tab);
+        }
+    }
+    
+    /// <summary>
+    /// Оновлює favicon для конкретної вкладки
+    /// </summary>
+    private async Task UpdateFaviconForTab(TabWorker worker, Tab tab)
+    {
+        try
+        {
+            var url = worker.Address;
+            if (string.IsNullOrEmpty(url)) return;
+            
+            if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                var favicon = await _faviconService.GetFaviconAsync(uri);
+                if (favicon != null)
+                {
+                    tab.FaviconSource = favicon;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] UpdateFaviconForTab error: {ex.Message}");
+        }
+    }
+    
+    /// <summary>
+    /// Запускає перетягування вкладки з основної панелі
+    /// </summary>
+    private async void StartMainTabDrag(Tab tab, TabWorker worker, PointerEventArgs pointerEvent)
+    {
+        var dragData = new TabDragData
+        {
+            Worker = worker,
+            SourceTab = tab,
+            SourceWindow = null, // null означає що вкладка з основної панелі MainWindow
+            SourceMainWindow = this, // посилання на це MainWindow
+            Title = tab.Title,
+            Favicon = tab.FaviconSource,
+            IsMuted = tab.IsMuted
+        };
+
+#pragma warning disable CS0618 // DataObject is obsolete
+        var dataObject = new DataObject();
+        dataObject.Set("TabDragData", dragData);
+#pragma warning restore CS0618
+
+        System.Diagnostics.Debug.WriteLine($"[MainWindow] Starting drag for main tab: {tab.Title}");
+
+        try
+        {
+#pragma warning disable CS0618 // DoDragDrop is obsolete
+            var result = await DragDrop.DoDragDrop(pointerEvent, dataObject, DragDropEffects.Move);
+#pragma warning restore CS0618
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Drag result: {result}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Drag error: {ex.Message}");
+        }
+        finally
+        {
+            // Скидаємо візуальний стан вкладки після завершення drag
+            tab.ResetDragState();
+        }
+    }
+    
+    #endregion
 
     /// <summary>
     /// Обробляє toggle mute для вкладки
@@ -930,32 +1391,76 @@ public partial class MainWindow : Window
     /// </summary>
     private void AddTabToOverflow(TabWorker worker)
     {
-        // Ініціалізуємо overflow вікно якщо потрібно
-        if (_tabOverflowWindow == null)
-        {
-            _tabOverflowWindow = new TabOverflowWindow();
-            _tabOverflowWindow.Initialize(this, _tabWidth);
-            
-            _tabOverflowWindow.TabCloseRequested += OnOverflowTabCloseRequested;
-            _tabOverflowWindow.TabActivated += OnOverflowTabActivated;
-            _tabOverflowWindow.CloseAllTabsRequested += OnOverflowCloseAllRequested;
-            _tabOverflowWindow.BecameEmpty += OnOverflowBecameEmpty;
-        }
+        // Знаходимо overflow вікно з місцем або створюємо нове
+        var overflowWindow = FindOrCreateOverflowWindow();
         
-        // Перевіряємо чи є місце в overflow
-        if (_tabOverflowWindow.IsFull)
-        {
-            System.Diagnostics.Debug.WriteLine("[MainWindow] Overflow window is full, cannot add more tabs");
-            return;
-        }
-        
-        if (!_tabOverflowWindow.AddTab(worker))
+        if (!overflowWindow.AddTab(worker))
         {
             System.Diagnostics.Debug.WriteLine("[MainWindow] Failed to add tab to overflow window");
             return;
         }
         
-        System.Diagnostics.Debug.WriteLine($"[MainWindow] Tab added to overflow window. Total overflow tabs: {_tabOverflowWindow.TabCount}");
+        System.Diagnostics.Debug.WriteLine($"[MainWindow] Tab added to overflow window #{_tabOverflowWindows.IndexOf(overflowWindow) + 1}. Total overflow windows: {_tabOverflowWindows.Count}");
+    }
+
+    /// <summary>
+    /// Знаходить overflow вікно з місцем або створює нове
+    /// </summary>
+    private TabOverflowWindow FindOrCreateOverflowWindow()
+    {
+        // Шукаємо існуюче вікно з місцем
+        foreach (var window in _tabOverflowWindows)
+        {
+            if (window.TabCount < MaxTabsPerOverflowWindow)
+            {
+                return window;
+            }
+        }
+        
+        // Створюємо нове overflow вікно
+        var newWindow = new TabOverflowWindow();
+        newWindow.Initialize(this, _tabWidth);
+        
+        newWindow.TabCloseRequested += OnOverflowTabCloseRequested;
+        newWindow.TabActivated += OnOverflowTabActivated;
+        newWindow.CloseAllTabsRequested += OnOverflowCloseAllRequested;
+        newWindow.BecameEmpty += OnOverflowBecameEmpty;
+        newWindow.TabRemovedFromMainPanel += OnTabRemovedFromMainPanel;
+        newWindow.TabRemovedFromMainPanelWithSource += OnTabRemovedFromMainPanelWithSource;
+        
+        _tabOverflowWindows.Add(newWindow);
+        
+        // Позиціонуємо нове вікно нижче попереднього
+        PositionOverflowWindows();
+        
+        System.Diagnostics.Debug.WriteLine($"[MainWindow] Created new overflow window #{_tabOverflowWindows.Count}");
+        
+        return newWindow;
+    }
+
+    /// <summary>
+    /// Позиціонує overflow вікна один під одним
+    /// </summary>
+    private void PositionOverflowWindows()
+    {
+        int yOffset = 50; // Початкове зміщення від верху головного вікна
+        int windowHeight = 60; // Висота одного overflow вікна + відступ
+        
+        for (int i = 0; i < _tabOverflowWindows.Count; i++)
+        {
+            var window = _tabOverflowWindows[i];
+            if (window.IsVisible)
+            {
+                try
+                {
+                    var parentPos = this.Position;
+                    int x = parentPos.X + 10;
+                    int y = parentPos.Y + yOffset + (i * windowHeight);
+                    window.Position = new PixelPoint(x, y);
+                }
+                catch { }
+            }
+        }
     }
 
     private void OnOverflowTabCloseRequested(object? sender, TabWorker worker)
@@ -966,27 +1471,105 @@ public partial class MainWindow : Window
     private void OnOverflowTabActivated(object? sender, TabWorker worker)
     {
         ActivateWorker(worker);
-        _tabOverflowWindow?.SetActiveTab(worker);
+        
+        // Встановлюємо активну вкладку у всіх overflow вікнах
+        foreach (var window in _tabOverflowWindows)
+        {
+            window.SetActiveTab(worker);
+        }
+    }
+    
+    /// <summary>
+    /// Обробник коли вкладка переноситься з основної панелі до overflow вікна
+    /// </summary>
+    private void OnTabRemovedFromMainPanel(object? sender, TabWorker worker)
+    {
+        var tabsHost = _normalModePage?.TabsHostPanel;
+        if (tabsHost == null) return;
+        
+        // Знаходимо і видаляємо вкладку з основної панелі
+        var existingTab = FindTabByWorker(worker);
+        if (existingTab != null)
+        {
+            tabsHost.Children.Remove(existingTab);
+            _mainPanelTabWorkerMap.Remove(existingTab);
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Tab removed from main panel via OnTabRemovedFromMainPanel: {existingTab.Title}");
+        }
+    }
+    
+    /// <summary>
+    /// Обробник коли вкладка переноситься з основної панелі іншого MainWindow до overflow вікна
+    /// </summary>
+    private void OnTabRemovedFromMainPanelWithSource(object? sender, (TabWorker Worker, object SourceMainWindow) args)
+    {
+        // Викликаємо видалення в правильному MainWindow-джерелі
+        if (args.SourceMainWindow is MainWindow sourceMainWindow)
+        {
+            sourceMainWindow.RemoveTabFromMainPanel(args.Worker);
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Tab removed from source MainWindow via OnTabRemovedFromMainPanelWithSource");
+        }
     }
 
     private void OnOverflowCloseAllRequested(object? sender, EventArgs e)
     {
-        if (_tabOverflowWindow == null) return;
+        if (sender is not TabOverflowWindow overflowWindow) return;
         
-        // Закриваємо всі workers в overflow
-        var workers = _tabOverflowWindow.GetAllWorkers().ToList();
+        // Закриваємо всі workers в цьому overflow вікні та робимо dispose
+        var workers = overflowWindow.GetAllWorkers().ToList();
         foreach (var worker in workers)
         {
+            // Dispose worker та закриваємо вкладку
+            try
+            {
+                worker.Dispose();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Worker dispose error: {ex.Message}");
+            }
             _tabs.Close(worker);
         }
         
-        _tabOverflowWindow.Hide();
+        // Видаляємо вікно зі списку
+        _tabOverflowWindows.Remove(overflowWindow);
+        
+        // Відписуємося від подій
+        overflowWindow.TabCloseRequested -= OnOverflowTabCloseRequested;
+        overflowWindow.TabActivated -= OnOverflowTabActivated;
+        overflowWindow.CloseAllTabsRequested -= OnOverflowCloseAllRequested;
+        overflowWindow.BecameEmpty -= OnOverflowBecameEmpty;
+        overflowWindow.TabRemovedFromMainPanel -= OnTabRemovedFromMainPanel;
+        overflowWindow.TabRemovedFromMainPanelWithSource -= OnTabRemovedFromMainPanelWithSource;
+        
+        overflowWindow.Close();
+        
+        // Перепозиціонуємо решту вікон
+        PositionOverflowWindows();
+        
+        System.Diagnostics.Debug.WriteLine($"[MainWindow] Overflow window closed and disposed. Remaining: {_tabOverflowWindows.Count}");
     }
 
     private void OnOverflowBecameEmpty(object? sender, EventArgs e)
     {
-        // Overflow вікно автоматично приховається
-        System.Diagnostics.Debug.WriteLine("[MainWindow] Overflow window became empty");
+        if (sender is not TabOverflowWindow overflowWindow) return;
+        
+        // Видаляємо порожнє overflow вікно
+        _tabOverflowWindows.Remove(overflowWindow);
+        
+        // Відписуємося від подій
+        overflowWindow.TabCloseRequested -= OnOverflowTabCloseRequested;
+        overflowWindow.TabActivated -= OnOverflowTabActivated;
+        overflowWindow.CloseAllTabsRequested -= OnOverflowCloseAllRequested;
+        overflowWindow.BecameEmpty -= OnOverflowBecameEmpty;
+        overflowWindow.TabRemovedFromMainPanel -= OnTabRemovedFromMainPanel;
+        overflowWindow.TabRemovedFromMainPanelWithSource -= OnTabRemovedFromMainPanelWithSource;
+        
+        overflowWindow.Close();
+        
+        // Перепозиціонуємо решту вікон
+        PositionOverflowWindows();
+        
+        System.Diagnostics.Debug.WriteLine($"[MainWindow] Empty overflow window removed. Remaining: {_tabOverflowWindows.Count}");
     }
     
     /// <summary>
@@ -1015,11 +1598,10 @@ public partial class MainWindow : Window
                 if (tabsHost.Children[i] is Tab tab)
                 {
                     lastTab = tab;
-                    // Знаходимо відповідний worker
-                    int workerIndex = i - 1; // -1 через кнопку "+"
-                    if (workerIndex >= 0 && workerIndex < _tabs.Workers.Count)
+                    // Знаходимо відповідний worker через мапу
+                    if (_mainPanelTabWorkerMap.TryGetValue(tab, out var worker))
                     {
-                        lastWorker = _tabs.Workers.ToList()[workerIndex];
+                        lastWorker = worker;
                     }
                     break;
                 }
@@ -1027,8 +1609,18 @@ public partial class MainWindow : Window
             
             if (lastTab != null && lastWorker != null)
             {
+                // Зберігаємо title та favicon перед переміщенням
+                var savedTitle = lastTab.Title;
+                var savedFavicon = lastTab.FaviconSource;
+                var savedIsMuted = lastTab.IsMuted;
+                
                 tabsHost.Children.Remove(lastTab);
+                _mainPanelTabWorkerMap.Remove(lastTab);
                 AddTabToOverflow(lastWorker);
+                
+                // Оновлюємо title та favicon в overflow вкладці
+                UpdateOverflowTabData(lastWorker, savedTitle ?? "New Tab", savedFavicon);
+                
                 currentTabCount--;
             }
             else
@@ -1038,21 +1630,35 @@ public partial class MainWindow : Window
         }
         
         // Якщо є місце в основній панелі і є вкладки в overflow - повертаємо їх
-        while (currentTabCount < maxTabs && _tabOverflowWindow != null && _tabOverflowWindow.TabCount > 0)
+        while (currentTabCount < maxTabs && GetTotalOverflowTabCount() > 0)
         {
-            var overflowWorkers = _tabOverflowWindow.GetAllWorkers().ToList();
+            // Знаходимо перше overflow вікно з вкладками
+            var firstWindowWithTabs = _tabOverflowWindows.FirstOrDefault(w => w.TabCount > 0);
+            if (firstWindowWithTabs == null) break;
+            
+            var overflowWorkers = firstWindowWithTabs.GetAllWorkers().ToList();
             if (overflowWorkers.Count > 0)
             {
                 var workerToMove = overflowWorkers[0];
                 
-                // Видаляємо з overflow (потрібно спочатку отримати Tab)
+                // Отримуємо дані з overflow Tab перед видаленням
+                var overflowTab = firstWindowWithTabs.GetTabByWorker(workerToMove);
+                var savedTitle = overflowTab?.Title ?? workerToMove.Title ?? "New Tab";
+                var savedFavicon = overflowTab?.FaviconSource;
+                var savedIsMuted = overflowTab?.IsMuted ?? workerToMove.IsMuted;
+                
+                // Видаляємо worker з overflow
+                firstWindowWithTabs.RemoveWorker(workerToMove);
+                
                 // Створюємо нову вкладку в основній панелі
                 var newTab = CreateTabForWorker(workerToMove, tabsHost);
-                tabsHost.Children.Add(newTab);
                 
-                // Видаляємо worker з overflow через закриття
-                // (TabOverflowWindow сам обробить видалення)
-                _tabOverflowWindow.RemoveWorker(workerToMove);
+                // Встановлюємо збережені дані
+                newTab.Title = savedTitle;
+                newTab.FaviconSource = savedFavicon;
+                newTab.IsMuted = savedIsMuted;
+                
+                tabsHost.Children.Add(newTab);
                 
                 currentTabCount++;
             }
@@ -1062,13 +1668,31 @@ public partial class MainWindow : Window
             }
         }
         
-        // Приховуємо overflow якщо порожнє
-        if (_tabOverflowWindow != null && _tabOverflowWindow.TabCount == 0)
+        System.Diagnostics.Debug.WriteLine($"[MainWindow] ReorganizeTabsForMode complete: mainCount={GetMainPanelTabCount()}, overflowCount={GetTotalOverflowTabCount()}");
+    }
+
+    /// <summary>
+    /// Оновлює дані вкладки в overflow вікнах
+    /// </summary>
+    private void UpdateOverflowTabData(TabWorker worker, string title, Avalonia.Media.IImage? favicon)
+    {
+        foreach (var window in _tabOverflowWindows)
         {
-            _tabOverflowWindow.Hide();
+            if (window.GetTabByWorker(worker) != null)
+            {
+                window.UpdateTabTitle(worker, title);
+                window.UpdateTabFavicon(worker, favicon);
+                break;
+            }
         }
-        
-        System.Diagnostics.Debug.WriteLine($"[MainWindow] ReorganizeTabsForMode complete: mainCount={GetMainPanelTabCount()}, overflowCount={_tabOverflowWindow?.TabCount ?? 0}");
+    }
+
+    /// <summary>
+    /// Отримує загальну кількість вкладок у всіх overflow вікнах
+    /// </summary>
+    private int GetTotalOverflowTabCount()
+    {
+        return _tabOverflowWindows.Sum(w => w.TabCount);
     }
 
     private int GetChildIndexForWorker(TabWorker worker)
@@ -1243,6 +1867,19 @@ public partial class MainWindow : Window
             TryExitDocumentFullscreen();
             e.Handled = true;
             return;
+        }
+    }
+
+    /// <summary>
+    /// Обробляє зміни властивостей головного вікна (зокрема WindowState)
+    /// </summary>
+    private void OnMainWindowPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property.Name == nameof(WindowState))
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] WindowState changed: {e.OldValue} -> {e.NewValue}, CurrentMaxTabs={CurrentMaxTabs}");
+            // Реорганізуємо вкладки при зміні стану вікна (maximized/normal)
+            ReorganizeTabsForMode();
         }
     }
 
@@ -1436,6 +2073,13 @@ public partial class MainWindow : Window
             var isVetaleSearch = address.StartsWith("vetale://", StringComparison.OrdinalIgnoreCase) ||
                                  address.StartsWith("vetale:", StringComparison.OrdinalIgnoreCase);
             
+            // Також перевіряємо чи поточна вкладка показує внутрішню Vetale Search сторінку
+            if (!isVetaleSearch && IsCurrentVetaleSearchInternalPage())
+            {
+                isVetaleSearch = true;
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Current tab shows internal Vetale Search page");
+            }
+            
             if (isVetaleSearch)
             {
                 // Завантажуємо іконку Vetale Search
@@ -1493,15 +2137,25 @@ public partial class MainWindow : Window
             
             Dispatcher.UIThread.Post(() =>
             {
-                var tabsHost = _normalModePage?.TabsHostPanel;
-                if (tabsHost != null && _tabs.Active != null)
+                if (_tabs.Active == null) return;
+                
+                // Шукаємо вкладку в основній панелі по worker
+                var mainPanelTab = FindTabByWorker(_tabs.Active);
+                if (mainPanelTab != null)
                 {
-                    var idx = _tabs.Workers.ToList().IndexOf(_tabs.Active);
-                    var childIdx = idx + 1; // account for add button
-                    if (idx >= 0 && childIdx < tabsHost.Children.Count && tabsHost.Children[childIdx] is Tab tab)
+                    mainPanelTab.FaviconSource = image;
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Favicon applied to main panel: hasImage={(image != null)}");
+                    return;
+                }
+                
+                // Якщо не знайшли в основній панелі - перевіряємо overflow вікна
+                foreach (var overflowWindow in _tabOverflowWindows)
+                {
+                    if (overflowWindow.GetTabByWorker(_tabs.Active) != null)
                     {
-                        tab.FaviconSource = image;
-                        System.Diagnostics.Debug.WriteLine($"[MainWindow] Favicon applied: hasImage={(image != null)}");
+                        overflowWindow.UpdateTabFavicon(_tabs.Active, image);
+                        System.Diagnostics.Debug.WriteLine($"[MainWindow] Favicon applied to overflow: hasImage={(image != null)}");
+                        break;
                     }
                 }
             });
@@ -1614,23 +2268,25 @@ public partial class MainWindow : Window
             // Застосовуємо іконку до вкладки
             Dispatcher.UIThread.Post(() =>
             {
-                var tabsHost = _normalModePage?.TabsHostPanel;
-                System.Diagnostics.Debug.WriteLine($"[MainWindow] TabsHost: {(tabsHost != null ? "found" : "null")}, Active: {(_tabs.Active != null ? "found" : "null")}");
+                if (_tabs.Active == null) return;
                 
-                if (tabsHost != null && _tabs.Active != null)
+                // Шукаємо вкладку в основній панелі по worker
+                var mainPanelTab = FindTabByWorker(_tabs.Active);
+                if (mainPanelTab != null)
                 {
-                    var idx = _tabs.Workers.ToList().IndexOf(_tabs.Active);
-                    var childIdx = idx + 1;
-                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Tab index: {idx}, childIdx: {childIdx}, children count: {tabsHost.Children.Count}");
-                    
-                    if (idx >= 0 && childIdx < tabsHost.Children.Count && tabsHost.Children[childIdx] is Tab tab)
+                    mainPanelTab.FaviconSource = image;
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Vetale Search icon APPLIED to main panel tab: hasImage={(image != null)}");
+                    return;
+                }
+                
+                // Якщо не знайшли в основній панелі - перевіряємо overflow вікна
+                foreach (var overflowWindow in _tabOverflowWindows)
+                {
+                    if (overflowWindow.GetTabByWorker(_tabs.Active) != null)
                     {
-                        tab.FaviconSource = image;
-                        System.Diagnostics.Debug.WriteLine($"[MainWindow] Vetale Search icon APPLIED to tab: hasImage={(image != null)}");
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine("[MainWindow] Could not find tab at expected index");
+                        overflowWindow.UpdateTabFavicon(_tabs.Active, image);
+                        System.Diagnostics.Debug.WriteLine($"[MainWindow] Vetale Search icon APPLIED to overflow: hasImage={(image != null)}");
+                        break;
                     }
                 }
             });
@@ -1648,17 +2304,35 @@ public partial class MainWindow : Window
     {
         try
         {
+            // Пропускаємо оновлення title для Vetale Search сторінок (у них свій title)
+            if (IsCurrentVetaleSearchInternalPage())
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] Skipping title update for Vetale Search internal page");
+                return Task.CompletedTask;
+            }
+            
             var friendly = ComputeTitle(pageTitle, url);
             Dispatcher.UIThread.Post(() =>
             {
-                var tabsHost = _normalModePage?.TabsHostPanel;
-                if (tabsHost != null && _tabs.Active != null)
+                if (_tabs.Active == null) return;
+                
+                // Шукаємо вкладку в основній панелі по worker
+                var mainPanelTab = FindTabByWorker(_tabs.Active);
+                if (mainPanelTab != null)
                 {
-                    var idx = _tabs.Workers.ToList().IndexOf(_tabs.Active);
-                    var childIdx = idx + 1; // account for add button
-                    if (idx >= 0 && childIdx < tabsHost.Children.Count && tabsHost.Children[childIdx] is Tab tab)
+                    mainPanelTab.Title = friendly;
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Title applied to main panel: {friendly}");
+                    return;
+                }
+                
+                // Якщо не знайшли в основній панелі - перевіряємо overflow вікна
+                foreach (var overflowWindow in _tabOverflowWindows)
+                {
+                    if (overflowWindow.GetTabByWorker(_tabs.Active) != null)
                     {
-                        tab.Title = friendly;
+                        overflowWindow.UpdateTabTitle(_tabs.Active, friendly);
+                        System.Diagnostics.Debug.WriteLine($"[MainWindow] Title applied to overflow: {friendly}");
+                        break;
                     }
                 }
             });
@@ -1693,17 +2367,37 @@ public partial class MainWindow : Window
 
     private void OnWindowClosed(object? sender, EventArgs e)
     {
+        // Видаляємо це вікно зі статичного списку
+        _allMainWindows.Remove(this);
+        
         if (_subscribedWorker != null)
         {
             try { _subscribedWorker.WebView.PropertyChanged -= WebView_OnPropertyChanged; } catch { }
             _subscribedWorker = null;
         }
 
-        // Закриваємо overflow вікно
+        // Закриваємо всі overflow вікна та dispose workers
         try 
         { 
-            _tabOverflowWindow?.Close();
-            _tabOverflowWindow = null;
+            foreach (var overflowWindow in _tabOverflowWindows.ToList())
+            {
+                // Dispose всіх workers в цьому overflow вікні
+                var workers = overflowWindow.GetAllWorkers().ToList();
+                foreach (var worker in workers)
+                {
+                    try { worker.Dispose(); } catch { }
+                }
+                
+                overflowWindow.TabCloseRequested -= OnOverflowTabCloseRequested;
+                overflowWindow.TabActivated -= OnOverflowTabActivated;
+                overflowWindow.CloseAllTabsRequested -= OnOverflowCloseAllRequested;
+                overflowWindow.BecameEmpty -= OnOverflowBecameEmpty;
+                overflowWindow.TabRemovedFromMainPanel -= OnTabRemovedFromMainPanel;
+                overflowWindow.TabRemovedFromMainPanelWithSource -= OnTabRemovedFromMainPanelWithSource;
+                
+                overflowWindow.Close();
+            }
+            _tabOverflowWindows.Clear();
         } 
         catch { }
 
@@ -1876,8 +2570,11 @@ public partial class MainWindow : Window
         // Реорганізовуємо вкладки - в fullscreen режимі дозволено більше вкладок (9 замість 4)
         ReorganizeTabsForMode();
         
-        // Приховуємо overflow вікно в fullscreen режимі (вкладки повертаються в основну панель)
-        _tabOverflowWindow?.Hide();
+        // Приховуємо всі overflow вікна в fullscreen режимі (вкладки повертаються в основну панель)
+        foreach (var overflowWindow in _tabOverflowWindows)
+        {
+            overflowWindow.Hide();
+        }
 
         System.Diagnostics.Debug.WriteLine("[MainWindow] === FULLSCREEN ENTERED ===");
     }

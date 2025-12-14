@@ -42,6 +42,10 @@
   <x:String x:Key="Window.Minimize">Свернуть</x:String>
   <x:String x:Key="Window.Maximize">Развернуть</x:String>
   <x:String x:Key="Window.Close">Закрыть</x:String>
+  <x:String x:Key="Window.NewWindow">Открыть новое окно браузера</x:String>
+  <x:String x:Key="Tab.NewTab">Новая вкладка</x:String>
+  <x:String x:Key="Window.DragToMove">Перетащите для перемещения</x:String>
+  <x:String x:Key="Window.CloseAllTabs">Закрыть все вкладки в этом окне</x:String>
 
   <!-- Страница языка -->
   <x:String x:Key="Language.Header">Язык</x:String>
