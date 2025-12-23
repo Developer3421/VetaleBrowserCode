@@ -354,6 +354,21 @@
   <x:String x:Key="VetaleAI.ModelLoaded">Modell erfolgreich geladen</x:String>
   <x:String x:Key="VetaleAI.ModelError">Fehler beim Laden des Modells</x:String>
 
+  <!-- VetaleAI Complaint -->
+  <x:String x:Key="VetaleAI.Complaint">Beschwerde zur KI-Antwort</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Tooltip">Beschwerde zur KI-Antwort</x:String>
+  <x:String x:Key="VetaleAI.Complaint.WindowTitle">Beschwerde zur KI-Antwort</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Description">Bitte beschreiben Sie, was an der KI-Antwort nicht korrekt war.</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Watermark">Schreiben Sie Ihre Beschwerde hier...</x:String>
+  <x:String x:Key="VetaleAI.Complaint.AfterSave">Nach dem Speichern:</x:String>
+  <x:String x:Key="VetaleAI.Complaint.SendEmail">Bitte senden Sie diese Datei an vetalebrowser01@gmail.com</x:String>
+  <x:String x:Key="VetaleAI.Complaint.SaveFile">Datei speichern</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Cancel">Abbrechen</x:String>
+  <x:String x:Key="VetaleAI.Complaint.SavePickerTitle">Beschwerde speichern</x:String>
+  <x:String x:Key="VetaleAI.Complaint.ErrorEmpty">Bitte schreiben Sie vor dem Speichern eine Beschwerde.</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Saved">Datei gespeichert: {0}</x:String>
+  <x:String x:Key="VetaleAI.Complaint.SaveError">Fehler beim Speichern: {0}</x:String>
+
   <!-- Browser-Fehlerseiten -->
   <!-- Netzwerkfehler -->
   <x:String x:Key="BrowserError.NameNotResolved.Title">Webseite nicht gefunden</x:String>
@@ -536,6 +551,12 @@
   <x:String x:Key="Search.Results.Prompt">Geben Sie eine Suchanfrage ein, um lokale Ergebnisse zu sehen.</x:String>
   <x:String x:Key="Search.Results.Found">Ergebnisse gefunden</x:String>
   
+  <!-- Search Redirect Results (special entries) -->
+  <x:String x:Key="Search.Redirect.WebArchive.Title">🌐 Suche im Web-Archiv: "{0}"</x:String>
+  <x:String x:Key="Search.Redirect.WebArchive.Snippet">Archivierte Snapshots von Websites für "{0}" im Internet Archive öffnen.</x:String>
+  <x:String x:Key="Search.Redirect.YouTube.Title">🎬 Videos auf YouTube: "{0}"</x:String>
+  <x:String x:Key="Search.Redirect.YouTube.Snippet">YouTube-Video-Suchergebnisse für "{0}" anzeigen.</x:String>
+  
   <!-- Seitennavigation -->
   <x:String x:Key="Search.Pagination.Previous">← Zurück</x:String>
   <x:String x:Key="Search.Pagination.Next">Weiter →</x:String>
@@ -687,16 +708,16 @@
   <x:String x:Key="UserAgreement.GDPR.Title">DSGVO-Konformitätshinweis</x:String>
   <x:String x:Key="UserAgreement.GDPR.Description">In Übereinstimmung mit der Datenschutz-Grundverordnung (DSGVO) der Europäischen Union sind wir verpflichtet, Sie über die Datenerhebung zu informieren und Ihre Einwilligung einzuholen, bevor wir personenbezogene Daten verarbeiten.</x:String>
   <x:String x:Key="UserAgreement.Components.Title">📊 Komponenten, die Daten sammeln können</x:String>
-  <x:String x:Key="UserAgreement.Search.Title">Suchmaschinenintegration</x:String>
-  <x:String x:Key="UserAgreement.Search.Description">Ihre Suchanfragen werden an ausgewählte Suchanbieter (Google, DuckDuckGo, Bing usw.) gesendet. Jeder Anbieter hat seine eigene Datenschutzrichtlinie.</x:String>
+  <x:String x:Key="UserAgreement.Search.Title">Suchmaschinenintegration (MetaSearx)</x:String>
+  <x:String x:Key="UserAgreement.Search.Description">Für die Websuche wird MetaSearx API verwendet - eine offene Metasuchmaschine, die Ergebnisse von Google, Bing, DuckDuckGo und anderen Suchmaschinen aggregiert. Ihre Anfragen werden über metasearx.com verarbeitet.</x:String>
   <x:String x:Key="UserAgreement.AI.Title">KI-Chat-Dienste (Vetale AI)</x:String>
-  <x:String x:Key="UserAgreement.AI.Description">Bei der Nutzung von KI-Funktionen werden Ihre Nachrichten an KI-Anbieter (OpenAI, Google Gemini) gesendet. API-Schlüssel werden lokal und verschlüsselt gespeichert.</x:String>
-  <x:String x:Key="UserAgreement.Voice.Title">Spracherkennung (Whisper)</x:String>
-  <x:String x:Key="UserAgreement.Voice.Description">Wenn Sie Spracheingabe verwenden, kann Audio von OpenAI Whisper API zur Sprache-zu-Text-Umwandlung verarbeitet werden.</x:String>
+  <x:String x:Key="UserAgreement.AI.Description">Für KI-Funktionen werden Perplexity AI und Webversionen anderer KI-Dienste verwendet. KEINE API-Schlüssel erforderlich - der Browser arbeitet mit öffentlichen Web-Interfaces von KI-Anbietern.</x:String>
+  <x:String x:Key="UserAgreement.Voice.Title">Sprachsuche (Whisper - Lokal)</x:String>
+  <x:String x:Key="UserAgreement.Voice.Description">Die Spracheingabe wird LOKAL auf Ihrem Computer mit Whisper verarbeitet. Audio wird NICHT an externe Server gesendet - alle Erkennung erfolgt offline. Sprechen Sie mindestens 2 Sekunden für eine gute Erkennung. ⚠️ WARNUNG: Die Sprachsuche kann beliebige Mengen an Arbeitsspeicher verwenden. Verwenden Sie diese Funktion mit Vorsicht auf Geräten mit begrenztem Speicher.</x:String>
   <x:String x:Key="UserAgreement.Web.Title">Web-Browsing</x:String>
   <x:String x:Key="UserAgreement.Web.Description">Websites, die Sie besuchen, können Cookies setzen und Daten gemäß ihren Richtlinien sammeln. Wir verwenden CefSharp (Chromium) für das Web-Rendering.</x:String>
   <x:String x:Key="UserAgreement.Favicon.Title">Favicon-Dienst</x:String>
-  <x:String x:Key="UserAgreement.Favicon.Description">Website-Symbole werden von externen Diensten abgerufen, um sie in Tabs und Lesezeichen anzuzeigen.</x:String>
+  <x:String x:Key="UserAgreement.Favicon.Description">Website-Symbole werden über externe APIs abgerufen: favicon.im (primär), Google S2 Favicons API, DuckDuckGo Icons API oder direkt von der Website (/favicon.ico). Diese Dienste werden verwendet, um Symbole in Tabs und Lesezeichen anzuzeigen.</x:String>
   <x:String x:Key="UserAgreement.Download.Title">Download-Manager</x:String>
   <x:String x:Key="UserAgreement.Download.Description">Dateien werden direkt von den Quellwebsites heruntergeladen. Der Download-Verlauf wird lokal auf Ihrem Gerät gespeichert.</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Title">💾 Lokal gespeicherte Daten</x:String>
@@ -706,7 +727,7 @@
   <x:String x:Key="UserAgreement.LocalStorage.Item3">• Tab-Sitzungen zur Wiederherstellung</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item4">• Konsolen-/DevTools-Protokolle</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item5">• Metadaten heruntergeladener Dateien</x:String>
-  <x:String x:Key="UserAgreement.LocalStorage.Item6">• API-Schlüssel (mit lokaler Verschlüsselung)</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item6">• Whisper-Modelle für lokale Spracherkennung</x:String>
   <x:String x:Key="UserAgreement.Rights.Title">⚖️ Ihre Rechte nach der DSGVO</x:String>
   <x:String x:Key="UserAgreement.Rights.Description">Als Nutzer in der Europäischen Union haben Sie folgende Rechte:</x:String>
   <x:String x:Key="UserAgreement.Rights.Item1">• Recht auf Zugang zu Ihren personenbezogenen Daten</x:String>
@@ -719,7 +740,7 @@
   <x:String x:Key="UserAgreement.Disclaimer.NoResponsibility">Der Entwickler ist NICHT verantwortlich für Schäden an Ihrem System, Gerät oder andere Schäden, die durch Ihre Suchen oder Downloads verursacht werden. Sie nutzen diese Funktionen auf eigenes Risiko.</x:String>
   <x:String x:Key="UserAgreement.Contact.Title">📧 Kontakt</x:String>
   <x:String x:Key="UserAgreement.Contact.Description">Wenn Sie Fragen zu dieser Vereinbarung oder Ihren Daten haben, können Sie alle lokalen Daten über die Browsereinstellungen löschen oder uns über das Projekt-Repository kontaktieren.</x:String>
-  <x:String x:Key="UserAgreement.Version">Vereinbarungsversion 1.0 | Letzte Aktualisierung: Dezember 2024</x:String>
+  <x:String x:Key="UserAgreement.Version">Vereinbarungsversion 2.0 | Letzte Aktualisierung: Dezember 2025</x:String>
   <x:String x:Key="UserAgreement.Checkbox">Ich habe die obigen Bedingungen gelesen und stimme ihnen zu</x:String>
   <x:String x:Key="UserAgreement.Decline">Ablehnen</x:String>
   <x:String x:Key="UserAgreement.Accept">Akzeptieren &amp; Fortfahren</x:String>
@@ -740,6 +761,12 @@
   <x:String x:Key="VetaleSearch.Settings.LinkColor">Linkfarbe:</x:String>
   <x:String x:Key="VetaleSearch.Settings.Note">Ihre API-Schlüssel werden lokal verschlüsselt gespeichert und niemals an unsere Server gesendet. Sie können kostenlose API-Schlüssel von den oben genannten Diensten erhalten.</x:String>
   
+  <!-- Videosuche -->
+  <x:String x:Key="VideoSearch.Loading">Suche Videos...</x:String>
+  <x:String x:Key="VideoSearch.NoResults">Keine Videos gefunden</x:String>
+  <x:String x:Key="VideoSearch.NoResults.Hint">Versuchen Sie, Ihre Suchanfrage zu ändern</x:String>
+  <x:String x:Key="VideoSearch.Views"> Aufrufe</x:String>
+
   <!-- Werkzeuge - VetaleSearch Einstellungen -->
   <x:String x:Key="Tools.VetaleSearchSettings.Name">Vetale Search Einstellungen</x:String>
   <x:String x:Key="Tools.VetaleSearchSettings.Description">API-Schlüssel und Aussehen für Vetale Search konfigurieren</x:String>

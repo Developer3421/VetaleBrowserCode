@@ -389,6 +389,12 @@
   <x:String x:Key="Search.Results.Prompt">Введите запрос, чтобы увидеть локальные результаты.</x:String>
   <x:String x:Key="Search.Results.Found">Найдено результатов</x:String>
   
+  <!-- Search Redirect Results (special entries) -->
+  <x:String x:Key="Search.Redirect.WebArchive.Title">🌐 Поиск в Web Archive: "{0}"</x:String>
+  <x:String x:Key="Search.Redirect.WebArchive.Snippet">Открыть архивные снимки сайтов для "{0}" в Internet Archive.</x:String>
+  <x:String x:Key="Search.Redirect.YouTube.Title">🎬 Видео на YouTube: "{0}"</x:String>
+  <x:String x:Key="Search.Redirect.YouTube.Snippet">Посмотреть результаты поиска видео на YouTube для "{0}".</x:String>
+
   <!-- Pagination -->
   <x:String x:Key="Search.Pagination.Previous">← Назад</x:String>
   <x:String x:Key="Search.Pagination.Next">Далее →</x:String>
@@ -562,6 +568,21 @@
   <x:String x:Key="VetaleAI.ModelLoaded">Модель успешно загружена</x:String>
   <x:String x:Key="VetaleAI.ModelError">Ошибка загрузки модели</x:String>
 
+  <!-- VetaleAI Complaint -->
+  <x:String x:Key="VetaleAI.Complaint">Жалоба на ответ AI</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Tooltip">Жалоба на ответ AI</x:String>
+  <x:String x:Key="VetaleAI.Complaint.WindowTitle">Жалоба на ответ AI</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Description">Пожалуйста, опишите, что именно было не так в ответе AI.</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Watermark">Напишите жалобу здесь...</x:String>
+  <x:String x:Key="VetaleAI.Complaint.AfterSave">После сохранения:</x:String>
+  <x:String x:Key="VetaleAI.Complaint.SendEmail">Пожалуйста, отправьте этот файл на vetalebrowser01@gmail.com</x:String>
+  <x:String x:Key="VetaleAI.Complaint.SaveFile">Сохранить файл</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Cancel">Отмена</x:String>
+  <x:String x:Key="VetaleAI.Complaint.SavePickerTitle">Сохранить жалобу</x:String>
+  <x:String x:Key="VetaleAI.Complaint.ErrorEmpty">Пожалуйста, напишите текст жалобы перед сохранением.</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Saved">Файл сохранён: {0}</x:String>
+  <x:String x:Key="VetaleAI.Complaint.SaveError">Ошибка сохранения: {0}</x:String>
+
   <!-- Загрузки -->
   <x:String x:Key="Downloads.Title">Загрузки — Vetale Browser</x:String>
   <x:String x:Key="Downloads.Search">Поиск загрузок…</x:String>
@@ -681,16 +702,16 @@
   <x:String x:Key="UserAgreement.GDPR.Title">Уведомление о соответствии GDPR</x:String>
   <x:String x:Key="UserAgreement.GDPR.Description">В соответствии с Общим регламентом защиты данных Европейского Союза (GDPR) мы обязаны информировать вас о сборе данных и получить ваше согласие перед обработкой любых персональных данных.</x:String>
   <x:String x:Key="UserAgreement.Components.Title">📊 Компоненты, которые могут собирать данные</x:String>
-  <x:String x:Key="UserAgreement.Search.Title">Интеграция поисковой системы</x:String>
-  <x:String x:Key="UserAgreement.Search.Description">Ваши поисковые запросы отправляются выбранным поисковым провайдерам (Google, DuckDuckGo, Bing и др.). Каждый провайдер имеет свою политику конфиденциальности.</x:String>
+  <x:String x:Key="UserAgreement.Search.Title">Интеграция поисковой системы (MetaSearx)</x:String>
+  <x:String x:Key="UserAgreement.Search.Description">Для веб-поиска используется MetaSearx API - открытая метапоисковая система, которая агрегирует результаты из Google, Bing, DuckDuckGo и других поисковых систем. Ваши запросы обрабатываются через metasearx.com.</x:String>
   <x:String x:Key="UserAgreement.AI.Title">AI чат-сервисы (Vetale AI)</x:String>
-  <x:String x:Key="UserAgreement.AI.Description">При использовании функций AI ваши сообщения отправляются провайдерам AI (OpenAI, Google Gemini). API ключи хранятся локально и зашифрованы.</x:String>
-  <x:String x:Key="UserAgreement.Voice.Title">Распознавание голоса (Whisper)</x:String>
-  <x:String x:Key="UserAgreement.Voice.Description">Если вы используете голосовой ввод, аудио может обрабатываться OpenAI Whisper API для преобразования речи в текст.</x:String>
+  <x:String x:Key="UserAgreement.AI.Description">Для AI функций используется Perplexity AI и веб-версии других AI сервисов. API ключи НЕ требуются - браузер работает с публичными веб-интерфейсами AI провайдеров.</x:String>
+  <x:String x:Key="UserAgreement.Voice.Title">Голосовой поиск (Whisper - локально)</x:String>
+  <x:String x:Key="UserAgreement.Voice.Description">Голосовой ввод обрабатывается ЛОКАЛЬНО на вашем компьютере с помощью Whisper. Аудио НЕ отправляется на внешние серверы - всё распознавание происходит офлайн. Для качественного распознавания говорите не менее 2 секунд. ⚠️ ВНИМАНИЕ: Голосовой поиск может использовать любую количество оперативной памяти. Используйте осторожно на устройствах с ограниченной памятью.</x:String>
   <x:String x:Key="UserAgreement.Web.Title">Веб-серфинг</x:String>
   <x:String x:Key="UserAgreement.Web.Description">Веб-сайты, которые вы посещаете, могут устанавливать файлы cookie и собирать данные в соответствии со своими политиками. Мы используем CefSharp (Chromium) для отображения веб-страниц.</x:String>
   <x:String x:Key="UserAgreement.Favicon.Title">Сервис иконок сайтов</x:String>
-  <x:String x:Key="UserAgreement.Favicon.Description">Иконки веб-сайтов загружаются из внешних сервисов для отображения во вкладках и закладках.</x:String>
+  <x:String x:Key="UserAgreement.Favicon.Description">Иконки веб-сайтов загружаются через внешние API: favicon.im (основной), Google S2 Favicons API, DuckDuckGo Icons API, или напрямую с сайта (/favicon.ico). Эти сервисы используются для отображения иконок во вкладках и закладках.</x:String>
   <x:String x:Key="UserAgreement.Download.Title">Менеджер загрузок</x:String>
   <x:String x:Key="UserAgreement.Download.Description">Файлы загружаются непосредственно с веб-сайтов-источников. История загрузок хранится локально на вашем устройстве.</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Title">💾 Данные, хранящиеся локально</x:String>
@@ -700,7 +721,7 @@
   <x:String x:Key="UserAgreement.LocalStorage.Item3">• Сессии вкладок для восстановления</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item4">• Логи консоли/DevTools</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item5">• Метаданные загруженных файлов</x:String>
-  <x:String x:Key="UserAgreement.LocalStorage.Item6">• API ключи (зашифрованные локальным шифрованием)</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item6">• Модели Whisper для локального распознавания речи</x:String>
   <x:String x:Key="UserAgreement.Rights.Title">⚖️ Ваши права по GDPR</x:String>
   <x:String x:Key="UserAgreement.Rights.Description">Как пользователь в Европейском Союзе, вы имеете следующие права:</x:String>
   <x:String x:Key="UserAgreement.Rights.Item1">• Право на доступ к вашим персональным данным</x:String>
@@ -713,7 +734,7 @@
   <x:String x:Key="UserAgreement.Disclaimer.NoResponsibility">Разработчик НЕ несёт ответственности за любые повреждения вашей системы, устройства или иной вред, причинённый вашими поисками или загрузками. Вы используете эти функции на свой страх и риск.</x:String>
   <x:String x:Key="UserAgreement.Contact.Title">📧 Контакты</x:String>
   <x:String x:Key="UserAgreement.Contact.Description">Если у вас есть вопросы об этом соглашении или ваших данных, вы можете очистить все локальные данные через настройки браузера или связаться с нами через репозиторий проекта.</x:String>
-  <x:String x:Key="UserAgreement.Version">Версия соглашения 1.0 | Последнее обновление: декабрь 2024</x:String>
+  <x:String x:Key="UserAgreement.Version">Версия соглашения 2.0 | Последнее обновление: декабрь 2025</x:String>
   <x:String x:Key="UserAgreement.Checkbox">Я прочитал и соглашаюсь с условиями выше</x:String>
   <x:String x:Key="UserAgreement.Decline">Отклонить</x:String>
   <x:String x:Key="UserAgreement.Accept">Принять и продолжить</x:String>
@@ -734,6 +755,12 @@
   <x:String x:Key="VetaleSearch.Settings.LinkColor">Цвет ссылок:</x:String>
   <x:String x:Key="VetaleSearch.Settings.Note">Ваши API ключи хранятся локально с шифрованием и никогда не отправляются на наши серверы. Вы можете получить бесплатные API ключи на сервисах выше.</x:String>
   
+  <!-- Поиск видео -->
+  <x:String x:Key="VideoSearch.Loading">Поиск видео...</x:String>
+  <x:String x:Key="VideoSearch.NoResults">Видео не найдено</x:String>
+  <x:String x:Key="VideoSearch.NoResults.Hint">Попробуйте изменить поисковый запрос</x:String>
+  <x:String x:Key="VideoSearch.Views"> просмотров</x:String>
+
   <!-- Инструменты - Настройки VetaleSearch -->
   <x:String x:Key="Tools.VetaleSearchSettings.Name">Настройки Vetale Search</x:String>
   <x:String x:Key="Tools.VetaleSearchSettings.Description">Настройка API ключей и внешнего вида Vetale Search</x:String>

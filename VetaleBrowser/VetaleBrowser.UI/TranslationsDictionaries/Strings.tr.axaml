@@ -354,6 +354,21 @@
   <x:String x:Key="VetaleAI.ModelLoaded">Model başarıyla yüklendi</x:String>
   <x:String x:Key="VetaleAI.ModelError">Model yüklenirken hata oluştu</x:String>
 
+  <!-- VetaleAI Şikayet -->
+  <x:String x:Key="VetaleAI.Complaint">AI yanıtına şikayet</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Tooltip">AI yanıtına şikayet</x:String>
+  <x:String x:Key="VetaleAI.Complaint.WindowTitle">AI yanıtına şikayet</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Description">Lütfen AI yanıtında neyin yanlış olduğunu açıklayın.</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Watermark">Şikayetinizi buraya yazın...</x:String>
+  <x:String x:Key="VetaleAI.Complaint.AfterSave">Kaydettikten sonra:</x:String>
+  <x:String x:Key="VetaleAI.Complaint.SendEmail">Lütfen bu dosyayı vetalebrowser01@gmail.com adresine gönderin</x:String>
+  <x:String x:Key="VetaleAI.Complaint.SaveFile">Dosyayı kaydet</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Cancel">İptal</x:String>
+  <x:String x:Key="VetaleAI.Complaint.SavePickerTitle">Şikayeti kaydet</x:String>
+  <x:String x:Key="VetaleAI.Complaint.ErrorEmpty">Lütfen kaydetmeden önce şikayet metnini yazın.</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Saved">Dosya kaydedildi: {0}</x:String>
+  <x:String x:Key="VetaleAI.Complaint.SaveError">Kaydetme hatası: {0}</x:String>
+
   <!-- Tarayıcı Hata Sayfaları -->
   <!-- Ağ Hataları -->
   <x:String x:Key="BrowserError.NameNotResolved.Title">Site bulunamadı</x:String>
@@ -687,16 +702,16 @@
   <x:String x:Key="UserAgreement.GDPR.Title">GDPR Uyumluluk Bildirimi</x:String>
   <x:String x:Key="UserAgreement.GDPR.Description">Avrupa Birliği'nin Genel Veri Koruma Yönetmeliği (GDPR) uyarınca, veri toplama hakkında sizi bilgilendirmek ve kişisel verileri işlemeden önce onayınızı almak zorundayız.</x:String>
   <x:String x:Key="UserAgreement.Components.Title">📊 Veri Toplayabilecek Bileşenler</x:String>
-  <x:String x:Key="UserAgreement.Search.Title">Arama Motoru Entegrasyonu</x:String>
-  <x:String x:Key="UserAgreement.Search.Description">Arama sorgularınız seçilen arama sağlayıcılarına (Google, DuckDuckGo, Bing vb.) gönderilir. Her sağlayıcının kendi gizlilik politikası vardır.</x:String>
+  <x:String x:Key="UserAgreement.Search.Title">Arama Motoru Entegrasyonu (MetaSearx)</x:String>
+  <x:String x:Key="UserAgreement.Search.Description">Web araması için MetaSearx API kullanılmaktadır - Google, Bing, DuckDuckGo ve diğer arama motorlarından sonuçları toplayan açık bir meta arama motorudur. Sorgularınız metasearx.com üzerinden işlenir.</x:String>
   <x:String x:Key="UserAgreement.AI.Title">AI Sohbet Hizmetleri (Vetale AI)</x:String>
-  <x:String x:Key="UserAgreement.AI.Description">AI özelliklerini kullanırken mesajlarınız AI sağlayıcılarına (OpenAI, Google Gemini) gönderilir. API anahtarları yerel olarak ve şifrelenmiş olarak saklanır.</x:String>
-  <x:String x:Key="UserAgreement.Voice.Title">Ses Tanıma (Whisper)</x:String>
-  <x:String x:Key="UserAgreement.Voice.Description">Sesli giriş kullanıyorsanız, ses konuşmadan metne dönüştürme için OpenAI Whisper API tarafından işlenebilir.</x:String>
+  <x:String x:Key="UserAgreement.AI.Description">AI özellikleri için Perplexity AI ve diğer AI hizmetlerinin web sürümleri kullanılmaktadır. API anahtarları GEREKMİYOR - tarayıcı AI sağlayıcılarının herkese açık web arayüzleriyle çalışır.</x:String>
+  <x:String x:Key="UserAgreement.Voice.Title">Sesli Arama (Whisper - Yerel)</x:String>
+  <x:String x:Key="UserAgreement.Voice.Description">Sesli giriş Whisper kullanılarak bilgisayarınızda YEREL olarak işlenir. Ses harici sunuculara GÖNDERİLMEZ - tüm tanıma çevrimdışı gerçekleşir. Kaliteli tanıma için en az 2 saniye konuşun. ⚠️ UYARI: Sesli arama herhangi bir miktarda RAM kullanabilir. Sınırlı RAM'e sahip cihazlarda dikkatli kullanın.</x:String>
   <x:String x:Key="UserAgreement.Web.Title">Web Gezintisi</x:String>
   <x:String x:Key="UserAgreement.Web.Description">Ziyaret ettiğiniz web siteleri çerezler ayarlayabilir ve politikalarına göre veri toplayabilir. Web oluşturma için CefSharp (Chromium) kullanıyoruz.</x:String>
   <x:String x:Key="UserAgreement.Favicon.Title">Favicon Hizmeti</x:String>
-  <x:String x:Key="UserAgreement.Favicon.Description">Web sitesi simgeleri, sekmelerde ve yer imlerinde görüntülenmek üzere harici hizmetlerden alınır.</x:String>
+  <x:String x:Key="UserAgreement.Favicon.Description">Web sitesi simgeleri harici API'ler aracılığıyla alınır: favicon.im (birincil), Google S2 Favicons API, DuckDuckGo Icons API veya doğrudan web sitesinden (/favicon.ico). Bu hizmetler sekmelerde ve yer imlerinde simgeleri görüntülemek için kullanılır.</x:String>
   <x:String x:Key="UserAgreement.Download.Title">İndirme Yöneticisi</x:String>
   <x:String x:Key="UserAgreement.Download.Description">Dosyalar doğrudan kaynak web sitelerinden indirilir. İndirme geçmişi cihazınızda yerel olarak saklanır.</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Title">💾 Yerel Olarak Saklanan Veriler</x:String>
@@ -706,7 +721,7 @@
   <x:String x:Key="UserAgreement.LocalStorage.Item3">• Geri yükleme için sekme oturumları</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item4">• Konsol/DevTools günlükleri</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item5">• İndirilen dosya meta verileri</x:String>
-  <x:String x:Key="UserAgreement.LocalStorage.Item6">• API anahtarları (yerel şifreleme ile)</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item6">• Yerel konuşma tanıma için Whisper modelleri</x:String>
   <x:String x:Key="UserAgreement.Rights.Title">⚖️ GDPR Kapsamındaki Haklarınız</x:String>
   <x:String x:Key="UserAgreement.Rights.Description">Avrupa Birliği'ndeki bir kullanıcı olarak aşağıdaki haklara sahipsiniz:</x:String>
   <x:String x:Key="UserAgreement.Rights.Item1">• Kişisel verilerinize erişim hakkı</x:String>
@@ -719,7 +734,7 @@
   <x:String x:Key="UserAgreement.Disclaimer.NoResponsibility">Geliştirici, aramalarınız veya indirmelerinizden kaynaklanan sisteminize, cihazınıza veya başka herhangi bir zarara ilişkin sorumlu DEĞİLDİR. Bu özellikleri kendi riskinizle kullanırsınız.</x:String>
   <x:String x:Key="UserAgreement.Contact.Title">📧 İletişim</x:String>
   <x:String x:Key="UserAgreement.Contact.Description">Bu sözleşme veya verileriniz hakkında sorularınız varsa, tarayıcı ayarları aracılığıyla tüm yerel verileri temizleyebilir veya proje deposu aracılığıyla bizimle iletişime geçebilirsiniz.</x:String>
-  <x:String x:Key="UserAgreement.Version">Sözleşme Sürümü 1.0 | Son Güncelleme: Aralık 2024</x:String>
+  <x:String x:Key="UserAgreement.Version">Sözleşme Sürümü 2.0 | Son Güncelleme: Aralık 2025</x:String>
   <x:String x:Key="UserAgreement.Checkbox">Yukarıdaki şartları okudum ve kabul ediyorum</x:String>
   <x:String x:Key="UserAgreement.Decline">Reddet</x:String>
   <x:String x:Key="UserAgreement.Accept">Kabul Et ve Devam Et</x:String>
@@ -740,8 +755,20 @@
   <x:String x:Key="VetaleSearch.Settings.LinkColor">Bağlantı rengi:</x:String>
   <x:String x:Key="VetaleSearch.Settings.Note">API anahtarlarınız şifreli olarak yerel olarak saklanır ve asla sunucularımıza gönderilmez. Yukarıdaki hizmetlerden ücretsiz API anahtarları alabilirsiniz.</x:String>
   
+  <!-- Video Arama -->
+  <x:String x:Key="VideoSearch.Loading">Videolar aranıyor...</x:String>
+  <x:String x:Key="VideoSearch.NoResults">Video bulunamadı</x:String>
+  <x:String x:Key="VideoSearch.NoResults.Hint">Arama sorgunuzu değiştirmeyi deneyin</x:String>
+  <x:String x:Key="VideoSearch.Views"> görüntüleme</x:String>
+
   <!-- Araçlar - VetaleSearch Ayarları -->
   <x:String x:Key="Tools.VetaleSearchSettings.Name">Vetale Search Ayarları</x:String>
   <x:String x:Key="Tools.VetaleSearchSettings.Description">Vetale Search için API anahtarlarını ve görünümü yapılandırın</x:String>
+
+  <!-- Search Redirect Results (special entries) -->
+  <x:String x:Key="Search.Redirect.WebArchive.Title">🌐 Web Arşivi'nde ara: "{0}"</x:String>
+  <x:String x:Key="Search.Redirect.WebArchive.Snippet">"{0}" için Internet Archive'de arşivlenmiş site anlık görüntülerini aç.</x:String>
+  <x:String x:Key="Search.Redirect.YouTube.Title">🎬 YouTube'da videolar: "{0}"</x:String>
+  <x:String x:Key="Search.Redirect.YouTube.Snippet">"{0}" için YouTube video arama sonuçlarını görüntüle.</x:String>
 </ResourceDictionary>
 

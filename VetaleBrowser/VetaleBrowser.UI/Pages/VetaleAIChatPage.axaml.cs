@@ -11,6 +11,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using VetaleBrowser.VetaleBrowser.AI;
 using System.Text.RegularExpressions;
+using VetaleBrowser.VetaleBrowser.UI.Windows;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
 
@@ -33,6 +34,9 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
 
     private static readonly Regex TrailingUserCueRegex = new(@"(?:\s|:|#|\[|\])*(\*{0,2}\s*)?(User|Human|Assistant|AI|Q|A)(\s*\*{0,2})?(?:\s*:)?\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private static readonly Regex HtmlCodeBlockRegex = new(@"```html[\r\n]+([\s\S]*?)```", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    private string? _lastUserMessage;
+    private string? _lastAssistantMessage;
 
     public VetaleAIChatPage()
     {
@@ -135,6 +139,8 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
 
     private void AddUserMessage(string text)
     {
+        _lastUserMessage = text;
+
         if (_messagesPanel == null) return;
 
         var contentStack = new StackPanel
@@ -172,6 +178,8 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
 
     private void AddAssistantMessage(string text)
     {
+        _lastAssistantMessage = text;
+
         if (_messagesPanel == null) return;
 
         // Парсимо HTML-код із markdown-блоку ```html ... ```
@@ -386,7 +394,7 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
                 // Accumulate and clean trailing User cues
                 currentResponse += token;
                 currentResponse = StripTrailingUserCue(currentResponse);
-                tokenCount++;
+                _lastAssistantMessage = currentResponse;
 
                 // FAST MODE: Update UI immediately without delay
                 // Only throttle scroll updates, not text updates
@@ -837,11 +845,33 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
             _cancellationTokenSource = null;
         }
     }
+
+    private async void Complaint_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var owner = TopLevel.GetTopLevel(this) as Window;
+
+            var w = new VetaleAIComplaintWindow
+            {
+                UserMessageContext = _lastUserMessage,
+                AssistantMessageContext = _lastAssistantMessage
+            };
+
+            if (owner != null)
+            {
+                w.Icon = owner.Icon;
+                await w.ShowDialog(owner);
+            }
+            else
+            {
+                w.Show();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"VetaleAIChatPage: Complaint window error: {ex}");
+        }
+    }
 }
 
-public class ChatMessage
-{
-    public string Role { get; set; } = string.Empty; // "user" or "assistant"
-    public string Content { get; set; } = string.Empty;
-    public DateTime Timestamp { get; set; } = DateTime.Now;
-}

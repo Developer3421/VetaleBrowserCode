@@ -639,6 +639,38 @@ public partial class VetaleSearchResultsPage : UserControl
         var stackPanel = new StackPanel();
         stackPanel.Children.Add(headerPanel);
 
+        // Source badge (localized)
+        try
+        {
+            var sourceKey = result.SourceType switch
+            {
+                "Wikipedia" => "Search.Source.Wikipedia",
+                "WebArchive" => "Search.Source.WebArchive",
+                "YouTube" => "Search.Source.YouTube",
+                "MetaSearx" => "Search.Source.MetaSearx",
+                "Curlie" => "Search.Source.Curlie",
+                "DirectUrl" => "Search.Source.DirectUrl",
+                _ => null
+            };
+
+            var sourceText = sourceKey != null ? (GetLocalizedString(sourceKey) ?? result.SourceType) : result.SourceType;
+            if (!string.IsNullOrWhiteSpace(sourceText))
+            {
+                stackPanel.Children.Add(new TextBlock
+                {
+                    FontSize = 12,
+                    FontWeight = Avalonia.Media.FontWeight.SemiBold,
+                    Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#6B4F1D")),
+                    Margin = new Avalonia.Thickness(0, 2, 0, 6),
+                    Text = sourceText
+                });
+            }
+        }
+        catch
+        {
+            // ignore localization/rendering issues
+        }
+
         // Title
         var titleBlock = new TextBlock
         {

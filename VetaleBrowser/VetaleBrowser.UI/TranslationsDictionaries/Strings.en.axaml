@@ -380,6 +380,21 @@
   <x:String x:Key="VetaleAI.ModelLoaded">Model loaded successfully</x:String>
   <x:String x:Key="VetaleAI.ModelError">Error loading model</x:String>
 
+  <!-- VetaleAI Complaint -->
+  <x:String x:Key="VetaleAI.Complaint">Report AI response</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Tooltip">Report AI response</x:String>
+  <x:String x:Key="VetaleAI.Complaint.WindowTitle">Report AI response</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Description">Please describe what was wrong with the AI response.</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Watermark">Write your complaint here...</x:String>
+  <x:String x:Key="VetaleAI.Complaint.AfterSave">After saving:</x:String>
+  <x:String x:Key="VetaleAI.Complaint.SendEmail">Please send this file to vetalebrowser01@gmail.com</x:String>
+  <x:String x:Key="VetaleAI.Complaint.SaveFile">Save file</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Cancel">Cancel</x:String>
+  <x:String x:Key="VetaleAI.Complaint.SavePickerTitle">Save complaint</x:String>
+  <x:String x:Key="VetaleAI.Complaint.ErrorEmpty">Please write a complaint before saving.</x:String>
+  <x:String x:Key="VetaleAI.Complaint.Saved">File saved: {0}</x:String>
+  <x:String x:Key="VetaleAI.Complaint.SaveError">Save error: {0}</x:String>
+
   <!-- Downloads -->
   <x:String x:Key="Downloads.Title">Downloads — Vetale Browser</x:String>
   <x:String x:Key="Downloads.Search">Search downloads…</x:String>
@@ -623,6 +638,12 @@
   <x:String x:Key="Search.Results.Prompt">Enter a query to see local results.</x:String>
   <x:String x:Key="Search.Results.Found">Results found</x:String>
   
+  <!-- Search Redirect Results (special entries) -->
+  <x:String x:Key="Search.Redirect.WebArchive.Title">🌐 Search in Web Archive: "{0}"</x:String>
+  <x:String x:Key="Search.Redirect.WebArchive.Snippet">Open archived snapshots of sites for "{0}" in Internet Archive.</x:String>
+  <x:String x:Key="Search.Redirect.YouTube.Title">🎬 Videos on YouTube: "{0}"</x:String>
+  <x:String x:Key="Search.Redirect.YouTube.Snippet">View YouTube video search results for "{0}".</x:String>
+  
   <!-- Pagination -->
   <x:String x:Key="Search.Pagination.Previous">← Previous</x:String>
   <x:String x:Key="Search.Pagination.Next">Next →</x:String>
@@ -708,16 +729,16 @@
   <x:String x:Key="UserAgreement.GDPR.Title">GDPR Compliance Notice</x:String>
   <x:String x:Key="UserAgreement.GDPR.Description">In compliance with the European Union's General Data Protection Regulation (GDPR), we are required to inform you about data collection and obtain your consent before processing any personal data.</x:String>
   <x:String x:Key="UserAgreement.Components.Title">📊 Components That May Collect Data</x:String>
-  <x:String x:Key="UserAgreement.Search.Title">Search Engine Integration</x:String>
-  <x:String x:Key="UserAgreement.Search.Description">Your search queries are sent to selected search providers (Google, DuckDuckGo, Bing, etc.). Each provider has their own privacy policy.</x:String>
+  <x:String x:Key="UserAgreement.Search.Title">Search Engine Integration (MetaSearx)</x:String>
+  <x:String x:Key="UserAgreement.Search.Description">Web search is powered by MetaSearx API - an open metasearch engine that aggregates results from Google, Bing, DuckDuckGo, and other search engines. Your queries are processed through metasearx.com.</x:String>
   <x:String x:Key="UserAgreement.AI.Title">AI Chat Services (Vetale AI)</x:String>
-  <x:String x:Key="UserAgreement.AI.Description">When using AI features, your messages are sent to AI providers (OpenAI, Google Gemini). API keys are stored locally and encrypted.</x:String>
-  <x:String x:Key="UserAgreement.Voice.Title">Voice Recognition (Whisper)</x:String>
-  <x:String x:Key="UserAgreement.Voice.Description">If you use voice input, audio may be processed by OpenAI Whisper API for speech-to-text conversion.</x:String>
+  <x:String x:Key="UserAgreement.AI.Description">AI features use Perplexity AI and web versions of other AI services. NO API keys required - the browser works with public web interfaces of AI providers.</x:String>
+  <x:String x:Key="UserAgreement.Voice.Title">Voice Search (Whisper - Local)</x:String>
+  <x:String x:Key="UserAgreement.Voice.Description">Voice input is processed LOCALLY on your computer using Whisper. Audio is NOT sent to external servers - all recognition happens offline. Speak for at least 2 seconds for quality recognition. ⚠️ WARNING: Voice search may use any amount of RAM. Use with caution on devices with limited memory.</x:String>
   <x:String x:Key="UserAgreement.Web.Title">Web Browsing</x:String>
   <x:String x:Key="UserAgreement.Web.Description">Websites you visit may set cookies and collect data according to their policies. We use CefSharp (Chromium) for web rendering.</x:String>
   <x:String x:Key="UserAgreement.Favicon.Title">Favicon Service</x:String>
-  <x:String x:Key="UserAgreement.Favicon.Description">Website icons are fetched from external services to display in tabs and bookmarks.</x:String>
+  <x:String x:Key="UserAgreement.Favicon.Description">Website icons are fetched via external APIs: favicon.im (primary), Google S2 Favicons API, DuckDuckGo Icons API, or directly from the website (/favicon.ico). These services are used to display icons in tabs and bookmarks.</x:String>
   <x:String x:Key="UserAgreement.Download.Title">Download Manager</x:String>
   <x:String x:Key="UserAgreement.Download.Description">Files are downloaded directly from source websites. Download history is stored locally on your device.</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Title">💾 Data Stored Locally</x:String>
@@ -727,7 +748,7 @@
   <x:String x:Key="UserAgreement.LocalStorage.Item3">• Tab sessions for restoration</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item4">• Console/DevTools logs</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item5">• Downloaded files metadata</x:String>
-  <x:String x:Key="UserAgreement.LocalStorage.Item6">• API keys (encrypted with local encryption)</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item6">• Whisper models for local speech recognition</x:String>
   <x:String x:Key="UserAgreement.Rights.Title">⚖️ Your Rights Under GDPR</x:String>
   <x:String x:Key="UserAgreement.Rights.Description">As a user in the European Union, you have the following rights:</x:String>
   <x:String x:Key="UserAgreement.Rights.Item1">• Right to access your personal data</x:String>
@@ -740,7 +761,7 @@
   <x:String x:Key="UserAgreement.Disclaimer.NoResponsibility">The developer is NOT responsible for any damage to your system, device, or any other harm caused by your searches or downloads. You use these features at your own risk.</x:String>
   <x:String x:Key="UserAgreement.Contact.Title">📧 Contact</x:String>
   <x:String x:Key="UserAgreement.Contact.Description">If you have any questions about this agreement or your data, you can clear all local data through browser settings or contact us through the project repository.</x:String>
-  <x:String x:Key="UserAgreement.Version">Agreement Version 1.0 | Last Updated: December 2024</x:String>
+  <x:String x:Key="UserAgreement.Version">Agreement Version 2.0 | Last Updated: December 2025</x:String>
   <x:String x:Key="UserAgreement.Checkbox">I have read and agree to the terms above</x:String>
   <x:String x:Key="UserAgreement.Decline">Decline</x:String>
   <x:String x:Key="UserAgreement.Accept">Accept &amp; Continue</x:String>
@@ -761,6 +782,12 @@
   <x:String x:Key="VetaleSearch.Settings.LinkColor">Link color:</x:String>
   <x:String x:Key="VetaleSearch.Settings.Note">Your API keys are stored locally with encryption and never sent to our servers. You can get free API keys from the services above.</x:String>
   
+  <!-- Video Search -->
+  <x:String x:Key="VideoSearch.Loading">Searching videos...</x:String>
+  <x:String x:Key="VideoSearch.NoResults">No videos found</x:String>
+  <x:String x:Key="VideoSearch.NoResults.Hint">Try changing your search query</x:String>
+  <x:String x:Key="VideoSearch.Views"> views</x:String>
+
   <!-- Tools - VetaleSearch Settings -->
   <x:String x:Key="Tools.VetaleSearchSettings.Name">Vetale Search Settings</x:String>
   <x:String x:Key="Tools.VetaleSearchSettings.Description">Configure API keys and appearance for Vetale Search</x:String>

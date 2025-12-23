@@ -165,7 +165,7 @@
                                         <StackPanel Orientation="Horizontal" Spacing="4">
                                             <TextBlock Classes="video-stats">
                                                 <Run Text="{Binding ViewCount, StringFormat='{}{0:N0}'}"/>
-                                                <Run Text=" переглядів"/>
+                                                <Run Text="{DynamicResource VideoSearch.Views}"/>
                                             </TextBlock>
                                             <TextBlock Classes="video-stats" Text="•"/>
                                             <TextBlock Classes="video-stats" 
@@ -191,7 +191,7 @@
                 Margin="0,0,0,20">
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="⏳" FontSize="16"/>
-                <TextBlock Text="Пошук відео..." FontSize="14" Foreground="#333"/>
+                <TextBlock Text="{DynamicResource VideoSearch.Loading}" FontSize="14" Foreground="#333"/>
             </StackPanel>
         </Border>
         
@@ -202,12 +202,12 @@
                 VerticalAlignment="Center">
             <StackPanel Spacing="16" HorizontalAlignment="Center">
                 <TextBlock Text="🎬" FontSize="48" HorizontalAlignment="Center"/>
-                <TextBlock Text="Відео не знайдено" 
+                <TextBlock Text="{DynamicResource VideoSearch.NoResults}" 
                            FontSize="18" 
                            FontWeight="SemiBold"
                            Foreground="#666"
                            HorizontalAlignment="Center"/>
-                <TextBlock Text="Спробуйте змінити пошуковий запит"
+                <TextBlock Text="{DynamicResource VideoSearch.NoResults.Hint}"
                            FontSize="14"
                            Foreground="#999"
                            HorizontalAlignment="Center"/>

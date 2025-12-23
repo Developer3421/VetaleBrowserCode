@@ -104,12 +104,25 @@ public sealed class UnifiedSearchService : IUnifiedSearchService
             }
 
             // 3. YouTube (посилання на відеопошук)
+            var youtubeTitleTemplate = SearchLocalization.Get(
+                "Search.Redirect.YouTube.Title",
+                "🎬 Videos on YouTube: \"{0}\"");
+            var youtubeSnippetTemplate = SearchLocalization.Get(
+                "Search.Redirect.YouTube.Snippet",
+                "View YouTube video search results for \"{0}\".");
+
+            string SafeFormat(string template, string arg)
+            {
+                try { return string.Format(template, arg); }
+                catch { return template.Replace("{0}", arg); }
+            }
+
             results.Add(new UnifiedSearchResult
             {
-                Title = $"🎬 Відео на YouTube: \"{query}\"",
+                Title = SafeFormat(youtubeTitleTemplate, query),
                 Url = $"https://www.youtube.com/results?search_query={Uri.EscapeDataString(query)}",
                 DisplayUrl = "youtube.com › results",
-                Snippet = $"Переглянути відео результати пошуку на YouTube для \"{query}\".",
+                Snippet = SafeFormat(youtubeSnippetTemplate, query),
                 Source = SearchSourceType.YouTube,
                 Timestamp = null,
                 RankScore = 0,

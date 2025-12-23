@@ -236,6 +236,15 @@
                                 <TextBlock Text="{DynamicResource VetaleAI.CreateWebPage}"/>
                             </StackPanel>
                         </Button>
+                        <Button x:Name="ComplaintButton"
+                                Classes="icon-button"
+                                Click="Complaint_Click"
+                                ToolTip.Tip="{DynamicResource VetaleAI.Complaint.Tooltip}">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="⚠️" FontSize="14"/>
+                                <TextBlock Text="{DynamicResource VetaleAI.Complaint}"/>
+                            </StackPanel>
+                        </Button>
                         <Button x:Name="NewChatButton" 
                                 Classes="icon-button"
                                 Click="NewChat_Click"

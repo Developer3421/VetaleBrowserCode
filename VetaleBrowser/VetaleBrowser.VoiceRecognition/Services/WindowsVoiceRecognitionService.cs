@@ -51,32 +51,82 @@ public class WindowsVoiceRecognitionService : IVoiceRecognitionService, IDisposa
     {
         // Шукаємо модель Whisper в декількох стандартних місцях
         var appDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+        
+        Console.WriteLine($"[VoiceRecognition] Searching for Whisper model. AppDir: {appDir}");
+        System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Searching for Whisper model. AppDir: {appDir}");
 
-        // 1. Папка моделей всередині проєкту: VetaleBrowser.VoiceRecognition/Models
-        //    (файли звідти копіюються в вихідну директорію завдяки налаштуванню в csproj)
-        var projectModelsPath = Path.Combine(appDir ?? string.Empty, "Models", "whisper", "ggml-base.bin");
-
+        // Спочатку шукаємо безпосередньо у вихідній директорії (csproj копіює туди)
         var localPaths = new[]
         {
-            projectModelsPath,
-            Path.Combine(appDir ?? "", "Models", "whisper", "ggml-small.bin"),
-            Path.Combine(appDir ?? "", "Models", "whisper", "ggml-tiny.bin"),
+            // Напряму в вихідній директорії (туди копіює csproj)
+            Path.Combine(appDir ?? "", "ggml-base.bin"),
+            Path.Combine(appDir ?? "", "ggml-small.bin"),
+            Path.Combine(appDir ?? "", "ggml-tiny.bin"),
+            // Стара структура папок (на випадок якщо хтось вручну створив)
+            Path.Combine(appDir ?? "", "Models", "whisper", "ggml-base.bin"),
+            Path.Combine(appDir ?? "", "Models", "ggml-base.bin"),
             Path.Combine(appDir ?? "", "VoiceModels", "ggml-base.bin"),
+            // AppData
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VetaleBrowser", "Models", "ggml-base.bin"),
-            "ggml-base.bin" // поточна директорія
+            // Поточна директорія
+            Path.Combine(Environment.CurrentDirectory, "ggml-base.bin")
         };
 
         foreach (var path in localPaths)
         {
+            Console.WriteLine($"[VoiceRecognition] Checking path: {path}");
             if (File.Exists(path))
             {
+                Console.WriteLine($"[VoiceRecognition] ✓ Found Whisper model at: {path}");
                 System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Found local Whisper model at: {path}");
                 return path;
             }
         }
 
         // Якщо не знайдено жодної локальної моделі, повертаємо порожній шлях
-        System.Diagnostics.Debug.WriteLine("[VoiceRecognition] No local model found in project or AppData, will rely on runtime/built-in model if available");
+        Console.WriteLine("[VoiceRecognition] ✗ No local model found!");
+        System.Diagnostics.Debug.WriteLine("[VoiceRecognition] No local model found in project or AppData");
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// Повторно шукає модель Whisper у всіх можливих місцях
+    /// </summary>
+    private string FindModelPath()
+    {
+        var appDir = AppDomain.CurrentDomain.BaseDirectory;
+        var exeDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+        
+        Console.WriteLine($"[VoiceRecognition] FindModelPath: BaseDirectory={appDir}");
+        Console.WriteLine($"[VoiceRecognition] FindModelPath: ExeLocation={exeDir}");
+
+        var searchPaths = new[]
+        {
+            // Базова директорія додатку
+            Path.Combine(appDir, "ggml-base.bin"),
+            Path.Combine(appDir, "ggml-small.bin"),
+            Path.Combine(appDir, "ggml-tiny.bin"),
+            // Директорія exe
+            Path.Combine(exeDir ?? "", "ggml-base.bin"),
+            // Структура папок
+            Path.Combine(appDir, "Models", "ggml-base.bin"),
+            Path.Combine(appDir, "VetaleBrowser.VoiceRecognition", "Models", "ggml-base.bin"),
+            // AppData
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VetaleBrowser", "Models", "ggml-base.bin"),
+            // Поточна робоча директорія
+            Path.Combine(Environment.CurrentDirectory, "ggml-base.bin"),
+        };
+
+        foreach (var path in searchPaths)
+        {
+            Console.WriteLine($"[VoiceRecognition] FindModelPath checking: {path}");
+            if (File.Exists(path))
+            {
+                Console.WriteLine($"[VoiceRecognition] ✓ Found model at: {path}");
+                return path;
+            }
+        }
+
         return string.Empty;
     }
 
@@ -186,38 +236,34 @@ public class WindowsVoiceRecognitionService : IVoiceRecognitionService, IDisposa
         if (_processor == null)
         {
             Console.WriteLine($"[VoiceRecognition] Initializing Whisper processor...");
+            Console.WriteLine($"[VoiceRecognition] Current modelPath: '{_modelPath}'");
             System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Initializing Whisper processor...");
             
             WhisperFactory factory;
             
-            // Якщо вказано шлях до моделі - використовуємо його
+            // Якщо шлях порожній - спробуємо знайти модель знову
+            if (string.IsNullOrEmpty(_modelPath))
+            {
+                _modelPath = FindModelPath();
+            }
+            
+            // Якщо вказано шлях до моделі і файл існує - використовуємо його
             if (!string.IsNullOrEmpty(_modelPath) && File.Exists(_modelPath))
             {
-                Console.WriteLine($"[VoiceRecognition] Loading custom Whisper model from: {_modelPath}");
-                System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Loading custom Whisper model from: {_modelPath}");
+                Console.WriteLine($"[VoiceRecognition] Loading Whisper model from: {_modelPath}");
+                System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Loading Whisper model from: {_modelPath}");
                 factory = WhisperFactory.FromPath(_modelPath);
             }
             else
             {
-                // Використовуємо вбудовану модель з Whisper.net.Runtime
-                Console.WriteLine("[VoiceRecognition] Using built-in Whisper model from runtime");
-                System.Diagnostics.Debug.WriteLine("[VoiceRecognition] Using built-in Whisper model from runtime");
-                
-                try
-                {
-                    // Whisper.NET автоматично знайде вбудовану модель
-                    factory = WhisperFactory.FromPath("ggml-base.bin");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[VoiceRecognition] ✗ Failed to load model: {ex.Message}");
-                    throw new InvalidOperationException(
-                        "Модель Whisper не знайдена.\n" +
-                        "Можливі рішення:\n" +
-                        "1. Помістіть ggml-base.bin у папку програми\n" +
-                        "2. Помістіть модель у %AppData%/VetaleBrowser/Models/\n" +
-                        "3. Переконайтеся, що Whisper.net.Runtime встановлено");
-                }
+                // Модель не знайдена
+                Console.WriteLine($"[VoiceRecognition] ✗ Model not found! Path: '{_modelPath}'");
+                throw new InvalidOperationException(
+                    "Модель Whisper не знайдена.\n" +
+                    "Можливі рішення:\n" +
+                    "1. Помістіть ggml-base.bin у папку програми\n" +
+                    "2. Помістіть модель у %AppData%/VetaleBrowser/Models/\n" +
+                    "3. Завантажте модель з https://huggingface.co/ggerganov/whisper.cpp");
             }
             
             Console.WriteLine("[VoiceRecognition] Creating processor with auto language detection...");

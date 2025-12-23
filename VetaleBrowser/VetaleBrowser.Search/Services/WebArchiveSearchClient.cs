@@ -36,16 +36,29 @@ public sealed class WebArchiveSearchClient : IWebArchiveSearchClient, IDisposabl
 
         // Створюємо URL для пошуку в Web Archive (аналогічно до Google/YouTube)
         var webArchiveSearchUrl = $"https://web.archive.org/web/*/{Uri.EscapeDataString(query)}";
-        
+
+        var titleTemplate = SearchLocalization.Get(
+            "Search.Redirect.WebArchive.Title",
+            "🌐 Search in Web Archive: \"{0}\"");
+        var snippetTemplate = SearchLocalization.Get(
+            "Search.Redirect.WebArchive.Snippet",
+            "Open archived snapshots of sites for \"{0}\" in Internet Archive.");
+
+        string SafeFormat(string template, string arg)
+        {
+            try { return string.Format(template, arg); }
+            catch { return template.Replace("{0}", arg); }
+        }
+
         // Повертаємо один результат-посилання на пошук у Web Archive
         var results = new List<UnifiedSearchResult>
         {
             new UnifiedSearchResult
             {
-                Title = $"Пошук в Web Archive: \"{query}\"",
+                Title = SafeFormat(titleTemplate, query),
                 Url = webArchiveSearchUrl,
                 DisplayUrl = "web.archive.org › search",
-                Snippet = $"Відкрити архівні знімки сайтів для \"{query}\" в Internet Archive.",
+                Snippet = SafeFormat(snippetTemplate, query),
                 Source = SearchSourceType.WebArchive,
                 Timestamp = null,
                 RankScore = 1,
@@ -62,4 +75,3 @@ public sealed class WebArchiveSearchClient : IWebArchiveSearchClient, IDisposabl
         _http.Dispose();
     }
 }
-
