@@ -178,6 +178,18 @@ public partial class MainWindow : Window
             throw; // Can't continue without UI
         }
 
+        // Wire internal navigation callbacks early
+        try
+        {
+            VetaleBrowser.UI.Services.InternalUrlHandler.SuggestionsServiceProvider = () => GlobalSuggestions;
+            VetaleBrowser.UI.Services.InternalUrlHandler.VoiceRecognitionServiceProvider = () => VoiceRecognitionService;
+            VetaleBrowser.UI.Services.InternalUrlHandler.NavigationRequestCallback = NavigateCurrentTabToUrl;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] InternalUrlHandler wiring failed: {ex.Message}");
+        }
+
         try
         {
             _windowManager = new WindowManager(this);
@@ -1231,7 +1243,7 @@ public partial class MainWindow : Window
         
         _mainPanelTabWorkerMap[tab] = worker;
         
-        // Оновлюємо favicon для нової вкладки
+        // Оновлює favicon для нової вкладки
         if (!string.IsNullOrEmpty(worker.Address))
         {
             _ = UpdateFaviconForTab(worker, tab);
@@ -2677,7 +2689,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[MainWindow] NavigateToSelectedSearchHomeAsync ERROR: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] NavigateToSelectedSearchHomeAsync ERROR: {ex}");
             System.Diagnostics.Debug.WriteLine($"[MainWindow] Stack trace: {ex.StackTrace}");
         }
     }
@@ -3219,27 +3231,19 @@ public partial class MainWindow : Window
         Dispatcher.UIThread.Post(async () =>
         {
             const string vetaleSearchUrl = "vetale://search";
-            var activeWorker = _tabs.Active;
-            if (activeWorker == null)
+
+            try
             {
-                CreateNewTab(vetaleSearchUrl);
-                // Оновлюємо іконку для нової вкладки
+                // Use the same internal navigation pipeline everywhere to keep event wiring stable
+                HandleInternalNavigation(vetaleSearchUrl);
+
+                // Best-effort: favicon update
                 await UpdateFaviconAsync(vetaleSearchUrl);
-                Activate();
-                Focus();
-                return;
             }
-
-            var home = new VetaleSearchHomePage();
-            home.SetSuggestionsService(GlobalSuggestions);
-            home.SetVoiceRecognitionService(VoiceRecognitionService);
-            SubscribeToInternalPageEvents(home);
-
-            // Навігуємо через History/TabWorker: подія OnWorkerNavigationChanged виставить UI
-            activeWorker.Navigate(vetaleSearchUrl, home);
-            
-            // Оновлюємо іконку вкладки
-            await UpdateFaviconAsync(vetaleSearchUrl);
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] OpenVetaleSearchInCurrentTab error: {ex}");
+            }
         });
     }
 }

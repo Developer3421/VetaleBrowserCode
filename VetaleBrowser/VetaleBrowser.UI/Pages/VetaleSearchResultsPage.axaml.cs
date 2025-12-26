@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
@@ -17,6 +18,7 @@ using VetaleBrowser.VetaleBrowser.UI.Services;
 using VetaleBrowser.VetaleBrowser.UI.Windows;
 using VetaleBrowser.VetaleBrowser.Database.Services;
 using VetaleBrowser.VetaleBrowser.VoiceRecognition.Services;
+using VetaleBrowser.VetaleBrowser.UI.Theme;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
 
@@ -83,9 +85,37 @@ public partial class VetaleSearchResultsPage : UserControl
     {
         _suggestionsService = new GoogleSuggestionsService();
         _unifiedSearchService = new UnifiedSearchService();
-        
+
         InitializeComponent();
         InitializeControls();
+
+        ApplyTheme();
+        VetaleSearchThemeManager.ThemeChanged += OnThemeChanged;
+        Unloaded += OnUnloaded;
+    }
+
+    private void OnThemeChanged(object? sender, EventArgs e)
+    {
+        ApplyTheme();
+    }
+
+    private void OnUnloaded(object? sender, RoutedEventArgs e)
+    {
+        VetaleSearchThemeManager.ThemeChanged -= OnThemeChanged;
+        Unloaded -= OnUnloaded;
+    }
+
+    private async void ApplyTheme()
+    {
+        try
+        {
+            if (Application.Current != null)
+                await VetaleSearchThemeManager.ApplyToResourceHostAsync(Application.Current);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] ApplyTheme error: {ex.Message}");
+        }
     }
 
     private void InitializeComponent()

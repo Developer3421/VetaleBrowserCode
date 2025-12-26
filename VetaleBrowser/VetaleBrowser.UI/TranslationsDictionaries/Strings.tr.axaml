@@ -187,6 +187,9 @@
   <x:String x:Key="Tools.VetaleAI.Name">Vetale AI Sohbet</x:String>
   <x:String x:Key="Tools.VetaleAI.Description">Vetale yapay zekasıyla sohbet</x:String>
   
+  <x:String x:Key="Tools.AIComplaint.Name">Yapay zeka içeriğini şikayet et</x:String>
+  <x:String x:Key="Tools.AIComplaint.Description">Yapay zeka şikayet penceresini aç</x:String>
+
   <x:String x:Key="Tools.DuckDuckGoAI.Name">DuckDuckGo AI Sohbet</x:String>
   <x:String x:Key="Tools.DuckDuckGoAI.Description">DuckDuckGo'dan ücretsiz AI sohbet</x:String>
   

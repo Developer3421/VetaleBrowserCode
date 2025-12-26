@@ -186,7 +186,10 @@
   <!-- Tools page - список інструментів -->
   <x:String x:Key="Tools.VetaleAI.Name">Vetale AI Chat</x:String>
   <x:String x:Key="Tools.VetaleAI.Description">Чат з штучним інтелектом Vetale</x:String>
-  
+
+  <x:String x:Key="Tools.AIComplaint.Name">Поскаржитися на контент створений AI</x:String>
+  <x:String x:Key="Tools.AIComplaint.Description">Відкрити вікно скарги на відповідь AI</x:String>
+
   <x:String x:Key="Tools.DuckDuckGoAI.Name">DuckDuckGo AI Chat</x:String>
   <x:String x:Key="Tools.DuckDuckGoAI.Description">Безкоштовний AI чат від DuckDuckGo</x:String>
   

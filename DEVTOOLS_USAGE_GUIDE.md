@@ -1,176 +1,73 @@
-# 🔧 Як відкрити DevTools в VetaleBrowser
+# Vetale DevTools (Built-in Tools)
 
-## Метод 1: Через вікно "Інструменти" ✅
-
-1. Відкрийте браузер VetaleBrowser
-2. Натисніть на кнопку "Інструменти" (🛠️) в головному вікні
-3. У списку інструментів знайдіть **"Vetale DevTools"** з іконкою 🔧
-4. Клікніть на назву або опис інструменту
-5. Вікно Developer Tools відкриється
-
-**Переваги:**
-- ✅ Найпростіший спосіб
-- ✅ Доступно з будь-якого місця
-- ✅ Повторне використання вікна (не створює дубліkatів)
-
-## Метод 2: Клавіатурне скорочення (TODO)
-
-⚠️ **Ще не реалізовано**
-
-Планується додати:
-- `F12` - Відкрити/Закрити DevTools
-- `Ctrl+Shift+I` - Відкрити DevTools (Elements)
-- `Ctrl+Shift+J` - Відкрити Console
-
-## Що доступно в DevTools
-
-### 🏠 Головна сторінка
-- Список всіх інструментів розробника
-- Швидка навігація до потрібного інструменту
-
-### ✏️ HTML Editor ⭐ (Працює)
-- Створення нових HTML файлів
-- Відкриття існуючих файлів
-- Збереження файлів
-- 4 готових шаблони (Blank, HTML5, Bootstrap, Responsive)
-- Редактор коду з monospace шрифтом
-- Панель статусу з інформацією про файл
-- Toggle preview (приховати/показати preview)
-
-**Можливості:**
-- ✅ Новий файл (📄)
-- ✅ Відкрити (📁)
-- ✅ Зберегти (💾)
-- ✅ Вибір шаблону
-- ✅ Підрахунок символів та рядків
-- ⚠️ Live Preview (потрібен CefSharp WebView)
-- ⚠️ Підсвітка синтаксису (потрібен AvaloniaEdit)
-- ⚠️ Форматування коду (TODO)
-- ⚠️ Валідація HTML (TODO)
-
-### 🔍 Elements (В розробці)
-Планується:
-- DOM tree viewer
-- Element properties editor
-- CSS styles inspector
-- Event listeners viewer
-
-### 🌐 Network (В розробці)
-Планується:
-- HTTP/HTTPS requests monitor
-- Request/Response details
-- HAR export
-
-### 📁 Sources (В розробці)
-Планується:
-- Code viewer with syntax highlighting
-- Debugging (breakpoints)
-- Code formatting
-
-### 💾 Application (В розробці)
-Планується:
-- Cookies management
-- Local/Session Storage
-- IndexedDB viewer
-- Cache viewer
-
-### ⚡ Performance (В розробці)
-Планується:
-- CPU profiling
-- Memory profiling
-- Timeline visualization
-
-### 🖥️ Console (Працює як окреме вікно)
-- Відкривається як окреме вікно
-- Показує логи та помилки
-- Автооновлення
-- Експорт логів
-
-## Навігація в DevTools
-
-### Табки (верхня панель):
-- 🏠 **Home** - Головна сторінка з переліком інструментів
-- 🔍 **Elements** - Інспектор DOM (в розробці)
-- 🌐 **Network** - Мережа (в розробці)
-- 📁 **Sources** - Джерела (в розробці)
-- ✏️ **HTML Editor** - Редактор HTML (працює!)
-- 💾 **Application** - Storage (в розробці)
-- ⚡ **Performance** - Продуктивність (в розробці)
-- 🖥️ **Console** - Консоль (відкриває окреме вікно)
-
-### Панель керування:
-- **Vetale Browser** - повернутися до головного вікна
-- **Minimize** - згорнути вікно
-- **Close** - закрити вікно
-
-## Приклад використання HTML Editor
-
-1. Відкрийте DevTools → вкладка **HTML Editor**
-2. Виберіть шаблон зі списку (наприклад, "HTML5 Boilerplate")
-3. Редагуйте код в лівій панелі
-4. (Опціонально) Сховайте preview, якщо він не потрібен
-5. Збережіть файл: **💾 Save**
-6. Введіть назву файлу та оберіть розташування
-7. Готово! Файл збережено
-
-## Локалізація
-
-DevTools повністю підтримує локалізацію:
-- 🇬🇧 English
-- 🇺🇦 Українська
-
-Мова змінюється автоматично згідно з налаштуваннями браузера.
-
-## Технічні деталі
-
-### Архітектура:
-- **Вікно:** `DevToolsWindow` (Windows/DevToolsWindow.axaml)
-- **Сторінки:** Окремі UserControl в папці Pages/
-- **Навігація:** TabControl з динамічним ContentControl
-- **Memory Management:** Статичне посилання для уникнення витоків
-
-### Повторне використання вікна:
-При повторному відкритті DevTools:
-- Якщо вікно вже відкрите → активується існуюче
-- Якщо вікно закрите → створюється нове
-- Автоматичне очищення посилань при закритті
-
-## Troubleshooting
-
-### DevTools не відкривається
-1. Перевірте, чи встановлені всі залежності
-2. Подивіться логи в Debug output
-3. Переконайтеся, що проект скомпільовано без помилок
-
-### Preview не показує HTML
-⚠️ Live Preview ще не реалізований - потрібна інтеграція CefSharp WebView
-
-### Немає підсвітки синтаксису
-⚠️ Підсвітка синтаксису ще не реалізована - потрібен AvaloniaEdit
-
-## Плани на майбутнє
-
-### Високий пріоритет:
-- [ ] F12 клавіша для відкриття DevTools з головного вікна
-- [ ] Live Preview в HTML Editor (CefSharp)
-- [ ] Підсвітка синтаксису (AvaloniaEdit)
-- [ ] Elements Page - DOM inspector
-
-### Середній пріоритет:
-- [ ] Network Page - requests monitor
-- [ ] Sources Page - code viewer
-- [ ] HTML автодоповнення
-- [ ] Форматування коду
-
-### Низький пріоритет:
-- [ ] Application Page - storage manager
-- [ ] Performance Page - profiling
-- [ ] Темна тема для редактора
+Vetale Browser includes a **Vetale DevTools** window with extra tools for power users.
 
 ---
 
-**Автор:** VetaleBrowser Team  
-**Версія:** 1.0  
-**Дата:** 4 листопада 2025  
-**Статус:** ✅ Базова версія працює
+## How to open DevTools
 
+1. Open **Vetale Browser**
+2. Click **Tools** (🛠️)
+3. Select **Vetale DevTools** (🔧)
+
+Notes:
+- Keyboard shortcuts like **F12 / Ctrl+Shift+I** may be shown in older docs, but they are **not guaranteed** to exist.
+- If you don’t see DevTools in Tools, make sure you’re on the latest app version.
+
+---
+
+## What’s inside
+
+### Home
+A start page with quick navigation to the available tools.
+
+### HTML Editor (available)
+A simple editor to create or edit HTML files.
+
+What you can do:
+- create a new HTML file
+- open an existing file
+- save changes
+- choose from built-in templates (for example: blank HTML5, Bootstrap, responsive)
+
+If a preview toggle exists in your version:
+- it may be a basic preview and can be limited depending on your WebView backend
+
+### Console (available as a separate window)
+Shows logs and errors to help with debugging and troubleshooting.
+
+What you can do:
+- view logs/errors
+- export logs (if your build includes export)
+
+---
+
+## Safety notes
+
+- Don’t paste **passwords** or **API keys** into tools or logs.
+- If you edit HTML files downloaded from the internet, treat them like untrusted content.
+
+---
+
+## Troubleshooting
+
+### DevTools doesn’t open
+- Close and reopen Vetale Browser.
+- Try opening **Tools → Console** first to see if any errors are shown.
+- Make sure antivirus or enterprise policies aren’t blocking the app from creating windows.
+
+### HTML preview doesn’t show anything
+- Not all versions/backends support live preview.
+- Save the file and open it in a normal browser tab to verify the HTML is correct.
+
+---
+
+## What’s planned (may not be available yet)
+
+Depending on your version, some classic DevTools features may still be in development:
+- Elements/DOM inspector
+- Network requests monitor
+- Sources/debugger
+- Storage viewer (cookies/local storage)
+
+If you don’t see these tabs, it’s normal.

@@ -187,6 +187,9 @@
   <x:String x:Key="Tools.VetaleAI.Name">Vetale AI Chat</x:String>
   <x:String x:Key="Tools.VetaleAI.Description">Chat mit künstlicher Intelligenz Vetale</x:String>
   
+  <x:String x:Key="Tools.AIComplaint.Name">KI-Inhalte melden</x:String>
+  <x:String x:Key="Tools.AIComplaint.Description">Beschwerdefenster für KI-Inhalte öffnen</x:String>
+
   <x:String x:Key="Tools.DuckDuckGoAI.Name">DuckDuckGo AI Chat</x:String>
   <x:String x:Key="Tools.DuckDuckGoAI.Description">Kostenloser AI-Chat von DuckDuckGo</x:String>
   

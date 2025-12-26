@@ -158,21 +158,6 @@
                                    Foreground="#606060" 
                                    TextWrapping="Wrap"/>
                         
-                        <!-- Gemini API -->
-                        <Border Classes="api-card">
-                            <StackPanel Spacing="8">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="✨" FontSize="16"/>
-                                    <TextBlock Text="Gemini AI" FontWeight="SemiBold" FontSize="14"/>
-                                </StackPanel>
-                                <TextBox x:Name="GeminiApiKeyInput" 
-                                         Classes="api-key-input"
-                                         Watermark="{DynamicResource VetaleSearch.Settings.Gemini.Watermark}"
-                                         PasswordChar="•"/>
-                                <Button Classes="link-button" Content="{DynamicResource Gemini.ApiKey.OpenAIStudio}" Click="OnOpenGeminiPortal"/>
-                            </StackPanel>
-                        </Border>
-
                         <!-- Pexels API -->
                         <Border Classes="api-card">
                             <StackPanel Spacing="8">

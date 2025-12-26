@@ -3,6 +3,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using VetaleBrowser.VetaleBrowser.UI.Pages;
+using VetaleBrowser.VetaleBrowser.UI.Theme;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Windows;
 
@@ -40,6 +41,7 @@ public partial class VetaleSearchSettingsWindow : Window
         _settingsPage.SettingsSaved += (_, _) =>
         {
             System.Diagnostics.Debug.WriteLine("[VetaleSearchSettingsWindow] Settings saved");
+            VetaleSearchThemeManager.NotifyThemeChanged();
         };
 
         _contentHost.Content = _settingsPage;
@@ -58,4 +60,3 @@ public partial class VetaleSearchSettingsWindow : Window
         Close();
     }
 }
-

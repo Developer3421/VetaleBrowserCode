@@ -1,5 +1,6 @@
 # Vetale Browser — Microsoft Store description (EN)
 
+
 ## Keywords (optional, Store/SEO)
 Vetale Browser; web browser; Windows; privacy-first browser; local AI; on-device AI; Gemma 3; AI assistant; customizable UI; themes; Fluent UI; Avalonia UI; .NET; DevTools; developer tools; automation; Playwright; voice input; speech-to-text; Whisper; Vetale Search; Perplexity AI; Unsplash; Pexels; YouTube; local storage; unlimited tabs; multi-window; tab drag and drop; offline game; HexGL
 

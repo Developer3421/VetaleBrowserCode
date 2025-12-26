@@ -13,8 +13,8 @@
             <Setter Property="Background">
                 <Setter.Value>
                     <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-                        <GradientStop Color="#FF8A00" Offset="0"/>
-                        <GradientStop Color="#9C27B0" Offset="1"/>
+                        <GradientStop Color="{DynamicResource VetaleSearch.Theme.GradientStart.Color}" Offset="0"/>
+                        <GradientStop Color="{DynamicResource VetaleSearch.Theme.GradientEnd.Color}" Offset="1"/>
                     </LinearGradientBrush>
                 </Setter.Value>
             </Setter>
@@ -60,8 +60,8 @@
             <Setter Property="Background">
                 <Setter.Value>
                     <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-                        <GradientStop Color="#FF8A00" Offset="0"/>
-                        <GradientStop Color="#9C27B0" Offset="1"/>
+                        <GradientStop Color="{DynamicResource VetaleSearch.Theme.GradientStart.Color}" Offset="0"/>
+                        <GradientStop Color="{DynamicResource VetaleSearch.Theme.GradientEnd.Color}" Offset="1"/>
                     </LinearGradientBrush>
                 </Setter.Value>
             </Setter>
@@ -97,7 +97,7 @@
         <!-- Search engine selector -->
         <Style Selector="ComboBox.engine-selector">
             <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#FF8A00"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource VetaleSearch.Theme.GradientStart.Brush}"/>
             <Setter Property="BorderThickness" Value="2"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="12,8"/>

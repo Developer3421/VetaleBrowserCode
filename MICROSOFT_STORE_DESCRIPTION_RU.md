@@ -1,5 +1,6 @@
 # Vetale Browser — описание для Microsoft Store (RU)
 
+
 ## Ключевые слова (опционально, Store/SEO)
 Vetale Browser; веб-браузер; Windows; браузер с упором на приватность; локальный ИИ; on-device AI; Gemma 3; AI assistant; настраиваемый интерфейс; темы; Fluent UI; Avalonia UI; .NET; DevTools; инструменты разработчика; автоматизация; Playwright; голосовой ввод; распознавание речи; Whisper; Vetale Search; Perplexity AI; Unsplash; Pexels; YouTube; локальное хранение; неограниченные вкладки; несколько окон; перетаскивание вкладок; офлайн-игра; HexGL
 

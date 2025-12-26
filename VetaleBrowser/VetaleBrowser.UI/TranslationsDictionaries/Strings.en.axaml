@@ -186,7 +186,10 @@
   <!-- Tools page - list items -->
   <x:String x:Key="Tools.VetaleAI.Name">Vetale AI Chat</x:String>
   <x:String x:Key="Tools.VetaleAI.Description">Chat with Vetale artificial intelligence</x:String>
-  
+
+  <x:String x:Key="Tools.AIComplaint.Name">Report AI-generated content</x:String>
+  <x:String x:Key="Tools.AIComplaint.Description">Open the complaint window for AI content</x:String>
+
   <x:String x:Key="Tools.DuckDuckGoAI.Name">DuckDuckGo AI Chat</x:String>
   <x:String x:Key="Tools.DuckDuckGoAI.Description">Free AI chat from DuckDuckGo</x:String>
   

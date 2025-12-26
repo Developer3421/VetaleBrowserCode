@@ -1,5 +1,6 @@
 # Vetale Browser — Microsoft Store açıklaması (TR)
 
+
 ## Anahtar kelimeler (isteğe bağlı, Store/SEO)
 Vetale Browser; web tarayıcı; Windows; gizlilik odaklı tarayıcı; yerel yapay zekâ; on-device AI; Gemma 3; AI assistant; özelleştirilebilir arayüz; temalar; Fluent UI; Avalonia UI; .NET; DevTools; geliştirici araçları; otomasyon; Playwright; sesle giriş; konuşma tanıma; Whisper; Vetale Search; Perplexity AI; Unsplash; Pexels; YouTube; yerel depolama; sınırsız sekme; çoklu pencere; sekme sürükle-bırak; çevrimdışı oyun; HexGL
 

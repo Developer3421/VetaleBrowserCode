@@ -1,11 +1,13 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using VetaleBrowser.VetaleBrowser.Database.Services;
+using VetaleBrowser.VetaleBrowser.UI.Theme;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
 
@@ -15,7 +17,6 @@ public partial class VetaleSearchSettingsPage : UserControl
     public event EventHandler? SettingsSaved;
 
     // API Key inputs
-    private TextBox? _geminiApiKeyInput;
     private TextBox? _pexelsApiKeyInput;
     private TextBox? _unsplashApiKeyInput;
     private TextBox? _youTubeApiKeyInput;
@@ -55,7 +56,6 @@ public partial class VetaleSearchSettingsPage : UserControl
     private async void OnLoaded(object? sender, RoutedEventArgs e)
     {
         // API Key inputs
-        _geminiApiKeyInput = this.FindControl<TextBox>("GeminiApiKeyInput");
         _pexelsApiKeyInput = this.FindControl<TextBox>("PexelsApiKeyInput");
         _unsplashApiKeyInput = this.FindControl<TextBox>("UnsplashApiKeyInput");
         _youTubeApiKeyInput = this.FindControl<TextBox>("YouTubeApiKeyInput");
@@ -102,19 +102,27 @@ public partial class VetaleSearchSettingsPage : UserControl
         }
     }
 
+    private static bool IsValidColorString(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return false;
+
+        // Accept anything Avalonia can parse as a color (#RRGGBB, #AARRGGBB, named colors, etc.)
+        return Color.TryParse(value.Trim(), out _);
+    }
+
+    private static string CoerceValidColorOrDefault(string? value, string defaultValue)
+    {
+        return IsValidColorString(value) ? value!.Trim() : defaultValue;
+    }
+
     private async Task LoadSettingsAsync()
     {
         try
         {
-            // Load API Keys
+            // API Keys
             if (_apiKeysService != null)
             {
-                if (_geminiApiKeyInput != null)
-                {
-                    var geminiKey = await _apiKeysService.GetGeminiApiKeyAsync();
-                    _geminiApiKeyInput.Text = geminiKey ?? "";
-                }
-
                 if (_pexelsApiKeyInput != null)
                 {
                     var pexelsKey = await _apiKeysService.GetPexelsApiKeyAsync();
@@ -136,30 +144,46 @@ public partial class VetaleSearchSettingsPage : UserControl
                 // Load color settings (stored as api keys for simplicity)
                 if (_gradientStartColorInput != null)
                 {
-                    var gradientStart = await _apiKeysService.GetApiKeyAsync(SettingGradientStart) ?? "#FF8A00";
+                    var raw = await _apiKeysService.GetApiKeyAsync(SettingGradientStart);
+                    var gradientStart = CoerceValidColorOrDefault(raw, "#FF8A00");
                     _gradientStartColorInput.Text = gradientStart;
                     UpdateColorPreview(_gradientStartColorInput, _gradientStartPreview);
+
+                    if (!IsValidColorString(raw))
+                        await _apiKeysService.SetApiKeyAsync(SettingGradientStart, "Gradient start", gradientStart);
                 }
 
                 if (_gradientEndColorInput != null)
                 {
-                    var gradientEnd = await _apiKeysService.GetApiKeyAsync(SettingGradientEnd) ?? "#9C27B0";
+                    var raw = await _apiKeysService.GetApiKeyAsync(SettingGradientEnd);
+                    var gradientEnd = CoerceValidColorOrDefault(raw, "#9C27B0");
                     _gradientEndColorInput.Text = gradientEnd;
                     UpdateColorPreview(_gradientEndColorInput, _gradientEndPreview);
+
+                    if (!IsValidColorString(raw))
+                        await _apiKeysService.SetApiKeyAsync(SettingGradientEnd, "Gradient end", gradientEnd);
                 }
 
                 if (_cardBackgroundInput != null)
                 {
-                    var cardBg = await _apiKeysService.GetApiKeyAsync(SettingCardBackground) ?? "#FFFFFF";
+                    var raw = await _apiKeysService.GetApiKeyAsync(SettingCardBackground);
+                    var cardBg = CoerceValidColorOrDefault(raw, "#FFFFFF");
                     _cardBackgroundInput.Text = cardBg;
                     UpdateColorPreview(_cardBackgroundInput, _cardBackgroundPreview);
+
+                    if (!IsValidColorString(raw))
+                        await _apiKeysService.SetApiKeyAsync(SettingCardBackground, "Card background", cardBg);
                 }
 
                 if (_linkColorInput != null)
                 {
-                    var linkColor = await _apiKeysService.GetApiKeyAsync(SettingLinkColor) ?? "#1565C0";
+                    var raw = await _apiKeysService.GetApiKeyAsync(SettingLinkColor);
+                    var linkColor = CoerceValidColorOrDefault(raw, "#1565C0");
                     _linkColorInput.Text = linkColor;
                     UpdateColorPreview(_linkColorInput, _linkColorPreview);
+
+                    if (!IsValidColorString(raw))
+                        await _apiKeysService.SetApiKeyAsync(SettingLinkColor, "Link color", linkColor);
                 }
             }
             else
@@ -186,37 +210,18 @@ public partial class VetaleSearchSettingsPage : UserControl
             // Save API Keys
             if (_apiKeysService != null)
             {
-                // Gemini
-                if (_geminiApiKeyInput != null)
-                {
-                    var geminiKey = _geminiApiKeyInput.Text?.Trim();
-                    if (!string.IsNullOrWhiteSpace(geminiKey))
-                    {
-                        await _apiKeysService.SetGeminiApiKeyAsync(geminiKey);
-                        // Update static key in GeminiAiSummaryService for immediate effect
-                        VetaleBrowser.Search.Services.GeminiAiSummaryService.SetCustomApiKey(geminiKey);
-                        Debug.WriteLine("[VetaleSearchSettingsPage] Gemini API key saved and applied");
-                    }
-                    else
-                    {
-                        await _apiKeysService.RemoveApiKeyAsync(ApiServiceIds.Gemini);
-                        VetaleBrowser.Search.Services.GeminiAiSummaryService.ClearCustomApiKey();
-                        Debug.WriteLine("[VetaleSearchSettingsPage] Gemini API key cleared");
-                    }
-                }
-
                 // Pexels
                 if (_pexelsApiKeyInput != null)
                 {
                     var pexelsKey = _pexelsApiKeyInput.Text?.Trim();
                     Debug.WriteLine($"[VetaleSearchSettingsPage] Pexels key from input: {(string.IsNullOrWhiteSpace(pexelsKey) ? "EMPTY" : pexelsKey.Substring(0, Math.Min(10, pexelsKey.Length)) + "...")}");
-                    
+
                     if (!string.IsNullOrWhiteSpace(pexelsKey))
                     {
                         Debug.WriteLine("[VetaleSearchSettingsPage] Saving Pexels key to database...");
                         await _apiKeysService.SetPexelsApiKeyAsync(pexelsKey);
                         Debug.WriteLine("[VetaleSearchSettingsPage] Pexels key saved to DB");
-                        
+
                         // Update static key in ImageSearchServiceFactory for immediate effect
                         Debug.WriteLine("[VetaleSearchSettingsPage] Setting Pexels key in factory...");
                         VetaleBrowser.Search.Services.ImageSearchServiceFactory.SetPexelsApiKey(pexelsKey);
@@ -268,36 +273,35 @@ public partial class VetaleSearchSettingsPage : UserControl
                     }
                 }
 
-                // Save Color Settings
-                if (_gradientStartColorInput != null && !string.IsNullOrWhiteSpace(_gradientStartColorInput.Text))
-                {
-                    await _apiKeysService.SetApiKeyAsync(SettingGradientStart, "VetaleSearch Gradient Start", _gradientStartColorInput.Text.Trim());
-                }
+                // Save color settings (stored as api keys)
+                await SaveColorSettingAsync(SettingGradientStart, _gradientStartColorInput?.Text, "Gradient start");
+                await SaveColorSettingAsync(SettingGradientEnd, _gradientEndColorInput?.Text, "Gradient end");
+                await SaveColorSettingAsync(SettingCardBackground, _cardBackgroundInput?.Text, "Card background");
+                await SaveColorSettingAsync(SettingLinkColor, _linkColorInput?.Text, "Link color");
 
-                if (_gradientEndColorInput != null && !string.IsNullOrWhiteSpace(_gradientEndColorInput.Text))
-                {
-                    await _apiKeysService.SetApiKeyAsync(SettingGradientEnd, "VetaleSearch Gradient End", _gradientEndColorInput.Text.Trim());
-                }
-
-                if (_cardBackgroundInput != null && !string.IsNullOrWhiteSpace(_cardBackgroundInput.Text))
-                {
-                    await _apiKeysService.SetApiKeyAsync(SettingCardBackground, "VetaleSearch Card Background", _cardBackgroundInput.Text.Trim());
-                }
-
-                if (_linkColorInput != null && !string.IsNullOrWhiteSpace(_linkColorInput.Text))
-                {
-                    await _apiKeysService.SetApiKeyAsync(SettingLinkColor, "VetaleSearch Link Color", _linkColorInput.Text.Trim());
-                }
-
-                Debug.WriteLine("[VetaleSearchSettingsPage] All settings saved to database and applied to services");
+                SettingsSaved?.Invoke(this, EventArgs.Empty);
             }
 
-            SettingsSaved?.Invoke(this, EventArgs.Empty);
-            Debug.WriteLine("[VetaleSearchSettingsPage] All settings saved successfully");
+            // Show success message
+            ShowStatusMessage(GetLocalizedString("Common.Saved", "Saved!"), false);
+
+            // Apply immediately
+            try
+            {
+                if (Application.Current != null)
+                    await VetaleSearchThemeManager.ApplyToResourceHostAsync(Application.Current);
+
+                VetaleSearchThemeManager.NotifyThemeChanged();
+            }
+            catch (Exception themeEx)
+            {
+                Debug.WriteLine($"[VetaleSearchSettingsPage] Apply theme after save failed: {themeEx.Message}");
+            }
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[VetaleSearchSettingsPage] Error saving settings: {ex.Message}");
+            ShowStatusMessage($"Error: {ex.Message}", true);
         }
     }
 
@@ -310,7 +314,6 @@ public partial class VetaleSearchSettingsPage : UserControl
         if (_linkColorInput != null) _linkColorInput.Text = "#1565C0";
 
         // Clear API keys from UI
-        if (_geminiApiKeyInput != null) _geminiApiKeyInput.Text = "";
         if (_pexelsApiKeyInput != null) _pexelsApiKeyInput.Text = "";
         if (_unsplashApiKeyInput != null) _unsplashApiKeyInput.Text = "";
         if (_youTubeApiKeyInput != null) _youTubeApiKeyInput.Text = "";
@@ -321,24 +324,22 @@ public partial class VetaleSearchSettingsPage : UserControl
             try
             {
                 // Remove API keys from database
-                await _apiKeysService.RemoveApiKeyAsync(ApiServiceIds.Gemini);
                 await _apiKeysService.RemoveApiKeyAsync(ApiServiceIds.Pexels);
                 await _apiKeysService.RemoveApiKeyAsync(ApiServiceIds.Unsplash);
                 await _apiKeysService.RemoveApiKeyAsync(ApiServiceIds.YouTube);
-                
+
                 // Remove color settings from database
                 await _apiKeysService.RemoveApiKeyAsync(SettingGradientStart);
                 await _apiKeysService.RemoveApiKeyAsync(SettingGradientEnd);
                 await _apiKeysService.RemoveApiKeyAsync(SettingCardBackground);
                 await _apiKeysService.RemoveApiKeyAsync(SettingLinkColor);
-                
+
                 // Clear static caches in services
-                VetaleBrowser.Search.Services.GeminiAiSummaryService.ClearCustomApiKey();
                 VetaleBrowser.Search.Services.ImageSearchServiceFactory.SetPexelsApiKey(null);
                 VetaleBrowser.Search.Services.ImageSearchServiceFactory.SetUnsplashApiKey(null);
                 VetaleBrowser.Search.Services.ImageSearchServiceFactory.SetYouTubeApiKey(null);
                 VetaleBrowser.Search.Services.ImageSearchServiceFactory.InvalidateCache();
-                
+
                 Debug.WriteLine("[VetaleSearchSettingsPage] All API keys and settings removed from database");
             }
             catch (Exception ex)
@@ -353,11 +354,6 @@ public partial class VetaleSearchSettingsPage : UserControl
     private void OnBackClick(object? sender, RoutedEventArgs e)
     {
         BackRequested?.Invoke(this, EventArgs.Empty);
-    }
-
-    private void OnOpenGeminiPortal(object? sender, RoutedEventArgs e)
-    {
-        OpenUrl("https://aistudio.google.com/app/apikey");
     }
 
     private void OnOpenPexelsPortal(object? sender, RoutedEventArgs e)
@@ -390,5 +386,78 @@ public partial class VetaleSearchSettingsPage : UserControl
             Debug.WriteLine($"[VetaleSearchSettingsPage] Error opening URL: {ex.Message}");
         }
     }
-}
 
+    private async Task SaveColorSettingAsync(string key, string? value, string debugName)
+    {
+        if (_apiKeysService == null)
+            return;
+
+        try
+        {
+            var trimmed = value?.Trim();
+            if (!IsValidColorString(trimmed))
+            {
+                Debug.WriteLine($"[VetaleSearchSettingsPage] {debugName} invalid color '{trimmed}', saving defaults instead");
+
+                // Use matching defaults per key
+                var fallback = key switch
+                {
+                    SettingGradientStart => "#FF8A00",
+                    SettingGradientEnd => "#9C27B0",
+                    SettingCardBackground => "#FFFFFF",
+                    SettingLinkColor => "#1565C0",
+                    _ => "#FFFFFF"
+                };
+
+                await _apiKeysService.SetApiKeyAsync(key, debugName, fallback);
+                return;
+            }
+
+            await _apiKeysService.SetApiKeyAsync(key, debugName, trimmed!);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[VetaleSearchSettingsPage] Error saving {debugName}: {ex.Message}");
+        }
+    }
+
+    private string GetLocalizedString(string key, string fallback)
+    {
+        try
+        {
+            if (Application.Current?.TryFindResource(key, out var value) == true && value is string s)
+                return s;
+        }
+        catch
+        {
+            // ignore
+        }
+
+        return fallback;
+    }
+
+    private void ShowStatusMessage(string message, bool isError)
+    {
+        try
+        {
+            // Try find a status text block if the XAML has it (optional)
+            var status = this.FindControl<TextBlock>("StatusTextBlock");
+            if (status != null)
+            {
+                status.IsVisible = true;
+                status.Text = message;
+                status.Foreground = isError
+                    ? new SolidColorBrush(Color.Parse("#C62828"))
+                    : new SolidColorBrush(Color.Parse("#2E7D32"));
+            }
+            else
+            {
+                Debug.WriteLine($"[VetaleSearchSettingsPage] Status: {message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[VetaleSearchSettingsPage] Failed to show status: {ex.Message}");
+        }
+    }
+}

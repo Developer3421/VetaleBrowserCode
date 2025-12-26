@@ -48,6 +48,15 @@ public partial class ToolsMainPage : UserControl
 
         var tools = new List<ToolItem>
         {
+            // Put complaint at the very top
+            new ToolItem
+            {
+                NameKey = "Tools.AIComplaint.Name",
+                DescriptionKey = "Tools.AIComplaint.Description",
+                IconUrl = null,
+                IconEmoji = "⚠️",
+                Action = () => OpenAIComplaintWindow()
+            },
             new ToolItem
             {
                 NameKey = "Tools.VetaleAI.Name",
@@ -72,6 +81,7 @@ public partial class ToolsMainPage : UserControl
                 NavigateUrl = "https://copilot.microsoft.com",
                 Action = () => OpenInWebView(GetLocalizedString("Tools.Copilot.Name"), "https://copilot.microsoft.com")
             },
+            // Move Gemini right after Copilot
             new ToolItem
             {
                 NameKey = "Tools.Gemini.Name",
@@ -144,6 +154,8 @@ public partial class ToolsMainPage : UserControl
                 IconEmoji = "ℹ️",
                 Action = () => OpenAbout()
             }
+
+            // (removed) Gemini was previously at the end
         };
 
         foreach (var tool in tools)
@@ -768,6 +780,32 @@ public partial class ToolsMainPage : UserControl
         {
             System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] ERROR getting localized string for '{key}': {ex.Message}");
             return key;
+        }
+    }
+
+    private async void OpenAIComplaintWindow()
+    {
+        try
+        {
+            var owner = TopLevel.GetTopLevel(this) as Window;
+
+            var w = new Windows.VetaleAIComplaintWindow
+            {
+                UserMessageContext = null,
+                AssistantMessageContext = null
+            };
+
+            if (owner?.Icon != null)
+                w.Icon = owner.Icon;
+
+            if (owner != null)
+                await w.ShowDialog(owner);
+            else
+                w.Show();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] ERROR opening AI complaint window: {ex}");
         }
     }
 

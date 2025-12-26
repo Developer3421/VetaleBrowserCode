@@ -1,130 +1,92 @@
-# API Keys Configuration Guide / Налаштування API Ключів
+# API Keys & External Integrations
 
-## 📍 Де вставляти дефолтні API ключі
+Vetale Browser can work with third‑party services (AI, image search, video search). Some of these services require **your own API key**.
 
-### 1. Gemini API Key (для AI-відповідей у Vetale Search)
+This guide explains:
+- what each API key is used for
+- how to add keys inside the app
+- where keys are stored (locally, encrypted)
+- common issues and fixes
 
-**Файл:** `VetaleBrowser.Search/Services/GeminiAiSummaryService.cs`
-
-**Рядок ~46:**
-```csharp
-// ВСТАВТЕ ВАШ GEMINI API КЛЮЧ ТУТ:
-private const string DefaultApiKey = "AIzaSy..."; // ← ВАШ КЛЮЧ
-```
-
-**Як отримати:**
-1. Відкрийте: https://aistudio.google.com/app/apikey
-2. Натисніть "Get API key" або "Create API key"
-3. Скопіюйте згенерований ключ
-
-**Ліміти (безкоштовно):**
-- 15 запитів/хвилину
-- 1 мільйон токенів/місяць
-- 1500 запитів/день
+> Tip: If a feature works without a key, you can skip this entirely.
 
 ---
 
-### 2. Pexels API Key (для пошуку зображень)
+## Where to enter API keys
 
-**Файл:** `VetaleBrowser.Search/Services/ImageSearchServices.cs`
+Vetale Browser uses an **API Key configuration window**.
 
-**Рядок ~31:**
-```csharp
-public const string PexelsApiKey = ""; // ← ВСТАВТЕ ВАШ PEXELS API KEY ТУТ
-```
+You’ll see it automatically when you try to use a feature that needs a key and no key is configured yet.
 
-**Як отримати:**
-1. Відкрийте: https://www.pexels.com/api/
-2. Зареєструйтесь та увійдіть
-3. Створіть новий API ключ
+You can also open it from the app UI when available (for example, from the feature that needs the key).
 
-**Ліміти (безкоштовно):**
-- 200 запитів/годину
-- 20,000 запитів/місяць
+### Pexels (image search)
+**Used for:** image search results.
 
----
+Get a key:
+- https://www.pexels.com/api/
 
-### 3. Unsplash Access Key (для пошуку зображень)
-
-**Файл:** `VetaleBrowser.Search/Services/ImageSearchServices.cs`
-
-**Рядок ~38:**
-```csharp
-public const string UnsplashAccessKey = ""; // ← ВСТАВТЕ ВАШ UNSPLASH ACCESS KEY ТУТ
-```
-
-**Як отримати:**
-1. Відкрийте: https://unsplash.com/developers
-2. Зареєструйтесь та створіть додаток
-3. Скопіюйте Access Key
-
-**Ліміти (безкоштовно):**
-- 50 запитів/годину (демо)
-- Необмежено (production, потрібно подати заявку)
+When you’ll be asked for it:
+- The first time you use image search and Pexels is enabled but not configured.
 
 ---
 
-### 4. YouTube Data API Key (для пошуку відео)
+### Unsplash (image search)
+**Used for:** image search results.
 
-**Файл:** `VetaleBrowser.Search/Services/ImageSearchServices.cs`
+Get a key:
+- https://unsplash.com/developers
 
-**Рядок ~45:**
-```csharp
-public const string YouTubeApiKey = ""; // ← ВСТАВТЕ ВАШ YOUTUBE API KEY ТУТ
-```
-
-**Як отримати:**
-1. Відкрийте: https://console.cloud.google.com/apis/library/youtube.googleapis.com
-2. Увімкніть YouTube Data API v3
-3. Перейдіть до Credentials → Create API Key
-
-**Ліміти (безкоштовно):**
-- 10,000 одиниць/день
+When you’ll be asked for it:
+- The first time you use image search and Unsplash is enabled but not configured.
 
 ---
 
-## 🔐 Пріоритет завантаження ключів
+### YouTube Data API (video search)
+**Used for:** video search.
 
-Для кожного сервісу ключі завантажуються в такому порядку:
+Get a key:
+- https://console.cloud.google.com/apis/library/youtube.googleapis.com
 
-1. **Дефолтні константи** (у коді) - найвищий пріоритет
-2. **База даних** (api_keys.db) - якщо користувач ввів через UI
-3. **Змінні середовища** - для CI/CD та контейнерів
-4. **Mock/Fallback** - якщо нічого не знайдено
+---
 
-## 🌍 Змінні середовища
+## How keys are stored
 
-Альтернативно можна задати ключі через ENV:
+- Stored **on your PC only**.
+- Storage location (Windows):
+  - `%AppData%\VetaleBrowser\Data\api_keys.db`
+- Keys are stored in a local database and **encrypted**.
 
-```bash
-# Windows PowerShell
-$env:GEMINI_API_KEY = "your-gemini-key"
-$env:VETALE_PEXELS_API_KEY = "your-pexels-key"
-$env:VETALE_UNSPLASH_ACCESS_KEY = "your-unsplash-key"
-$env:YOUTUBE_API_KEY = "your-youtube-key"
+---
 
-# Linux/macOS
-export GEMINI_API_KEY="your-gemini-key"
-export VETALE_PEXELS_API_KEY="your-pexels-key"
-export VETALE_UNSPLASH_ACCESS_KEY="your-unsplash-key"
-export YOUTUBE_API_KEY="your-youtube-key"
-```
+## Safety notes
 
-## 📦 Обмеження результатів
+- Treat API keys like passwords.
+- Don’t paste keys into chat messages, screenshots, or public posts.
+- If you think a key leaked, revoke it in the provider dashboard and generate a new one.
 
-- **Зображення:** максимум 50 на сторінку (`ImageSearchServiceFactory.MaxResultsPerPage`)
-- **Відео:** максимум 50 на сторінку (`VideoSearchPage.PageSize`)
+---
 
-## 💾 База даних API ключів
+## Troubleshooting
 
-Користувач може ввести свої ключі через UI вікна. Вони зберігаються в:
-- **Шлях:** `%AppData%/VetaleBrowser/Data/api_keys.db`
-- **Шифрування:** AES-256
-- **Формат:** LiteDB
+### “API key required” keeps showing
+- Make sure you clicked **Save** in the API Key window.
+- Re-open the feature after saving.
+- If you manage multiple keys, ensure the key is **enabled**.
 
-## ⚠️ Важливо
+### Requests fail or results are empty
+- Check the provider dashboard for:
+  - quota limits
+  - billing / project status
+  - API being enabled (YouTube Data API v3)
 
-- НЕ комітьте реальні API ключі в публічні репозиторії!
-- Використовуйте `.gitignore` або секретні змінні для CI/CD
-- Для production рекомендується використовувати ENV або secure vault
+### I want to remove a key
+- Open the API Key configuration window for that service.
+- Clear the value (or disable the key) and save.
 
+---
+
+## What Vetale Browser does *not* do
+
+- It does **not** upload your API keys to Vetale Browser servers.
+- It does **not** share your keys with websites you browse.

@@ -1,134 +1,115 @@
-# Інструкція з використання налаштувань вигляду
+# Appearance Settings Guide
 
-## Як відкрити налаштування вигляду
+This guide explains how to change Vetale Browser’s look and layout using the built-in **Appearance** settings.
 
-1. Відкрийте браузер VetaleBrowser
-2. Натисніть кнопку Tools (Інструменти)
-3. Виберіть Settings (Налаштування)
-4. На головній сторінці налаштувань натисніть "Appearance" (Вигляд)
+---
 
-## Розділи налаштувань
+## Open Appearance settings
 
-### 1. Вкладки (Tabs)
+1. Open **Vetale Browser**
+2. Go to **Tools → Settings**
+3. Choose **Appearance**
 
-Налаштуйте зовнішній вигляд вкладок браузера:
+You’ll see three sections:
+- **Tabs**
+- **Main Window**
+- **Other Windows**
 
-**Доступні параметри:**
-- **Ширина вкладки** - Встановіть бажану ширину вкладки в пікселях (за замовчуванням 200)
-- **Розмір тексту** - Розмір шрифту в назві вкладки (за замовчуванням 16)
-- **Розмір іконки** - Розмір фавікону сайту у вкладці (за замовчуванням 16)
-- **Колір фону вкладки** - HEX код кольору фону неактивної вкладки (наприклад, #F5F5F5)
-- **Колір тексту вкладки** - HEX код кольору тексту (наприклад, #000000)
-- **Колір активної вкладки** - HEX код кольору для активної вкладки (наприклад, #9A1CE8)
+---
 
-**Приклад налаштування:**
-```
-Ширина: 250
-Розмір тексту: 18
-Розмір іконки: 18
-Колір фону: #E8E8E8
-Колір тексту: #333333
-Колір активної: #9A1CE8
-```
+## Tabs
 
-### 2. Головне вікно (Main Window)
+Use this section to control how your tabs look and how much information fits on screen.
 
-Налаштуйте основне вікно браузера:
+Typical options include:
+- **Tab width** (in pixels)
+- **Tab text size**
+- **Tab icon size** (favicon)
+- **Tab background color** (inactive)
+- **Tab text color**
+- **Active tab color**
 
-**Доступні параметри:**
-- **Колір навігаційного бару** - Колір панелі з адресним рядком (наприклад, #E0E0E0)
-- **Висота навігаційного бару** - Висота в пікселях (за замовчуванням 40)
-- **Ширина вікна** - Початкова ширина головного вікна (за замовчуванням 1200)
-- **Висота вікна** - Початкова висота головного вікна (за замовчуванням 800)
-- **Колір фону верхньої лінії** - Колір рамки вікна (наприклад, #8B4513)
-- **Розмір кнопок** - Розмір кнопок управління (за замовчуванням 32)
-- **Розмір іконок кнопок** - Розмір зображень всередині кнопок (за замовчуванням 16)
+Suggested ranges:
+- Tab width: **160–320 px**
+- Text size: **12–20 px**
+- Icon size: **14–24 px**
 
-**Приклад налаштування:**
-```
-Колір навігаційного бару: #D0D0D0
-Висота навігаційного бару: 45
-Ширина вікна: 1400
-Висота вікна: 900
-Колір верхньої лінії: #9A1CE8
-Розмір кнопок: 36
-Розмір іконок: 18
-```
+---
 
-### 3. Інші вікна (Other Windows)
+## Main Window
 
-Налаштуйте додаткові вікна браузера (налаштування, закладки, історія):
+This section affects the main browser window (navigation bar, window size, and button sizing).
 
-**Доступні параметри:**
-- **Колір фону вікон** - Основний колір фону (наприклад, #FFFFFF)
-- **Колір верхньої панелі** - Колір заголовка вікна (наприклад, #9A1CE8)
+Typical options include:
+- **Navigation bar color**
+- **Navigation bar height** (in pixels)
+- **Default window width / height**
+- **Top line / frame color**
+- **Button size**
+- **Button icon size**
 
-**Приклад налаштування:**
-```
-Колір фону: #F8F8F8
-Колір верхньої панелі: #8812D0
-```
+Suggested ranges:
+- Navigation bar height: **35–50 px**
+- Button size: **28–40 px**
+- Button icon size: **14–24 px**
 
-## Як зберегти налаштування
+---
 
-1. Введіть бажані значення в поля
-2. Натисніть кнопку "Зберегти налаштування" внизу сторінки
-3. Налаштування збережуться автоматично
-4. Деякі зміни можуть вимагати перезапуску вікна для застосування
+## Other Windows
 
-## Повернення до стандартних налаштувань
+This section controls the look of secondary windows (for example: Tools, Settings, History).
 
-Кожна сторінка налаштувань має кнопку **"Повернути до стандартних"** (червона кнопка):
-1. Натисніть кнопку "Повернути до стандартних"
-2. Всі налаштування на поточній сторінці скинуться до значень за замовчуванням
-3. Налаштування автоматично збережуться
-4. Поля форми оновляться з новими значеннями
+Typical options include:
+- **Window background color**
+- **Top bar color**
 
-**Увага:** Ця дія скине ВСІ налаштування на поточній сторінці!
+---
 
-## Повернення до розділів
+## Color format (HEX)
 
-Натисніть кнопку "← Назад" у верхньому лівому куті, щоб повернутися до списку розділів налаштувань вигляду.
+Colors are entered in **HEX** format:
+- Format: `#RRGGBB`
+- Examples:
+  - White: `#FFFFFF`
+  - Black: `#000000`
+  - Red: `#FF0000`
+  - Green: `#00FF00`
+  - Blue: `#0000FF`
 
-## Формат кольорів
+Tip: if the UI becomes hard to read, increase contrast (dark text on light background, or light text on dark background).
 
-Всі кольори вводяться в HEX форматі:
-- Формат: #RRGGBB
-- Приклади:
-  - Білий: #FFFFFF
-  - Чорний: #000000
-  - Червоний: #FF0000
-  - Зелений: #00FF00
-  - Синій: #0000FF
-  - Фіолетовий (фірмовий): #9A1CE8
-  - Сірий: #808080
+---
 
-## Рекомендації
+## Save changes
 
-### Контрастність
-Забезпечте достатній контраст між текстом і фоном для зручності читання:
-- Світлий фон (#F5F5F5) + темний текст (#000000)
-- Темний фон (#333333) + світлий текст (#FFFFFF)
+1. Enter your values
+2. Click **Save settings** at the bottom
 
-### Розміри
-Рекомендовані діапазони розмірів:
-- Текст вкладок: 12-20 px
-- Іконки: 14-24 px
-- Висота навігаційного бару: 35-50 px
-- Кнопки: 28-40 px
+Notes:
+- Settings are stored locally on your PC.
+- Some changes may require you to close and reopen the affected window.
 
-### Тестування
-Після зміни налаштувань:
-1. Перевірте читабельність тексту
-2. Переконайтеся, що елементи не накладаються
-3. Протестуйте на різних екранах
+---
 
-## Підтримка
+## Reset to defaults
 
-Якщо виникли проблеми з налаштуваннями вигляду, перевірте:
-1. Правильність формату HEX кольорів
-2. Чи числові значення в допустимих межах
-3. Чи правильно збережені налаштування
+Each Appearance page provides a **Reset to default** button.
 
-Якщо щось пішло не так, скористайтеся кнопкою **"Повернути до стандартних"** на відповідній сторінці налаштувань.
+This resets the current page only (for example, only Tabs).
 
+Use it if:
+- you want to undo experiments quickly
+- the UI becomes uncomfortable to use
+
+---
+
+## Troubleshooting
+
+### My colors don’t apply
+- Make sure the value starts with `#` and has exactly **6 hex digits**.
+- Click **Save settings**.
+- Close and reopen the window.
+
+### The UI became too large / too small
+- Use **Reset to default** on the page you changed.
+- Then adjust again using the suggested ranges above.

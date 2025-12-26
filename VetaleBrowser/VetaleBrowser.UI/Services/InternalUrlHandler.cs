@@ -127,6 +127,19 @@ public static class InternalUrlHandler
             page.SetQuery(q);
         }
         
+        // IMPORTANT: wire navigation events back to the browser/tab
+        page.NavigateRequested += (_, targetUrl) =>
+        {
+            try
+            {
+                NavigationRequestCallback?.Invoke(targetUrl);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] HomePage NavigateRequested callback error: {ex.Message}");
+            }
+        };
+
         System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] Returning configured VetaleSearchHomePage");
         return page;
     }
@@ -138,7 +151,20 @@ public static class InternalUrlHandler
     {
         System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] CreateSearchResultsPage: {url}");
         var page = new VetaleSearchResultsPage();
-        
+
+        // IMPORTANT: wire navigation events back to the browser/tab
+        page.NavigateRequested += (_, targetUrl) =>
+        {
+            try
+            {
+                NavigationRequestCallback?.Invoke(targetUrl);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] ResultsPage NavigateRequested callback error: {ex.Message}");
+            }
+        };
+
         // Налаштовуємо сервіси якщо вони доступні
         if (GlobalVoiceRecognitionService != null)
             page.SetVoiceRecognitionService(GlobalVoiceRecognitionService);
@@ -204,6 +230,12 @@ public static class InternalUrlHandler
             _ => "VetaleBrowser"
         };
     }
+    
+    /// <summary>
+    /// Callback for internal pages to request navigation (typically to update current tab URL).
+    /// Set by MainWindow on startup.
+    /// </summary>
+    public static Action<string>? NavigationRequestCallback { get; set; }
 }
 
 /// <summary>

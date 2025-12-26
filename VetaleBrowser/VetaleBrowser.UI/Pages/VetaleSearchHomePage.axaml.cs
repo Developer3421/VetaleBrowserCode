@@ -7,6 +7,10 @@ using Avalonia.Controls.Primitives;
 using VetaleBrowser.VetaleBrowser.Search.Models;
 using VetaleBrowser.VetaleBrowser.Search.Services;
 using VetaleBrowser.VetaleBrowser.VoiceRecognition.Services;
+using Avalonia;
+using Avalonia.Threading;
+using VetaleBrowser.VetaleBrowser.UI.Theme;
+using VetaleBrowser.VetaleBrowser.UI.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
 
@@ -34,7 +38,11 @@ public partial class VetaleSearchHomePage : UserControl
         
         InitializeComponent();
         InitializeControls();
-        
+
+        ApplyTheme();
+        VetaleSearchThemeManager.ThemeChanged += OnThemeChanged;
+        Unloaded += OnUnloaded;
+
         var msg2 = "[VOICE][HOME] VetaleSearchHomePage constructor completed";
         System.Diagnostics.Debug.WriteLine(msg2);
         Console.WriteLine(msg2);
@@ -104,6 +112,9 @@ public partial class VetaleSearchHomePage : UserControl
 
         if (_searchButton != null)
         {
+            // Defensive: rebind handler to prevent duplicates + survive visual tree/style reload edge cases
+            _searchButton.Click -= Search_Click;
+            _searchButton.Click += Search_Click;
             _searchButton.IsEnabled = !string.IsNullOrWhiteSpace(_searchInput?.Text);
         }
     }
@@ -343,17 +354,25 @@ public partial class VetaleSearchHomePage : UserControl
         if (selectedEngine == 0) // Vetale Search (локальний)
         {
             var resultsUrl = $"vetale://search/results?q={Uri.EscapeDataString(query)}";
-            System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] Generated Vetale Search URL: {resultsUrl}");
-            System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] NavigateRequested subscribers: {NavigateRequested?.GetInvocationList().Length ?? 0}");
-            
-            if (NavigateRequested == null)
-            {
-                System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] ✗ NavigateRequested is NULL!");
-            }
-            else
+
+            // Primary path: event (wired by MainWindow/InternalUrlHandler in most cases)
+            if (NavigateRequested != null)
             {
                 NavigateRequested.Invoke(this, resultsUrl);
-                System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] ✓ NavigateRequested invoked with: {resultsUrl}");
+                return;
+            }
+
+            // Fallback: drive navigation through the global callback (set by MainWindow).
+            var cb = InternalUrlHandler.NavigationRequestCallback;
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] NavigateRequested is NULL; NavigationRequestCallback={(cb != null ? "OK" : "NULL")}, url={resultsUrl}");
+
+            if (cb != null)
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    try { cb(resultsUrl); }
+                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] NavigationRequestCallback invoke failed: {ex.Message}"); }
+                });
             }
             return;
         }
@@ -545,5 +564,30 @@ public partial class VetaleSearchHomePage : UserControl
         
         // TODO: Показати користувачу повідомлення про помилку
         // Наприклад, через MessageBox або Toast notification
+    }
+
+    private void OnThemeChanged(object? sender, EventArgs e)
+    {
+        // Only re-apply theme. Do not touch navigation delegates here.
+        ApplyTheme();
+    }
+
+    private void OnUnloaded(object? sender, RoutedEventArgs e)
+    {
+        VetaleSearchThemeManager.ThemeChanged -= OnThemeChanged;
+        Unloaded -= OnUnloaded;
+    }
+
+    private async void ApplyTheme()
+    {
+        try
+        {
+            if (Application.Current != null)
+                await VetaleSearchThemeManager.ApplyToResourceHostAsync(Application.Current);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] ApplyTheme error: {ex.Message}");
+        }
     }
 }
