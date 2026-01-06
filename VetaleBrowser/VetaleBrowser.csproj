@@ -8,8 +8,10 @@
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <ApplicationIcon>DefaultTabItem.ico</ApplicationIcon>
         <LangVersion>14</LangVersion>
-        <!-- Explicitly set RuntimeIdentifiers to Windows only -->
-        <RuntimeIdentifiers>win-x64;win-x86;win-arm64</RuntimeIdentifiers>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        
+        <!-- Cross-platform RuntimeIdentifiers (publish with -r win-x64 / linux-x64 / etc.) -->
+        <RuntimeIdentifiers>win-x64;win-x86;win-arm64;linux-x64;linux-arm64</RuntimeIdentifiers>
         
         <!-- MSIX Package Properties -->
         <Authors>Oleh Kurylo</Authors>
@@ -35,7 +37,8 @@
     <PropertyGroup Condition="'$(Configuration)' == 'Release'">
         <PublishSingleFile>true</PublishSingleFile>
         <SelfContained>true</SelfContained>
-        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+        <!-- Do NOT hardcode RuntimeIdentifier here; pass -r on publish to target win/linux -->
+        <!-- <RuntimeIdentifier>win-x64</RuntimeIdentifier> -->
         <DebugType>none</DebugType>
         <DebugSymbols>false</DebugSymbols>
 
@@ -67,13 +70,27 @@
         <PackageReference Include="LLamaSharp" Version="0.25.0" />
         <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.25.0" Condition="'$(LlamaBackendChoice)' == 'cpu-avx2'" />
         <PackageReference Include="LLamaSharp.Backend.Vulkan" Version="0.25.0" Condition="'$(LlamaBackendChoice)' == 'vulkan'" />
-        <PackageReference Include="Microsoft.Agents.AI.Abstractions" Version="1.0.0-preview.251104.1" />
-        <PackageReference Include="Microsoft.Playwright" Version="1.56.0" />
+
+        <!-- Audio/recording (Windows) -->
+        <PackageReference Include="NAudio" Version="2.2.1" />
         <PackageReference Include="NAudio.Core" Version="2.2.1" />
         <PackageReference Include="NAudio.WinMM" Version="2.2.1" />
+
+        <PackageReference Include="Microsoft.Agents.AI.Abstractions" Version="1.0.0-preview.251104.1" />
+        <PackageReference Include="Microsoft.Playwright" Version="1.56.0" />
+
+
         <PackageReference Include="WebViewControl-Avalonia" Version="3.120.10" />
-        <PackageReference Include="System.Drawing.Common" Version="10.0.0" />
-        <PackageReference Include="NAudio" Version="2.2.1" />
+
+        <!-- Removed Windows-only / non-cross-platform packages -->
+        <!-- <PackageReference Include="System.Drawing.Common" Version="10.0.0" /> -->
+        <!-- <PackageReference Include="NAudio" Version="2.2.1" /> -->
+        <!-- <PackageReference Include="NAudio.Core" Version="2.2.1" /> -->
+        <!-- <PackageReference Include="NAudio.WinMM" Version="2.2.1" /> -->
+
+        <!-- Removed commercial audio backend -->
+        <!-- <PackageReference Include="ManagedBass" Version="4.0.2" /> -->
+
         <PackageReference Include="Whisper.net" Version="1.9.0" />
         <PackageReference Include="Whisper.net.Runtime" Version="1.9.0" />
 

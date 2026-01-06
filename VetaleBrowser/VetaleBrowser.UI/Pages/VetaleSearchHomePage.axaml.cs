@@ -452,7 +452,10 @@ public partial class VetaleSearchHomePage : UserControl
                 {
                     System.Diagnostics.Debug.WriteLine("[VOICE][HOME] ✗ Voice recognition not available");
                     Console.WriteLine("[VOICE][HOME] ✗ Voice recognition not available");
-                    OnVoiceError(this, "Розпізнавання голосу недоступне на цьому пристрої");
+
+                    // Try to provide a more actionable reason. The service logs the exact init error.
+                    // Keep the message user-friendly.
+                    OnVoiceError(this, "Розпізнавання голосу недоступне. Перевір: чи є мікрофон, чи він дозволений в системі, і чи не зайнятий іншою програмою. (Деталі дивись в логах) ");
                     return;
                 }
 

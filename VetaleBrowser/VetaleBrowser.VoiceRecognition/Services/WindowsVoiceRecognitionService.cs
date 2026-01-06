@@ -1,26 +1,29 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using NAudio.Wave;
 using Whisper.net;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace VetaleBrowser.VetaleBrowser.VoiceRecognition.Services;
 
 /// <summary>
-/// Реалізація розпізнавання голосу для Windows з використанням Whisper.NET та NAudio
-/// Працює повністю офлайн з багатомовною підтримкою
+/// Voice recognition service using Whisper.NET.
+/// 
+/// Windows capture backend: NAudio (WinMM).
+/// NOTE: user will rework Linux separately.
 /// </summary>
 public class WindowsVoiceRecognitionService : IVoiceRecognitionService, IDisposable
 {
     private WhisperProcessor? _processor;
+
     private WaveInEvent? _waveIn;
+    private readonly List<byte> _audioPcmBytes = new();
+    private readonly object _lock = new();
+
     private VoiceRecognitionState _currentState;
     private bool _isDisposed;
     private string? _modelPath;
-    private MemoryStream? _audioStream;
-    private List<byte> _audioBuffer = new();
 
     public event EventHandler<string>? TextRecognized;
     public event EventHandler<VoiceRecognitionState>? StateChanged;
@@ -47,123 +50,19 @@ public class WindowsVoiceRecognitionService : IVoiceRecognitionService, IDisposa
         System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Initialized with model path: {_modelPath}");
     }
 
-    private string GetDefaultModelPath()
-    {
-        // Шукаємо модель Whisper в декількох стандартних місцях
-        var appDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-        
-        Console.WriteLine($"[VoiceRecognition] Searching for Whisper model. AppDir: {appDir}");
-        System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Searching for Whisper model. AppDir: {appDir}");
-
-        // Спочатку шукаємо безпосередньо у вихідній директорії (csproj копіює туди)
-        var localPaths = new[]
-        {
-            // Напряму в вихідній директорії (туди копіює csproj)
-            Path.Combine(appDir ?? "", "ggml-base.bin"),
-            Path.Combine(appDir ?? "", "ggml-small.bin"),
-            Path.Combine(appDir ?? "", "ggml-tiny.bin"),
-            // Стара структура папок (на випадок якщо хтось вручну створив)
-            Path.Combine(appDir ?? "", "Models", "whisper", "ggml-base.bin"),
-            Path.Combine(appDir ?? "", "Models", "ggml-base.bin"),
-            Path.Combine(appDir ?? "", "VoiceModels", "ggml-base.bin"),
-            // AppData
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VetaleBrowser", "Models", "ggml-base.bin"),
-            // Поточна директорія
-            Path.Combine(Environment.CurrentDirectory, "ggml-base.bin")
-        };
-
-        foreach (var path in localPaths)
-        {
-            Console.WriteLine($"[VoiceRecognition] Checking path: {path}");
-            if (File.Exists(path))
-            {
-                Console.WriteLine($"[VoiceRecognition] ✓ Found Whisper model at: {path}");
-                System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Found local Whisper model at: {path}");
-                return path;
-            }
-        }
-
-        // Якщо не знайдено жодної локальної моделі, повертаємо порожній шлях
-        Console.WriteLine("[VoiceRecognition] ✗ No local model found!");
-        System.Diagnostics.Debug.WriteLine("[VoiceRecognition] No local model found in project or AppData");
-        return string.Empty;
-    }
-
-    /// <summary>
-    /// Повторно шукає модель Whisper у всіх можливих місцях
-    /// </summary>
-    private string FindModelPath()
-    {
-        var appDir = AppDomain.CurrentDomain.BaseDirectory;
-        var exeDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-        
-        Console.WriteLine($"[VoiceRecognition] FindModelPath: BaseDirectory={appDir}");
-        Console.WriteLine($"[VoiceRecognition] FindModelPath: ExeLocation={exeDir}");
-
-        var searchPaths = new[]
-        {
-            // Базова директорія додатку
-            Path.Combine(appDir, "ggml-base.bin"),
-            Path.Combine(appDir, "ggml-small.bin"),
-            Path.Combine(appDir, "ggml-tiny.bin"),
-            // Директорія exe
-            Path.Combine(exeDir ?? "", "ggml-base.bin"),
-            // Структура папок
-            Path.Combine(appDir, "Models", "ggml-base.bin"),
-            Path.Combine(appDir, "VetaleBrowser.VoiceRecognition", "Models", "ggml-base.bin"),
-            // AppData
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VetaleBrowser", "Models", "ggml-base.bin"),
-            // Поточна робоча директорія
-            Path.Combine(Environment.CurrentDirectory, "ggml-base.bin"),
-        };
-
-        foreach (var path in searchPaths)
-        {
-            Console.WriteLine($"[VoiceRecognition] FindModelPath checking: {path}");
-            if (File.Exists(path))
-            {
-                Console.WriteLine($"[VoiceRecognition] ✓ Found model at: {path}");
-                return path;
-            }
-        }
-
-        return string.Empty;
-    }
-
     public bool IsAvailable()
     {
         try
         {
-            Console.WriteLine($"[VOICE][SERVICE] IsAvailable called. modelPath={_modelPath}");
-            System.Diagnostics.Debug.WriteLine($"[VOICE][SERVICE] IsAvailable called. modelPath={_modelPath}");
-            
-            // Якщо шлях порожній - використовуємо вбудовану модель (завжди доступна)
             var modelExists = string.IsNullOrEmpty(_modelPath) || File.Exists(_modelPath);
-            var deviceCount = WaveInEvent.DeviceCount;
-            
-            Console.WriteLine($"[VOICE][SERVICE] ModelExists={modelExists}, DeviceCount={deviceCount}");
-            System.Diagnostics.Debug.WriteLine($"[VOICE][SERVICE] ModelExists={modelExists}, DeviceCount={deviceCount}");
-
             if (!modelExists)
-            {
-                Console.WriteLine($"[VoiceRecognition] Whisper model not found at: {_modelPath}");
-                System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Whisper model not found at: {_modelPath}");
                 return false;
-            }
 
-            if (deviceCount == 0)
-            {
-                Console.WriteLine("[VoiceRecognition] No microphone devices found");
-                System.Diagnostics.Debug.WriteLine("[VoiceRecognition] No microphone devices found");
-                return false;
-            }
-
-            return true;
+            // NAudio is Windows-oriented; simplest availability check: at least one recording device.
+            return WaveInEvent.DeviceCount > 0;
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"[VoiceRecognition] Availability check failed: {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Availability check failed: {ex.Message}");
             return false;
         }
     }
@@ -173,333 +72,207 @@ public class WindowsVoiceRecognitionService : IVoiceRecognitionService, IDisposa
         if (_isDisposed)
             throw new ObjectDisposedException(nameof(WindowsVoiceRecognitionService));
 
-        try
-        {
-            Console.WriteLine("[VOICE][SERVICE] ⚡⚡⚡ StartListeningAsync called ⚡⚡⚡");
-            System.Diagnostics.Debug.WriteLine("[VOICE][SERVICE] StartListeningAsync called");
-            CurrentState = VoiceRecognitionState.Processing;
+        if (CurrentState == VoiceRecognitionState.Listening || CurrentState == VoiceRecognitionState.Processing)
+            return;
 
-            await Task.Run(() =>
-            {
-                try
-                {
-                    Console.WriteLine("[VOICE][SERVICE] Initializing recognizer...");
-                    System.Diagnostics.Debug.WriteLine("[VOICE][SERVICE] Initializing recognizer...");
-                    InitializeRecognizer();
-                    
-                    Console.WriteLine("[VOICE][SERVICE] Starting recording...");
-                    System.Diagnostics.Debug.WriteLine("[VOICE][SERVICE] Starting recording...");
-                    StartRecording();
-                    
-                    CurrentState = VoiceRecognitionState.Listening;
-                    Console.WriteLine("[VoiceRecognition] ✓ Started listening...");
-                    System.Diagnostics.Debug.WriteLine("[VoiceRecognition] Started listening...");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[VoiceRecognition] ✗ Failed to start: {ex.Message}");
-                    Console.WriteLine($"Stack: {ex.StackTrace}");
-                    System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Failed to start: {ex.Message}");
-                    CurrentState = VoiceRecognitionState.Error;
-                    ErrorOccurred?.Invoke(this, $"Не вдалося запустити розпізнавання: {ex.Message}");
-                }
-            });
-        }
-        catch (Exception ex)
+        if (!IsAvailable())
         {
-            Console.WriteLine($"[VoiceRecognition] ✗ StartListeningAsync error: {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] StartListeningAsync error: {ex.Message}");
             CurrentState = VoiceRecognitionState.Error;
-            ErrorOccurred?.Invoke(this, $"Помилка: {ex.Message}");
+            ErrorOccurred?.Invoke(this, "Розпізнавання голосу недоступне: немає доступного пристрою запису");
+            return;
         }
+
+        CurrentState = VoiceRecognitionState.Processing;
+
+        await Task.Run(() =>
+        {
+            try
+            {
+                InitializeRecognizer();
+
+                lock (_lock) _audioPcmBytes.Clear();
+
+                _waveIn?.Dispose();
+                _waveIn = new WaveInEvent
+                {
+                    DeviceNumber = 0,
+                    WaveFormat = new WaveFormat(16000, 16, 1),
+                    BufferMilliseconds = 50
+                };
+
+                _waveIn.DataAvailable += OnDataAvailable;
+                _waveIn.RecordingStopped += OnRecordingStopped;
+
+                _waveIn.StartRecording();
+                CurrentState = VoiceRecognitionState.Listening;
+            }
+            catch (Exception ex)
+            {
+                CurrentState = VoiceRecognitionState.Error;
+                ErrorOccurred?.Invoke(this, $"Не вдалося запустити запис: {ex.Message}");
+            }
+        });
     }
 
     public void StopListening()
     {
         try
         {
-            if (_waveIn != null)
-            {
-                _waveIn.StopRecording();
-                System.Diagnostics.Debug.WriteLine("[VoiceRecognition] Stopped listening");
-            }
-            CurrentState = VoiceRecognitionState.Idle;
+            if (CurrentState == VoiceRecognitionState.Idle)
+                return;
+
+            _waveIn?.StopRecording();
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Stop error: {ex.Message}");
-        }
-    }
-
-    private void InitializeRecognizer()
-    {
-        if (_processor == null)
-        {
-            Console.WriteLine($"[VoiceRecognition] Initializing Whisper processor...");
-            Console.WriteLine($"[VoiceRecognition] Current modelPath: '{_modelPath}'");
-            System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Initializing Whisper processor...");
-            
-            WhisperFactory factory;
-            
-            // Якщо шлях порожній - спробуємо знайти модель знову
-            if (string.IsNullOrEmpty(_modelPath))
-            {
-                _modelPath = FindModelPath();
-            }
-            
-            // Якщо вказано шлях до моделі і файл існує - використовуємо його
-            if (!string.IsNullOrEmpty(_modelPath) && File.Exists(_modelPath))
-            {
-                Console.WriteLine($"[VoiceRecognition] Loading Whisper model from: {_modelPath}");
-                System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Loading Whisper model from: {_modelPath}");
-                factory = WhisperFactory.FromPath(_modelPath);
-            }
-            else
-            {
-                // Модель не знайдена
-                Console.WriteLine($"[VoiceRecognition] ✗ Model not found! Path: '{_modelPath}'");
-                throw new InvalidOperationException(
-                    "Модель Whisper не знайдена.\n" +
-                    "Можливі рішення:\n" +
-                    "1. Помістіть ggml-base.bin у папку програми\n" +
-                    "2. Помістіть модель у %AppData%/VetaleBrowser/Models/\n" +
-                    "3. Завантажте модель з https://huggingface.co/ggerganov/whisper.cpp");
-            }
-            
-            Console.WriteLine("[VoiceRecognition] Creating processor with auto language detection...");
-            // Створюємо процесор з багатомовною підтримкою
-            _processor = factory.CreateBuilder()
-                .WithLanguage("auto") // Автоматичне визначення мови
-                .Build();
-            
-            Console.WriteLine("[VoiceRecognition] ✓ Whisper processor initialized successfully");
-            System.Diagnostics.Debug.WriteLine("[VoiceRecognition] Whisper processor initialized successfully");
-        }
-        
-        // Ініціалізуємо буфер для аудіо
-        _audioBuffer = new List<byte>();
-    }
-
-    private void StartRecording()
-    {
-        try
-        {
-            Console.WriteLine("[VoiceRecognition] 🔧 Setting up microphone...");
-            
-            if (_waveIn != null)
-            {
-                Console.WriteLine("[VoiceRecognition] Disposing previous WaveIn...");
-                _waveIn.DataAvailable -= OnDataAvailable;
-                _waveIn.RecordingStopped -= OnRecordingStopped;
-                _waveIn.StopRecording();
-                _waveIn.Dispose();
-                _waveIn = null;
-            }
-
-            // Виводимо список доступних пристроїв
-            Console.WriteLine($"[VoiceRecognition] Available audio devices: {WaveInEvent.DeviceCount}");
-            for (int i = 0; i < WaveInEvent.DeviceCount; i++)
-            {
-                var caps = WaveInEvent.GetCapabilities(i);
-                Console.WriteLine($"[VoiceRecognition]   Device {i}: {caps.ProductName} (Channels: {caps.Channels})");
-            }
-
-            Console.WriteLine("[VoiceRecognition] Creating WaveInEvent...");
-            _waveIn = new WaveInEvent
-            {
-                DeviceNumber = 0, // Використовуємо перший пристрій
-                WaveFormat = new WaveFormat(16000, 1), // 16 кГц, моно
-                BufferMilliseconds = 100 // Буфер 100мс для швидшого реагування
-            };
-
-            Console.WriteLine($"[VoiceRecognition] WaveIn configured: Format={_waveIn.WaveFormat}, Device={_waveIn.DeviceNumber}");
-
-            _waveIn.DataAvailable += OnDataAvailable;
-            _waveIn.RecordingStopped += OnRecordingStopped;
-
-            Console.WriteLine("[VoiceRecognition] Starting recording...");
-            _waveIn.StartRecording();
-            
-            Console.WriteLine("[VoiceRecognition] 🎙️ Recording started! Speak now...");
-            System.Diagnostics.Debug.WriteLine("[VoiceRecognition] Recording started");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[VoiceRecognition] ✗✗✗ StartRecording FAILED: {ex.Message}");
-            Console.WriteLine($"Stack: {ex.StackTrace}");
-            throw new InvalidOperationException($"Не вдалося запустити мікрофон: {ex.Message}", ex);
+            CurrentState = VoiceRecognitionState.Error;
+            ErrorOccurred?.Invoke(this, ex.Message);
         }
     }
 
     private void OnDataAvailable(object? sender, WaveInEventArgs e)
     {
-        try
+        if (e.BytesRecorded <= 0)
+            return;
+
+        lock (_lock)
         {
-            Console.WriteLine($"[VoiceRecognition] 📥 OnDataAvailable called! BytesRecorded={e.BytesRecorded}");
-            
-            if (e.BytesRecorded > 0)
-            {
-                // Показуємо перші байти для діагностики
-                if (_audioBuffer.Count == 0 && e.BytesRecorded >= 10)
-                {
-                    var sample = string.Join(", ", e.Buffer.Take(10).Select(b => b.ToString()));
-                    Console.WriteLine($"[VoiceRecognition] First 10 bytes: {sample}");
-                }
-                
-                // Додаємо дані до буфера
-                for (int i = 0; i < e.BytesRecorded; i++)
-                {
-                    _audioBuffer.Add(e.Buffer[i]);
-                }
-                
-                Console.WriteLine($"[VoiceRecognition] 📊 Audio buffer: {_audioBuffer.Count} bytes (just added {e.BytesRecorded})");
-                
-                // Логуємо кожні 10000 байтів щоб не заспамити
-                if (_audioBuffer.Count % 10000 < e.BytesRecorded)
-                {
-                    Console.WriteLine($"[VoiceRecognition] 📊 Total buffer: {_audioBuffer.Count} bytes");
-                }
-                System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Audio buffer size: {_audioBuffer.Count} bytes");
-            }
-            else
-            {
-                Console.WriteLine("[VoiceRecognition] ⚠️ OnDataAvailable called but BytesRecorded=0!");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[VoiceRecognition] ✗ OnDataAvailable error: {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] OnDataAvailable error: {ex.Message}");
+            for (int i = 0; i < e.BytesRecorded; i++)
+                _audioPcmBytes.Add(e.Buffer[i]);
         }
     }
 
     private void OnRecordingStopped(object? sender, StoppedEventArgs e)
     {
-        try
-        {
-            Console.WriteLine("[VoiceRecognition] 🛑 Recording stopped, processing audio...");
-            System.Diagnostics.Debug.WriteLine("[VoiceRecognition] Recording stopped, processing audio...");
-            
-            if (_processor != null && _audioBuffer.Count > 0)
-            {
-                CurrentState = VoiceRecognitionState.Processing;
-                
-                // Запускаємо асинхронну обробку в фоновому потоці
-                _ = Task.Run(async () => await ProcessAudioBufferAsync());
-            }
-            else if (_audioBuffer.Count == 0)
-            {
-                Console.WriteLine("[VoiceRecognition] ⚠️ Audio buffer is empty!");
-            }
+        _waveIn!.DataAvailable -= OnDataAvailable;
+        _waveIn.RecordingStopped -= OnRecordingStopped;
 
-            if (e.Exception != null)
-            {
-                Console.WriteLine($"[VoiceRecognition] ✗ Recording stopped with error: {e.Exception.Message}");
-                System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Recording stopped with error: {e.Exception.Message}");
-                CurrentState = VoiceRecognitionState.Error;
-                ErrorOccurred?.Invoke(this, e.Exception.Message);
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("[VoiceRecognition] Recording stopped normally");
-            }
-        }
-        catch (Exception ex)
+        if (e.Exception != null)
         {
-            Console.WriteLine($"[VoiceRecognition] ✗ OnRecordingStopped error: {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] OnRecordingStopped error: {ex.Message}");
             CurrentState = VoiceRecognitionState.Error;
-            ErrorOccurred?.Invoke(this, $"Помилка обробки: {ex.Message}");
+            ErrorOccurred?.Invoke(this, e.Exception.Message);
+            return;
+        }
+
+        var pcm = GetAndClearCapturedPcm();
+        if (pcm.Length == 0)
+        {
+            CurrentState = VoiceRecognitionState.Idle;
+            return;
+        }
+
+        _ = Task.Run(() => RecognizePcmAsync(pcm));
+    }
+
+    private byte[] GetAndClearCapturedPcm()
+    {
+        lock (_lock)
+        {
+            var arr = _audioPcmBytes.ToArray();
+            _audioPcmBytes.Clear();
+            return arr;
         }
     }
 
-    private async Task ProcessAudioBufferAsync()
+    private async Task RecognizePcmAsync(byte[] pcm16le)
     {
         try
         {
-            if (_processor == null || _audioBuffer.Count == 0)
+            CurrentState = VoiceRecognitionState.Processing;
+
+            if (_processor == null)
+                throw new InvalidOperationException("Whisper processor not initialized.");
+
+            using var ms = new MemoryStream(pcm16le, writable: false);
+
+            string? lastText = null;
+            await foreach (var segment in _processor.ProcessAsync(ms))
             {
-                Console.WriteLine("[VoiceRecognition] No audio data to process");
-                System.Diagnostics.Debug.WriteLine("[VoiceRecognition] No audio data to process");
-                CurrentState = VoiceRecognitionState.Idle;
-                return;
+                if (!string.IsNullOrWhiteSpace(segment.Text))
+                    lastText = segment.Text;
             }
 
-            // Whisper потребує мінімум ~1 секунду аудіо (16000 Hz * 1 сек * 2 bytes = 32000 bytes)
-            const int minAudioBytes = 32000;
-            if (_audioBuffer.Count < minAudioBytes)
-            {
-                Console.WriteLine($"[VoiceRecognition] ⚠️ Too little audio data ({_audioBuffer.Count} bytes < {minAudioBytes} bytes)");
-                Console.WriteLine("[VoiceRecognition] ℹ️ Speak for at least 1-2 seconds for better recognition");
-                CurrentState = VoiceRecognitionState.Idle;
-                _audioBuffer.Clear();
-                return;
-            }
+            if (!string.IsNullOrWhiteSpace(lastText))
+                TextRecognized?.Invoke(this, lastText.Trim());
 
-            Console.WriteLine($"[VoiceRecognition] 🔄 Processing {_audioBuffer.Count} bytes of audio...");
-            System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Processing {_audioBuffer.Count} bytes of audio");
-
-            // Конвертуємо byte[] в float[] для Whisper
-            var audioData = new float[_audioBuffer.Count / 2];
-            for (int i = 0; i < audioData.Length; i++)
-            {
-                short sample = BitConverter.ToInt16(_audioBuffer.ToArray(), i * 2);
-                audioData[i] = sample / 32768f; // Нормалізуємо до [-1.0, 1.0]
-            }
-
-            Console.WriteLine($"[VoiceRecognition] Converted to {audioData.Length} float samples");
-            System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Converted to {audioData.Length} float samples");
-
-            Console.WriteLine("[VoiceRecognition] 🤖 Running Whisper.NET processing...");
-            
-            // Обробляємо аудіо через Whisper асинхронно
-            var textBuilder = new System.Text.StringBuilder();
-            
-            await foreach (var segment in _processor.ProcessAsync(audioData))
-            {
-                var segmentText = segment.Text;
-                textBuilder.Append(segmentText);
-                textBuilder.Append(" ");
-                Console.WriteLine($"[VoiceRecognition] 📝 Segment: '{segmentText}'");
-                System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Segment: {segmentText}");
-            }
-
-            var fullText = textBuilder.ToString().Trim();
-
-            // Фільтруємо службові маркери Whisper
-            if (fullText.Contains("[BLANK_AUDIO]") || fullText.Contains("(BLANK_AUDIO)") || 
-                fullText.Contains("[MUSIC]") || fullText.Contains("(music)"))
-            {
-                Console.WriteLine($"[VoiceRecognition] ⚠️ Detected blank/noise audio, ignoring: '{fullText}'");
-                CurrentState = VoiceRecognitionState.Idle;
-                return;
-            }
-
-            if (!string.IsNullOrWhiteSpace(fullText))
-            {
-                Console.WriteLine($"[VoiceRecognition] ✅ RECOGNIZED TEXT: '{fullText}'");
-                System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Recognized text: {fullText}");
-                TextRecognized?.Invoke(this, fullText);
-            }
-            else
-            {
-                Console.WriteLine("[VoiceRecognition] ⚠️ No text recognized (silence or unclear audio)");
-                System.Diagnostics.Debug.WriteLine("[VoiceRecognition] No text recognized");
-            }
-
-            // Очищаємо буфер
-            _audioBuffer.Clear();
             CurrentState = VoiceRecognitionState.Idle;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[VoiceRecognition] ✗✗✗ ProcessAudioBuffer ERROR: {ex.Message}");
-            Console.WriteLine($"Stack: {ex.StackTrace}");
-            System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] ProcessAudioBuffer error: {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"[VoiceRecognition] Stack trace: {ex.StackTrace}");
             CurrentState = VoiceRecognitionState.Error;
-            ErrorOccurred?.Invoke(this, $"Помилка розпізнавання: {ex.Message}");
+            ErrorOccurred?.Invoke(this, ex.Message);
         }
+    }
+
+    private void InitializeRecognizer()
+    {
+        if (_processor != null)
+            return;
+
+        WhisperFactory factory;
+
+        if (string.IsNullOrEmpty(_modelPath))
+            _modelPath = FindModelPath();
+
+        if (!string.IsNullOrEmpty(_modelPath) && File.Exists(_modelPath))
+        {
+            factory = WhisperFactory.FromPath(_modelPath);
+        }
+        else
+        {
+            throw new InvalidOperationException("Whisper model not found. Please place ggml-*.bin in output directory.");
+        }
+
+        _processor = factory.CreateBuilder()
+            .WithLanguage("uk")
+            .Build();
+    }
+
+    private string GetDefaultModelPath()
+    {
+        var appDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+        var localPaths = new[]
+        {
+            Path.Combine(appDir ?? "", "ggml-base.bin"),
+            Path.Combine(appDir ?? "", "ggml-small.bin"),
+            Path.Combine(appDir ?? "", "ggml-tiny.bin"),
+            Path.Combine(appDir ?? "", "Models", "whisper", "ggml-base.bin"),
+            Path.Combine(appDir ?? "", "Models", "ggml-base.bin"),
+            Path.Combine(appDir ?? "", "VoiceModels", "ggml-base.bin"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VetaleBrowser", "Models", "ggml-base.bin"),
+            Path.Combine(Environment.CurrentDirectory, "ggml-base.bin")
+        };
+
+        foreach (var path in localPaths)
+            if (File.Exists(path))
+                return path;
+
+        return string.Empty;
+    }
+
+    private string FindModelPath()
+    {
+        var appDir = AppDomain.CurrentDomain.BaseDirectory;
+        var exeDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+        var searchPaths = new[]
+        {
+            Path.Combine(appDir, "ggml-base.bin"),
+            Path.Combine(appDir, "ggml-small.bin"),
+            Path.Combine(appDir, "ggml-tiny.bin"),
+            Path.Combine(exeDir ?? "", "ggml-base.bin"),
+            Path.Combine(appDir, "Models", "ggml-base.bin"),
+            Path.Combine(appDir, "VetaleBrowser.VoiceRecognition", "Models", "ggml-base.bin"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VetaleBrowser", "Models", "ggml-base.bin"),
+            Path.Combine(Environment.CurrentDirectory, "ggml-base.bin"),
+        };
+
+        foreach (var path in searchPaths)
+            if (File.Exists(path))
+                return path;
+
+        return string.Empty;
     }
 
     public void Dispose()
@@ -508,30 +281,26 @@ public class WindowsVoiceRecognitionService : IVoiceRecognitionService, IDisposa
             return;
 
         _isDisposed = true;
-        StopListening();
 
-        if (_waveIn != null)
+        try
         {
-            _waveIn.DataAvailable -= OnDataAvailable;
-            _waveIn.RecordingStopped -= OnRecordingStopped;
-            _waveIn.Dispose();
-            _waveIn = null;
+            if (_waveIn != null)
+            {
+                _waveIn.DataAvailable -= OnDataAvailable;
+                _waveIn.RecordingStopped -= OnRecordingStopped;
+                _waveIn.Dispose();
+                _waveIn = null;
+            }
+
+            _processor?.Dispose();
         }
-
-        if (_processor != null)
+        catch
         {
-            _processor.Dispose();
+            // ignored
+        }
+        finally
+        {
             _processor = null;
         }
-
-        if (_audioStream != null)
-        {
-            _audioStream.Dispose();
-            _audioStream = null;
-        }
-
-        _audioBuffer.Clear();
-
-        System.Diagnostics.Debug.WriteLine("[VoiceRecognition] Disposed");
     }
 }
