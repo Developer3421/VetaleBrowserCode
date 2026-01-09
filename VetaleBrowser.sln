@@ -5,6 +5,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VetaleBrowser", "VetaleBrowser\VetaleBrowser.csproj", "{311D7429-89CD-4785-8728-C2466D10AB56}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Export", "Export", "{2B2F98A5-8C4E-4201-9B1F-05A9B958EF7D}"
+	ProjectSection(SolutionItems) = preProject
+		export\.gitignore = export\.gitignore
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
