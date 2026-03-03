@@ -8,7 +8,7 @@ using VetaleBrowser.VetaleBrowser.Database.Models;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Сервіс для роботи з API ключами з LiteDB та AES шифруванням
+/// Service for working with API keys using LiteDB and AES encryption
 /// </summary>
 public class ApiKeysService : IApiKeysService, IDisposable
 {
@@ -23,19 +23,19 @@ public class ApiKeysService : IApiKeysService, IDisposable
         
         System.Diagnostics.Debug.WriteLine($"[ApiKeysService] Creating with path: {databasePath}");
         
-        // Використовуємо оптимізоване з'єднання з мінімальним споживанням RAM
+        // Use optimized connection with minimal RAM usage
         _database = DatabaseConfiguration.CreateOptimizedDatabase(databasePath);
         
-        // Отримуємо колекцію
+        // Get collection
         _apiKeysCollection = _database.GetCollection<ApiKeyItem>("api_keys");
         
-        // Унікальний індекс за ServiceId
+        // Unique index by ServiceId
         _apiKeysCollection.EnsureIndex(x => x.ServiceId, true);
         
         System.Diagnostics.Debug.WriteLine("[ApiKeysService] Initialized successfully");
     }
 
-    // ==================== Загальні методи ====================
+    // ==================== General methods ====================
 
     public async Task<string?> GetApiKeyAsync(string serviceId)
     {
@@ -188,7 +188,7 @@ public class ApiKeysService : IApiKeysService, IDisposable
         }).ConfigureAwait(false);
     }
 
-    // ==================== Спеціалізовані методи для сервісів ====================
+    // ==================== Specialized methods for services ====================
 
     public Task<string?> GetGeminiApiKeyAsync()
     {
@@ -249,4 +249,3 @@ public class ApiKeysService : IApiKeysService, IDisposable
         _disposed = true;
     }
 }
-

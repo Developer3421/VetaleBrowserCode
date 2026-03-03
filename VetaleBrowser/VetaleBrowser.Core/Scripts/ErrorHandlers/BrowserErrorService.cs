@@ -6,18 +6,18 @@ using Avalonia.Controls;
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
 {
     /// <summary>
-    /// Сервіс для локалізації та обробки помилок CefGlue/Chromium
-    /// Перетворює технічні коди помилок на зрозумілі користувачеві сторінки
+    /// Service for localizing and handling CefGlue/Chromium errors.
+    /// Converts technical error codes into user-friendly pages.
     /// </summary>
     public static class BrowserErrorService
     {
         /// <summary>
-        /// Отримує локалізовану інформацію про помилку за кодом CefGlue
+        /// Gets localized error information by CefGlue error code
         /// </summary>
-        /// <param name="errorCode">Код помилки CefGlue (від'ємне число)</param>
-        /// <param name="failedUrl">URL, на який не вдалося перейти</param>
-        /// <param name="errorText">Оригінальний текст помилки від CefGlue</param>
-        /// <returns>Локалізована модель помилки</returns>
+        /// <param name="errorCode">CefGlue error code (negative number)</param>
+        /// <param name="failedUrl">URL that failed to load</param>
+        /// <param name="errorText">Original error text from CefGlue</param>
+        /// <returns>Localized error model</returns>
         public static BrowserError GetLocalizedError(int errorCode, string failedUrl, string? errorText = null)
         {
             var error = new BrowserError
@@ -29,21 +29,21 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 OccurredAt = DateTime.UtcNow
             };
             
-            // Визначаємо кольори за категорією
+            // Determine colors by category
             SetCategoryStyles(error);
             
-            // Отримуємо локалізовані тексти
+            // Get localized texts
             SetLocalizedContent(error);
             
             return error;
         }
         
         /// <summary>
-        /// Отримує інформацію про HTTP помилку сервера (4xx, 5xx)
+        /// Gets HTTP server error information (4xx, 5xx)
         /// </summary>
-        /// <param name="httpStatusCode">HTTP код статусу</param>
-        /// <param name="failedUrl">URL сторінки</param>
-        /// <returns>Локалізована модель помилки</returns>
+        /// <param name="httpStatusCode">HTTP status code</param>
+        /// <param name="failedUrl">Page URL</param>
+        /// <returns>Localized error model</returns>
         public static BrowserError GetHttpError(int httpStatusCode, string failedUrl)
         {
             var error = new BrowserError
@@ -62,7 +62,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         }
         
         /// <summary>
-        /// Отримує назву помилки за кодом
+        /// Gets the error name by code
         /// </summary>
         private static string GetErrorName(int errorCode)
         {
@@ -101,13 +101,13 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         }
         
         /// <summary>
-        /// Визначає категорію помилки
+        /// Determines the error category
         /// </summary>
         private static BrowserErrorCategory GetErrorCategory(int errorCode)
         {
             return errorCode switch
             {
-                // Мережеві помилки
+                // Network errors
                 CefErrorCodes.ERR_NAME_NOT_RESOLVED or
                 CefErrorCodes.ERR_INTERNET_DISCONNECTED or
                 CefErrorCodes.ERR_CONNECTION_REFUSED or
@@ -124,7 +124,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 CefErrorCodes.ERR_TUNNEL_CONNECTION_FAILED
                     => BrowserErrorCategory.NetworkError,
                 
-                // Помилки сервера
+                // Server errors
                 CefErrorCodes.ERR_EMPTY_RESPONSE or
                 CefErrorCodes.ERR_TOO_MANY_REDIRECTS or
                 CefErrorCodes.ERR_INVALID_RESPONSE or
@@ -132,7 +132,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 CefErrorCodes.ERR_CONTENT_DECODING_FAILED
                     => BrowserErrorCategory.ServerError,
                 
-                // Помилки безпеки
+                // Security errors
                 CefErrorCodes.ERR_SSL_PROTOCOL_ERROR or
                 CefErrorCodes.ERR_CERT_DATE_INVALID or
                 CefErrorCodes.ERR_CERT_AUTHORITY_INVALID or
@@ -145,39 +145,39 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 CefErrorCodes.ERR_BLOCKED_BY_RESPONSE
                     => BrowserErrorCategory.SecurityError,
                 
-                // Загальні помилки
+                // General errors
                 _ => BrowserErrorCategory.GeneralError
             };
         }
         
         /// <summary>
-        /// Встановлює стилі відображення за категорією
+        /// Sets display styles by category
         /// </summary>
         private static void SetCategoryStyles(BrowserError error)
         {
             switch (error.Category)
             {
                 case BrowserErrorCategory.NetworkError:
-                    error.BackgroundColor = "#FF9800"; // Помаранчевий (як у ToolsMainPage)
+                    error.BackgroundColor = "#FF9800"; // Orange (same as ToolsMainPage)
                     error.ForegroundColor = "#303030";
                     error.Icon = "🌐";
                     break;
                     
                 case BrowserErrorCategory.ServerError:
-                    error.BackgroundColor = "#F44336"; // Червоний
+                    error.BackgroundColor = "#F44336"; // Red
                     error.ForegroundColor = "#FFFFFF";
                     error.Icon = "🖥️";
                     break;
                     
                 case BrowserErrorCategory.SecurityError:
-                    error.BackgroundColor = "#B71C1C"; // Темно-червоний
+                    error.BackgroundColor = "#B71C1C"; // Dark red
                     error.ForegroundColor = "#FFFFFF";
                     error.Icon = "🔒";
                     break;
                     
                 case BrowserErrorCategory.GeneralError:
                 default:
-                    error.BackgroundColor = "#607D8B"; // Сірий
+                    error.BackgroundColor = "#607D8B"; // Gray
                     error.ForegroundColor = "#FFFFFF";
                     error.Icon = "⚠️";
                     break;
@@ -185,11 +185,11 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         }
         
         /// <summary>
-        /// Встановлює локалізований контент для помилки CefGlue
+        /// Sets localized content for CefGlue error
         /// </summary>
         private static void SetLocalizedContent(BrowserError error)
         {
-            // Отримуємо локалізовані рядки через ресурси Avalonia
+            // Get localized strings via Avalonia resources
             var (title, description, tips) = GetLocalizedStrings(error.ErrorCode);
             
             error.Title = title;
@@ -200,11 +200,11 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         }
         
         /// <summary>
-        /// Отримує локалізовані рядки для помилки
+        /// Gets localized strings for the error
         /// </summary>
         private static (string title, string description, string[] tips) GetLocalizedStrings(int errorCode)
         {
-            // Спробуємо отримати з ресурсів Avalonia
+            // Try to get from Avalonia resources
             var app = Application.Current;
             
             string GetResource(string key, string defaultValue)
@@ -358,7 +358,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         }
         
         /// <summary>
-        /// Встановлює локалізований контент для HTTP помилки
+        /// Sets localized content for HTTP error
         /// </summary>
         private static void SetHttpErrorContent(BrowserError error, int httpStatusCode)
         {
@@ -449,8 +449,8 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
             error.Tips = tips;
             error.ShowSearch = httpStatusCode == 404;
             
-            // HTTP 4xx - проблема клієнта (загальна помилка)
-            // HTTP 5xx - проблема сервера
+            // HTTP 4xx - client problem (general error)
+            // HTTP 5xx - server problem
             if (httpStatusCode >= 500)
             {
                 error.Icon = "🖥️";
@@ -466,19 +466,19 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         }
         
         /// <summary>
-        /// Перевіряє, чи варто показувати сторінку помилки (ігноруємо деякі помилки)
+        /// Checks whether to show the error page (some errors are ignored)
         /// </summary>
         public static bool ShouldShowErrorPage(int errorCode)
         {
-            // Ігноруємо код 0 - це означає успішне завантаження, немає помилки
+            // Ignore code 0 - this means successful load, no error
             if (errorCode == 0)
                 return false;
             
-            // Ігноруємо ERR_ABORTED - це відбувається при скасуванні навігації користувачем
+            // Ignore ERR_ABORTED - this happens when user cancels navigation
             if (errorCode == CefErrorCodes.ERR_ABORTED)
                 return false;
             
-            // Ігноруємо ERR_CACHE_MISS - це нормально при першому завантаженні
+            // Ignore ERR_CACHE_MISS - this is normal on first load
             if (errorCode == CefErrorCodes.ERR_CACHE_MISS)
                 return false;
             

@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 namespace VetaleBrowser.VetaleBrowser.Core.Services
 {
     /// <summary>
-    /// Локальний HTTP сервер для HexGL гри
-    /// Обходить обмеження CEF на file:// URLs для текстур
+    /// Local HTTP server for HexGL game.
+    /// Bypasses CEF restrictions on file:// URLs for textures.
     /// </summary>
     public class LocalGameServer : IDisposable
     {
@@ -25,27 +25,27 @@ namespace VetaleBrowser.VetaleBrowser.Core.Services
         private static readonly object _lock = new();
         
         /// <summary>
-        /// Порт сервера
+        /// Server port
         /// </summary>
         public int Port => _port;
         
         /// <summary>
-        /// URL гри
+        /// Game URL
         /// </summary>
         public string GameUrl => $"http://localhost:{_port}/index.html";
         
         /// <summary>
-        /// URL іконки гри для вкладки браузера
+        /// Game icon URL for browser tab
         /// </summary>
         public string GameIconUrl => $"http://localhost:{_port}/icon_32.png";
         
         /// <summary>
-        /// Чи запущений сервер
+        /// Whether the server is running
         /// </summary>
         public bool IsRunning => _isRunning;
         
         /// <summary>
-        /// Singleton інстанс сервера
+        /// Singleton server instance
         /// </summary>
         public static LocalGameServer Instance
         {
@@ -71,11 +71,11 @@ namespace VetaleBrowser.VetaleBrowser.Core.Services
         }
         
         /// <summary>
-        /// Знаходить доступний порт
+        /// Finds an available port
         /// </summary>
         private static int FindAvailablePort()
         {
-            // Починаємо з 8080 і шукаємо вільний порт
+            // Start from 8080 and search for a free port
             for (int port = 8080; port < 9000; port++)
             {
                 try
@@ -87,14 +87,14 @@ namespace VetaleBrowser.VetaleBrowser.Core.Services
                 }
                 catch
                 {
-                    // Порт зайнятий, пробуємо наступний
+                    // Port is busy, try next
                 }
             }
             return 8888; // Fallback
         }
         
         /// <summary>
-        /// Знаходить шлях до гри
+        /// Finds the game path
         /// </summary>
         private static string FindGamePath()
         {
@@ -119,7 +119,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Services
         }
         
         /// <summary>
-        /// Запускає сервер
+        /// Starts the server
         /// </summary>
         public void Start()
         {
@@ -127,7 +127,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Services
             
             try
             {
-                // Перевіряємо чи існує директорія гри
+                // Check if game directory exists
                 if (!Directory.Exists(_gameRootPath))
                 {
                     Debug.WriteLine($"[LocalGameServer] WARNING: Game directory not found: {_gameRootPath}");
@@ -157,7 +157,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Services
         }
         
         /// <summary>
-        /// Зупиняє сервер
+        /// Stops the server
         /// </summary>
         public void Stop()
         {
@@ -180,7 +180,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Services
         }
         
         /// <summary>
-        /// Головний цикл сервера
+        /// Main server loop
         /// </summary>
         private async Task ServerLoop(CancellationToken ct)
         {
@@ -207,7 +207,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Services
         }
         
         /// <summary>
-        /// Обробляє HTTP запит
+        /// Handles an HTTP request
         /// </summary>
         private void HandleRequest(HttpListenerContext context)
         {
@@ -216,21 +216,21 @@ namespace VetaleBrowser.VetaleBrowser.Core.Services
             {
                 var request = context.Request;
                 
-                // Отримуємо шлях до файлу
+                // Get path to file
                 var urlPath = request.Url?.LocalPath ?? "/";
                 if (urlPath == "/") urlPath = "/index.html";
                 
-                // Декодуємо URL (для пробілів та спецсимволів)
+                // Decode URL (for spaces and special characters)
                 urlPath = Uri.UnescapeDataString(urlPath);
                 
-                // Видаляємо початковий слеш
+                // Remove leading slash
                 var relativePath = urlPath.TrimStart('/');
                 var filePath = Path.Combine(_gameRootPath, relativePath.Replace('/', Path.DirectorySeparatorChar));
                 
                 Debug.WriteLine($"[LocalGameServer] Request: {urlPath} -> {filePath}");
                 Debug.WriteLine($"[LocalGameServer] Game root: {_gameRootPath}");
                 
-                // Перевіряємо чи існує директорія гри
+                // Check if game directory exists
                 if (!Directory.Exists(_gameRootPath))
                 {
                     Debug.WriteLine($"[LocalGameServer] ERROR: Game directory not found: {_gameRootPath}");
@@ -249,22 +249,22 @@ namespace VetaleBrowser.VetaleBrowser.Core.Services
                 
                 if (File.Exists(filePath))
                 {
-                    // Визначаємо MIME тип
+                    // Determine MIME type
                     var contentType = GetContentType(filePath);
                     response.ContentType = contentType;
                     
-                    // Додаємо CORS заголовки
+                    // Add CORS headers
                     response.AddHeader("Access-Control-Allow-Origin", "*");
                     response.AddHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
                     response.AddHeader("Access-Control-Allow-Headers", "*");
                     
-                    // Кешування для статичних файлів
+                    // Caching for static files
                     if (IsStaticFile(filePath))
                     {
                         response.AddHeader("Cache-Control", "public, max-age=3600");
                     }
                     
-                    // Читаємо та відправляємо файл
+                    // Read and send file
                     var content = File.ReadAllBytes(filePath);
                     response.StatusCode = 200;
                     response.ContentLength64 = content.Length;
@@ -312,7 +312,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Services
         }
         
         /// <summary>
-        /// Визначає MIME тип файлу
+        /// Determines the MIME type of a file
         /// </summary>
         private static string GetContentType(string filePath)
         {
@@ -345,7 +345,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Services
         }
         
         /// <summary>
-        /// Чи це статичний файл для кешування
+        /// Whether this is a static file for caching
         /// </summary>
         private static bool IsStaticFile(string filePath)
         {

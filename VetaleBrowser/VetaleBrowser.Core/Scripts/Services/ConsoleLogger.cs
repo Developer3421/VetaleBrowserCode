@@ -6,26 +6,26 @@ using VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Services;
 
 /// <summary>
-/// Глобальний логер для консолі
-/// Перехоплює всі Debug.WriteLine та System.Console виклики (через TraceListener)
+/// Global console logger.
+/// Intercepts all Debug.WriteLine and System.Console calls (via TraceListener).
 /// </summary>
 public static class ConsoleLogger
 {
     private static bool _isInitialized = false;
     private static readonly object _lock = new object();
 
-    // Захист від рекурсії при логуванні з обробників Debug/Trace
+    // Recursion protection when logging from Debug/Trace handlers
     private static readonly AsyncLocal<bool> _inLog = new AsyncLocal<bool>();
 
     /// <summary>
-    /// Кастомний TraceListener, який перенаправляє Debug/Trace у нашу базу логів
+    /// Custom TraceListener that redirects Debug/Trace to our log database
     /// </summary>
     private sealed class DebugToDbTraceListener : TraceListener
     {
         public override void Write(string? message)
         {
-            // Ігноруємо часткові Write без переносу рядка
-            // Основна обробка у WriteLine
+            // Ignore partial Write without line break
+            // Main processing in WriteLine
         }
 
         public override void WriteLine(string? message)
@@ -36,7 +36,7 @@ public static class ConsoleLogger
             string src = "Debug";
             string text = msg;
 
-            // Формат 1: [Source] Message
+            // Format 1: [Source] Message
             if (msg.StartsWith("[") && msg.IndexOf(']') > 1)
             {
                 var end = msg.IndexOf(']');
@@ -45,9 +45,9 @@ public static class ConsoleLogger
             }
             else
             {
-                // Формат 2: Source: Message (наприклад, "NavigationBar: Back clicked")
+                // Format 2: Source: Message (e.g., "NavigationBar: Back clicked")
                 var colon = msg.IndexOf(':');
-                if (colon > 0 && colon < 40) // розумна межа для назви джерела
+                if (colon > 0 && colon < 40) // reasonable limit for source name
                 {
                     var left = msg.Substring(0, colon).Trim();
                     var right = msg[(colon + 1)..].TrimStart();
@@ -64,7 +64,7 @@ public static class ConsoleLogger
     }
 
     /// <summary>
-    /// Ініціалізує глобальний логер консолі
+    /// Initializes the global console logger
     /// </summary>
     public static void Initialize()
     {
@@ -72,14 +72,14 @@ public static class ConsoleLogger
         {
             if (_isInitialized) return;
 
-            // Підключаємо перехоплення Debug/Trace повідомлень
+            // Connect Debug/Trace message interception
             try
             {
-                // AutoFlush для негайного виводу
+                // AutoFlush for immediate output
                 Trace.AutoFlush = true;
 
                 var listener = new DebugToDbTraceListener();
-                // Додаємо якщо ще не додано (лише через Trace.Listeners)
+                // Add if not already added (only through Trace.Listeners)
                 bool hasListener = false;
                 foreach (TraceListener l in Trace.Listeners)
                 {
@@ -88,23 +88,23 @@ public static class ConsoleLogger
                 if (!hasListener)
                 {
                     Trace.Listeners.Add(listener);
-                    // Debug.Listeners може бути недоступний у цільовому середовищі — не використовуємо його
+                    // Debug.Listeners may not be available in the target environment — don't use it
                 }
             }
             catch
             {
-                // Безпечне ігнорування: якщо не вдалося, просто не перехоплюємо Trace
+                // Safe ignore: if failed, just don't intercept Trace
             }
             
             _isInitialized = true;
             
-            // Не пишемо повідомлення про ініціалізацію у БД, щоб у консолі був лише банер при відкритті вікна
+            // Don't write initialization message to DB, so console only has a banner when the window opens
             // LogInfo("Console Logger initialized", "ConsoleLogger");
         }
     }
 
     /// <summary>
-    /// Логує інформаційне повідомлення
+    /// Logs an informational message
     /// </summary>
     public static void LogInfo(string message, string? source = null)
     {
@@ -112,7 +112,7 @@ public static class ConsoleLogger
     }
 
     /// <summary>
-    /// Логує попередження
+    /// Logs a warning
     /// </summary>
     public static void LogWarning(string message, string? source = null)
     {
@@ -120,7 +120,7 @@ public static class ConsoleLogger
     }
 
     /// <summary>
-    /// Логує помилку
+    /// Logs an error
     /// </summary>
     public static void LogError(string message, string? source = null, Exception? exception = null)
     {
@@ -133,7 +133,7 @@ public static class ConsoleLogger
     }
 
     /// <summary>
-    /// Логує дебаг повідомлення
+    /// Logs a debug message
     /// </summary>
     public static void LogDebug(string message, string? source = null)
     {
@@ -141,26 +141,26 @@ public static class ConsoleLogger
     }
 
     /// <summary>
-    /// Внутрішній метод логування
+    /// Internal logging method
     /// </summary>
     private static void Log(string level, string message, string? source = null, string? stackTrace = null)
     {
         if (string.IsNullOrWhiteSpace(message)) return;
 
-        // Захист від рекурсії: якщо ми вже всередині логування (можливе через TraceListener), пропускаємо
+        // Recursion protection: if we're already inside logging (possible through TraceListener), skip
         if (_inLog.Value) return;
 
         try
         {
             _inLog.Value = true;
 
-            // Зберігаємо в базу даних
+            // Save to database
             var consoleService = DatabaseManager.ConsoleInstance;
             consoleService?.AddLog(level, message, source, stackTrace);
         }
         catch (Exception ex)
         {
-            // Якщо не вдалося залогувати, виводимо у Debug (це не буде рекурсувати завдяки _inLog)
+            // If logging failed, output to Debug (this won't recurse thanks to _inLog)
             System.Diagnostics.Debug.WriteLine($"[ConsoleLogger] Failed to log: {ex.Message}");
         }
         finally

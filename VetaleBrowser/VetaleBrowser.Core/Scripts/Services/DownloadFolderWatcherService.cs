@@ -6,7 +6,7 @@ using VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Services
 {
     /// <summary>
-    /// Мониторит папку Загрузки пользователя и регистрирует внешние загрузки в DownloadManager
+    /// Monitors the user's Downloads folder and registers external downloads in DownloadManager
     /// </summary>
     public static class DownloadFolderWatcherService
     {
@@ -49,9 +49,9 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Services
                 if (Directory.Exists(e.FullPath)) return;
                 var ext = Path.GetExtension(e.FullPath);
                 if (string.IsNullOrEmpty(ext)) return;
-                // Спочатку пробуємо співставити pending по імені
+                // First try to match pending by name
                 DownloadManager.MatchPendingFile(e.FullPath);
-                // Якщо файл не був pending, реєструємо як зовнішнє завантаження
+                // If file was not pending, register as external download
                 DownloadManager.RegisterExternalFileDownload(e.FullPath);
             }
             catch (Exception ex)
@@ -64,8 +64,8 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Services
         {
             try
             {
-                // Можна оновлювати ім'я/шлях в БД, але DownloadManager моніторить по TargetPath
-                // і з новим записом все одно буде коректно відображатися.
+                // Can update name/path in DB, but DownloadManager monitors by TargetPath
+                // and with a new record it will still be displayed correctly.
             }
             catch { }
         }

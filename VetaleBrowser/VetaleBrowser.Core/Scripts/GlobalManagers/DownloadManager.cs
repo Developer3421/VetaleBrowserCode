@@ -13,7 +13,7 @@ using VetaleBrowser.VetaleBrowser.Database.Services;
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
 
 /// <summary>
-/// Глобальний менеджер загрузок: черга, прогрес, скасування, повтор.
+/// Global download manager: queue, progress, cancel, retry.
 /// </summary>
 public static class DownloadManager
 {
@@ -22,14 +22,14 @@ public static class DownloadManager
     private static readonly ObservableCollection<DownloadItem> _active = new();
     private static readonly HttpClient _http = new HttpClient { Timeout = TimeSpan.FromMinutes(30) };
     private static bool _initialized;
-    private static readonly SemaphoreSlim _semaphore = new(3); // одновременных загрузок
+    private static readonly SemaphoreSlim _semaphore = new(3); // concurrent downloads
 
-    // События
+    // Events
     public static event EventHandler<DownloadItem>? ProgressChanged;
     public static event EventHandler<DownloadItem>? StatusChanged;
     public static event EventHandler? FirstDownloadStarted;
 
-    // Скорость усреднения
+    // Speed averaging
     private const int SpeedSamples = 8;
 
     public static ReadOnlyObservableCollection<DownloadItem> Active { get; } = new(_active);
@@ -279,7 +279,7 @@ public static class DownloadManager
                 downloadsPath = userDownloads;
             }
 
-            // Ефективний старт: не раніше ніж 3 місяці тому
+            // Efficient start: no earlier than 3 months ago
             var threeMonthsAgo = DateTime.UtcNow.AddMonths(-3);
             var effectiveFrom = fromUtc < threeMonthsAgo ? threeMonthsAgo : fromUtc;
 
@@ -334,7 +334,7 @@ public static class DownloadManager
             System.Diagnostics.Debug.WriteLine($"[DownloadManager] ScanDownloadsFolderAsync error: {ex.Message}");
         }
 
-        // Повертаємо у порядку від нових до старих
+        // Return in order from newest to oldest
         return result.OrderByDescending(x => x.EndTime ?? x.StartTime).ToList();
     }
 
@@ -342,7 +342,7 @@ public static class DownloadManager
     {
         Initialize();
         var lastScan = await settings.GetLastDownloadsScanUtcAsync() ?? DateTime.UtcNow.AddDays(-30);
-        // Невелика поправка, щоб не пропускати файли на межі часу
+        // Small adjustment to avoid missing files at the time boundary
         var adjustedFrom = lastScan.AddSeconds(-5);
         var list = await ScanDownloadsFolderAsync(adjustedFrom);
         await settings.SetLastDownloadsScanUtcAsync(DateTime.UtcNow);
@@ -384,11 +384,11 @@ public static class DownloadManager
         {
             item.TargetPath = fullPath;
         }
-        item.Status = "Downloading"; // вже почав писатися
+        item.Status = "Downloading"; // already started writing
         _db?.SetStatus(item.Id, item.Status);
         StatusChanged?.Invoke(null, item);
-        // запускаємо монітор як зовнішнє
-        _ = RegisterExternalFileDownload(fullPath); // створить окремий запис якщо немає – тому краще оновити існуючий
+        // start monitoring as external
+        _ = RegisterExternalFileDownload(fullPath); // will create a separate record if not exists - so better to update existing
     }
 
     public static int RegisterExternalFileDownload(string fullPath)
@@ -398,7 +398,7 @@ public static class DownloadManager
         if (name.Equals("desktop.ini", StringComparison.OrdinalIgnoreCase)) return 0;
         if (_pendingByName.TryGetValue(name, out var pendingId))
         {
-            // оновлюємо існуючий pending замість створення нового
+            // update existing pending instead of creating a new one
             var existing = _db?.GetById(pendingId);
             if (existing != null)
             {
@@ -463,8 +463,8 @@ public static class DownloadManager
 
                 if (!locked && stableTicks >= 6)
                 {
-                    // Файл стабілізувався — вважаємо завершеним
-                    item.TotalBytes = item.BytesReceived; // фіксуємо фінальний розмір
+                    // File has stabilized — consider it completed
+                    item.TotalBytes = item.BytesReceived; // fix final size
                     item.Status = "Completed";
                     item.EndTime = DateTime.UtcNow;
                     _db?.UpdateProgress(item.Id, item.BytesReceived, item.TotalBytes, 0, 0, -1);

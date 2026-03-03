@@ -9,7 +9,7 @@ using VetaleBrowser.VetaleBrowser.Database.Models;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Сервіс для роботи з базою даних історії чату Vetale AI
+/// Service for working with the Vetale AI chat history database
 /// </summary>
 public class VetaleAIChatDatabaseService : IVetaleAIChatDatabaseService, IDisposable
 {
@@ -21,8 +21,8 @@ public class VetaleAIChatDatabaseService : IVetaleAIChatDatabaseService, IDispos
     private bool _disposed;
     private bool _isInitialized;
     
-    // Оптимізовані ліміти
-    private const int MaxMessagesPerDatabase = 3000; // Менше ніж історія браузера
+    // Optimized limits
+    private const int MaxMessagesPerDatabase = 3000; // Less than browser history
     private const int DefaultPageSize = 50;
     private const long MaxDatabaseSizeBytes = 15 * 1024 * 1024; // 15 MB
     
@@ -66,13 +66,13 @@ public class VetaleAIChatDatabaseService : IVetaleAIChatDatabaseService, IDispos
                     
                     _messageCollection = _database.GetCollection<VetaleAIChatMessage>("chat_messages");
                     
-                    // Індекси для швидкого пошуку
+                    // Indexes for fast search
                     _messageCollection.EnsureIndex(x => x.CreatedAt);
                     _messageCollection.EnsureIndex(x => x.SessionId);
                     
                     _isInitialized = true;
                     
-                    // Асинхронна перевірка розміру
+                    // Async size check
                     ThreadPool.QueueUserWorkItem(_ => CheckDatabaseSizeAsync());
                     
                     return;
@@ -216,7 +216,7 @@ public class VetaleAIChatDatabaseService : IVetaleAIChatDatabaseService, IDispos
             
             DecryptMessages(messages);
             
-            // Повертаємо в хронологічному порядку
+            // Return in chronological order
             messages.Reverse();
             
             return messages;
@@ -357,7 +357,7 @@ public class VetaleAIChatDatabaseService : IVetaleAIChatDatabaseService, IDispos
             }
             catch
             {
-                // Якщо не вдалося розшифрувати, залишаємо як є
+                // If decryption failed, leave as is
             }
         }
     }

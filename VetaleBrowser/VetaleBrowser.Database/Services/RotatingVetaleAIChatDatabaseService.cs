@@ -7,8 +7,8 @@ using VetaleBrowser.VetaleBrowser.Database.Models;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Сервіс для роботи з ротацією баз даних історії чату Vetale AI
-/// Автоматично створює нову БД при переповненні та читає з усіх послідовно
+/// Service for working with Vetale AI chat database rotation.
+/// Automatically creates a new DB when full and reads from all sequentially.
 /// </summary>
 public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
 {
@@ -19,25 +19,25 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
     private readonly object _lock = new object();
     private bool _disposed;
     
-    // Параметри ротації для чату (менші ніж для історії браузера)
+    // Rotation parameters for chat (smaller than browser history)
     private const long MaxDatabaseSizeBytes = 15 * 1024 * 1024; // 15 MB
     private const int MaxMessagesPerDatabase = 3000;
-    private const int MaxDatabaseFiles = 10; // Максимальна кількість файлів БД
+    private const int MaxDatabaseFiles = 10; // Maximum number of DB files
     
     public RotatingVetaleAIChatDatabaseService(string baseDatabasePath, string encryptionKey)
     {
         _baseDatabasePath = baseDatabasePath;
         _encryptionKey = encryptionKey;
         
-        // Завантажуємо всі існуючі бази даних
+        // Load all existing databases
         LoadExistingDatabases();
         
-        // Встановлюємо поточну БД (остання або створюємо нову)
+        // Set current DB (last one or create new)
         _currentDatabase = _databases.LastOrDefault() ?? CreateNewDatabase();
     }
     
     /// <summary>
-    /// Завантажує всі існуючі бази даних чату
+    /// Loads all existing chat databases
     /// </summary>
     private void LoadExistingDatabases()
     {
@@ -48,7 +48,7 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
         if (string.IsNullOrEmpty(directory) || !Directory.Exists(directory))
             return;
         
-        // Шукаємо файли з патерном: vetale_chat.db, vetale_chat_1.db, vetale_chat_2.db, etc.
+        // Look for files with pattern: vetale_chat.db, vetale_chat_1.db, vetale_chat_2.db, etc.
         var pattern = $"{baseFileName}*{extension}";
         var files = Directory.GetFiles(directory, pattern)
             .OrderBy(f => f)
@@ -70,7 +70,7 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
     }
     
     /// <summary>
-    /// Створює нову базу даних для ротації
+    /// Creates a new database for rotation
     /// </summary>
     private VetaleAIChatDatabaseService CreateNewDatabase()
     {
@@ -83,12 +83,12 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
             string newDbPath;
             if (_databases.Count == 0)
             {
-                // Перша БД - використовуємо оригінальний шлях
+                // First DB - use original path
                 newDbPath = _baseDatabasePath;
             }
             else
             {
-                // Нова БД з індексом
+                // New DB with index
                 newDbPath = Path.Combine(directory!, $"{baseFileName}_{_databases.Count}{extension}");
             }
             
@@ -97,7 +97,7 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
             
             Console.WriteLine($"[RotatingVetaleAIChat] Created new database: {Path.GetFileName(newDbPath)}");
             
-            // Перевіряємо чи не перевищено ліміт файлів БД
+            // Check if DB file limit exceeded
             CleanupOldDatabasesIfNeeded();
             
             return newDb;
@@ -105,7 +105,7 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
     }
     
     /// <summary>
-    /// Видаляє найстаріші БД якщо перевищено ліміт
+    /// Deletes oldest DBs if limit exceeded
     /// </summary>
     private void CleanupOldDatabasesIfNeeded()
     {
@@ -141,7 +141,7 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
     }
     
     /// <summary>
-    /// Перевіряє чи потрібно створити нову БД для ротації
+    /// Checks if a new DB needs to be created for rotation
     /// </summary>
     private void CheckRotationNeeded()
     {
@@ -149,7 +149,7 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
         {
             var count = _currentDatabase.GetMessageCount();
             
-            // Перевіряємо кількість повідомлень
+            // Check message count
             if (count >= MaxMessagesPerDatabase)
             {
                 Console.WriteLine($"[RotatingVetaleAIChat] Rotation needed: {count} messages in current database");
@@ -157,7 +157,7 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
                 return;
             }
             
-            // Перевіряємо розмір файлу
+            // Check file size
             try
             {
                 var dbPath = _currentDatabase.GetType().GetField("_databasePath", 
@@ -186,10 +186,10 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
     /// </summary>
     public void AddMessage(string role, string message, string sessionId, int? tokensUsed = null)
     {
-        // Перевіряємо чи потрібна ротація перед додаванням
+        // Check if rotation needed before adding
         CheckRotationNeeded();
         
-        // Додаємо в поточну БД
+        // Add to current DB
         _currentDatabase.AddMessage(role, message, sessionId, tokensUsed);
     }
     

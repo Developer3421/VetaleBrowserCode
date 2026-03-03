@@ -5,7 +5,7 @@ using VetaleBrowser.VetaleBrowser.Database.Services;
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
 
 /// <summary>
-/// Глобальний менеджер бази даних
+/// Global database manager
 /// </summary>
 public static class DatabaseManager
 {
@@ -17,7 +17,7 @@ public static class DatabaseManager
     private static readonly object _consoleLock = new object();
 
     /// <summary>
-    /// Отримує екземпляр сервісу бази даних
+    /// Gets the database service instance
     /// </summary>
     public static ITabDatabaseService Instance
     {
@@ -39,22 +39,22 @@ public static class DatabaseManager
     }
     
     /// <summary>
-    /// Внутрішня ініціалізація (без повторного виклику якщо вже є екземпляр)
+    /// Internal initialization (without re-calling if instance already exists)
     /// </summary>
     private static void InitializeInternal()
     {
         if (_instance != null) return;
         
-        // Визначаємо шлях до бази даних
+        // Determine database path
         var dbPath = GetDefaultDatabasePath();
         
-        // Визначаємо ключ шифрування
+        // Determine encryption key
         var encryptionKey = GenerateEncryptionKey();
 
-        // Створюємо новий екземпляр
+        // Create new instance
         _instance = new TabDatabaseService(dbPath, encryptionKey);
 
-        // Створюємо початкову сесію якщо немає поточної
+        // Create initial session if there is no current one
         var currentSession = _instance.GetCurrentSession();
         if (currentSession == null)
         {
@@ -63,7 +63,7 @@ public static class DatabaseManager
     }
 
     /// <summary>
-    /// Отримує екземпляр сервісу бази даних історії
+    /// Gets the history database service instance
     /// </summary>
     public static IHistoryDatabaseService HistoryInstance
     {
@@ -84,7 +84,7 @@ public static class DatabaseManager
     }
 
     /// <summary>
-    /// Отримує екземпляр сервісу бази даних консолі
+    /// Gets the console database service instance
     /// </summary>
     public static ConsoleDatabaseService ConsoleInstance
     {
@@ -105,19 +105,19 @@ public static class DatabaseManager
     }
 
     /// <summary>
-    /// Ініціалізує базу даних
+    /// Initializes the database
     /// </summary>
     public static void Initialize(string? customPath = null, string? customKey = null)
     {
         lock (_lock)
         {
-            // Якщо вже ініціалізовано і немає кастомних параметрів - не переініціалізуємо
+            // If already initialized and no custom parameters - don't re-initialize
             if (_instance != null && customPath == null && customKey == null)
             {
                 return;
             }
             
-            // Закриваємо попередній екземпляр тільки якщо є кастомні параметри
+            // Close previous instance only if custom parameters are provided
             if (customPath != null || customKey != null)
             {
                 _instance?.Dispose();
@@ -126,16 +126,16 @@ public static class DatabaseManager
             
             if (_instance != null) return;
 
-            // Визначаємо шлях до бази даних
+            // Determine database path
             var dbPath = customPath ?? GetDefaultDatabasePath();
             
-            // Визначаємо ключ шифрування
+            // Determine encryption key
             var encryptionKey = customKey ?? GenerateEncryptionKey();
 
-            // Створюємо новий екземпляр
+            // Create new instance
             _instance = new TabDatabaseService(dbPath, encryptionKey);
 
-            // Створюємо початкову сесію якщо немає поточної
+            // Create initial session if there is no current one
             var currentSession = _instance.GetCurrentSession();
             if (currentSession == null)
             {
@@ -145,56 +145,56 @@ public static class DatabaseManager
     }
 
     /// <summary>
-    /// Ініціалізує базу даних історії
+    /// Initializes the history database
     /// </summary>
     public static void InitializeHistory(string? customPath = null, string? customKey = null)
     {
         lock (_historyLock)
         {
-            // Закриваємо попередній екземпляр якщо існує
+            // Close previous instance if exists
             _historyInstance?.Dispose();
 
-            // Визначаємо шлях до бази даних історії
+            // Determine history database path
             var dbPath = customPath ?? GetDefaultHistoryDatabasePath();
             
-            // Визначаємо ключ шифрування
+            // Determine encryption key
             var encryptionKey = customKey ?? GenerateEncryptionKey();
 
-            // Створюємо новий екземпляр
+            // Create new instance
             _historyInstance = new HistoryDatabaseService(dbPath, encryptionKey);
         }
     }
 
     /// <summary>
-    /// Ініціалізує базу даних консолі
+    /// Initializes the console database
     /// </summary>
     public static void InitializeConsole(string? customPath = null, string? customKey = null)
     {
         lock (_consoleLock)
         {
-            // Закриваємо попередній екземпляр якщо існує
+            // Close previous instance if exists
             _consoleInstance?.Dispose();
 
-            // Визначаємо шлях до бази даних консолі
+            // Determine console database path
             var dbPath = customPath ?? GetDefaultConsoleDatabasePath();
             
-            // Визначаємо ключ шифрування
+            // Determine encryption key
             var encryptionKey = customKey ?? GenerateEncryptionKey();
 
-            // Створюємо новий екземпляр
+            // Create new instance
             _consoleInstance = new ConsoleDatabaseService(dbPath, encryptionKey);
         }
     }
 
     /// <summary>
-    /// Отримує шлях до бази даних за замовчуванням
+    /// Gets the default database path
     /// </summary>
     private static string GetDefaultDatabasePath()
     {
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         var browserDataPath = Path.Combine(appDataPath, "VetaleBrowser", "Data");
         
-        // Створюємо директорію якщо не існує
+        // Create directory if it doesn't exist
         if (!Directory.Exists(browserDataPath))
         {
             Directory.CreateDirectory(browserDataPath);
@@ -204,14 +204,14 @@ public static class DatabaseManager
     }
 
     /// <summary>
-    /// Отримує шлях до бази даних історії за замовчуванням
+    /// Gets the default history database path
     /// </summary>
     private static string GetDefaultHistoryDatabasePath()
     {
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         var browserDataPath = Path.Combine(appDataPath, "VetaleBrowser", "Data");
         
-        // Створюємо директорію якщо не існує
+        // Create directory if it doesn't exist
         if (!Directory.Exists(browserDataPath))
         {
             Directory.CreateDirectory(browserDataPath);
@@ -221,14 +221,14 @@ public static class DatabaseManager
     }
 
     /// <summary>
-    /// Отримує шлях до бази даних консолі за замовчуванням
+    /// Gets the default console database path
     /// </summary>
     private static string GetDefaultConsoleDatabasePath()
     {
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         var browserDataPath = Path.Combine(appDataPath, "VetaleBrowser", "Data");
         
-        // Створюємо директорію якщо не існує
+        // Create directory if it doesn't exist
         if (!Directory.Exists(browserDataPath))
         {
             Directory.CreateDirectory(browserDataPath);
@@ -238,12 +238,12 @@ public static class DatabaseManager
     }
 
     /// <summary>
-    /// Генерує ключ шифрування
+    /// Generates encryption key
     /// </summary>
     private static string GenerateEncryptionKey()
     {
-        // В продакшн середовищі ключ має зберігатися безпечно
-        // Наприклад, використовуючи Windows Data Protection API (DPAPI)
+        // In production environment the key should be stored securely
+        // For example, using Windows Data Protection API (DPAPI)
         var machineId = Environment.MachineName;
         var userId = Environment.UserName;
         var uniqueId = $"{machineId}_{userId}";
@@ -252,7 +252,7 @@ public static class DatabaseManager
     }
 
     /// <summary>
-    /// Створює нову сесію браузера
+    /// Creates a new browser session
     /// </summary>
     public static int CreateNewSession()
     {
@@ -260,7 +260,7 @@ public static class DatabaseManager
     }
 
     /// <summary>
-    /// Додає вкладку до поточної сесії
+    /// Adds a tab to the current session
     /// </summary>
     public static int AddTabToCurrentSession(string url, string title, bool isActive = false)
     {
@@ -279,7 +279,7 @@ public static class DatabaseManager
     }
 
     /// <summary>
-    /// Закриває базу даних
+    /// Shuts down the database
     /// </summary>
     public static void Shutdown()
     {

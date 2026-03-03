@@ -4,7 +4,7 @@ using System.IO;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Централізований менеджер сервісів баз даних для оптимізації використання пам'яті.
+/// Centralized database services manager for optimizing memory usage.
 /// MEMORY OPTIMIZATION: Singleton pattern with lazy initialization and proper disposal.
 /// </summary>
 public sealed class DatabaseServiceManager : IDisposable

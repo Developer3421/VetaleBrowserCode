@@ -33,13 +33,13 @@ public class VetaleAIAgent : IDisposable
     private static readonly Regex ThaiCharsRegex = new(@"[\u0E00-\u0E7F]+", RegexOptions.Compiled);
     private static readonly Regex ZeroWidthCharsRegex = new(@"[\u200B-\u200D\uFEFF]", RegexOptions.Compiled);
     
-    // Response end markers - мінімальний набір для запобігання критичних проблем
+    // Response end markers - minimal set to prevent critical issues
     private static readonly string[] EndMarkers = {
         "<|end|>", "<|im_end|>", "</s>", "[END]", "<end_of_turn>",
         "<|eot_id|>",
-        // М'які маркери для початку нового діалогу — тільки з подвійним переносом
+        // Soft markers for new dialogue start - only with double newline
         "\n\nUser:", "\n\nHuman:",
-        // Common instruction tags в кінці — якщо модель раптом починає новий блок
+        // Common instruction tags at the end - if the model suddenly starts a new block
         "### Instruction:", "### User:"
     };
 
@@ -139,26 +139,26 @@ public class VetaleAIAgent : IDisposable
 
                 var currentResponse = responseBuilder.ToString();
 
-                // Пом'якшуємо умови зупинки, щоб не обрізати план/відповідь занадто рано
+                // Soften stop conditions to avoid cutting the plan/response too early
                 if (ShouldStopGeneration(currentResponse))
                 {
                     responseBuilder = new StringBuilder(RemoveEndMarkers(currentResponse));
                     break;
                 }
 
-                // Перевірка патернів тільки для довгих шматків
+                // Check patterns only for long chunks
                 if (currentResponse.Length > 500 && HasRepetitivePattern(currentResponse))
                 {
                     break;
                 }
 
-                // Більш толерантний детектор повторюваних символів
+                // More tolerant repeating character detector
                 if (HasRepeatingCharacters(currentResponse))
                 {
                     break;
                 }
 
-                // Збільшений safety‑ліміт довжини
+                // Increased safety length limit
                 if (responseBuilder.Length > 24000)
                 {
                     break;
@@ -177,7 +177,7 @@ public class VetaleAIAgent : IDisposable
 
             return hasResponse
                 ? finalResponse
-                : "Я не зміг згенерувати коректну відповідь. Спробуйте переформулювати запит.";
+                : "I could not generate a correct response. Please try rephrasing your request.";
         }
         finally
         {
@@ -276,7 +276,7 @@ public class VetaleAIAgent : IDisposable
             var finalResponse = CleanupResponse(responseBuilder.ToString().Trim());
             return finalResponse.Length > 0
                 ? finalResponse
-                : "Я не зміг згенерувати коректну відповідь. Спробуйте ще раз.";
+                : "I could not generate a correct response. Please try again.";
         }
         finally
         {
@@ -295,7 +295,7 @@ public class VetaleAIAgent : IDisposable
         if (string.IsNullOrEmpty(text))
             return text;
 
-        // Лише критичне: контрольні та zero‑width символи
+        // Only critical: control and zero-width characters
         text = Regex.Replace(text, "[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]", string.Empty);
         text = ZeroWidthCharsRegex.Replace(text, string.Empty);
 
@@ -307,27 +307,27 @@ public class VetaleAIAgent : IDisposable
     /// </summary>
     private bool ShouldStopGeneration(string text)
     {
-        // Спочатку перевіряємо жорсткі end‑маркери
+        // First check hard end markers
         if (EndMarkers.Any(marker => text.Contains(marker, StringComparison.OrdinalIgnoreCase)))
             return true;
 
-        // === ДЕТЕКЦІЯ САМОІТЕРАЦІЇ ===
+        // === SELF-ITERATION DETECTION ===
         
-        // Перевірка на нумеровані питання/запити (Запит 2, Question 2, etc.)
+        // Check for numbered questions/requests (Запит 2, Question 2, etc.)
         if (Regex.IsMatch(text, @"(Запит|Питання|Question|Запрос|Вопрос|Frage|Pregunta|Soru|Demande)\s*[2-9]", RegexOptions.IgnoreCase))
         {
             System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Detected numbered question pattern - stopping");
             return true;
         }
         
-        // Перевірка на ### маркери з номерами
+        // Check for ### markers with numbers
         if (Regex.IsMatch(text, @"###\s*(Запит|Питання|Question|Запрос|Instruction|Anfrage|Demande|Solicitud|İstek)\s*[2-9]?:", RegexOptions.IgnoreCase))
         {
             System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Detected repeated instruction block - stopping");
             return true;
         }
         
-        // Детектор самодіалогу
+        // Self-dialogue detector
         if (text.Length > 300 && Regex.IsMatch(text,
                 "(User|Human|Користувач|Пользователь|Benutzer|Utilisateur|Usuario|Kullanıcı)\\s*:?[\\s\\S]{10,80}(Assistant|AI|Vetale|Відповідь|Ответ)\\s*:",
                 RegexOptions.IgnoreCase))
@@ -336,21 +336,21 @@ public class VetaleAIAgent : IDisposable
             return true;
         }
         
-        // Перевірка на повторення запитів про програмування тощо
+        // Check for repeated programming requests etc.
         if (Regex.IsMatch(text, @"\n\n\*\*?(Як|What|How|Що|Напиши|Write|Create|Створи|Explain|Поясни)", RegexOptions.IgnoreCase))
         {
             System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Detected new question in response - stopping");
             return true;
         }
         
-        // Детекція витоку промпту / внутрішніх інструкцій
+        // Prompt leak / internal instructions detection
         if (Regex.IsMatch(text, @"(Пожалуйста|Please|Будь ласка),?\s*(ответь|відповідь|answer|respond|предоставь)", RegexOptions.IgnoreCase))
         {
             System.Diagnostics.Trace.WriteLine("VetaleAIAgent: Detected prompt leak - stopping");
             return true;
         }
         
-        // Детекція повторення контенту (той самий текст двічі)
+        // Content repetition detection (same text twice)
         if (text.Length > 200)
         {
             var halfLen = text.Length / 2;
@@ -386,7 +386,7 @@ public class VetaleAIAgent : IDisposable
     /// </summary>
     private bool DetectLoopingSequence(string aggregate)
     {
-        // Якщо модель починає друкувати додаткові Instruction/Response блоки, зупиняємося
+        // If the model starts printing additional Instruction/Response blocks, stop
         
         // English
         int instCount = Regex.Matches(aggregate, "### (Instruction|Question|User):").Count;
@@ -425,7 +425,7 @@ public class VetaleAIAgent : IDisposable
     }
 
     /// <summary>
-    /// Допоміжний метод: прибрати дубльований хвіст, якщо модель повторює кінець відповіді
+    /// Helper method: remove duplicated tail if the model repeats the end of the response
     /// </summary>
     private string RemoveTrailingRepeatedChunk(string text)
     {
@@ -447,28 +447,28 @@ public class VetaleAIAgent : IDisposable
     }
 
     /// <summary>
-    /// Final cleanup of the response (прибирає зайві пробіли та дубльований хвіст, але не чіпає структуру плану)
+    /// Final cleanup of the response (removes extra spaces and duplicated tail, but preserves plan structure)
     /// </summary>
     private string CleanupResponse(string text)
     {
         if (string.IsNullOrEmpty(text))
             return text;
 
-        // === ОБРІЗАННЯ САМОІТЕРАЦІЇ ===
-        // Видаляємо все після нового запиту/питання
+        // === SELF-ITERATION TRUNCATION ===
+        // Remove everything after a new request/question
         text = TruncateAtSelfIteration(text);
 
-        // Прибираємо зайві пробіли в кінці
+        // Trim trailing whitespace
         text = text.TrimEnd();
 
-        // === ВИПРАВЛЕННЯ ПРОБІЛІВ ===
-        // Виправляємо склеєні слова (латиниця та кирилиця)
+        // === SPACING FIXES ===
+        // Fix concatenated words (Latin and Cyrillic)
         text = FixWordSpacing(text);
 
-        // Залишаємо форматування, але зрізаємо 4+ пустих рядків підряд до максимум 2
+        // Keep formatting, but reduce 4+ empty lines in a row to max 2
         text = Regex.Replace(text, "(\\r?\\n\\s*){4,}", "\n\n");
 
-        // Прибираємо пробіли в кінці кожного рядка
+        // Remove trailing whitespace from each line
         var lines = text.Split('\n');
         for (int i = 0; i < lines.Length; i++)
         {
@@ -476,45 +476,45 @@ public class VetaleAIAgent : IDisposable
         }
         text = string.Join('\n', lines);
 
-        // Прибираємо дубльований хвіст, якщо такий є
+        // Remove duplicated tail if present
         text = RemoveTrailingRepeatedChunk(text);
 
-        // Видаляємо випадкові символи та сміття на початку/кінці
-        text = Regex.Replace(text, @"^[\s\*\#\-\:]+", ""); // Зайві символи на початку
-        text = Regex.Replace(text, @"[\s\*\#\-\:]+$", ""); // Зайві символи в кінці
+        // Remove random characters and junk at the beginning/end
+        text = Regex.Replace(text, @"^[\s\*\#\-\:]+", ""); // Extra characters at the beginning
+        text = Regex.Replace(text, @"[\s\*\#\-\:]+$", ""); // Extra characters at the end
 
         return text.Trim();
     }
 
     /// <summary>
-    /// Обрізає відповідь при виявленні самоітерації (нового питання/запиту)
+    /// Truncates the response when self-iteration is detected (new question/request)
     /// </summary>
     private string TruncateAtSelfIteration(string text)
     {
         if (string.IsNullOrEmpty(text))
             return text;
 
-        // Патерни самоітерації - обрізаємо все після них
+        // Self-iteration patterns - truncate everything after them
         var iterationPatterns = new[]
         {
-            // === ВИТІК ПРОМПТУ / ВНУТРІШНІ ІНСТРУКЦІЇ ===
+            // === PROMPT LEAK / INTERNAL INSTRUCTIONS ===
             @"---+\s*\*{0,2}(Пожалуйста|Please|Будь ласка)",
             @"\*{0,2}(Пожалуйста|Please|Будь ласка),?\s*(ответь|відповідь|answer|respond|предоставь)",
             @"предоставь\s+ответ\s+на\s+запрос",
             @"ответь\s+на\s+(этот\s+)?запрос",
             
-            // === ПОВТОРЕННЯ ЗАПИТУ ===
+            // === REQUEST REPETITION ===
             @"\*{2}(Склади|Напиши|Создай|Write|Create)",
             
-            // Нумеровані запити
+            // Numbered requests
             @"\n\n?\*{0,2}(Запит|Питання|Question|Запрос|Вопрос|Frage|Pregunta|Soru|Demande)\s*[2-9]\s*[:\*]",
-            // ### маркери
+            // ### markers
             @"\n\n?###\s*(Запит|Питання|Question|Instruction|Запрос|Anfrage|Demande|Solicitud|İstek)\s*[2-9]?\s*:",
-            // User/Human маркери
+            // User/Human markers
             @"\n\n?(User|Human|Користувач|Пользователь|Benutzer|Utilisateur|Usuario|Kullanıcı)\s*:",
-            // Нові питання про програмування
+            // New programming questions
             @"\n\n?\*{0,2}(Як|What|How|Що|Напиши|Write|Create|Створи)\s+(можна|to|do|is|написати|створити|зробити)",
-            // Розділювачі
+            // Separators
             @"\n---+\s*\n",
             @"\n\*{3,}\s*\n"
         };
@@ -540,24 +540,24 @@ public class VetaleAIAgent : IDisposable
     }
 
     /// <summary>
-    /// Виправляє проблеми з відступами між словами
+    /// Fixes spacing issues between words
     /// </summary>
     private string FixWordSpacing(string text)
     {
         if (string.IsNullOrEmpty(text))
             return text;
 
-        // Додаємо пробіл після крапки/коми/знаку питання, якщо його немає (і наступна - велика літера або літера)
+        // Add space after period/comma/question mark if missing (and next is a capital or regular letter)
         text = Regex.Replace(text, @"([.!?,:;])([A-ZА-ЯЄІЇҐa-zа-яєіїґ])", "$1 $2");
         
-        // Виправляємо випадок коли мала літера прилипає до великої (camelCase -> окремі слова в тексті)
-        // Тільки якщо це не скорочення і в контексті речення
+        // Fix case where lowercase letter sticks to uppercase (camelCase -> separate words in text)
+        // Only if it's not an abbreviation and in the context of a sentence
         text = Regex.Replace(text, @"([a-zа-яєіїґ])([A-ZА-ЯЄІЇҐ][a-zа-яєіїґ])", "$1 $2");
         
-        // Видаляємо подвійні та більше пробілів
+        // Remove double and multiple spaces
         text = Regex.Replace(text, @"  +", " ");
         
-        // Пробіл після дужок якщо далі слово
+        // Space after parentheses if followed by a word
         text = Regex.Replace(text, @"\)([A-Za-zА-Яа-яЄІЇҐєіїґ])", ") $1");
         text = Regex.Replace(text, @"([A-Za-zА-Яа-яЄІЇҐєіїґ])\(", "$1 (");
 
@@ -565,14 +565,14 @@ public class VetaleAIAgent : IDisposable
     }
 
     /// <summary>
-    /// Check if text has repetitive pattern (indicates infinite loop) - більш толерантна версія
+    /// Check if text has repetitive pattern (indicates infinite loop) - more tolerant version
     /// </summary>
     private bool HasRepetitivePattern(string text)
     {
         if (string.IsNullOrEmpty(text) || text.Length < 100) return false;
         var window = text.Length > 1200 ? text[^1200..] : text;
 
-        // Жорсткий тригер тільки при 3+ повторів великих шматків
+        // Hard trigger only with 3+ repetitions of large chunks
         var consecutive = Regex.Match(window, "(.{10,100})\\1{2,}");
         if (consecutive.Success)
         {
@@ -580,9 +580,9 @@ public class VetaleAIAgent : IDisposable
             return true;
         }
 
-        // Відключено tail duplication
+        // Tail duplication disabled
 
-        // N‑gram тільки при дуже частих повтореннях
+        // N-gram only with very frequent repetitions
         for (int gram = 3; gram <= 8; gram++)
         {
             var counts = new Dictionary<string, int>();
@@ -610,16 +610,16 @@ public class VetaleAIAgent : IDisposable
     }
 
     /// <summary>
-    /// Check if text has 5+ identical characters in a row (spam detection) - більш толерантно
+    /// Check if text has 5+ identical characters in a row (spam detection) - more tolerant
     /// </summary>
     private bool HasRepeatingCharacters(string text)
     {
         if (string.IsNullOrEmpty(text)) return false;
         var check = text.Length > 200 ? text[^200..] : text;
-        // 5+ однакових не-пробільних символів
+        // 5+ identical non-whitespace characters
         if (Regex.IsMatch(check, "([^\\s\\r\\n])\\1{4,}"))
             return true;
-        // 6+ однакових знаків пунктуації/символів
+        // 6+ identical punctuation/symbol characters
         if (Regex.IsMatch(check, "([^\\w\\s])\\1{5,}"))
             return true;
         return false;

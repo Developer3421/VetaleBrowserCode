@@ -8,7 +8,7 @@ using VetaleBrowser.VetaleBrowser.Database.Models;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Сервіс для роботи з базою даних вкладок
+/// Service for working with the tab database
 /// </summary>
 public class TabDatabaseService : ITabDatabaseService, IDisposable
 {
@@ -19,76 +19,76 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
     private readonly ILiteCollection<Bookmark> _bookmarksCollection;
     private readonly string _databasePath;
     
-    // MEMORY OPTIMIZATION: Зменшені ліміти
-    private const int MaxTabsPerSession = 100; // Зменшено з 1000
-    private const int MaxTotalTabs = 500;      // Зменшено з 10000
-    private const int MaxSessions = 20;        // Зменшено з 100
-    private const int MaxBookmarks = 5000;     // Зменшено з 50000
-    private const long MaxDatabaseSizeBytes = 50 * 1024 * 1024; // 50 MB замість 500 MB
+    // MEMORY OPTIMIZATION: Reduced limits
+    private const int MaxTabsPerSession = 100; // Reduced from 1000
+    private const int MaxTotalTabs = 500;      // Reduced from 10000
+    private const int MaxSessions = 20;        // Reduced from 100
+    private const int MaxBookmarks = 5000;     // Reduced from 50000
+    private const long MaxDatabaseSizeBytes = 50 * 1024 * 1024; // 50 MB instead of 500 MB
 
     public TabDatabaseService(string databasePath, string encryptionKey)
     {
         _encryptionService = new DatabaseEncryptionService(encryptionKey);
         _databasePath = databasePath;
         
-        // Створюємо директорію для бази даних якщо не існує
+        // Create directory for database if it doesn't exist
         var directory = Path.GetDirectoryName(databasePath);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {
             Directory.CreateDirectory(directory);
         }
 
-        // MEMORY OPTIMIZATION: Shared mode для дозволу багаторазового доступу
+        // MEMORY OPTIMIZATION: Shared mode to allow concurrent access
         var connectionString = new ConnectionString
         {
             Filename = databasePath,
-            Connection = ConnectionType.Shared // Дозволяє доступ з різних місць
+            Connection = ConnectionType.Shared // Allows access from different places
         };
 
         _database = new LiteDatabase(connectionString);
         
-        // MEMORY OPTIMIZATION: Checkpoint для звільнення пам'яті
+        // MEMORY OPTIMIZATION: Checkpoint to free memory
         try { _database.Checkpoint(); } catch { }
         
-        // Отримуємо колекції
+        // Get collections
         _tabsCollection = _database.GetCollection<TabModel>("tabs");
         _sessionsCollection = _database.GetCollection<BrowserSession>("sessions");
         _bookmarksCollection = _database.GetCollection<Bookmark>("bookmarks");
         
-        // MEMORY OPTIMIZATION: Мінімальна кількість індексів
+        // MEMORY OPTIMIZATION: Minimal number of indexes
         _tabsCollection.EnsureIndex(x => x.SessionId);
         _sessionsCollection.EnsureIndex(x => x.IsCurrent);
         
-        // Перевіряємо розмір бази даних
+        // Check database size
         CheckDatabaseSize();
     }
 
     /// <summary>
-    /// Перевіряє розмір бази даних та виконує очищення якщо потрібно
+    /// Checks database size and performs cleanup if needed
     /// </summary>
     private void CheckDatabaseSize()
     {
         var dbFileInfo = new FileInfo(_databasePath);
         if (dbFileInfo.Exists && dbFileInfo.Length > MaxDatabaseSizeBytes)
         {
-            // Видаляємо старі сесії та неактивні вкладки
+            // Delete old sessions and inactive tabs
             CleanupOldData();
             
-            // Оптимізуємо базу даних
+            // Optimize database
             _database.Rebuild();
             
-            // MEMORY OPTIMIZATION: Примусовий GC після rebuild
+            // MEMORY OPTIMIZATION: Force GC after rebuild
             GC.Collect();
             GC.WaitForPendingFinalizers();
         }
     }
 
     /// <summary>
-    /// Очищає старі дані з бази
+    /// Cleans up old data from the database
     /// </summary>
     private void CleanupOldData()
     {
-        // Видаляємо старі сесії (залишаємо тільки останні MaxSessions)
+        // Delete old sessions (keep only the last MaxSessions)
         var sessionsToKeep = _sessionsCollection
             .Query()
             .OrderByDescending(x => x.StartedAt)
@@ -107,7 +107,7 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
             DeleteSession(session.Id);
         }
 
-        // Видаляємо найстаріші вкладки якщо їх забагато
+        // Delete oldest tabs if there are too many
         var totalTabs = _tabsCollection.Count();
         if (totalTabs > MaxTotalTabs)
         {
@@ -126,11 +126,11 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Створює нову сесію браузера
+    /// Creates a new browser session
     /// </summary>
     public int CreateSession()
     {
-        // Закриваємо попередню поточну сесію
+        // Close previous current session
         var currentSession = _sessionsCollection.FindOne(x => x.IsCurrent);
         if (currentSession != null)
         {
@@ -150,7 +150,7 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Отримує поточну сесію
+    /// Gets the current session
     /// </summary>
     public BrowserSession? GetCurrentSession()
     {
@@ -158,15 +158,15 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Додає вкладку до сесії
+    /// Adds a tab to a session
     /// </summary>
     public int AddTab(int sessionId, string url, string title, bool isActive = false)
     {
-        // Перевіряємо обмеження
+        // Check limits
         var tabsInSession = _tabsCollection.Count(x => x.SessionId == sessionId);
         if (tabsInSession >= MaxTabsPerSession)
         {
-            throw new InvalidOperationException($"Досягнуто максимальну кількість вкладок у сесії ({MaxTabsPerSession})");
+            throw new InvalidOperationException($"Maximum number of tabs per session reached ({MaxTabsPerSession})");
         }
 
         var totalTabs = _tabsCollection.Count();
@@ -175,7 +175,7 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
             CleanupOldData();
         }
 
-        // Шифруємо чутливі дані
+        // Encrypt sensitive data
         var encryptedUrl = _encryptionService.EncryptString(url);
         var encryptedTitle = _encryptionService.EncryptString(title);
 
@@ -192,7 +192,7 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
 
         var id = _tabsCollection.Insert(tab);
 
-        // Оновлюємо лічильник вкладок в сесії
+        // Update tab count in session
         var session = _sessionsCollection.FindById(sessionId);
         if (session != null)
         {
@@ -204,7 +204,7 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Оновлює вкладку
+    /// Updates a tab
     /// </summary>
     public void UpdateTab(int tabId, string? url = null, string? title = null, bool? isActive = null)
     {
@@ -225,7 +225,7 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Отримує всі вкладки сесії
+    /// Gets all tabs for a session
     /// </summary>
     public List<TabModel> GetSessionTabs(int sessionId)
     {
@@ -234,7 +234,7 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
             .OrderBy(x => x.Order)
             .ToList();
 
-        // Розшифровуємо дані
+        // Decrypt data
         foreach (var tab in tabs)
         {
             try
@@ -244,7 +244,7 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
             }
             catch
             {
-                // Якщо не вдалося розшифрувати, залишаємо як є
+                // If decryption failed, leave as is
             }
         }
 
@@ -252,7 +252,7 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Видаляє вкладку
+    /// Deletes a tab
     /// </summary>
     public void DeleteTab(int tabId)
     {
@@ -261,7 +261,7 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
         {
             _tabsCollection.Delete(tabId);
             
-            // Оновлюємо лічильник
+            // Update counter
             var session = _sessionsCollection.FindById(tab.SessionId);
             if (session != null)
             {
@@ -272,30 +272,30 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Видаляє сесію з усіма вкладками
+    /// Deletes a session with all its tabs
     /// </summary>
     public void DeleteSession(int sessionId)
     {
-        // Видаляємо всі вкладки сесії
+        // Delete all session tabs
         _tabsCollection.DeleteMany(x => x.SessionId == sessionId);
         
-        // Видаляємо сесію
+        // Delete session
         _sessionsCollection.Delete(sessionId);
     }
 
     /// <summary>
-    /// Додає закладку
+    /// Adds a bookmark
     /// </summary>
-    public int AddBookmark(string url, string title, string folder = "Закладки")
+    public int AddBookmark(string url, string title, string folder = "Bookmarks")
     {
-        // Перевіряємо обмеження
+        // Check limits
         var totalBookmarks = _bookmarksCollection.Count();
         if (totalBookmarks >= MaxBookmarks)
         {
-            throw new InvalidOperationException($"Досягнуто максимальну кількість закладок ({MaxBookmarks})");
+            throw new InvalidOperationException($"Maximum number of bookmarks reached ({MaxBookmarks})");
         }
 
-        // Шифруємо дані
+        // Encrypt data
         var encryptedUrl = _encryptionService.EncryptString(url);
         var encryptedTitle = _encryptionService.EncryptString(title);
 
@@ -312,7 +312,7 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Отримує всі закладки
+    /// Gets all bookmarks
     /// </summary>
     public List<Bookmark> GetBookmarks(string? folder = null)
     {
@@ -322,7 +322,7 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
 
         var bookmarks = query.OrderBy(x => x.Order).ToList();
 
-        // Розшифровуємо дані
+        // Decrypt data
         foreach (var bookmark in bookmarks)
         {
             try
@@ -332,7 +332,7 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
             }
             catch
             {
-                // Якщо не вдалося розшифрувати, залишаємо як є
+                // If decryption failed, leave as is
             }
         }
 
@@ -340,7 +340,7 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Видаляє закладку
+    /// Deletes a bookmark
     /// </summary>
     public void DeleteBookmark(int bookmarkId)
     {
@@ -348,7 +348,7 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Отримує статистику бази даних
+    /// Gets database statistics
     /// </summary>
     public DatabaseStats GetStats()
     {
@@ -369,7 +369,7 @@ public class TabDatabaseService : ITabDatabaseService, IDisposable
 }
 
 /// <summary>
-/// Статистика бази даних
+/// Database statistics
 /// </summary>
 public class DatabaseStats
 {
@@ -380,4 +380,3 @@ public class DatabaseStats
     public long MaxDatabaseSizeBytes { get; set; }
     public double UsagePercentage => (double)DatabaseSizeBytes / MaxDatabaseSizeBytes * 100;
 }
-

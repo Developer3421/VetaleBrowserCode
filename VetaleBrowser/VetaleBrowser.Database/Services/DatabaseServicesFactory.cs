@@ -5,7 +5,7 @@ using LiteDB;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Фабрика для створення сервісів баз даних з гарантією ініціалізації та оптимізацією RAM
+/// Factory for creating database services with guaranteed initialization and RAM optimization
 /// </summary>
 public static class DatabaseServicesFactory
 {
@@ -17,7 +17,7 @@ public static class DatabaseServicesFactory
     private static bool _initialized;
     
     /// <summary>
-    /// Ініціалізує всі бази даних та сервіси
+    /// Initializes all databases and services
     /// </summary>
     public static void Initialize()
     {
@@ -36,15 +36,15 @@ public static class DatabaseServicesFactory
                 
                 System.Diagnostics.Debug.WriteLine($"[DatabaseServicesFactory] Database directory: {dbDirectory}");
                 
-                // Гарантуємо створення директорії
+                // Ensure directory creation
                 EnsureDirectoryExists(dbDirectory);
                 
-                // Створюємо файли баз даних якщо не існують
+                // Create database files if they don't exist
                 EnsureDatabaseFileExists(config.GetSettingsDbPath());
                 EnsureDatabaseFileExists(config.GetAppearanceSettingsDbPath());
                 EnsureDatabaseFileExists(config.GetApiKeysDbPath());
                 
-                // Створюємо сервіси
+                // Create services
                 _settingsService = CreateSettingsServiceInternal(config);
                 _appearanceSettingsService = CreateAppearanceSettingsServiceInternal(config);
                 _apiKeysService = CreateApiKeysServiceInternal(config);
@@ -60,7 +60,7 @@ public static class DatabaseServicesFactory
     }
     
     /// <summary>
-    /// Гарантує існування директорії
+    /// Ensures directory exists
     /// </summary>
     private static void EnsureDirectoryExists(string? directory)
     {
@@ -82,7 +82,7 @@ public static class DatabaseServicesFactory
     }
     
     /// <summary>
-    /// Гарантує існування файлу бази даних, створюючи порожню LiteDB якщо потрібно
+    /// Ensures database file exists, creating an empty LiteDB if needed
     /// </summary>
     private static void EnsureDatabaseFileExists(string databasePath)
     {
@@ -94,15 +94,15 @@ public static class DatabaseServicesFactory
                 return;
             }
             
-            // Гарантуємо директорію
+            // Ensure directory
             var directory = Path.GetDirectoryName(databasePath);
             EnsureDirectoryExists(directory);
             
-            // Створюємо порожню базу даних з оптимізованими налаштуваннями
+            // Create empty database with optimized settings
             System.Diagnostics.Debug.WriteLine($"[DatabaseServicesFactory] Creating new database: {databasePath}");
             
             using var db = DatabaseConfiguration.CreateOptimizedDatabase(databasePath);
-            // Створюємо тестову колекцію щоб файл точно створився
+            // Create test collection to ensure file is actually created
             var testCollection = db.GetCollection<BsonDocument>("_init");
             testCollection.Insert(new BsonDocument { ["created"] = DateTime.UtcNow });
             testCollection.DeleteAll();
@@ -118,7 +118,7 @@ public static class DatabaseServicesFactory
     }
     
     /// <summary>
-    /// Створює SettingsService
+    /// Creates SettingsService
     /// </summary>
     private static ISettingsService CreateSettingsServiceInternal(DatabaseConfiguration config)
     {
@@ -128,7 +128,7 @@ public static class DatabaseServicesFactory
     }
     
     /// <summary>
-    /// Створює AppearanceSettingsService
+    /// Creates AppearanceSettingsService
     /// </summary>
     private static IAppearanceSettingsService CreateAppearanceSettingsServiceInternal(DatabaseConfiguration config)
     {
@@ -138,7 +138,7 @@ public static class DatabaseServicesFactory
     }
     
     /// <summary>
-    /// Створює ApiKeysService
+    /// Creates ApiKeysService
     /// </summary>
     private static IApiKeysService CreateApiKeysServiceInternal(DatabaseConfiguration config)
     {
@@ -148,7 +148,7 @@ public static class DatabaseServicesFactory
     }
     
     /// <summary>
-    /// Отримує або створює сервіс налаштувань браузера
+    /// Gets or creates browser settings service
     /// </summary>
     public static ISettingsService GetSettingsService()
     {
@@ -162,7 +162,7 @@ public static class DatabaseServicesFactory
             
             if (_settingsService == null)
             {
-                // Fallback - створюємо напряму
+                // Fallback - create directly
                 var config = DatabaseConfiguration.CreateDefault();
                 EnsureDatabaseFileExists(config.GetSettingsDbPath());
                 _settingsService = CreateSettingsServiceInternal(config);
@@ -173,7 +173,7 @@ public static class DatabaseServicesFactory
     }
     
     /// <summary>
-    /// Отримує або створює сервіс налаштувань вигляду
+    /// Gets or creates appearance settings service
     /// </summary>
     public static IAppearanceSettingsService GetAppearanceSettingsService()
     {
@@ -187,7 +187,7 @@ public static class DatabaseServicesFactory
             
             if (_appearanceSettingsService == null)
             {
-                // Fallback - створюємо напряму
+                // Fallback - create directly
                 var config = DatabaseConfiguration.CreateDefault();
                 EnsureDatabaseFileExists(config.GetAppearanceSettingsDbPath());
                 _appearanceSettingsService = CreateAppearanceSettingsServiceInternal(config);
@@ -198,7 +198,7 @@ public static class DatabaseServicesFactory
     }
     
     /// <summary>
-    /// Спробувати отримати сервіс налаштувань (без викидання помилок)
+    /// Try to get settings service (without throwing errors)
     /// </summary>
     public static ISettingsService? TryGetSettingsService()
     {
@@ -214,7 +214,7 @@ public static class DatabaseServicesFactory
     }
     
     /// <summary>
-    /// Спробувати отримати сервіс вигляду (без викидання помилок)
+    /// Try to get appearance service (without throwing errors)
     /// </summary>
     public static IAppearanceSettingsService? TryGetAppearanceSettingsService()
     {
@@ -230,7 +230,7 @@ public static class DatabaseServicesFactory
     }
     
     /// <summary>
-    /// Отримує або створює сервіс API ключів
+    /// Gets or creates API keys service
     /// </summary>
     public static IApiKeysService GetApiKeysService()
     {
@@ -244,7 +244,7 @@ public static class DatabaseServicesFactory
             
             if (_apiKeysService == null)
             {
-                // Fallback - створюємо напряму
+                // Fallback - create directly
                 var config = DatabaseConfiguration.CreateDefault();
                 EnsureDatabaseFileExists(config.GetApiKeysDbPath());
                 _apiKeysService = CreateApiKeysServiceInternal(config);
@@ -255,7 +255,7 @@ public static class DatabaseServicesFactory
     }
     
     /// <summary>
-    /// Спробувати отримати сервіс API ключів (без викидання помилок)
+    /// Try to get API keys service (without throwing errors)
     /// </summary>
     public static IApiKeysService? TryGetApiKeysService()
     {
@@ -271,7 +271,7 @@ public static class DatabaseServicesFactory
     }
     
     /// <summary>
-    /// Скидає фабрику (для тестування)
+    /// Resets the factory (for testing)
     /// </summary>
     public static void Reset()
     {

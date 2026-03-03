@@ -10,7 +10,7 @@ using VetaleBrowser.VetaleBrowser.Database.Models;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Сервіс для роботи з локальним пошуковим індексом Vetale Search
+/// Service for working with the local search index (Vetale Search)
 /// MEMORY OPTIMIZATION: Direct connection mode, reduced limits
 /// </summary>
 public class SearchIndexService : ISearchIndexService, IDisposable
@@ -21,9 +21,9 @@ public class SearchIndexService : ISearchIndexService, IDisposable
     private readonly ILiteCollection<SearchKeyword> _keywordCollection;
     private readonly string _databasePath;
 
-    // MEMORY OPTIMIZATION: Агресивно зменшені ліміти
-    private const int MaxIndexItems = 500;   // Зменшено з 50000
-    private const long MaxDatabaseSizeBytes = 10 * 1024 * 1024; // 10 MB замість 1 GB
+    // MEMORY OPTIMIZATION: Aggressively reduced limits
+    private const int MaxIndexItems = 500;   // Reduced from 50000
+    private const long MaxDatabaseSizeBytes = 10 * 1024 * 1024; // 10 MB instead of 1 GB
 
     public SearchIndexService(string databasePath)
     {
@@ -45,12 +45,12 @@ public class SearchIndexService : ISearchIndexService, IDisposable
         _database = new LiteDatabase(connectionString);
         try { _database.Checkpoint(); } catch { }
 
-        // Отримуємо колекції
+        // Get collections
         _indexCollection = _database.GetCollection<SearchIndex>("search_index");
         _queryCollection = _database.GetCollection<SearchQuery>("search_queries");
         _keywordCollection = _database.GetCollection<SearchKeyword>("search_keywords");
 
-        // MEMORY OPTIMIZATION: Мінімальна кількість індексів
+        // MEMORY OPTIMIZATION: Minimal number of indexes
         _indexCollection.EnsureIndex(x => x.Url);
         _queryCollection.EnsureIndex(x => x.SearchedAt);
         _keywordCollection.EnsureIndex(x => x.SearchIndexId);
@@ -62,17 +62,17 @@ public class SearchIndexService : ISearchIndexService, IDisposable
         {
             try
             {
-                // Перевіряємо чи сторінка вже існує
+                // Check if page already exists
                 var existing = _indexCollection.FindOne(x => x.Url == url);
                 if (existing != null)
                 {
                     return UpdateIndexAsync(url, title, content, description, keywords).Result;
                 }
 
-                // Перевіряємо ліміт
+                // Check limit
                 if (_indexCollection.Count() >= MaxIndexItems)
                 {
-                    // Видаляємо найстаріші записи
+                    // Delete oldest records
                     var oldestItems = _indexCollection
                         .Query()
                         .OrderBy(x => x.LastVisitedAt)
@@ -86,7 +86,7 @@ public class SearchIndexService : ISearchIndexService, IDisposable
                     }
                 }
 
-                // Створюємо новий запис
+                // Create new record
                 var searchIndex = new SearchIndex
                 {
                     Url = url,
@@ -102,7 +102,7 @@ public class SearchIndexService : ISearchIndexService, IDisposable
 
                 var id = _indexCollection.Insert(searchIndex);
 
-                // Індексуємо ключові слова
+                // Index keywords
                 IndexKeywords(id, title, content);
 
                 return true;
@@ -127,7 +127,7 @@ public class SearchIndexService : ISearchIndexService, IDisposable
                     return IndexPageAsync(url, title, content, description, keywords).Result;
                 }
 
-                // Оновлюємо дані
+                // Update data
                 existing.Title = title ?? existing.Title;
                 existing.Content = CleanContent(content);
                 existing.Description = description ?? existing.Description;
@@ -138,7 +138,7 @@ public class SearchIndexService : ISearchIndexService, IDisposable
 
                 _indexCollection.Update(existing);
 
-                // Видаляємо старі ключові слова і додаємо нові
+                // Delete old keywords and add new ones
                 _keywordCollection.DeleteMany(x => x.SearchIndexId == existing.Id);
                 IndexKeywords(existing.Id, title, content);
 
@@ -186,7 +186,7 @@ public class SearchIndexService : ISearchIndexService, IDisposable
                 var searchTerms = query.ToLowerInvariant()
                     .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-                // Пошук за всіма полями
+                // Search across all fields
                 var results = _indexCollection.FindAll()
                     .Select(item => new
                     {
@@ -305,7 +305,7 @@ public class SearchIndexService : ISearchIndexService, IDisposable
 
                 var lowerQuery = partialQuery.ToLowerInvariant();
 
-                // Пошук у попередніх запитах
+                // Search in previous queries
                 var suggestions = _queryCollection.FindAll()
                     .Where(x => x.Query.ToLowerInvariant().StartsWith(lowerQuery))
                     .GroupBy(x => x.Query.ToLowerInvariant())
@@ -370,11 +370,11 @@ public class SearchIndexService : ISearchIndexService, IDisposable
     {
         var allText = $"{title} {content}";
         var words = Regex.Split(allText.ToLowerInvariant(), @"\W+")
-            .Where(w => w.Length > 2) // Ігноруємо короткі слова
+            .Where(w => w.Length > 2) // Ignore short words
             .GroupBy(w => w)
             .Select(g => new { Word = g.Key, Count = g.Count() });
 
-        foreach (var wordGroup in words.Take(100)) // Обмежуємо кількість ключових слів
+        foreach (var wordGroup in words.Take(100)) // Limit the number of keywords
         {
             var weight = title.ToLowerInvariant().Contains(wordGroup.Word) ? 2.0 : 1.0;
 
@@ -399,19 +399,19 @@ public class SearchIndexService : ISearchIndexService, IDisposable
 
         foreach (var term in searchTerms)
         {
-            // Точне співпадіння в заголовку - найбільша вага
+            // Exact match in title - highest weight
             if (titleLower.Contains(term))
                 score += 10;
 
-            // Співпадіння в описі
+            // Match in description
             if (descriptionLower.Contains(term))
                 score += 5;
 
-            // Співпадіння в контенті
+            // Match in content
             if (contentLower.Contains(term))
                 score += 2;
 
-            // Ключові слова
+            // Keywords
             if (item.Keywords.ToLowerInvariant().Contains(term))
                 score += 3;
         }
@@ -421,13 +421,13 @@ public class SearchIndexService : ISearchIndexService, IDisposable
 
     private int CalculateRelevanceScore(string title, string content, int visitCount)
     {
-        int score = visitCount * 10; // База - кількість відвідувань
+        int score = visitCount * 10; // Base - number of visits
 
-        // Додаємо бали за довжину заголовка (більш інформативні заголовки)
+        // Add points for title length (more informative titles)
         if (!string.IsNullOrEmpty(title) && title.Length > 10)
             score += 5;
 
-        // Додаємо бали за наявність контенту
+        // Add points for content presence
         if (!string.IsNullOrEmpty(content) && content.Length > 100)
             score += 10;
 
@@ -439,13 +439,13 @@ public class SearchIndexService : ISearchIndexService, IDisposable
         if (string.IsNullOrWhiteSpace(content))
             return string.Empty;
 
-        // Видаляємо HTML теги
+        // Remove HTML tags
         var cleaned = Regex.Replace(content, @"<[^>]+>", " ");
         
-        // Видаляємо зайві пробіли
+        // Remove extra spaces
         cleaned = Regex.Replace(cleaned, @"\s+", " ");
         
-        // Обмежуємо довжину (зберігаємо перші 5000 символів)
+        // Limit length (keep first 5000 characters)
         if (cleaned.Length > 5000)
             cleaned = cleaned.Substring(0, 5000);
 

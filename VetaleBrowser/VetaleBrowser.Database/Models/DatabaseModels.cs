@@ -3,7 +3,7 @@ using System;
 namespace VetaleBrowser.VetaleBrowser.Database.Models;
 
 /// <summary>
-/// Модель для збереження вкладок в базі даних
+/// Model for storing tabs in the database
 /// </summary>
 public class TabModel
 {
@@ -20,7 +20,7 @@ public class TabModel
 }
 
 /// <summary>
-/// Модель для сесії браузера
+/// Model for browser session
 /// </summary>
 public class BrowserSession
 {
@@ -32,14 +32,14 @@ public class BrowserSession
 }
 
 /// <summary>
-/// Модель для закладок
+/// Model for bookmarks
 /// </summary>
 public class Bookmark
 {
     public int Id { get; set; }
     public string Url { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
-    public string Folder { get; set; } = "Закладки";
+    public string Folder { get; set; } = "Bookmarks";
     public string? FaviconUrl { get; set; }
     public byte[]? FaviconData { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -47,7 +47,7 @@ public class Bookmark
 }
 
 /// <summary>
-/// Модель для історії переглядів
+/// Model for browsing history
 /// </summary>
 public class HistoryItem
 {
@@ -61,7 +61,7 @@ public class HistoryItem
 }
 
 /// <summary>
-/// Модель для налаштувань браузера з AES шифруванням
+/// Model for browser settings with AES encryption
 /// </summary>
 public class SettingItem
 {
@@ -72,27 +72,27 @@ public class SettingItem
 }
 
 /// <summary>
-/// Модель для логів консолі з AES шифруванням
+/// Model for console logs with AES encryption
 /// </summary>
 public class ConsoleLogItem
 {
     public int Id { get; set; }
     public string Level { get; set; } = "Info"; // Info, Warning, Error, Debug
     public string Message { get; set; } = string.Empty;
-    public string? Source { get; set; } // Джерело логу (WebView, System, User тощо)
+    public string? Source { get; set; } // Log source (WebView, System, User, etc.)
     public string? StackTrace { get; set; }
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 }
 
 /// <summary>
-/// Модель для індексації сторінок для Vetale Search (локальний пошук)
+/// Model for page indexing for Vetale Search (local search)
 /// </summary>
 public class SearchIndex
 {
     public int Id { get; set; }
     public string Url { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
-    public string Content { get; set; } = string.Empty; // Текстовий вміст сторінки
+    public string Content { get; set; } = string.Empty; // Page text content
     public string Description { get; set; } = string.Empty; // Meta description
     public string Keywords { get; set; } = string.Empty; // Meta keywords
     public string? FaviconUrl { get; set; }
@@ -100,37 +100,37 @@ public class SearchIndex
     public DateTime IndexedAt { get; set; } = DateTime.UtcNow;
     public DateTime LastVisitedAt { get; set; } = DateTime.UtcNow;
     public int VisitCount { get; set; } = 1;
-    public int RelevanceScore { get; set; } = 0; // Оцінка релевантності (базується на частоті відвідувань)
-    public string Language { get; set; } = "uk"; // Мова контенту
+    public int RelevanceScore { get; set; } = 0; // Relevance score (based on visit frequency)
+    public string Language { get; set; } = "uk"; // Content language
 }
 
 /// <summary>
-/// Модель для пошукових запитів користувача (історія пошуків)
+/// Model for user search queries (search history)
 /// </summary>
 public class SearchQuery
 {
     public int Id { get; set; }
     public string Query { get; set; } = string.Empty;
-    public string SearchEngine { get; set; } = "Vetale Search"; // Назва використаної пошукової системи
+    public string SearchEngine { get; set; } = "Vetale Search"; // Name of the search engine used
     public DateTime SearchedAt { get; set; } = DateTime.UtcNow;
     public int ResultsCount { get; set; } = 0;
-    public int? ClickedResultId { get; set; } // ID результату, на який клікнули (якщо є)
+    public int? ClickedResultId { get; set; } // ID of the clicked result (if any)
 }
 
 /// <summary>
-/// Модель для ключових слів та їх ваги в пошуковому індексі
+/// Model for keywords and their weight in the search index
 /// </summary>
 public class SearchKeyword
 {
     public int Id { get; set; }
-    public int SearchIndexId { get; set; } // Зв'язок з SearchIndex
+    public int SearchIndexId { get; set; } // Relation to SearchIndex
     public string Keyword { get; set; } = string.Empty;
-    public int Frequency { get; set; } = 1; // Кількість появ слова на сторінці
-    public double Weight { get; set; } = 1.0; // Вага слова (заголовки мають більшу вагу)
+    public int Frequency { get; set; } = 1; // Number of word occurrences on the page
+    public double Weight { get; set; } = 1.0; // Word weight (headings have higher weight)
 }
 
 /// <summary>
-/// Модель для завантажень файлів (менеджер завантажень)
+/// Model for file downloads (download manager)
 /// </summary>
 public class DownloadItem
 {
@@ -140,67 +140,67 @@ public class DownloadItem
     public string TargetPath { get; set; } = string.Empty; // encrypted full path
     public string Status { get; set; } = "Pending"; // Pending, Downloading, Completed, Error, Cancelled
     public long BytesReceived { get; set; }
-    public long TotalBytes { get; set; } = -1; // -1 если неизвестно
+    public long TotalBytes { get; set; } = -1; // -1 if unknown
     public DateTime StartTime { get; set; } = DateTime.UtcNow;
     public DateTime? EndTime { get; set; }
     public string? ErrorMessage { get; set; } // encrypted
     public string? ContentType { get; set; } // encrypted
-    public double LastMeasuredSpeedBytesPerSec { get; set; } // последнее измерение скорости
-    public double AverageSpeedBytesPerSec { get; set; } // скользящее среднее
-    public double EstimatedRemainingSeconds { get; set; } // оценка времени до завершения
-    public bool IsArchived { get; set; } // для очистки старих записів
-    public DateTime? ImportedAt { get; set; } // дата першого імпорту зі сканування папки завантажень
+    public double LastMeasuredSpeedBytesPerSec { get; set; } // last speed measurement
+    public double AverageSpeedBytesPerSec { get; set; } // moving average
+    public double EstimatedRemainingSeconds { get; set; } // estimated time to completion
+    public bool IsArchived { get; set; } // for cleaning old records
+    public DateTime? ImportedAt { get; set; } // date of first import from downloads folder scan
 }
 
 /// <summary>
-/// Модель для збереження API ключів з AES шифруванням
+/// Model for storing API keys with AES encryption
 /// </summary>
 public class ApiKeyItem
 {
     public int Id { get; set; }
     
     /// <summary>
-    /// Унікальний ідентифікатор сервісу (наприклад: "gemini", "pexels", "unsplash", "youtube")
+    /// Unique service identifier (e.g.: "gemini", "pexels", "unsplash", "youtube")
     /// </summary>
     public string ServiceId { get; set; } = string.Empty;
     
     /// <summary>
-    /// Назва сервісу для відображення (наприклад: "Google Gemini", "Pexels", "Unsplash", "YouTube")
+    /// Service display name (e.g.: "Google Gemini", "Pexels", "Unsplash", "YouTube")
     /// </summary>
     public string ServiceName { get; set; } = string.Empty;
     
     /// <summary>
-    /// Зашифрований API ключ
+    /// Encrypted API key
     /// </summary>
     public string EncryptedApiKey { get; set; } = string.Empty;
     
     /// <summary>
-    /// Чи активний цей ключ (користувач може вимкнути)
+    /// Whether this key is active (user can disable)
     /// </summary>
     public bool IsEnabled { get; set; } = true;
     
     /// <summary>
-    /// Дата створення
+    /// Creation date
     /// </summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     /// <summary>
-    /// Дата останнього оновлення
+    /// Last update date
     /// </summary>
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     
     /// <summary>
-    /// Дата останнього успішного використання
+    /// Date of last successful use
     /// </summary>
     public DateTime? LastUsedAt { get; set; }
     
     /// <summary>
-    /// Кількість успішних запитів
+    /// Number of successful requests
     /// </summary>
     public int SuccessfulRequestsCount { get; set; } = 0;
     
     /// <summary>
-    /// Кількість невдалих запитів
+    /// Number of failed requests
     /// </summary>
     public int FailedRequestsCount { get; set; } = 0;
 }

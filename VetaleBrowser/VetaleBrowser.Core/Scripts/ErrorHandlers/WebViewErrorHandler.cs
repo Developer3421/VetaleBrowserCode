@@ -10,8 +10,8 @@ using Avalonia.Threading;
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
 {
     /// <summary>
-    /// Обробник помилок WebView для перехоплення та локалізації помилок завантаження
-    /// Використовує моніторинг Title та Address для детекції chrome-error сторінок
+    /// WebView error handler for intercepting and localizing loading errors.
+    /// Uses Title and Address monitoring to detect chrome-error pages.
     /// </summary>
     public class WebViewErrorHandler : IDisposable
     {
@@ -24,12 +24,12 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         private DateTime _lastErrorTime;
         private string? _lastValidUrl;
         
-        // Позначає, що для поточної навігації вже отримали явну помилку з події (LoadError тощо)
-        // і не треба дублювати її через fallback по Title/Address/ConsoleMessage
+        // Indicates that an explicit error was already received from an event (LoadError etc.)
+        // for the current navigation, so no need to duplicate it via Title/Address/ConsoleMessage fallback
         private bool _hasExplicitErrorForCurrentNav;
 
         /// <summary>
-        /// Подія виникнення помилки з локалізованим контентом
+        /// Error occurrence event with localized content
         /// </summary>
         public event EventHandler<BrowserErrorEventArgs>? ErrorOccurred;
 
@@ -39,7 +39,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         }
 
         /// <summary>
-        /// Приєднує обробники помилок до WebView
+        /// Attaches error handlers to the WebView
         /// </summary>
         public void Attach()
         {
@@ -47,13 +47,13 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
 
             try
             {
-                // Спочатку намагаємось підписатись на події самого WebView
+                // First try to subscribe to the WebView's own events
                 AttachWebViewEvents();
                 
-                // Потім шукаємо внутрішній AvaloniaCefBrowser
+                // Then look for the internal AvaloniaCefBrowser
                 AttachAvaloniaCefBrowserEvents();
                 
-                // залишаємо PropertyChanged як fallback (оновлення _lastValidUrl + chrome-error/title-хак як останню лінію оборони)
+                // Keep PropertyChanged as fallback (update _lastValidUrl + chrome-error/title hack as last line of defense)
                 _webView.PropertyChanged += OnWebViewPropertyChanged;
 
                 _isAttached = true;
@@ -66,22 +66,22 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         }
         
         /// <summary>
-        /// Спробувати підписатись на події безпосередньо на WebView
+        /// Try to subscribe to events directly on the WebView
         /// </summary>
         private void AttachWebViewEvents()
         {
             var webViewType = _webView.GetType();
             Debug.WriteLine($"[WebViewErrorHandler] Attaching to WebView events...");
             
-            // Виводимо всі події WebView для діагностики
+            // Print all WebView events for diagnostics
             Debug.WriteLine("[WebViewErrorHandler] WebView events:");
             foreach (var evt in webViewType.GetEvents(BindingFlags.Instance | BindingFlags.Public))
             {
                 Debug.WriteLine($"[WebViewErrorHandler]   Event: {evt.Name}");
             }
             
-            // WebView з WebViewControl-Avalonia може мати власні події помилок
-            // Спробуємо різні варіанти назв
+            // WebView from WebViewControl-Avalonia may have its own error events
+            // Try different name variants
             string[] errorEventNames = { 
                 "LoadError", "LoadFailed", "NavigationError", "PageLoadError",
                 "BrowserLoadError", "OnLoadError", "LoadingError" 
@@ -98,15 +98,15 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         }
 
         /// <summary>
-        /// Шукає всередині WebView екземпляр AvaloniaCefBrowser і підписується на LoadError, UnhandledException, JavascriptUncaughtException, ConsoleMessage
+        /// Searches inside WebView for an AvaloniaCefBrowser instance and subscribes to LoadError, UnhandledException, JavascriptUncaughtException, ConsoleMessage
         /// </summary>
         private void AttachAvaloniaCefBrowserEvents()
         {
-            // Багато обгорток для CEF мають всередині властивість/поле "Browser". Підлаштуй ім'я при потребі.
+            // Many CEF wrappers have a "Browser" property/field inside. Adjust the name if needed.
             var webViewType = _webView.GetType();
             Debug.WriteLine($"[WebViewErrorHandler] WebView type: {webViewType.FullName}");
             
-            // Виводимо всі властивості та поля для діагностики
+            // Print all properties and fields for diagnostics
             Debug.WriteLine("[WebViewErrorHandler] Available properties:");
             foreach (var prop in webViewType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
             {
@@ -120,7 +120,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
 
             object? browser = null;
             
-            // Спробуємо різні назви властивостей/полів
+            // Try different property/field names
             string[] browserNames = { "Browser", "_browser", "browser", "chromiumBrowser", "_chromiumBrowser", "InternalBrowser", "_internalBrowser", "CefBrowser", "_cefBrowser" };
             
             foreach (var name in browserNames)
@@ -148,7 +148,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 }
             }
             
-            // Якщо не знайшли за назвою, шукаємо за типом (містить CefBrowser або AvaloniaCefBrowser в назві типу)
+            // If not found by name, search by type (contains CefBrowser or AvaloniaCefBrowser in type name)
             if (browser == null)
             {
                 Debug.WriteLine("[WebViewErrorHandler] Searching by type pattern...");
@@ -185,7 +185,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                                 }
                             }
                         }
-                        catch { /* ігноруємо помилки при читанні властивостей */ }
+                        catch { /* ignore errors when reading properties */ }
                     }
                 }
             }
@@ -197,11 +197,11 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 return;
             }
 
-            // Підписуємось максимально прямо, як у твоєму прикладі, але через reflection, щоб не тягнути типи EventArgs у Core.
+            // Subscribe as directly as possible, like in your example, but via reflection to avoid pulling EventArgs types into Core.
             var browserType = browser.GetType();
             Debug.WriteLine($"[WebViewErrorHandler] Browser type: {browserType.FullName}");
             
-            // Виводимо доступні події
+            // Print available events
             Debug.WriteLine("[WebViewErrorHandler] Available events on browser:");
             foreach (var evt in browserType.GetEvents(BindingFlags.Instance | BindingFlags.Public))
             {
@@ -248,9 +248,9 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
             }
         }
 
-        // === Хендлери, максимально близькі до твого прикладу ===
+        // === Event handlers ===
 
-        // LoadError: навігаційна помилка (DNS, timeout, HTTP і т.д.)
+        // LoadError: navigation error (DNS, timeout, HTTP, etc.)
         private void OnBrowserLoadError(object? sender, EventArgs e)
         {
             try
@@ -263,7 +263,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 var errorText = errorTextProp?.GetValue(e) as string;
                 var failedUrl = failedUrlProp?.GetValue(e) as string;
                 
-                // Отримуємо код помилки - може бути int або enum
+                // Get error code - can be int or enum
                 int errorCode = 0;
                 var errorCodeValue = errorCodeProp?.GetValue(e);
                 if (errorCodeValue != null)
@@ -274,17 +274,17 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                     }
                     else if (errorCodeValue.GetType().IsEnum)
                     {
-                        // Конвертуємо enum в int
+                        // Convert enum to int
                         errorCode = Convert.ToInt32(errorCodeValue);
                     }
                     else
                     {
-                        // Спробуємо конвертувати як число
+                        // Try to convert as number
                         int.TryParse(errorCodeValue.ToString(), out errorCode);
                     }
                 }
 
-                // Код 0 означає успішне завантаження - не показуємо помилку
+                // Code 0 means successful load - don't show error
                 if (errorCode == 0)
                 {
                     Debug.WriteLine($"[WebViewErrorHandler] Load completed successfully (code 0), ignoring");
@@ -307,7 +307,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
             }
         }
 
-        // UnhandledException: необроблені .NET винятки в браузері
+        // UnhandledException: unhandled .NET exceptions in the browser
         private void OnBrowserUnhandledException(object? sender, EventArgs e)
         {
             try
@@ -324,7 +324,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
 
                 Debug.WriteLine($"[WebViewErrorHandler] {errorMessage} at {url}");
 
-                // Використовуємо умовний загальний код помилки (ERR_FAILED)
+                // Use a generic error code (ERR_FAILED)
                 ReportError(-2, url, errorMessage);
             }
             catch (Exception ex)
@@ -333,7 +333,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
             }
         }
 
-        // JavascriptUncaughtException: необроблені JS-помилки
+        // JavascriptUncaughtException: unhandled JS errors
         private void OnJavascriptUncaughtException(object? sender, EventArgs e)
         {
             try
@@ -348,8 +348,8 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
 
                 Debug.WriteLine($"[WebViewErrorHandler] {errorMessage} at {url}");
 
-                // За замовчуванням тільки лог, без показу окремої сторінки.
-                // Якщо хочеш UI-сторінку для JS-помилок, розкоментуй:
+                // By default only log, without showing a separate page.
+                // If you want a UI page for JS errors, uncomment:
                 // ReportError(-9999, url, errorMessage);
             }
             catch (Exception ex)
@@ -358,7 +358,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
             }
         }
 
-        // ConsoleMessage: повідомлення консолі, фільтруємо лише помилки
+        // ConsoleMessage: console messages, filter errors only
         private void OnConsoleMessage(object? sender, EventArgs e)
         {
             try
@@ -380,7 +380,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 var lineObj = lineProp?.GetValue(e);
                 var line = lineObj?.ToString();
 
-                // Використовуємо тільки Console errors
+                // Use only Console errors
                 if (!string.Equals(level, "Error", StringComparison.OrdinalIgnoreCase))
                     return;
 
@@ -411,7 +411,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                     
                     Debug.WriteLine($"[WebViewErrorHandler] Address changed: {oldAddress} -> {newAddress}");
                     
-                    // Зберігаємо останній валідний URL (як резерв на випадок, якщо події WebView не спрацювали)
+                    // Save last valid URL (as backup in case WebView events didn't fire)
                     if (!string.IsNullOrEmpty(oldAddress) && 
                         !oldAddress.StartsWith("chrome-error://", StringComparison.OrdinalIgnoreCase) &&
                         !oldAddress.Contains("net::ERR_", StringComparison.OrdinalIgnoreCase))
@@ -419,17 +419,17 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                         _lastValidUrl = oldAddress;
                     }
                     
-                    // Скидаємо прапорець при новій навігації (щоб fallback працював)
+                    // Reset flag on new navigation (so fallback works)
                     if (!string.IsNullOrEmpty(newAddress) && 
                         !newAddress.StartsWith("chrome-error://", StringComparison.OrdinalIgnoreCase) &&
                         newAddress != oldAddress)
                     {
-                        // Якщо це нова навігація на звичайний URL - скидаємо прапорець
+                        // If this is a new navigation to a regular URL - reset the flag
                         _hasExplicitErrorForCurrentNav = false;
                         Debug.WriteLine($"[WebViewErrorHandler] Reset explicit error flag for new navigation");
                     }
                     
-                    // Детектуємо помилку через chrome-error:// URL як fallback
+                    // Detect error via chrome-error:// URL as fallback
                     if (!string.IsNullOrEmpty(newAddress))
                     {
                         if (newAddress.StartsWith("chrome-error://", StringComparison.OrdinalIgnoreCase))
@@ -446,7 +446,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                     if (string.IsNullOrWhiteSpace(newTitle))
                         return;
 
-                    // Якщо в Title явно присутній ERR_ — одразу вважаємо це помилкою
+                    // If Title explicitly contains ERR_ — consider it an error immediately
                     if (newTitle.Contains("ERR_", StringComparison.OrdinalIgnoreCase))
                     {
                         var guessedCode = GuessErrorCodeFromTitle(newTitle);
@@ -456,16 +456,16 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                             failedUrl = _pendingUrl ?? _lastValidUrl ?? "unknown";
                         }
                         Debug.WriteLine($"[WebViewErrorHandler] Error detected from explicit ERR_ in title (fallback): {newTitle}, code={guessedCode}, url={failedUrl}");
-                        _hasExplicitErrorForCurrentNav = true; // Встановлюємо щоб не дублювати
+                        _hasExplicitErrorForCurrentNav = true; // Set to prevent duplicates
                         ReportError(guessedCode, failedUrl!, newTitle);
                         return;
                     }
                     
-                    // Chromium показує специфічні title для помилок — використовуємо як останню лінію оборони
+                    // Chromium shows specific titles for errors — use as last line of defense
                     if (DetectErrorFromTitle(newTitle))
                     {
                         Debug.WriteLine($"[WebViewErrorHandler] Error detected from title (fallback): {newTitle}");
-                        _hasExplicitErrorForCurrentNav = true; // Встановлюємо щоб не дублювати
+                        _hasExplicitErrorForCurrentNav = true; // Set to prevent duplicates
                     }
                 }
             }
@@ -476,14 +476,14 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         }
         
         /// <summary>
-        /// Парсить chrome-error:// URL та витягує код помилки
+        /// Parses chrome-error:// URL and extracts the error code
         /// </summary>
         private void ParseChromeErrorUrl(string chromeErrorUrl)
         {
             try
             {
-                // Формат: chrome-error://chromewebdata/?e=&errorCode=-105&httpStatusCode=&s=&c=0&r=-1&u=https://example.com/
-                // або інші варіації
+                // Format: chrome-error://chromewebdata/?e=&errorCode=-105&httpStatusCode=&s=&c=0&r=-1&u=https://example.com/
+                // or other variations
                 
                 int errorCode = -1;
                 string? failedUrl = _lastValidUrl ?? _pendingUrl;
@@ -530,17 +530,17 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
             catch (Exception ex)
             {
                 Debug.WriteLine($"[WebViewErrorHandler] ParseChromeErrorUrl failed: {ex.Message}");
-                // Fallback - повідомляємо про невідому помилку
+                // Fallback - report unknown error
                 ReportError(-1, _lastValidUrl ?? chromeErrorUrl, "Unknown navigation error");
             }
         }
         
         /// <summary>
-        /// Детектує помилку через Title сторінки
+        /// Detects error from page Title
         /// </summary>
         private bool DetectErrorFromTitle(string title)
         {
-            // Chromium titles для помилок (англійські + можливі локалізовані варіанти)
+            // Chromium titles for errors (English + possible localized variants)
             var errorTitles = new[]
             {
                 // EN
@@ -553,7 +553,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 "500 Internal Server Error",
                 "502 Bad Gateway",
                 "503 Service Unavailable",
-                // UA/RU (узагальнені формулювання, без суворої прив'язки до конкретного тексту CEF)
+                // UA/RU (generalized phrases, not strictly tied to specific CEF text)
                 "сайт не доступний",
                 "сайт недоступний",
                 "не вдалося отримати доступ",
@@ -587,7 +587,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         }
         
         /// <summary>
-        /// Намагається визначити код помилки з Title
+        /// Attempts to determine the error code from Title
         /// </summary>
         private int GuessErrorCodeFromTitle(string title)
         {
@@ -625,7 +625,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         }
         
         /// <summary>
-        /// Встановлює URL який ми намагаємося завантажити (для трекінгу помилок)
+        /// Sets the URL we are trying to load (for error tracking)
         /// </summary>
         public void SetPendingNavigation(string url)
         {
@@ -634,15 +634,15 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         }
         
         /// <summary>
-        /// Асинхронна перевірка доступності URL перед навігацією
-        /// Повертає true якщо URL доступний, false якщо помилка
+        /// Asynchronous URL availability check before navigation.
+        /// Returns true if URL is accessible, false if error.
         /// </summary>
         public async Task<(bool IsSuccess, int ErrorCode, string? ErrorMessage)> PreCheckUrlAsync(string url)
         {
             if (string.IsNullOrEmpty(url))
                 return (false, -1, "Empty URL");
                 
-            // Не перевіряємо внутрішні URL
+            // Don't check internal URLs
             if (url.StartsWith("vetale://", StringComparison.OrdinalIgnoreCase) ||
                 url.StartsWith("chrome://", StringComparison.OrdinalIgnoreCase) ||
                 url.StartsWith("about:", StringComparison.OrdinalIgnoreCase) ||
@@ -673,7 +673,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
             {
                 Debug.WriteLine($"[WebViewErrorHandler] PreCheckUrl failed: {ex.Message}");
                 
-                // Мапуємо HTTP exception на CefErrorCode
+                // Map HTTP exception to CefErrorCode
                 var errorCode = MapHttpExceptionToErrorCode(ex);
                 return (false, errorCode, ex.Message);
             }
@@ -690,21 +690,21 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         }
         
         /// <summary>
-        /// Мапує HttpRequestException на код помилки CefGlue
+        /// Maps HttpRequestException to CefGlue error code
         /// </summary>
         private int MapHttpExceptionToErrorCode(HttpRequestException ex)
         {
-            // Перевіряємо StatusCode якщо доступний
+            // Check StatusCode if available
             if (ex.StatusCode.HasValue)
             {
                 var statusCode = (int)ex.StatusCode.Value;
                 if (statusCode >= 400)
                 {
-                    return statusCode; // HTTP помилка
+                    return statusCode; // HTTP error
                 }
             }
             
-            // Збираємо всі повідомлення про помилки (включаючи inner exceptions)
+            // Collect all error messages (including inner exceptions)
             var allMessages = ex.Message.ToLowerInvariant();
             var innerEx = ex.InnerException;
             while (innerEx != null)
@@ -713,7 +713,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 innerEx = innerEx.InnerException;
             }
             
-            // DNS помилки - різні формати для різних ОС
+            // DNS errors - different formats for different OS
             if (allMessages.Contains("name or service not known") || 
                 allMessages.Contains("no such host") ||
                 allMessages.Contains("getaddrinfo") ||
@@ -752,14 +752,14 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         }
         
         /// <summary>
-        /// Публічний метод для ручного повідомлення про помилку
-        /// Може бути викликаний з TabWorker при виявленні помилки
+        /// Public method for manually reporting an error.
+        /// Can be called from TabWorker when an error is detected.
         /// </summary>
         public void ReportError(int errorCode, string failedUrl, string? errorText)
         {
             try
             {
-                // Уникаємо дублювання однакових помилок
+                // Avoid duplicating identical errors
                 if (_lastErrorUrl == failedUrl && 
                     _lastErrorCode == errorCode &&
                     (DateTime.UtcNow - _lastErrorTime).TotalSeconds < 2)
@@ -772,19 +772,19 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 _lastErrorCode = errorCode;
                 _lastErrorTime = DateTime.UtcNow;
                 
-                // Перевіряємо, чи потрібно показувати сторінку помилки
+                // Check if error page should be shown
                 if (!BrowserErrorService.ShouldShowErrorPage(errorCode))
                 {
                     Debug.WriteLine($"[WebViewErrorHandler] Error {errorCode} ignored (not user-visible)");
                     return;
                 }
                 
-                // Отримуємо локалізовану помилку
+                // Get localized error
                 var error = BrowserErrorService.GetLocalizedError(errorCode, failedUrl, errorText);
                 
                 Debug.WriteLine($"[WebViewErrorHandler] Error reported: {error.Title} ({error.ErrorName})");
                 
-                // Сповіщаємо підписників в UI потоці
+                // Notify subscribers on UI thread
                 Dispatcher.UIThread.Post(() =>
                 {
                     Debug.WriteLine($"[WebViewErrorHandler] Invoking ErrorOccurred event for: {error.Title}");
@@ -798,15 +798,15 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         }
         
         /// <summary>
-        /// Повідомляє про HTTP помилку
+        /// Reports an HTTP error
         /// </summary>
         public void ReportHttpError(int httpStatusCode, string failedUrl)
         {
             try
             {
-                if (httpStatusCode < 400) return; // Не помилка
+                if (httpStatusCode < 400) return; // Not an error
                 
-                // Уникаємо дублювання
+                // Avoid duplicating
                 if (_lastErrorUrl == failedUrl && 
                     _lastErrorCode == httpStatusCode &&
                     (DateTime.UtcNow - _lastErrorTime).TotalSeconds < 2)
@@ -865,7 +865,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 var errorText = errorTextProp?.GetValue(e) as string;
                 var failedUrl = failedUrlProp?.GetValue(e) as string;
                 
-                // Отримуємо код помилки - може бути int або enum
+                // Get error code - can be int or enum
                 int errorCode = 0;
                 var errorCodeValue = errorCodeProp?.GetValue(e);
                 if (errorCodeValue != null)
@@ -876,17 +876,17 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                     }
                     else if (errorCodeValue.GetType().IsEnum)
                     {
-                        // Конвертуємо enum в int
+                        // Convert enum to int
                         errorCode = Convert.ToInt32(errorCodeValue);
                     }
                     else
                     {
-                        // Спробуємо конвертувати як число
+                        // Try to convert as number
                         int.TryParse(errorCodeValue.ToString(), out errorCode);
                     }
                 }
 
-                // Код 0 означає успішне завантаження - не показуємо помилку
+                // Code 0 means successful load - don't show error
                 if (errorCode == 0)
                 {
                     Debug.WriteLine($"[WebViewErrorHandler] AvaloniaCefBrowser.LoadError: code 0 (success), ignoring");
@@ -919,7 +919,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 var url = _webView.Address ?? _pendingUrl ?? _lastValidUrl ?? "unknown";
 
                 Debug.WriteLine($"[WebViewErrorHandler] AvaloniaCefBrowser.UnhandledException: {msg}, url={url}");
-                // Використовуємо загальний код ERR_FAILED (-2) для необробленого винятку
+                // Use generic error code ERR_FAILED (-2) for unhandled exception
                 ReportError(-2, url, msg);
             }
             catch (Exception ex)
@@ -940,9 +940,9 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 var url = _webView.Address ?? _pendingUrl ?? _lastValidUrl ?? "unknown";
                 Debug.WriteLine($"[WebViewErrorHandler] AvaloniaCefBrowser.JavascriptUncaughtException: {message}, url={url}");
 
-                // JS помилки не завжди означають фейл навігації, тому можна не показувати юзер-сторінку, але логувати.
-                // Якщо хочеш показувати UI-помилку, можна обрати окремий умовний код, наприклад -9999.
-                // Тут обмежимося логуванням, без ReportError.
+                // JS errors don't always mean navigation failure, so we may not show user error page, but log.
+                // If you want to show a UI error, you can choose a separate conditional code, e.g. -9999.
+                // Here we limit to logging, without ReportError.
             }
             catch (Exception ex)
             {
@@ -964,12 +964,12 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 var level = levelProp?.GetValue(e);
                 var levelStr = level?.ToString() ?? string.Empty;
 
-                // Використовуємо лише помилки з консолі
+                // Use only console errors
                 if (!levelStr.Contains("Error", StringComparison.OrdinalIgnoreCase))
                     return;
 
                 if (_hasExplicitErrorForCurrentNav)
-                    return; // уже є нормальна навігаційна помилка
+                    return; // already have a normal navigation error
 
                 var code = GuessErrorCodeFromTitle(message);
                 var url = _webView.Address ?? _pendingUrl ?? _lastValidUrl ?? "unknown";
@@ -983,8 +983,8 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
             }
         }
 
-        // Де ти обробляєш успішне завершення навігації (наприклад, у LoadingStateChanged або після PreCheckUrl),
-        // має сенс скидати прапорець, щоб нова навігація могла знову генерувати помилки:
+        // When handling successful navigation completion (e.g., in LoadingStateChanged or after PreCheckUrl),
+        // it makes sense to reset the flag so that a new navigation can generate errors again:
         private void ResetExplicitErrorFlagOnSuccessfulNavigation(string? finalUrl)
         {
             if (!string.IsNullOrEmpty(finalUrl) &&
@@ -998,19 +998,19 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
     }
     
     /// <summary>
-    /// Аргументи події помилки браузера
+    /// Browser error event arguments
     /// </summary>
     public class BrowserErrorEventArgs : EventArgs
     {
         public BrowserError Error { get; }
         
         /// <summary>
-        /// Чи було оброблено (показано) помилку
+        /// Whether the error was handled (displayed)
         /// </summary>
         public bool Handled { get; set; }
         
         /// <summary>
-        /// Сторінка помилки для відображення
+        /// Error page for display
         /// </summary>
         public BrowserErrorPage? ErrorPage { get; private set; }
 
@@ -1020,7 +1020,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         }
         
         /// <summary>
-        /// Створює сторінку помилки для відображення
+        /// Creates an error page for display
         /// </summary>
         public BrowserErrorPage CreateErrorPage()
         {

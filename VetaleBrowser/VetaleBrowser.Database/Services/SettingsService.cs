@@ -7,7 +7,7 @@ using VetaleBrowser.VetaleBrowser.Database.Models;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Сервіс для роботи з налаштуваннями браузера
+/// Service for working with browser settings
 /// </summary>
 public class SettingsService : ISettingsService, IDisposable
 {
@@ -24,13 +24,13 @@ public class SettingsService : ISettingsService, IDisposable
         
         System.Diagnostics.Debug.WriteLine($"[SettingsService] Creating with path: {databasePath}");
         
-        // Використовуємо оптимізоване з'єднання з мінімальним споживанням RAM
+        // Use optimized connection with minimal RAM usage
         _database = DatabaseConfiguration.CreateOptimizedDatabase(databasePath);
         
-        // Отримуємо колекцію
+        // Get collection
         _settingsCollection = _database.GetCollection<SettingItem>("settings");
         
-        // Один унікальний індекс
+        // One unique index
         _settingsCollection.EnsureIndex(x => x.Key, true);
         
         System.Diagnostics.Debug.WriteLine("[SettingsService] Initialized successfully");

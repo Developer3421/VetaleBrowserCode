@@ -5,7 +5,7 @@ using LiteDB;
 namespace VetaleBrowser.VetaleBrowser.Database;
 
 /// <summary>
-/// Конфігурація для бази даних з оптимізацією RAM
+/// Database configuration with RAM optimization
 /// </summary>
 public class DatabaseConfiguration
 {
@@ -16,38 +16,38 @@ public class DatabaseConfiguration
     );
 
     /// <summary>
-    /// Шлях до файлу бази даних
+    /// Path to the database file
     /// </summary>
     public string DatabasePath { get; set; } = Path.Combine(DefaultDatabasePath, "browser.db");
 
     /// <summary>
-    /// Ключ шифрування (має бути захищений)
+    /// Encryption key (should be protected)
     /// </summary>
     public string EncryptionKey { get; set; } = GenerateDefaultKey();
 
     /// <summary>
-    /// Автоматичне очищення старих даних
+    /// Automatic cleanup of old data
     /// </summary>
     public bool AutoCleanup { get; set; } = true;
 
     /// <summary>
-    /// Інтервал очищення в днях
+    /// Cleanup interval in days
     /// </summary>
     public int CleanupIntervalDays { get; set; } = 30;
 
     /// <summary>
-    /// Генерує ключ шифрування за замовчуванням
+    /// Generates default encryption key
     /// </summary>
     private static string GenerateDefaultKey()
     {
-        // Безпечний ключ на основі машини та користувача
+        // Secure key based on machine and user
         var machineId = Environment.MachineName;
         var userId = Environment.UserName;
         return $"VetaleBrowser_{machineId}_{userId}_2025_SecureKey";
     }
 
     /// <summary>
-    /// Створює конфігурацію за замовчуванням
+    /// Creates default configuration
     /// </summary>
     public static DatabaseConfiguration CreateDefault()
     {
@@ -57,7 +57,7 @@ public class DatabaseConfiguration
     }
 
     /// <summary>
-    /// Створює конфігурацію з кастомним ключем
+    /// Creates configuration with custom key
     /// </summary>
     public static DatabaseConfiguration CreateWithKey(string encryptionKey)
     {
@@ -67,7 +67,7 @@ public class DatabaseConfiguration
     }
     
     /// <summary>
-    /// Гарантує створення директорії для баз даних
+    /// Ensures the database directory is created
     /// </summary>
     public void EnsureDatabaseDirectory()
     {
@@ -87,7 +87,7 @@ public class DatabaseConfiguration
     }
     
     /// <summary>
-    /// Отримує шлях до бази даних налаштувань вигляду
+    /// Gets the appearance settings database path
     /// </summary>
     public string GetAppearanceSettingsDbPath()
     {
@@ -96,7 +96,7 @@ public class DatabaseConfiguration
     }
     
     /// <summary>
-    /// Отримує шлях до бази даних налаштувань браузера
+    /// Gets the browser settings database path
     /// </summary>
     public string GetSettingsDbPath()
     {
@@ -104,7 +104,7 @@ public class DatabaseConfiguration
     }
     
     /// <summary>
-    /// Отримує шлях до бази даних API ключів
+    /// Gets the API keys database path
     /// </summary>
     public string GetApiKeysDbPath()
     {
@@ -113,11 +113,11 @@ public class DatabaseConfiguration
     }
     
     /// <summary>
-    /// Створює оптимізований ConnectionString для LiteDB з мінімальним споживанням RAM
+    /// Creates an optimized ConnectionString for LiteDB with minimal RAM usage
     /// </summary>
     public static ConnectionString CreateOptimizedConnectionString(string databasePath)
     {
-        // Гарантуємо існування директорії
+        // Ensure directory exists
         var directory = Path.GetDirectoryName(databasePath);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {
@@ -127,22 +127,22 @@ public class DatabaseConfiguration
         return new ConnectionString
         {
             Filename = databasePath,
-            // Shared mode - дозволяє багаторазовий доступ
+            // Shared mode - allows concurrent access
             Connection = ConnectionType.Shared,
-            // Вимикаємо read-only режим для запису
+            // Disable read-only mode for writing
             ReadOnly = false
         };
     }
     
     /// <summary>
-    /// Створює LiteDatabase з оптимізованими налаштуваннями для мінімального RAM
+    /// Creates a LiteDatabase with optimized settings for minimal RAM
     /// </summary>
     public static LiteDatabase CreateOptimizedDatabase(string databasePath)
     {
         var connectionString = CreateOptimizedConnectionString(databasePath);
         var db = new LiteDatabase(connectionString);
         
-        // Checkpoint для очищення WAL файлу та зменшення RAM
+        // Checkpoint to clean WAL file and reduce RAM
         try { db.Checkpoint(); } catch { }
         
         System.Diagnostics.Debug.WriteLine($"[DatabaseConfiguration] Created optimized LiteDB: {databasePath}");
