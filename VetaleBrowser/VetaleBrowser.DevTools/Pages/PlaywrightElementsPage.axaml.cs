@@ -287,7 +287,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
                 _elementTitle.Text = title;
             }
 
-            // Відображення атрибутів
+            // Display attributes
             if (_attributesViewer != null)
             {
                 try
@@ -308,7 +308,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
                 }
             }
 
-            // Відображення стилів
+            // Display styles
             if (_stylesViewer != null)
             {
                 try

@@ -144,10 +144,10 @@
         <Border Grid.Row="3" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
             <Grid>
                 <Grid x:Name="WebViewContainer">
-                    <!-- WebView буде доданий програмно -->
+                    <!-- WebView will be added programmatically -->
                 </Grid>
                 <TextBlock x:Name="PlaceholderText"
-                           Text="WebView Worker готовий&#10;&#10;Введіть URL та натисніть 'Go'&#10;або&#10;Натисніть 'Load HTML from Editor' щоб відкрити створений HTML"
+                           Text="WebView Worker ready&#10;&#10;Enter URL and press 'Go'&#10;or&#10;Press 'Load HTML from Editor' to open the created HTML"
                            FontSize="13"
                            Foreground="#999999"
                            HorizontalAlignment="Center"
@@ -174,7 +174,7 @@
                     <Button Classes="action-button"
                             Click="OnOpenLocalHtmlFile"
                             Background="#4CAF50"
-                            ToolTip.Tip="Відкрити локальний HTML файл">
+                            ToolTip.Tip="Open local HTML file">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <TextBlock Text="📂" FontSize="12"/>
                             <TextBlock Text="Open HTML File"/>
@@ -185,7 +185,7 @@
                     <Button Classes="action-button"
                             Click="OnLoadHtmlFromEditor"
                             Background="#FF9800"
-                            ToolTip.Tip="Завантажити HTML з редактора та захопити дані">
+                            ToolTip.Tip="Load HTML from editor and capture data">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <TextBlock Text="📝" FontSize="12"/>
                             <TextBlock Text="From Editor"/>
@@ -198,7 +198,7 @@
                             x:Name="SaveToEditorButton"
                             Background="#2196F3"
                             IsEnabled="False"
-                            ToolTip.Tip="Зберегти поточний HTML код в редактор">
+                            ToolTip.Tip="Save current HTML code to editor">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <TextBlock Text="💾" FontSize="12"/>
                             <TextBlock Text="To Editor"/>
@@ -209,7 +209,7 @@
                     <Button Classes="action-button"
                             Click="OnCaptureData"
                             Background="#9C27B0"
-                            ToolTip.Tip="Захопити дані з поточної сторінки">
+                            ToolTip.Tip="Capture data from the current page">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <TextBlock Text="📊" FontSize="12"/>
                             <TextBlock Text="Capture Data"/>

@@ -44,7 +44,7 @@
             </Grid>
         </Border>
 
-        <!-- Метрики продуктивності -->
+        <!-- Performance metrics -->
         <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*" Margin="15" Background="#FFFFFF">
             <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="1" Padding="15" Margin="0,0,8,0" Background="#F8F8F8">
                 <StackPanel>
@@ -75,7 +75,7 @@
             </Border>
         </Grid>
 
-        <!-- Детальна інформація -->
+        <!-- Detailed information -->
         <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="15,0,15,15" Background="#FFFFFF">
             <!-- Core Web Vitals -->
             <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="1" Margin="0,0,8,0" Background="#FAFAFA">

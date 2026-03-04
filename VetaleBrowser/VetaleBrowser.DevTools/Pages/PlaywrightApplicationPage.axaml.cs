@@ -178,7 +178,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
                 
                 Debug.WriteLine("[PlaywrightApplicationPage] Cookies cleared");
                 
-                // Оновити відображення якщо cookies вибрані
+                // Refresh display if cookies are selected
                 if (_storageTypesList?.SelectedItem is ListBoxItem li && li.Tag?.ToString() == "cookies")
                 {
                     OnCaptureStorage(sender, e);

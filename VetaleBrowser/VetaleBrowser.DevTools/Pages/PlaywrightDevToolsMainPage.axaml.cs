@@ -24,7 +24,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
             InitializeComponent();
             InitializeControls();
             
-            // Показати Elements за замовчуванням
+            // Show Elements page by default
             ShowElementsPage();
         }
 
