@@ -11,18 +11,18 @@ using VetaleBrowser.VetaleBrowser.Search.Models;
 namespace VetaleBrowser.VetaleBrowser.Search.Services;
 
 /// <summary>
-/// Клієнт VirusTotal Public API v3 для перевірки URL
+/// VirusTotal Public API v3 client for URL verification
 /// </summary>
 public class VirusTotalSecurityService
 {
     private const string BaseUrl = "https://www.virustotal.com/api/v3";
 
-    // TODO: винести в settings, зараз – константа-заглушка
-    private const string ApiKey = "a0c5bf9c0c5547525f5fb9799ae52006ff3d2951f10a0730d5acbe8fd6f9e42c"; // Якщо порожній – VT не використовується
+    // TODO: move to settings, currently a stub constant
+    private const string ApiKey = "a0c5bf9c0c5547525f5fb9799ae52006ff3d2951f10a0730d5acbe8fd6f9e42c"; // If empty - VT is not used
 
     private readonly HttpClient _httpClient;
 
-    // Простий кеш результатів VT
+    // Simple cache for VT results
     private readonly ConcurrentDictionary<string, VirusTotalCacheEntry> _cache = new();
     private readonly TimeSpan _cacheTtl = TimeSpan.FromHours(6);
 
@@ -38,12 +38,12 @@ public class VirusTotalSecurityService
 
     public async Task<VirusTotalDetails?> CheckUrlAsync(string url)
     {
-        // Якщо ключа немає – просто не використовуємо VT
+        // If no key - simply don't use VT
         if (string.IsNullOrWhiteSpace(ApiKey))
             return null;
 
         if (DateTimeOffset.UtcNow < _rateLimitedUntil)
-            return null; // тимчасово не звертаємося до VT
+            return null; // temporarily not calling VT
 
         var normalized = NormalizeForCache(url);
 
@@ -82,7 +82,7 @@ public class VirusTotalSecurityService
 
     private async Task<VirusTotalDetails?> QueryVirusTotalAsync(string url)
     {
-        // VT v3 вимагає кодувати URL у base64 без '=' в кінці
+        // VT v3 requires encoding URL in base64 without trailing '='
         var urlBytes = Encoding.UTF8.GetBytes(url);
         var urlId = Convert.ToBase64String(urlBytes).TrimEnd('=');
 
@@ -132,7 +132,7 @@ public class VirusTotalSecurityService
             }
 
             var uri = new Uri(url);
-            // Для кешу – хост + шлях без query, щоб уникнути вибуху комбінацій
+            // For cache - host + path without query, to avoid combinatorial explosion
             return uri.GetLeftPart(UriPartial.Path);
         }
         catch

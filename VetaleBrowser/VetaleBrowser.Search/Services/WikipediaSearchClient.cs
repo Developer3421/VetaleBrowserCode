@@ -17,7 +17,7 @@ public interface IWikipediaSearchClient
 }
 
 /// <summary>
-/// Клієнт пошуку Wikipedia через офіційне API (en.wikipedia.org, action=query&amp;list=search).
+/// Wikipedia search client via official API (en.wikipedia.org, action=query&amp;list=search).
 /// </summary>
 public sealed class WikipediaSearchClient : IWikipediaSearchClient, IDisposable
 {
@@ -58,15 +58,15 @@ public sealed class WikipediaSearchClient : IWikipediaSearchClient, IDisposable
         if (payload?.Query?.Search is not { Length: > 0 } allResults)
             return Array.Empty<UnifiedSearchResult>();
 
-        // 1) точний збіг заголовка
+        // 1) exact title match
         var bestMatch = allResults.FirstOrDefault(r =>
             !string.IsNullOrEmpty(r.Title) && string.Equals(r.Title.Trim(), query.Trim(), StringComparison.OrdinalIgnoreCase));
 
-        // 2) серед решти — віддати перевагу заголовкам без дужок
+        // 2) among the rest - prefer titles without parentheses
         if (bestMatch == null)
             bestMatch = allResults.FirstOrDefault(r => !string.IsNullOrEmpty(r.Title) && !r.Title!.Contains('('));
 
-        // 3) інакше — перший із списку API
+        // 3) otherwise - first from the API list
         if (bestMatch == null)
             bestMatch = allResults[0];
 
@@ -91,8 +91,8 @@ public sealed class WikipediaSearchClient : IWikipediaSearchClient, IDisposable
 
     private static string DetectWikipediaLang(string query)
     {
-        // Просте визначення мови запиту + запасний варіант за культурою інтерфейсу.
-        // Пріоритет: uk (якщо є українські літери), ru (російські), інакше — мова UI або en.
+        // Simple query language detection + fallback by UI culture.
+        // Priority: uk (if there are Ukrainian letters), ru (Russian), otherwise - UI language or en.
         if (string.IsNullOrEmpty(query))
             return FallbackLang();
 
@@ -105,19 +105,19 @@ public sealed class WikipediaSearchClient : IWikipediaSearchClient, IDisposable
             if ("ёЁъЪыЫэЭ".IndexOf(ch) >= 0) return "ru";
         }
 
-        // Якщо кирилиця, але без специфічних букв — спробуємо uk, потім ru
+        // If Cyrillic but without specific letters - try uk, then ru
         if (query.Any(c => char.GetUnicodeCategory(c) == UnicodeCategory.UppercaseLetter || char.GetUnicodeCategory(c) == UnicodeCategory.LowercaseLetter))
         {
-            // Якщо є будь-які кириличні букви
+            // If there are any Cyrillic letters
             bool hasCyr = query.Any(c => c >= '\u0400' && c <= '\u04FF');
             if (hasCyr)
             {
-                // Нехай спочатку uk за гео-очікуванням цього проєкту
+                // Default to uk by geo-expectation of this project
                 return "uk";
             }
         }
 
-        // fallback: мова UI
+        // fallback: UI language
         return FallbackLang();
 
         static string FallbackLang()

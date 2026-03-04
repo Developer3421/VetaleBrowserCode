@@ -4,19 +4,19 @@ using VetaleBrowser.VetaleBrowser.Search.Models;
 namespace VetaleBrowser.VetaleBrowser.Search.Services;
 
 /// <summary>
-/// Інтерфейс сервісу перевірки безпеки URL
+/// Interface of URL security check service
 /// </summary>
 public interface ISecurityCheckService
 {
     /// <summary>
-    /// Перевірити безпеку URL
+    /// Check URL security
     /// </summary>
-    /// <param name="url">URL для перевірки</param>
-    /// <returns>Результат перевірки безпеки</returns>
+    /// <param name="url">URL to check</param>
+    /// <returns>Security check result</returns>
     Task<SecurityCheckResult> CheckUrlAsync(string url);
     
     /// <summary>
-    /// Очистити кеш перевірок
+    /// Clear check cache
     /// </summary>
     void ClearCache();
 }

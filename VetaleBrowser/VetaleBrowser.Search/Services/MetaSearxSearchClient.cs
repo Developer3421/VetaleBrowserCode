@@ -9,74 +9,74 @@ using VetaleBrowser.VetaleBrowser.Search.Models;
 namespace VetaleBrowser.VetaleBrowser.Search.Services;
 
 /// <summary>
-/// Інтерфейс для пошуку через MetaSearx (відкрита метапошукова система)
+/// Interface for searching via MetaSearx (open meta search engine)
 /// </summary>
 public interface IMetaSearxSearchClient
 {
     /// <summary>
-    /// Шукає результати через MetaSearx API з пагінацією
+    /// Searches results via MetaSearx API with pagination
     /// </summary>
-    /// <param name="query">Пошуковий запит</param>
-    /// <param name="page">Номер сторінки (1-based)</param>
-    /// <param name="resultsPerPage">Кількість результатів на сторінку (за замовчуванням 50)</param>
-    /// <param name="ct">Токен скасування</param>
+    /// <param name="query">Search query</param>
+    /// <param name="page">Page number (1-based)</param>
+    /// <param name="resultsPerPage">Number of results per page (default 50)</param>
+    /// <param name="ct">Cancellation token</param>
     Task<MetaSearxSearchResult> SearchAsync(string query, int page = 1, int resultsPerPage = 50, CancellationToken ct = default);
     
     /// <summary>
-    /// Простий пошук без пагінації (для сумісності)
+    /// Simple search without pagination (for compatibility)
     /// </summary>
     Task<List<UnifiedSearchResult>> SearchAsync(string query, int maxResults = 5, CancellationToken ct = default);
 }
 
 /// <summary>
-/// Результат пошуку MetaSearx з інформацією про пагінацію
+/// MetaSearx search result with pagination information
 /// </summary>
 public sealed class MetaSearxSearchResult
 {
     /// <summary>
-    /// Результати пошуку на поточній сторінці
+    /// Search results on current page
     /// </summary>
     public List<UnifiedSearchResult> Results { get; set; } = new();
     
     /// <summary>
-    /// Поточна сторінка (1-based)
+    /// Current page (1-based)
     /// </summary>
     public int CurrentPage { get; set; } = 1;
     
     /// <summary>
-    /// Кількість результатів на сторінку
+    /// Number of results per page
     /// </summary>
     public int ResultsPerPage { get; set; } = 50;
     
     /// <summary>
-    /// Чи є наступна сторінка
+    /// Whether there is a next page
     /// </summary>
     public bool HasNextPage { get; set; }
     
     /// <summary>
-    /// Чи є попередня сторінка
+    /// Whether there is a previous page
     /// </summary>
     public bool HasPreviousPage { get; set; }
     
     /// <summary>
-    /// Загальна кількість результатів (якщо відома)
+    /// Total number of results (if known)
     /// </summary>
     public int? TotalResults { get; set; }
     
     /// <summary>
-    /// Загальна кількість сторінок (якщо відома)
+    /// Total number of pages (if known)
     /// </summary>
     public int? TotalPages { get; set; }
     
     /// <summary>
-    /// Пошуковий запит
+    /// Search query
     /// </summary>
     public string Query { get; set; } = string.Empty;
 }
 
 /// <summary>
-/// Клієнт для пошуку через MetaSearx
-/// MetaSearx - це метапошукова система, що агрегує результати з багатьох пошукових систем
+/// Client for searching via MetaSearx.
+/// MetaSearx is a meta search engine that aggregates results from many search engines.
 /// </summary>
 public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
 {
@@ -85,15 +85,15 @@ public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
         Timeout = TimeSpan.FromSeconds(15)
     };
 
-    // Публічний інстанс MetaSearx
+    // Public MetaSearx instance
     private const string BaseUrl = "https://metasearx.com";
     private const string SearchApiUrl = "https://metasearx.com/search";
     
-    // Кількість результатів на одну сторінку MetaSearx API (зазвичай ~10-20)
+    // Number of results per MetaSearx API page (usually ~10-20)
     private const int MetaSearxResultsPerPage = 10;
 
     /// <summary>
-    /// Пошук з повною пагінацією (професійний режим)
+    /// Search with full pagination (professional mode)
     /// </summary>
     public async Task<MetaSearxSearchResult> SearchAsync(string query, int page = 1, int resultsPerPage = 50, CancellationToken ct = default)
     {
@@ -110,8 +110,8 @@ public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
 
         try
         {
-            // Розраховуємо які сторінки MetaSearx потрібно завантажити
-            // Наприклад: page=1, resultsPerPage=50 -> MetaSearx pages 1-5
+            // Calculate which MetaSearx pages need to be loaded
+            // Example: page=1, resultsPerPage=50 -> MetaSearx pages 1-5
             // page=2, resultsPerPage=50 -> MetaSearx pages 6-10
             var metaSearxPagesPerOurPage = (int)Math.Ceiling(resultsPerPage / (double)MetaSearxResultsPerPage);
             var startMetaSearxPage = (page - 1) * metaSearxPagesPerOurPage + 1;
@@ -131,7 +131,7 @@ public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
                 
                 foreach (var r in pageResults)
                 {
-                    // Уникаємо дублікатів
+                    // Avoid duplicates
                     if (!allResults.Exists(x => x.Url.Equals(r.Url, StringComparison.OrdinalIgnoreCase)))
                     {
                         r.PageNumber = page;
@@ -141,21 +141,21 @@ public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
                 
                 hasMoreResults = hasMore;
                 
-                // Затримка між запитами
+                // Delay between requests
                 if (metaPage < endMetaSearxPage)
                 {
                     await Task.Delay(50, ct);
                 }
             }
             
-            // Обмежуємо до resultsPerPage
+            // Limit to resultsPerPage
             result.Results = allResults.Count > resultsPerPage 
                 ? allResults.GetRange(0, resultsPerPage) 
                 : allResults;
             
             result.HasNextPage = hasMoreResults || allResults.Count >= resultsPerPage;
             
-            // Оновлюємо RankScore для правильного сортування
+            // Update RankScore for correct sorting
             for (int i = 0; i < result.Results.Count; i++)
             {
                 result.Results[i].RankScore = resultsPerPage - i;
@@ -165,7 +165,7 @@ public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
         }
         catch (OperationCanceledException)
         {
-            // Нормальне скасування
+            // Normal cancellation
         }
         catch (Exception ex)
         {
@@ -187,7 +187,7 @@ public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
     }
 
     /// <summary>
-    /// Простий пошук без пагінації (для сумісності з існуючим кодом)
+    /// Simple search without pagination (for compatibility with existing code)
     /// </summary>
     public async Task<List<UnifiedSearchResult>> SearchAsync(string query, int maxResults = 5, CancellationToken ct = default)
     {
@@ -196,7 +196,7 @@ public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
     }
     
     /// <summary>
-    /// Завантажує одну сторінку результатів з інформацією про наявність наступних
+    /// Loads one page of results with information about whether there are more
     /// </summary>
     private async Task<(List<UnifiedSearchResult> Results, bool HasMore)> FetchPageWithInfoAsync(string query, int pageNumber, CancellationToken ct)
     {
@@ -238,7 +238,7 @@ public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
         }
         catch (OperationCanceledException)
         {
-            // Нормальне скасування
+            // Normal cancellation
         }
         catch (Exception ex)
         {
@@ -249,7 +249,7 @@ public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
     }
 
     /// <summary>
-    /// Парсить JSON відповідь з інформацією про пагінацію
+    /// Parses JSON response with pagination information
     /// </summary>
     private (List<UnifiedSearchResult> Results, bool HasMore) ParseJsonResponseWithInfo(string json)
     {
@@ -261,7 +261,7 @@ public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
 
-            // Перевіряємо чи є інформація про пагінацію
+            // Check if there is pagination information
             if (root.TryGetProperty("number_of_results", out var totalProp))
             {
                 hasMore = totalProp.TryGetInt64(out var total) && total > 0;
@@ -299,7 +299,7 @@ public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
                             Url = url,
                             DisplayUrl = $"{uri.Host} › {engine}",
                             Snippet = string.IsNullOrWhiteSpace(content) 
-                                ? $"Результат з {engine}"
+                                ? $"Result from {engine}"
                                 : TruncateText(content, 200),
                             Source = SearchSourceType.MetaSearx,
                             Timestamp = null,
@@ -309,11 +309,11 @@ public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
                     }
                     catch
                     {
-                        // Пропускаємо некоректний елемент
+                        // Skip invalid element
                     }
                 }
                 
-                // Якщо отримали результати, ймовірно є ще
+                // If we got results, there are likely more
                 hasMore = hasMore || results.Count >= 10;
             }
         }
@@ -326,7 +326,7 @@ public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
     }
 
     /// <summary>
-    /// Парсить HTML відповідь від MetaSearx (fallback)
+    /// Parses HTML response from MetaSearx (fallback)
     /// </summary>
     private List<UnifiedSearchResult> ParseHtmlResponse(string html, string query, int maxResults)
     {
@@ -337,10 +337,10 @@ public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
             var searchStart = 0;
             var count = 0;
 
-            // Шукаємо результати в HTML (клас result або article)
+            // Search for results in HTML (class result or article)
             while (count < maxResults)
             {
-                // Шукаємо посилання на результати
+                // Search for links to results
                 var resultStart = html.IndexOf("class=\"result\"", searchStart, StringComparison.OrdinalIgnoreCase);
                 if (resultStart < 0)
                 {
@@ -349,7 +349,7 @@ public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
                         break;
                 }
 
-                // Знаходимо href
+                // Find href
                 var linkStart = html.IndexOf("href=\"", resultStart, StringComparison.OrdinalIgnoreCase);
                 if (linkStart < 0 || linkStart > resultStart + 1000)
                 {
@@ -364,21 +364,21 @@ public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
 
                 var url = html.Substring(linkStart, linkEnd - linkStart);
                 
-                // Пропускаємо внутрішні та некоректні посилання
+                // Skip internal and invalid links
                 if (url.StartsWith("/") || url.StartsWith("#") || !Uri.TryCreate(url, UriKind.Absolute, out var uri))
                 {
                     searchStart = linkEnd + 1;
                     continue;
                 }
 
-                // Витягуємо заголовок
+                // Extract title
                 var titleStart = html.IndexOf(">", linkEnd);
                 var titleEnd = html.IndexOf("<", titleStart + 1);
                 var title = titleStart >= 0 && titleEnd > titleStart
                     ? System.Net.WebUtility.HtmlDecode(html.Substring(titleStart + 1, titleEnd - titleStart - 1).Trim())
                     : uri.Host;
 
-                // Витягуємо опис
+                // Extract description
                 var descStart = html.IndexOf("class=\"content\"", linkEnd, StringComparison.OrdinalIgnoreCase);
                 var description = string.Empty;
                 
@@ -402,7 +402,7 @@ public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
                         Url = url,
                         DisplayUrl = $"{uri.Host} › MetaSearx",
                         Snippet = string.IsNullOrWhiteSpace(description) 
-                            ? $"Результат з MetaSearx для \"{query}\""
+                            ? $"Result from MetaSearx for \"{query}\""
                             : description,
                         Source = SearchSourceType.MetaSearx,
                         Timestamp = null,
@@ -424,7 +424,7 @@ public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
     }
 
     /// <summary>
-    /// Обрізає текст до заданої довжини
+    /// Truncates text to given length
     /// </summary>
     private static string TruncateText(string text, int maxLength)
     {
@@ -435,16 +435,16 @@ public sealed class MetaSearxSearchClient : IMetaSearxSearchClient
     }
 
     /// <summary>
-    /// Створює посилання на пошук в MetaSearx
+    /// Creates a search link in MetaSearx
     /// </summary>
     private UnifiedSearchResult CreateMetaSearxSearchLink(string query)
     {
         return new UnifiedSearchResult
         {
-            Title = $"Пошук в MetaSearx: \"{query}\"",
+            Title = $"Search in MetaSearx: \"{query}\"",
             Url = $"{SearchApiUrl}?q={Uri.EscapeDataString(query)}",
             DisplayUrl = "metasearx.com › search",
-            Snippet = $"Відкрити результати метапошуку в MetaSearx - агрегатор результатів з Google, Bing, DuckDuckGo та інших пошукових систем для \"{query}\".",
+            Snippet = $"Open meta search results in MetaSearx - aggregator of results from Google, Bing, DuckDuckGo and other search engines for \"{query}\".",
             Source = SearchSourceType.MetaSearx,
             Timestamp = null,
             RankScore = 0,

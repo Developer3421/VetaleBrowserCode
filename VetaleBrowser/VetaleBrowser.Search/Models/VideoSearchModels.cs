@@ -1,24 +1,24 @@
 namespace VetaleBrowser.VetaleBrowser.Search.Models
 {
     /// <summary>
-    /// Запит для пошуку відео
+    /// Video search query
     /// </summary>
     public class VideoSearchQuery
     {
         public string Query { get; set; } = string.Empty;
         public int PageNumber { get; set; } = 1;
         /// <summary>
-        /// Максимальна кількість результатів на сторінку (максимум 50)
+        /// Maximum number of results per page (maximum 50)
         /// </summary>
         public int PageSize { get; set; } = 50;
         /// <summary>
-        /// Провайдер: "YouTube", "All"
+        /// Provider: "YouTube", "All"
         /// </summary>
         public string Provider { get; set; } = "YouTube";
     }
 
     /// <summary>
-    /// Результат пошуку відео
+    /// Video search result
     /// </summary>
     public class VideoSearchResult
     {
@@ -40,14 +40,14 @@ namespace VetaleBrowser.VetaleBrowser.Search.Models
     }
 
     /// <summary>
-    /// Сторінка результатів пошуку відео
+    /// Video search results page
     /// </summary>
     public class VideoSearchPage
     {
         public string Query { get; set; } = string.Empty;
         public int PageNumber { get; set; }
         /// <summary>
-        /// Максимальна кількість результатів на сторінку (максимум 50)
+        /// Maximum number of results per page (maximum 50)
         /// </summary>
         public int PageSize { get; set; } = 50;
         public int TotalResults { get; set; }

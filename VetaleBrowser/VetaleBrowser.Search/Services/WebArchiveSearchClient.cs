@@ -13,8 +13,8 @@ public interface IWebArchiveSearchClient
 }
 
 /// <summary>
-/// Клієнт для пошуку в Web Archive (Internet Archive).
-/// Створює пошуковий URL для запиту користувача, аналогічно до Google/YouTube.
+/// Client for searching in Web Archive (Internet Archive).
+/// Creates a search URL for user query, analogous to Google/YouTube.
 /// </summary>
 public sealed class WebArchiveSearchClient : IWebArchiveSearchClient, IDisposable
 {
@@ -34,7 +34,7 @@ public sealed class WebArchiveSearchClient : IWebArchiveSearchClient, IDisposabl
         if (string.IsNullOrWhiteSpace(query))
             return Array.Empty<UnifiedSearchResult>();
 
-        // Створюємо URL для пошуку в Web Archive (аналогічно до Google/YouTube)
+        // Create URL for searching in Web Archive (analogous to Google/YouTube)
         var webArchiveSearchUrl = $"https://web.archive.org/web/*/{Uri.EscapeDataString(query)}";
 
         var titleTemplate = SearchLocalization.Get(
@@ -50,7 +50,7 @@ public sealed class WebArchiveSearchClient : IWebArchiveSearchClient, IDisposabl
             catch { return template.Replace("{0}", arg); }
         }
 
-        // Повертаємо один результат-посилання на пошук у Web Archive
+        // Return one result-link to the search in Web Archive
         var results = new List<UnifiedSearchResult>
         {
             new UnifiedSearchResult
@@ -66,7 +66,7 @@ public sealed class WebArchiveSearchClient : IWebArchiveSearchClient, IDisposabl
             }
         };
 
-        await Task.CompletedTask; // Для сумісності з async
+        await Task.CompletedTask; // For compatibility with async
         return results;
     }
 

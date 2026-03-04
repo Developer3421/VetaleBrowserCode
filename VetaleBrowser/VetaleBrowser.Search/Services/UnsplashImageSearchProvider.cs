@@ -9,8 +9,8 @@ using VetaleBrowser.VetaleBrowser.Search.Models;
 namespace VetaleBrowser.VetaleBrowser.Search.Services
 {
     /// <summary>
-    /// Провайдер пошуку зображень через Unsplash API.
-    /// API документація: https://unsplash.com/documentation
+    /// Image search provider via Unsplash API.
+    /// API documentation: https://unsplash.com/documentation
     /// </summary>
     public class UnsplashImageSearchProvider : IImageSearchProvider
     {

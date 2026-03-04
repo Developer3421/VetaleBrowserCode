@@ -8,18 +8,18 @@ using VetaleBrowser.VetaleBrowser.Search.Models;
 namespace VetaleBrowser.VetaleBrowser.Search.Services;
 
 /// <summary>
-/// Сервіс уніфікованого пошуку по Wikipedia, WebArchive, MetaSearx та інших джерелах,
-/// який агрегує результати в сторінки по 50 записів (як Google/Bing).
+/// Unified search service for Wikipedia, WebArchive, MetaSearx and other sources,
+/// which aggregates results into pages of 50 entries (like Google/Bing).
 /// </summary>
 public interface IUnifiedSearchService
 {
     /// <summary>
-    /// Пошук з пагінацією
+    /// Search with pagination
     /// </summary>
-    /// <param name="query">Пошуковий запит</param>
-    /// <param name="pageNumber">Номер сторінки (1-based)</param>
-    /// <param name="pageSize">Кількість результатів на сторінку (за замовчуванням 50)</param>
-    /// <param name="ct">Токен скасування</param>
+    /// <param name="query">Search query</param>
+    /// <param name="pageNumber">Page number (1-based)</param>
+    /// <param name="pageSize">Number of results per page (default 50)</param>
+    /// <param name="ct">Cancellation token</param>
     Task<UnifiedSearchPage> SearchAsync(string query, int pageNumber = 1, int pageSize = 50, CancellationToken ct = default);
 }
 
@@ -30,7 +30,7 @@ public sealed class UnifiedSearchService : IUnifiedSearchService
     private readonly IMetaSearxSearchClient _metaSearx;
     private readonly Func<ISearchSessionStore> _storeFactory;
     
-    // Кількість результатів на сторінку (як у Google)
+    // Number of results per page (like Google)
     private const int DefaultPageSize = 50;
 
     public UnifiedSearchService()
@@ -70,18 +70,18 @@ public sealed class UnifiedSearchService : IUnifiedSearchService
         var results = new List<UnifiedSearchResult>();
         var hasNextPage = false;
 
-        // На першій сторінці показуємо Wikipedia, WebArchive, YouTube + MetaSearx
-        // На наступних сторінках - тільки MetaSearx
+        // On the first page we show Wikipedia, WebArchive, YouTube + MetaSearx
+        // On subsequent pages - only MetaSearx
         if (pageNumber == 1)
         {
-            // Паралельно тягнемо Wikipedia, WebArchive та MetaSearx (перша сторінка)
+            // Fetch Wikipedia, WebArchive and MetaSearx in parallel (first page)
             var wikiTask = _wikipedia.SearchTopAsync(query, maxResults: 1, ct);
             var webArchiveTask = _webArchive.SearchTodayAsync(query, maxResults: 1, ct);
             var metaSearxTask = _metaSearx.SearchAsync(query, page: 1, resultsPerPage: pageSize - 3, ct);
 
             await Task.WhenAll(wikiTask, webArchiveTask, metaSearxTask);
 
-            // 1. Wikipedia (енциклопедія)
+            // 1. Wikipedia (encyclopedia)
             if (wikiTask.Result is { Count: > 0 })
             {
                 foreach (var r in wikiTask.Result)
@@ -92,7 +92,7 @@ public sealed class UnifiedSearchService : IUnifiedSearchService
                 }
             }
 
-            // 2. WebArchive (архів інтернету)
+            // 2. WebArchive (internet archive)
             if (webArchiveTask.Result is { Count: > 0 })
             {
                 foreach (var r in webArchiveTask.Result)
@@ -103,7 +103,7 @@ public sealed class UnifiedSearchService : IUnifiedSearchService
                 }
             }
 
-            // 3. YouTube (посилання на відеопошук)
+            // 3. YouTube (link to video search)
             var youtubeTitleTemplate = SearchLocalization.Get(
                 "Search.Redirect.YouTube.Title",
                 "🎬 Videos on YouTube: \"{0}\"");
@@ -129,7 +129,7 @@ public sealed class UnifiedSearchService : IUnifiedSearchService
                 PageNumber = pageNumber
             });
 
-            // 4. MetaSearx результати
+            // 4. MetaSearx results
             if (metaSearxTask.Result.Results.Count > 0)
             {
                 foreach (var r in metaSearxTask.Result.Results)
@@ -144,7 +144,7 @@ public sealed class UnifiedSearchService : IUnifiedSearchService
         }
         else
         {
-            // Для сторінок 2+ - тільки результати з MetaSearx
+            // For pages 2+ - only results from MetaSearx
             var metaSearxResult = await _metaSearx.SearchAsync(query, page: pageNumber, resultsPerPage: pageSize, ct);
             
             foreach (var r in metaSearxResult.Results)
@@ -157,7 +157,7 @@ public sealed class UnifiedSearchService : IUnifiedSearchService
             hasNextPage = metaSearxResult.HasNextPage;
         }
 
-        // Проставляємо RankScore для правильного сортування
+        // Set RankScore for correct sorting
         for (int i = 0; i < results.Count; i++)
         {
             results[i].RankScore = results.Count - i;

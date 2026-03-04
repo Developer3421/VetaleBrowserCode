@@ -5,21 +5,21 @@ using VetaleBrowser.VetaleBrowser.Core.Scripts.Models; // TabWorker
 namespace VetaleBrowser.VetaleBrowser.Search.Services;
 
 /// <summary>
-/// Інформація про навігацію з результатів пошуку.
+/// Information about navigation from search results.
 /// </summary>
 public sealed class SearchNavigationInfo
 {
     public Guid SearchSessionId { get; set; }
     public string Query { get; set; } = string.Empty;
-    public string ParentTabId { get; set; } = string.Empty; // ID вкладки з VetaleSearchResultsPage
-    public string WorkerId { get; set; } = string.Empty; // ID воркера, створеного для результату
+    public string ParentTabId { get; set; } = string.Empty; // ID of the tab with VetaleSearchResultsPage
+    public string WorkerId { get; set; } = string.Empty; // ID of the worker created for the result
     public string TargetUrl { get; set; } = string.Empty;
     public DateTime NavigatedAt { get; set; }
 }
 
 /// <summary>
-/// Сервіс для відстеження навігації з результатів пошуку.
-/// Зберігає зв'язок між пошуковою сесією та воркерами, що відкрили результати.
+/// Service for tracking navigation from search results.
+/// Stores the connection between search session and workers that opened results.
 /// </summary>
 public interface ISearchNavigationService
 {
@@ -28,7 +28,7 @@ public interface ISearchNavigationService
     void UnregisterWorker(string workerId);
     void ClearSession(Guid sessionId);
 
-    // Новий метод: відкрити результат у поточному воркері (в тій самій вкладці)
+    // New method: open result in current worker (in the same tab)
     void OpenResultInCurrentWorker(
         Guid sessionId,
         string query,
@@ -115,13 +115,13 @@ public sealed class SearchNavigationService : ISearchNavigationService
         if (worker == null) return;
         var workerId = worker.Address ?? Guid.NewGuid().ToString();
 
-        // Реєструємо перехід (для можливого Back у майбутньому)
+        // Register navigation (for possible Back in the future)
         RegisterNavigation(sessionId, query, parentTabId, workerId, url);
 
-        // Ховаємо внутрішню сторінку (VetaleSearchResultsPage) і показуємо WebView цього воркера
+        // Hide internal page (VetaleSearchResultsPage) and show WebView of this worker
         showWebViewInUi(worker);
 
-        // Навігуємо на цільовий URL у межах того ж воркера
+        // Navigate to target URL within the same worker
         navigateInWorker(worker, url);
     }
 }
