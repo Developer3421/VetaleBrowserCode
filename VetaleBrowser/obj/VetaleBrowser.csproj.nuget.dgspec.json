@@ -1,0 +1,231 @@
+{
+  "format": 1,
+  "restore": {
+    "/home/runner/work/VetaleBrowserCode/VetaleBrowserCode/VetaleBrowser/VetaleBrowser.csproj": {}
+  },
+  "projects": {
+    "/home/runner/work/VetaleBrowserCode/VetaleBrowserCode/VetaleBrowser/VetaleBrowser.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/home/runner/work/VetaleBrowserCode/VetaleBrowserCode/VetaleBrowser/VetaleBrowser.csproj",
+        "projectName": "OlehKurylo.VetaleBrowser",
+        "projectPath": "/home/runner/work/VetaleBrowserCode/VetaleBrowserCode/VetaleBrowser/VetaleBrowser.csproj",
+        "packagesPath": "/tmp/codeql-scratch-a739dfb6d7d00453/dbs/csharp/working/packages",
+        "outputPath": "/home/runner/work/VetaleBrowserCode/VetaleBrowserCode/VetaleBrowser/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/runner/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net10.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net10.0": {
+            "targetAlias": "net10.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "moderate",
+          "auditMode": "all",
+          "suppressedAdvisories": {
+            "https://github.com/advisories/GHSA-5f2m-466j-3848": null,
+            "https://github.com/advisories/GHSA-x5qj-9vmx-7g6g": null,
+            "https://github.com/advisories/GHSA-xhfc-gr8f-ffwc": null
+          }
+        },
+        "SdkAnalysisLevel": "10.0.100"
+      },
+      "frameworks": {
+        "net10.0": {
+          "targetAlias": "net10.0",
+          "dependencies": {
+            "Avalonia": {
+              "target": "Package",
+              "version": "[11.3.9, )"
+            },
+            "Avalonia.Desktop": {
+              "target": "Package",
+              "version": "[11.3.9, )"
+            },
+            "Avalonia.Diagnostics": {
+              "include": "None",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[11.3.9, )"
+            },
+            "Avalonia.Fonts.Inter": {
+              "target": "Package",
+              "version": "[11.3.9, )"
+            },
+            "Avalonia.Themes.Fluent": {
+              "target": "Package",
+              "version": "[11.3.9, )"
+            },
+            "Jint": {
+              "target": "Package",
+              "version": "[4.4.2, )"
+            },
+            "LLamaSharp": {
+              "target": "Package",
+              "version": "[0.25.0, )"
+            },
+            "LLamaSharp.Backend.Cpu": {
+              "target": "Package",
+              "version": "[0.25.0, )"
+            },
+            "LiteDB": {
+              "target": "Package",
+              "version": "[6.0.0-prerelease.73, )"
+            },
+            "Microsoft.Agents.AI.Abstractions": {
+              "target": "Package",
+              "version": "[1.0.0-preview.251104.1, )"
+            },
+            "Microsoft.Playwright": {
+              "target": "Package",
+              "version": "[1.56.0, )"
+            },
+            "NAudio": {
+              "target": "Package",
+              "version": "[2.2.1, )"
+            },
+            "NAudio.Core": {
+              "target": "Package",
+              "version": "[2.2.1, )"
+            },
+            "NAudio.WinMM": {
+              "target": "Package",
+              "version": "[2.2.1, )"
+            },
+            "WebViewControl-Avalonia": {
+              "target": "Package",
+              "version": "[3.120.10, )"
+            },
+            "Whisper.net": {
+              "target": "Package",
+              "version": "[1.9.0, )"
+            },
+            "Whisper.net.Runtime": {
+              "target": "Package",
+              "version": "[1.9.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[10.0.2, 10.0.2]"
+            },
+            {
+              "name": "Microsoft.AspNetCore.App.Runtime.linux-arm64",
+              "version": "[10.0.2, 10.0.2]"
+            },
+            {
+              "name": "Microsoft.AspNetCore.App.Runtime.linux-x64",
+              "version": "[10.0.2, 10.0.2]"
+            },
+            {
+              "name": "Microsoft.AspNetCore.App.Runtime.win-arm64",
+              "version": "[10.0.2, 10.0.2]"
+            },
+            {
+              "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
+              "version": "[10.0.2, 10.0.2]"
+            },
+            {
+              "name": "Microsoft.AspNetCore.App.Runtime.win-x86",
+              "version": "[10.0.2, 10.0.2]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.linux-arm64",
+              "version": "[10.0.2, 10.0.2]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.linux-x64",
+              "version": "[10.0.2, 10.0.2]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.win-arm64",
+              "version": "[10.0.2, 10.0.2]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.win-x64",
+              "version": "[10.0.2, 10.0.2]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.win-x86",
+              "version": "[10.0.2, 10.0.2]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[10.0.2, 10.0.2]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Runtime.linux-arm64",
+              "version": "[10.0.2, 10.0.2]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Runtime.linux-x64",
+              "version": "[10.0.2, 10.0.2]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Runtime.win-arm64",
+              "version": "[10.0.2, 10.0.2]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Runtime.win-x64",
+              "version": "[10.0.2, 10.0.2]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Runtime.win-x86",
+              "version": "[10.0.2, 10.0.2]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/10.0.102/PortableRuntimeIdentifierGraph.json"
+        }
+      },
+      "runtimes": {
+        "linux-arm64": {
+          "#import": []
+        },
+        "linux-x64": {
+          "#import": []
+        },
+        "win-arm64": {
+          "#import": []
+        },
+        "win-x64": {
+          "#import": []
+        },
+        "win-x86": {
+          "#import": []
+        }
+      }
+    }
+  }
+}

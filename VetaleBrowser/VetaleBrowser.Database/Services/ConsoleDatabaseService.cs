@@ -8,7 +8,7 @@ using VetaleBrowser.VetaleBrowser.Database.Models;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Сервіс для роботи з базою даних консолі з AES шифруванням
+/// Service for working with the console database with AES encryption
 /// MEMORY OPTIMIZATION: Direct connection mode
 /// </summary>
 public class ConsoleDatabaseService : IDisposable
@@ -18,9 +18,9 @@ public class ConsoleDatabaseService : IDisposable
     private readonly ILiteCollection<ConsoleLogItem> _logsCollection;
     private readonly string _databasePath;
     
-    // MEMORY OPTIMIZATION: Агресивно зменшені ліміти
-    private const int MaxLogItems = 1000;  // Зменшено з 50000
-    private const long MaxDatabaseSizeBytes = 5 * 1024 * 1024; // 5 MB замість 100 MB
+    // MEMORY OPTIMIZATION: Aggressively reduced limits
+    private const int MaxLogItems = 1000;  // Reduced from 50000
+    private const long MaxDatabaseSizeBytes = 5 * 1024 * 1024; // 5 MB instead of 100 MB
 
     public ConsoleDatabaseService(string databasePath, string encryptionKey)
     {
@@ -44,31 +44,31 @@ public class ConsoleDatabaseService : IDisposable
         try { _database.Checkpoint(); } catch { }
         
         _logsCollection = _database.GetCollection<ConsoleLogItem>("console_logs");
-        // Мінімум індексів
+        // Minimum indexes
         _logsCollection.EnsureIndex(x => x.Timestamp);
         
-        // Перевіряємо розмір бази даних
+        // Check database size
         CheckDatabaseSize();
     }
 
     /// <summary>
-    /// Перевіряє розмір бази даних та виконує очищення якщо потрібно
+    /// Checks the database size and performs cleanup if needed
     /// </summary>
     private void CheckDatabaseSize()
     {
         var dbFileInfo = new FileInfo(_databasePath);
         if (dbFileInfo.Exists && dbFileInfo.Length > MaxDatabaseSizeBytes)
         {
-            // Видаляємо старі записи
+            // Delete old records
             CleanupOldData();
             
-            // Оптимізуємо базу даних
+            // Optimize the database
             _database.Rebuild();
         }
     }
 
     /// <summary>
-    /// Очищає старі дані з бази
+    /// Clears old data from the database
     /// </summary>
     private void CleanupOldData()
     {
@@ -90,7 +90,7 @@ public class ConsoleDatabaseService : IDisposable
     }
 
     /// <summary>
-    /// Додає запис в консоль
+    /// Adds a record to the console
     /// </summary>
     public void AddLog(string level, string message, string? source = null, string? stackTrace = null)
     {
@@ -99,7 +99,7 @@ public class ConsoleDatabaseService : IDisposable
             if (string.IsNullOrWhiteSpace(message))
                 return;
 
-            // Шифруємо чутливі дані
+            // Encrypt sensitive data
             var encryptedMessage = _encryptionService.EncryptString(message);
             var encryptedSource = !string.IsNullOrWhiteSpace(source) 
                 ? _encryptionService.EncryptString(source) 
@@ -119,7 +119,7 @@ public class ConsoleDatabaseService : IDisposable
 
             _logsCollection.Insert(logItem);
             
-            // Перевіряємо чи не перевищено ліміт
+            // Check whether the limit has been exceeded
             CheckDatabaseSize();
         }
         catch (Exception ex)
@@ -129,7 +129,7 @@ public class ConsoleDatabaseService : IDisposable
     }
 
     /// <summary>
-    /// Отримує всі логи або з фільтром
+    /// Gets all logs or with a filter
     /// </summary>
     public List<ConsoleLogItem> GetLogs(DateTime? startDate = null, DateTime? endDate = null, string? level = null)
     {
@@ -148,7 +148,7 @@ public class ConsoleDatabaseService : IDisposable
 
             var items = query.OrderByDescending(x => x.Timestamp).ToList();
 
-            // Розшифровуємо дані
+            // Decrypt data
             foreach (var item in items)
             {
                 try
@@ -161,7 +161,7 @@ public class ConsoleDatabaseService : IDisposable
                 }
                 catch
                 {
-                    // Якщо не вдалося розшифрувати, залишаємо як є
+                    // If decryption fails, leave as is
                 }
             }
 
@@ -175,7 +175,7 @@ public class ConsoleDatabaseService : IDisposable
     }
 
     /// <summary>
-    /// Видаляє запис з консолі
+    /// Deletes a record from the console
     /// </summary>
     public void DeleteLog(int id)
     {
@@ -190,7 +190,7 @@ public class ConsoleDatabaseService : IDisposable
     }
 
     /// <summary>
-    /// Очищає всі логи
+    /// Clears all logs
     /// </summary>
     public void ClearLogs()
     {
@@ -205,7 +205,7 @@ public class ConsoleDatabaseService : IDisposable
     }
 
     /// <summary>
-    /// Очищає логи старше вказаної дати
+    /// Clears logs older than the specified date
     /// </summary>
     public void ClearLogsOlderThan(DateTime date)
     {
@@ -228,7 +228,7 @@ public class ConsoleDatabaseService : IDisposable
     }
 
     /// <summary>
-    /// Пошук в логах
+    /// Searches in logs
     /// </summary>
     public List<ConsoleLogItem> SearchLogs(string query)
     {
@@ -254,7 +254,7 @@ public class ConsoleDatabaseService : IDisposable
     }
 
     /// <summary>
-    /// Отримує кількість логів за рівнем
+    /// Gets the log count by level
     /// </summary>
     public Dictionary<string, int> GetLogCountByLevel()
     {

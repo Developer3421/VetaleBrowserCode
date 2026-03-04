@@ -8,7 +8,7 @@ using VetaleBrowser.VetaleBrowser.Database.Models;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Сервис базы данных для загрузок с AES шифрованием чувствительных полей.
+/// Database service for downloads with AES encryption of sensitive fields.
 /// MEMORY OPTIMIZATION: Direct connection mode
 /// </summary>
 public class DownloadDatabaseService : IDisposable
@@ -18,9 +18,9 @@ public class DownloadDatabaseService : IDisposable
     private readonly ILiteCollection<DownloadItem> _downloads;
     private readonly string _databasePath;
 
-    // MEMORY OPTIMIZATION: Зменшені ліміти
-    private const int MaxItems = 500;  // Зменшено з 10000
-    private const long MaxDatabaseSizeBytes = 20 * 1024 * 1024; // 20MB замість 300MB
+    // MEMORY OPTIMIZATION: Reduced limits
+    private const int MaxItems = 500;  // Reduced from 10000
+    private const long MaxDatabaseSizeBytes = 20 * 1024 * 1024; // 20MB instead of 300MB
 
     public DownloadDatabaseService(string databasePath, string encryptionKey)
     {
@@ -37,7 +37,7 @@ public class DownloadDatabaseService : IDisposable
         try { _database.Checkpoint(); } catch { }
 
         _downloads = _database.GetCollection<DownloadItem>("downloads");
-        // Тільки один індекс
+        // Only one index
         _downloads.EnsureIndex(x => x.StartTime);
 
         CheckSize();
@@ -74,7 +74,7 @@ public class DownloadDatabaseService : IDisposable
     {
         try
         {
-            // Створюємо окрему копію для БД, щоб не мутувати оригінал (який використовується в UI)
+            // Create a separate copy for the DB to avoid mutating the original (which is used in UI)
             var doc = new DownloadItem
             {
                 Id = item.Id,
@@ -98,7 +98,7 @@ public class DownloadDatabaseService : IDisposable
             if (doc.Id == 0)
             {
                 _downloads.Insert(doc);
-                // Після Insert авто-ID ставиться у doc.Id — переносимо назад в оригінал
+                // After Insert, auto-ID is set in doc.Id — transfer back to the original
                 item.Id = doc.Id;
             }
             else

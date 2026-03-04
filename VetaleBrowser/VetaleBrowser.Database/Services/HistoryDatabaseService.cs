@@ -9,7 +9,7 @@ using VetaleBrowser.VetaleBrowser.Database.Models;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Сервіс для роботи з базою даних історії переглядів
+/// Service for working with the browsing history database
 /// MEMORY OPTIMIZED: Lazy loading, pagination, caching, batch operations
 /// </summary>
 public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
@@ -21,14 +21,14 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
     private readonly object _lock = new object();
     private bool _disposed;
     
-    // MEMORY OPTIMIZATION: Агресивно зменшені ліміти для AMD карт
-    private const int MaxHistoryItems = 5000;      // Зменшено з 50000
-    private const int DefaultPageSize = 50;        // Зменшено з 100
-    private const long MaxDatabaseSizeBytes = 20 * 1024 * 1024; // 20 MB замість 200 MB
+    // MEMORY OPTIMIZATION: Aggressively reduced limits for AMD cards
+    private const int MaxHistoryItems = 5000;      // Reduced from 50000
+    private const int DefaultPageSize = 50;        // Reduced from 100
+    private const long MaxDatabaseSizeBytes = 20 * 1024 * 1024; // 20 MB instead of 200 MB
     
-    // MEMORY OPTIMIZATION: Мінімальний кеш
+    // MEMORY OPTIMIZATION: Minimal cache
     private readonly Dictionary<string, (HistoryItem item, DateTime cachedAt)> _urlCache = new(StringComparer.OrdinalIgnoreCase);
-    private const int MaxCacheSize = 20;           // Зменшено з 100
+    private const int MaxCacheSize = 20;           // Reduced from 100
 
     // Lazy initialization flag
     private bool _isInitialized;
@@ -53,7 +53,7 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
         {
             if (_isInitialized) return;
             
-            // Retry logic для випадків коли файл тимчасово заблокований
+            // Retry logic for cases when the file is temporarily locked
             const int maxRetries = 3;
             const int retryDelayMs = 100;
             
@@ -61,41 +61,41 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
             {
                 try
                 {
-                    // Створюємо директорію для бази даних якщо не існує
+                    // Create database directory if it doesn't exist
                     var directory = Path.GetDirectoryName(_databasePath);
                     if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
                     {
                         Directory.CreateDirectory(directory);
                     }
 
-                    // FIX: Використовуємо Shared для підтримки кількох підключень
+                    // FIX: Use Shared to support multiple connections
                     var connectionString = new ConnectionString
                     {
                         Filename = _databasePath,
-                        Connection = ConnectionType.Shared, // Дозволяє кілька підключень
+                        Connection = ConnectionType.Shared, // Allows multiple connections
                         ReadOnly = false,
                     };
 
                     _database = new LiteDatabase(connectionString);
                     
-                    // Примусовий checkpoint для звільнення пам'яті
+                    // Force checkpoint to free memory
                     try { _database.Checkpoint(); } catch { }
                     
                     _historyCollection = _database.GetCollection<HistoryItem>("history");
                     
-                    // Тільки необхідні індекси (менше індексів = менше RAM)
+                    // Only necessary indexes (fewer indexes = less RAM)
                     _historyCollection.EnsureIndex(x => x.VisitedAt);
                     
                     _isInitialized = true;
                     
-                    // Перевіряємо розмір бази даних асинхронно
+                    // Check database size asynchronously
                     ThreadPool.QueueUserWorkItem(_ => CheckDatabaseSizeAsync());
                     
-                    return; // Успіх - виходимо
+                    return; // Success - exit
                 }
                 catch (IOException ex) when (attempt < maxRetries - 1)
                 {
-                    // Файл заблокований - чекаємо та пробуємо ще раз
+                    // File is locked - wait and try again
                     Console.WriteLine($"[HistoryDB] Attempt {attempt + 1} failed, retrying: {ex.Message}");
                     Thread.Sleep(retryDelayMs * (attempt + 1));
                 }
@@ -109,7 +109,7 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Асинхронна перевірка розміру бази даних
+    /// Asynchronous database size check
     /// </summary>
     private void CheckDatabaseSizeAsync()
     {
@@ -136,7 +136,7 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Очищає старі дані з бази
+    /// Clears old data from the database
     /// </summary>
     private void CleanupOldData()
     {
@@ -166,7 +166,7 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Додає або оновлює запис в історії
+    /// Adds or updates a record in the history
     /// </summary>
     public void AddOrUpdateHistoryItem(string url, string title, string? faviconUrl = null, byte[]? faviconData = null)
     {
@@ -177,7 +177,7 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
 
         try
         {
-            // Шифруємо чутливі дані
+            // Encrypt sensitive data
             var encryptedUrl = _encryptionService.EncryptString(url);
             var encryptedTitle = !string.IsNullOrWhiteSpace(title) 
                 ? _encryptionService.EncryptString(title) 
@@ -185,12 +185,12 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
 
             lock (_lock)
             {
-                // Перевіряємо чи існує запис з таким URL
+                // Check whether a record with this URL exists
                 var existing = _historyCollection.FindOne(x => x.Url == encryptedUrl);
                 
                 if (existing != null)
                 {
-                    // Оновлюємо існуючий запис
+                    // Update the existing record
                     existing.Title = encryptedTitle;
                     existing.VisitedAt = DateTime.UtcNow;
                     existing.VisitCount++;
@@ -208,7 +208,7 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
                 }
                 else
                 {
-                    // Створюємо новий запис
+                    // Create a new record
                     var historyItem = new HistoryItem
                     {
                         Url = encryptedUrl,
@@ -231,7 +231,7 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Отримує історію з пагінацією (MEMORY OPTIMIZED)
+    /// Gets history with pagination (MEMORY OPTIMIZED)
     /// </summary>
     public List<HistoryItem> GetHistory(DateTime? startDate = null, DateTime? endDate = null, int page = 0, int pageSize = DefaultPageSize)
     {
@@ -255,7 +255,7 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
                 .Limit(pageSize)
                 .ToList();
 
-            // Розшифровуємо дані
+            // Decrypt data
             DecryptHistoryItems(items);
 
             return items;
@@ -276,7 +276,7 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Розшифровує елементи історії (extracted for reuse)
+    /// Decrypts history items (extracted for reuse)
     /// </summary>
     private void DecryptHistoryItems(List<HistoryItem> items)
     {
@@ -289,13 +289,13 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
             }
             catch
             {
-                // Якщо не вдалося розшифрувати, залишаємо як є
+                // If decryption fails, leave as is
             }
         }
     }
 
     /// <summary>
-    /// Видаляє запис з історії
+    /// Deletes a record from the history
     /// </summary>
     public void DeleteHistoryItem(int id)
     {
@@ -316,7 +316,7 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Очищає всю історію
+    /// Clears the entire history
     /// </summary>
     public void ClearHistory()
     {
@@ -338,7 +338,7 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Очищує історію старше вказаної дати (OPTIMIZED: batch delete)
+    /// Clears history older than the specified date (OPTIMIZED: batch delete)
     /// </summary>
     public void ClearHistoryOlderThan(DateTime date)
     {
@@ -361,7 +361,7 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Пошук в історії (OPTIMIZED: with pagination)
+    /// Searches in history (OPTIMIZED: with pagination)
     /// </summary>
     public List<HistoryItem> SearchHistory(string query, int page = 0, int pageSize = DefaultPageSize)
     {
@@ -429,7 +429,7 @@ public class HistoryDatabaseService : IHistoryDatabaseService, IDisposable
     }
 
     /// <summary>
-    /// Отримує кількість записів в історії
+    /// Gets the number of records in the history
     /// </summary>
     public int GetHistoryCount()
     {

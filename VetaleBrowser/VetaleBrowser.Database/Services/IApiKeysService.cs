@@ -5,92 +5,92 @@ using VetaleBrowser.VetaleBrowser.Database.Models;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Інтерфейс для роботи з API ключами
+/// Interface for working with API keys
 /// </summary>
 public interface IApiKeysService
 {
-    // ==================== Загальні методи ====================
+    // ==================== General methods ====================
     
     /// <summary>
-    /// Отримує API ключ за ідентифікатором сервісу
+    /// Gets the API key by service identifier
     /// </summary>
     Task<string?> GetApiKeyAsync(string serviceId);
     
     /// <summary>
-    /// Встановлює API ключ для сервісу
+    /// Sets the API key for a service
     /// </summary>
     Task SetApiKeyAsync(string serviceId, string serviceName, string apiKey);
     
     /// <summary>
-    /// Видаляє API ключ для сервісу
+    /// Removes the API key for a service
     /// </summary>
     Task RemoveApiKeyAsync(string serviceId);
     
     /// <summary>
-    /// Перевіряє чи існує ключ для сервісу
+    /// Checks whether a key exists for a service
     /// </summary>
     Task<bool> HasApiKeyAsync(string serviceId);
     
     /// <summary>
-    /// Отримує всі збережені API ключі
+    /// Gets all stored API keys
     /// </summary>
     Task<IReadOnlyList<ApiKeyItem>> GetAllApiKeysAsync();
     
     /// <summary>
-    /// Оновлює статистику використання ключа (успішний запит)
+    /// Updates key usage statistics (successful request)
     /// </summary>
     Task RecordSuccessfulUseAsync(string serviceId);
     
     /// <summary>
-    /// Оновлює статистику використання ключа (невдалий запит)
+    /// Updates key usage statistics (failed request)
     /// </summary>
     Task RecordFailedUseAsync(string serviceId);
     
-    // ==================== Спеціалізовані методи для сервісів ====================
+    // ==================== Specialized methods for services ====================
     
     /// <summary>
-    /// Отримує API ключ Gemini
+    /// Gets the Gemini API key
     /// </summary>
     Task<string?> GetGeminiApiKeyAsync();
     
     /// <summary>
-    /// Встановлює API ключ Gemini
+    /// Sets the Gemini API key
     /// </summary>
     Task SetGeminiApiKeyAsync(string apiKey);
     
     /// <summary>
-    /// Отримує API ключ Pexels
+    /// Gets the Pexels API key
     /// </summary>
     Task<string?> GetPexelsApiKeyAsync();
     
     /// <summary>
-    /// Встановлює API ключ Pexels
+    /// Sets the Pexels API key
     /// </summary>
     Task SetPexelsApiKeyAsync(string apiKey);
     
     /// <summary>
-    /// Отримує API ключ Unsplash
+    /// Gets the Unsplash API key
     /// </summary>
     Task<string?> GetUnsplashApiKeyAsync();
     
     /// <summary>
-    /// Встановлює API ключ Unsplash
+    /// Sets the Unsplash API key
     /// </summary>
     Task SetUnsplashApiKeyAsync(string apiKey);
     
     /// <summary>
-    /// Отримує API ключ YouTube
+    /// Gets the YouTube API key
     /// </summary>
     Task<string?> GetYouTubeApiKeyAsync();
     
     /// <summary>
-    /// Встановлює API ключ YouTube
+    /// Sets the YouTube API key
     /// </summary>
     Task SetYouTubeApiKeyAsync(string apiKey);
 }
 
 /// <summary>
-/// Константи ідентифікаторів сервісів
+/// Service identifier constants
 /// </summary>
 public static class ApiServiceIds
 {

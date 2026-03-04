@@ -7,8 +7,8 @@ using VetaleBrowser.VetaleBrowser.Database.Models;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Сервіс для роботи з ротацією баз даних історії
-/// Автоматично створює нову БД при переповненні та читає з усіх послідовно
+/// Service for working with history database rotation.
+/// Automatically creates a new DB when full and reads from all sequentially.
 /// </summary>
 public class RotatingHistoryDatabaseService : IHistoryDatabaseService
 {
@@ -19,25 +19,25 @@ public class RotatingHistoryDatabaseService : IHistoryDatabaseService
     private readonly object _lock = new object();
     private bool _disposed;
     
-    // Параметри ротації
+    // Rotation parameters
     private const long MaxDatabaseSizeBytes = 20 * 1024 * 1024; // 20 MB
     private const int MaxHistoryItemsPerDatabase = 5000;
-    private const int MaxDatabaseFiles = 10; // Максимальна кількість файлів БД
+    private const int MaxDatabaseFiles = 10; // Maximum number of DB files
     
     public RotatingHistoryDatabaseService(string baseDatabasePath, string encryptionKey)
     {
         _baseDatabasePath = baseDatabasePath;
         _encryptionKey = encryptionKey;
         
-        // Завантажуємо всі існуючі бази даних
+        // Load all existing databases
         LoadExistingDatabases();
         
-        // Встановлюємо поточну БД (остання або створюємо нову)
+        // Set current DB (last one or create new)
         _currentDatabase = _databases.LastOrDefault() ?? CreateNewDatabase();
     }
     
     /// <summary>
-    /// Завантажує всі існуючі бази даних історії
+    /// Loads all existing history databases
     /// </summary>
     private void LoadExistingDatabases()
     {
@@ -48,10 +48,10 @@ public class RotatingHistoryDatabaseService : IHistoryDatabaseService
         if (string.IsNullOrEmpty(directory) || !Directory.Exists(directory))
             return;
         
-        // Шукаємо файли з патерном: history.db, history_1.db, history_2.db, etc.
+        // Look for files with pattern: history.db, history_1.db, history_2.db, etc.
         var pattern = $"{baseFileName}*.{extension}";
         var files = Directory.GetFiles(directory, pattern)
-            .OrderBy(f => f) // Сортуємо за назвою
+            .OrderBy(f => f) // Sort by name
             .ToList();
         
         foreach (var file in files)
@@ -70,7 +70,7 @@ public class RotatingHistoryDatabaseService : IHistoryDatabaseService
     }
     
     /// <summary>
-    /// Створює нову базу даних для ротації
+    /// Creates a new database for rotation
     /// </summary>
     private HistoryDatabaseService CreateNewDatabase()
     {
@@ -83,12 +83,12 @@ public class RotatingHistoryDatabaseService : IHistoryDatabaseService
             string newDbPath;
             if (_databases.Count == 0)
             {
-                // Перша БД - використовуємо оригінальний шлях
+                // First DB - use original path
                 newDbPath = _baseDatabasePath;
             }
             else
             {
-                // Нова БД з індексом
+                // New DB with index
                 newDbPath = Path.Combine(directory!, $"{baseFileName}_{_databases.Count}{extension}");
             }
             
@@ -97,7 +97,7 @@ public class RotatingHistoryDatabaseService : IHistoryDatabaseService
             
             Console.WriteLine($"[RotatingHistory] Created new database: {Path.GetFileName(newDbPath)}");
             
-            // Перевіряємо чи не перевищено ліміт файлів БД
+            // Check whether the DB file limit has been exceeded
             CleanupOldDatabasesIfNeeded();
             
             return newDb;
@@ -105,7 +105,7 @@ public class RotatingHistoryDatabaseService : IHistoryDatabaseService
     }
     
     /// <summary>
-    /// Видаляє найстаріші БД якщо перевищено ліміт
+    /// Deletes oldest DBs if limit exceeded
     /// </summary>
     private void CleanupOldDatabasesIfNeeded()
     {
@@ -141,7 +141,7 @@ public class RotatingHistoryDatabaseService : IHistoryDatabaseService
     }
     
     /// <summary>
-    /// Перевіряє чи потрібно створити нову БД для ротації
+    /// Checks if a new DB needs to be created for rotation
     /// </summary>
     private void CheckRotationNeeded()
     {
@@ -149,7 +149,7 @@ public class RotatingHistoryDatabaseService : IHistoryDatabaseService
         {
             var count = _currentDatabase.GetHistoryCount();
             
-            // Перевіряємо кількість записів
+            // Check record count
             if (count >= MaxHistoryItemsPerDatabase)
             {
                 Console.WriteLine($"[RotatingHistory] Rotation needed: {count} items in current database");
@@ -157,7 +157,7 @@ public class RotatingHistoryDatabaseService : IHistoryDatabaseService
                 return;
             }
             
-            // Перевіряємо розмір файлу
+            // Check file size
             try
             {
                 var dbPath = _currentDatabase.GetType().GetField("_databasePath", 
@@ -182,25 +182,25 @@ public class RotatingHistoryDatabaseService : IHistoryDatabaseService
     }
     
     /// <summary>
-    /// Додає або оновлює запис в історії
+    /// Adds or updates a record in the history
     /// </summary>
     public void AddOrUpdateHistoryItem(string url, string title, string? faviconUrl = null, byte[]? faviconData = null)
     {
-        // Перевіряємо чи потрібна ротація перед додаванням
+        // Check if rotation needed before adding
         CheckRotationNeeded();
         
-        // Додаємо в поточну БД
+        // Add to current DB
         _currentDatabase.AddOrUpdateHistoryItem(url, title, faviconUrl, faviconData);
     }
     
     /// <summary>
-    /// Отримує історію з усіх баз даних з пагінацією
+    /// Gets history from all databases with pagination
     /// </summary>
     public List<HistoryItem> GetHistory(DateTime? startDate = null, DateTime? endDate = null, int page = 0, int pageSize = 100)
     {
         var allItems = new List<HistoryItem>();
         
-        // Читаємо з усіх БД у зворотньому порядку (новіші першими)
+        // Read from all DBs in reverse order (newest first)
         for (int i = _databases.Count - 1; i >= 0; i--)
         {
             try
@@ -214,7 +214,7 @@ public class RotatingHistoryDatabaseService : IHistoryDatabaseService
             }
         }
         
-        // Сортуємо по даті та застосовуємо пагінацію
+        // Sort by date and apply pagination
         return allItems
             .OrderByDescending(x => x.VisitedAt)
             .Skip(page * pageSize)
@@ -223,7 +223,7 @@ public class RotatingHistoryDatabaseService : IHistoryDatabaseService
     }
     
     /// <summary>
-    /// Overload для сумісності
+    /// Overload for compatibility
     /// </summary>
     public List<HistoryItem> GetHistory(DateTime? startDate = null, DateTime? endDate = null)
     {
@@ -231,7 +231,7 @@ public class RotatingHistoryDatabaseService : IHistoryDatabaseService
     }
     
     /// <summary>
-    /// Видаляє запис з історії (шукає у всіх БД)
+    /// Deletes a record from the history (searches in all DBs)
     /// </summary>
     public void DeleteHistoryItem(int id)
     {
@@ -249,7 +249,7 @@ public class RotatingHistoryDatabaseService : IHistoryDatabaseService
     }
     
     /// <summary>
-    /// Очищає всю історію (у всіх БД)
+    /// Clears the entire history (in all DBs)
     /// </summary>
     public void ClearHistory()
     {
@@ -267,7 +267,7 @@ public class RotatingHistoryDatabaseService : IHistoryDatabaseService
     }
     
     /// <summary>
-    /// Очищує історію старше вказаної дати (у всіх БД)
+    /// Clears history older than the specified date (in all DBs)
     /// </summary>
     public void ClearHistoryOlderThan(DateTime date)
     {
@@ -285,13 +285,13 @@ public class RotatingHistoryDatabaseService : IHistoryDatabaseService
     }
     
     /// <summary>
-    /// Пошук в історії (у всіх БД) з пагінацією
+    /// Searches in history (in all DBs) with pagination
     /// </summary>
     public List<HistoryItem> SearchHistory(string query, int page = 0, int pageSize = 100)
     {
         var allItems = new List<HistoryItem>();
         
-        // Шукаємо у всіх БД
+        // Search in all DBs
         for (int i = _databases.Count - 1; i >= 0; i--)
         {
             try
@@ -305,7 +305,7 @@ public class RotatingHistoryDatabaseService : IHistoryDatabaseService
             }
         }
         
-        // Сортуємо та застосовуємо пагінацію
+        // Sort and apply pagination
         return allItems
             .OrderByDescending(x => x.VisitedAt)
             .Skip(page * pageSize)
@@ -314,7 +314,7 @@ public class RotatingHistoryDatabaseService : IHistoryDatabaseService
     }
     
     /// <summary>
-    /// Overload для сумісності
+    /// Overload for compatibility
     /// </summary>
     public List<HistoryItem> SearchHistory(string query)
     {
@@ -322,7 +322,7 @@ public class RotatingHistoryDatabaseService : IHistoryDatabaseService
     }
     
     /// <summary>
-    /// Отримує загальну кількість записів в історії (з усіх БД)
+    /// Gets the total number of records in the history (from all DBs)
     /// </summary>
     public int GetHistoryCount()
     {
