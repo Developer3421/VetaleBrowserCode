@@ -5,6 +5,8 @@
 A modern Windows browser with local AI, a highly customizable UI, and built-in tools for power users.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows-blue.svg)](https://github.com/Developer3421/VetaleBrowserCode)
+[![.NET](https://img.shields.io/badge/.NET-10-purple.svg)](https://dotnet.microsoft.com/)
 
 </div>
 
