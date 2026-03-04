@@ -6,62 +6,62 @@ using VetaleBrowser.VetaleBrowser.Database.Models;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Інтерфейс для роботи з локальним пошуковим індексом Vetale Search
+/// Interface for working with the local Vetale Search index
 /// </summary>
 public interface ISearchIndexService
 {
     /// <summary>
-    /// Індексувати сторінку для пошуку
+    /// Index a page for search
     /// </summary>
     Task<bool> IndexPageAsync(string url, string title, string content, string description, string keywords);
 
     /// <summary>
-    /// Оновити існуючий індекс сторінки
+    /// Update an existing page index
     /// </summary>
     Task<bool> UpdateIndexAsync(string url, string title, string content, string description, string keywords);
 
     /// <summary>
-    /// Видалити сторінку з індексу
+    /// Remove a page from the index
     /// </summary>
     Task<bool> RemoveFromIndexAsync(string url);
 
     /// <summary>
-    /// Пошук в локальному індексі
+    /// Search in the local index
     /// </summary>
     Task<List<SearchIndex>> SearchAsync(string query, int maxResults = 50);
 
     /// <summary>
-    /// Зберегти пошуковий запит в історію
+    /// Save a search query to history
     /// </summary>
     Task<bool> SaveSearchQueryAsync(string query, string searchEngine, int resultsCount);
 
     /// <summary>
-    /// Отримати історію пошукових запитів
+    /// Get the search query history
     /// </summary>
     Task<List<SearchQuery>> GetSearchHistoryAsync(int limit = 100);
 
     /// <summary>
-    /// Очистити історію пошуків
+    /// Clear the search history
     /// </summary>
     Task<bool> ClearSearchHistoryAsync();
 
     /// <summary>
-    /// Отримати популярні пошукові запити
+    /// Get popular search queries
     /// </summary>
     Task<List<string>> GetPopularQueriesAsync(int limit = 10);
 
     /// <summary>
-    /// Автодоповнення для пошукового запиту
+    /// Autocomplete suggestions for a search query
     /// </summary>
     Task<List<string>> GetAutocompleteSuggestionsAsync(string partialQuery, int limit = 10);
 
     /// <summary>
-    /// Очистити весь пошуковий індекс
+    /// Clear the entire search index
     /// </summary>
     Task<bool> ClearIndexAsync();
 
     /// <summary>
-    /// Отримати статистику індексу
+    /// Get index statistics
     /// </summary>
     Task<(int TotalPages, int TotalKeywords, DateTime? LastIndexed)> GetIndexStatisticsAsync();
 }

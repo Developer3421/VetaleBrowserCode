@@ -4,57 +4,57 @@ using System.Threading.Tasks;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Інтерфейс для роботи з налаштуваннями браузера
+/// Interface for working with browser settings
 /// </summary>
 public interface ISettingsService
 {
     /// <summary>
-    /// Отримує URL пошукової системи
+    /// Gets the search engine URL
     /// </summary>
     Task<string> GetSearchEngineUrlAsync();
     
     /// <summary>
-    /// Встановлює URL пошукової системи
+    /// Sets the search engine URL
     /// </summary>
     Task SetSearchEngineUrlAsync(string url);
     
     /// <summary>
-    /// Отримує назву пошукової системи
+    /// Gets the search engine name
     /// </summary>
     Task<string> GetSearchEngineNameAsync();
     
     /// <summary>
-    /// Встановлює назву пошукової системи
+    /// Sets the search engine name
     /// </summary>
     Task SetSearchEngineNameAsync(string name);
     
     /// <summary>
-    /// Встановлює пошукову систему (назва + URL)
+    /// Sets the search engine (name + URL)
     /// </summary>
     Task SetSearchEngineAsync(string name, string url);
 
     /// <summary>
-    /// Отримує код мови інтерфейсу (наприклад, "en", "uk", "de", "ru")
+    /// Gets the UI language code (e.g. "en", "uk", "de", "ru")
     /// </summary>
     Task<string> GetLanguageAsync();
 
     /// <summary>
-    /// Встановлює код мови інтерфейсу
+    /// Sets the UI language code
     /// </summary>
     Task SetLanguageAsync(string code);
 
     /// <summary>
-    /// Перевіряє чи користувач прийняв угоду (GDPR/Privacy)
+    /// Checks whether the user has accepted the agreement (GDPR/Privacy)
     /// </summary>
     Task<bool> IsUserAgreementAcceptedAsync();
 
     /// <summary>
-    /// Зберігає статус прийняття угоди
+    /// Saves the agreement acceptance status
     /// </summary>
     Task SetUserAgreementAcceptedAsync(bool accepted);
 
     /// <summary>
-    /// Отримує дату прийняття угоди
+    /// Gets the date when the agreement was accepted
     /// </summary>
     Task<DateTime?> GetUserAgreementDateAsync();
 }

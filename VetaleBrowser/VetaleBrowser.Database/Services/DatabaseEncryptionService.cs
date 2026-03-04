@@ -6,7 +6,7 @@ using System.Text;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Сервіс для AES шифрування даних бази
+/// Service for AES encryption of database data
 /// </summary>
 public class DatabaseEncryptionService
 {
@@ -15,17 +15,17 @@ public class DatabaseEncryptionService
 
     public DatabaseEncryptionService(string encryptionKey)
     {
-        // Генеруємо ключ на основі переданого рядка
+        // Generate key based on the provided string
         using var sha256 = SHA256.Create();
         _encryptionKey = sha256.ComputeHash(Encoding.UTF8.GetBytes(encryptionKey));
         
-        // Генеруємо IV (Initialization Vector) на основі ключа
+        // Generate IV (Initialization Vector) based on the key
         _iv = new byte[16];
         Array.Copy(_encryptionKey, _iv, 16);
     }
 
     /// <summary>
-    /// Шифрує дані за допомогою AES
+    /// Encrypts data using AES
     /// </summary>
     public byte[] Encrypt(byte[] plainData)
     {
@@ -49,7 +49,7 @@ public class DatabaseEncryptionService
     }
 
     /// <summary>
-    /// Розшифровує дані за допомогою AES
+    /// Decrypts data using AES
     /// </summary>
     public byte[] Decrypt(byte[] encryptedData)
     {
@@ -72,7 +72,7 @@ public class DatabaseEncryptionService
     }
 
     /// <summary>
-    /// Шифрує текст
+    /// Encrypts a string
     /// </summary>
     public string EncryptString(string plainText)
     {
@@ -85,7 +85,7 @@ public class DatabaseEncryptionService
     }
 
     /// <summary>
-    /// Розшифровує текст
+    /// Decrypts a string
     /// </summary>
     public string DecryptString(string encryptedText)
     {

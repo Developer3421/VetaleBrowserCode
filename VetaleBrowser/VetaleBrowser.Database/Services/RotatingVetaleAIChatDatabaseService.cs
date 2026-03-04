@@ -182,7 +182,7 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
     }
     
     /// <summary>
-    /// Додає повідомлення в історію чату
+    /// Adds a message to the chat history
     /// </summary>
     public void AddMessage(string role, string message, string sessionId, int? tokensUsed = null)
     {
@@ -194,13 +194,13 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
     }
     
     /// <summary>
-    /// Отримує повідомлення з усіх баз даних з пагінацією
+    /// Gets messages from all databases with pagination
     /// </summary>
     public List<VetaleAIChatMessage> GetMessages(string? sessionId = null, int page = 0, int pageSize = 100)
     {
         var allMessages = new List<VetaleAIChatMessage>();
         
-        // Читаємо з усіх БД у зворотньому порядку (новіші першими)
+        // Read from all DBs in reverse order (newest first)
         for (int i = _databases.Count - 1; i >= 0; i--)
         {
             try
@@ -214,7 +214,7 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
             }
         }
         
-        // Сортуємо по даті та застосовуємо пагінацію
+        // Sort by date and apply pagination
         return allMessages
             .OrderByDescending(x => x.CreatedAt)
             .Skip(page * pageSize)
@@ -223,13 +223,13 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
     }
     
     /// <summary>
-    /// Отримує останні N повідомлень для контексту
+    /// Gets the last N messages for context
     /// </summary>
     public List<VetaleAIChatMessage> GetLastMessages(int count, string? sessionId = null)
     {
         var allMessages = new List<VetaleAIChatMessage>();
         
-        // Читаємо з усіх БД у зворотньому порядку
+        // Read from all DBs in reverse order
         for (int i = _databases.Count - 1; i >= 0; i--)
         {
             try
@@ -243,18 +243,18 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
             }
         }
         
-        // Сортуємо по даті та беремо останні
+        // Sort by date and take the last entries
         var result = allMessages
             .OrderByDescending(x => x.CreatedAt)
             .Take(count)
-            .OrderBy(x => x.CreatedAt) // Повертаємо в хронологічному порядку
+            .OrderBy(x => x.CreatedAt) // Return in chronological order
             .ToList();
         
         return result;
     }
     
     /// <summary>
-    /// Отримує всі сесії чату з усіх БД
+    /// Gets all chat sessions from all DBs
     /// </summary>
     public List<string> GetSessions()
     {
@@ -280,7 +280,7 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
     }
     
     /// <summary>
-    /// Видаляє повідомлення (шукає у всіх БД)
+    /// Deletes a message (searches in all DBs)
     /// </summary>
     public void DeleteMessage(int id)
     {
@@ -298,7 +298,7 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
     }
     
     /// <summary>
-    /// Очищає всю історію чату (у всіх БД)
+    /// Clears the entire chat history (in all DBs)
     /// </summary>
     public void ClearHistory()
     {
@@ -316,7 +316,7 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
     }
     
     /// <summary>
-    /// Очищує історію сесії (у всіх БД)
+    /// Clears the session history (in all DBs)
     /// </summary>
     public void ClearSession(string sessionId)
     {
@@ -334,7 +334,7 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
     }
     
     /// <summary>
-    /// Очищує історію старше вказаної дати (у всіх БД)
+    /// Clears history older than the specified date (in all DBs)
     /// </summary>
     public void ClearHistoryOlderThan(DateTime date)
     {
@@ -352,13 +352,13 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
     }
     
     /// <summary>
-    /// Пошук в історії чату (у всіх БД) з пагінацією
+    /// Searches in the chat history (in all DBs) with pagination
     /// </summary>
     public List<VetaleAIChatMessage> SearchMessages(string query, int page = 0, int pageSize = 100)
     {
         var allMessages = new List<VetaleAIChatMessage>();
         
-        // Шукаємо у всіх БД
+        // Search in all DBs
         for (int i = _databases.Count - 1; i >= 0; i--)
         {
             try
@@ -372,7 +372,7 @@ public class RotatingVetaleAIChatDatabaseService : IVetaleAIChatDatabaseService
             }
         }
         
-        // Сортуємо та застосовуємо пагінацію
+        // Sort and apply pagination
         return allMessages
             .OrderByDescending(x => x.CreatedAt)
             .Skip(page * pageSize)

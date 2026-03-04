@@ -3,160 +3,160 @@ using System.Threading.Tasks;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Інтерфейс для роботи з налаштуваннями вигляду браузера
+/// Interface for working with browser appearance settings
 /// </summary>
 public interface IAppearanceSettingsService
 {
     // Tab Appearance Settings
     /// <summary>
-    /// Отримує ширину вкладки
+    /// Gets the tab width
     /// </summary>
     Task<double> GetTabWidthAsync();
     
     /// <summary>
-    /// Встановлює ширину вкладки
+    /// Sets the tab width
     /// </summary>
     Task SetTabWidthAsync(double width);
     
     /// <summary>
-    /// Отримує розмір елементів вкладки
+    /// Gets the tab element size
     /// </summary>
     Task<double> GetTabElementSizeAsync();
     
     /// <summary>
-    /// Встановлює розмір елементів вкладки
+    /// Sets the tab element size
     /// </summary>
     Task SetTabElementSizeAsync(double size);
     
     /// <summary>
-    /// Отримує колір фону вкладки
+    /// Gets the tab background color
     /// </summary>
     Task<string> GetTabBackgroundColorAsync();
     
     /// <summary>
-    /// Встановлює колір фону вкладки
+    /// Sets the tab background color
     /// </summary>
     Task SetTabBackgroundColorAsync(string color);
     
     /// <summary>
-    /// Отримує колір тексту вкладки
+    /// Gets the tab text color
     /// </summary>
     Task<string> GetTabTextColorAsync();
     
     /// <summary>
-    /// Встановлює колір тексту вкладки
+    /// Sets the tab text color
     /// </summary>
     Task SetTabTextColorAsync(string color);
     
     /// <summary>
-    /// Отримує колір активної вкладки
+    /// Gets the active tab color
     /// </summary>
     Task<string> GetTabActiveColorAsync();
     
     /// <summary>
-    /// Встановлює колір активної вкладки
+    /// Sets the active tab color
     /// </summary>
     Task SetTabActiveColorAsync(string color);
     
     /// <summary>
-    /// Отримує розмір іконки вкладки
+    /// Gets the tab icon size
     /// </summary>
     Task<double> GetTabIconSizeAsync();
     
     /// <summary>
-    /// Встановлює розмір іконки вкладки
+    /// Sets the tab icon size
     /// </summary>
     Task SetTabIconSizeAsync(double size);
     
     // Main Window Appearance Settings
     /// <summary>
-    /// Отримує колір навігаційного бару
+    /// Gets the navigation bar color
     /// </summary>
     Task<string> GetNavigationBarColorAsync();
     
     /// <summary>
-    /// Встановлює колір навігаційного бару
+    /// Sets the navigation bar color
     /// </summary>
     Task SetNavigationBarColorAsync(string color);
     
     /// <summary>
-    /// Отримує висоту навігаційного бару
+    /// Gets the navigation bar height
     /// </summary>
     Task<double> GetNavigationBarHeightAsync();
     
     /// <summary>
-    /// Встановлює висоту навігаційного бару
+    /// Sets the navigation bar height
     /// </summary>
     Task SetNavigationBarHeightAsync(double height);
     
     /// <summary>
-    /// Отримує ширину головного вікна
+    /// Gets the main window width
     /// </summary>
     Task<double> GetMainWindowWidthAsync();
     
     /// <summary>
-    /// Встановлює ширину головного вікна
+    /// Sets the main window width
     /// </summary>
     Task SetMainWindowWidthAsync(double width);
     
     /// <summary>
-    /// Отримує висоту головного вікна
+    /// Gets the main window height
     /// </summary>
     Task<double> GetMainWindowHeightAsync();
     
     /// <summary>
-    /// Встановлює висоту головного вікна
+    /// Sets the main window height
     /// </summary>
     Task SetMainWindowHeightAsync(double height);
     
     /// <summary>
-    /// Отримує колір фону верхньої лінії
+    /// Gets the top bar background color
     /// </summary>
     Task<string> GetTopBarBackgroundColorAsync();
     
     /// <summary>
-    /// Встановлює колір фону верхньої лінії
+    /// Sets the top bar background color
     /// </summary>
     Task SetTopBarBackgroundColorAsync(string color);
     
     /// <summary>
-    /// Отримує розмір кнопок
+    /// Gets the button size
     /// </summary>
     Task<double> GetButtonSizeAsync();
     
     /// <summary>
-    /// Встановлює розмір кнопок
+    /// Sets the button size
     /// </summary>
     Task SetButtonSizeAsync(double size);
     
     /// <summary>
-    /// Отримує розмір зображень всередині кнопок
+    /// Gets the icon size inside buttons
     /// </summary>
     Task<double> GetButtonIconSizeAsync();
     
     /// <summary>
-    /// Встановлює розмір зображень всередині кнопок
+    /// Sets the icon size inside buttons
     /// </summary>
     Task SetButtonIconSizeAsync(double size);
     
     // Other Windows Appearance Settings
     /// <summary>
-    /// Отримує колір фону інших вікон
+    /// Gets the background color of other windows
     /// </summary>
     Task<string> GetOtherWindowsBackgroundColorAsync();
     
     /// <summary>
-    /// Встановлює колір фону інших вікон
+    /// Sets the background color of other windows
     /// </summary>
     Task SetOtherWindowsBackgroundColorAsync(string color);
     
     /// <summary>
-    /// Отримує колір верхньої панелі інших вікон
+    /// Gets the top bar color of other windows
     /// </summary>
     Task<string> GetOtherWindowsTopBarColorAsync();
     
     /// <summary>
-    /// Встановлює колір верхньої панелі інших вікон
+    /// Sets the top bar color of other windows
     /// </summary>
     Task SetOtherWindowsTopBarColorAsync(string color);
 }

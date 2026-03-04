@@ -7,7 +7,7 @@ using VetaleBrowser.VetaleBrowser.Database.Models;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Сервіс для роботи з налаштуваннями вигляду браузера з AES шифруванням
+/// Service for working with browser appearance settings with AES encryption
 /// </summary>
 public class AppearanceSettingsService : IAppearanceSettingsService, IDisposable
 {
@@ -46,13 +46,13 @@ public class AppearanceSettingsService : IAppearanceSettingsService, IDisposable
         
         System.Diagnostics.Debug.WriteLine($"[AppearanceSettingsService] Creating with path: {databasePath}");
         
-        // Використовуємо оптимізоване з'єднання з мінімальним споживанням RAM
+        // Use optimized connection with minimal RAM usage
         _database = DatabaseConfiguration.CreateOptimizedDatabase(databasePath);
         
-        // Отримуємо колекцію
+        // Get collection
         _settingsCollection = _database.GetCollection<SettingItem>("appearance_settings");
         
-        // Створюємо індекс для ключа
+        // Create index for key
         _settingsCollection.EnsureIndex(x => x.Key, true); // true = unique
         
         System.Diagnostics.Debug.WriteLine("[AppearanceSettingsService] Initialized successfully");

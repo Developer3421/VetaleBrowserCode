@@ -5,53 +5,53 @@ using VetaleBrowser.VetaleBrowser.Database.Models;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Інтерфейс сервісу бази даних історії переглядів
+/// Interface for the browsing history database service
 /// MEMORY OPTIMIZED: Added pagination support
 /// </summary>
 public interface IHistoryDatabaseService : IDisposable
 {
     /// <summary>
-    /// Додає або оновлює запис в історії
+    /// Adds or updates a record in the history
     /// </summary>
     void AddOrUpdateHistoryItem(string url, string title, string? faviconUrl = null, byte[]? faviconData = null);
     
     /// <summary>
-    /// Отримує історію з пагінацією
+    /// Gets history with pagination
     /// </summary>
     List<HistoryItem> GetHistory(DateTime? startDate = null, DateTime? endDate = null, int page = 0, int pageSize = 100);
     
     /// <summary>
-    /// Отримує історію (перша сторінка для сумісності)
+    /// Gets history (first page for compatibility)
     /// </summary>
     List<HistoryItem> GetHistory(DateTime? startDate = null, DateTime? endDate = null);
     
     /// <summary>
-    /// Видаляє запис з історії
+    /// Deletes a record from the history
     /// </summary>
     void DeleteHistoryItem(int id);
     
     /// <summary>
-    /// Очищає всю історію
+    /// Clears the entire history
     /// </summary>
     void ClearHistory();
     
     /// <summary>
-    /// Очищує історію старше вказаної дати
+    /// Clears history older than the specified date
     /// </summary>
     void ClearHistoryOlderThan(DateTime date);
     
     /// <summary>
-    /// Пошук в історії з пагінацією
+    /// Searches in history with pagination
     /// </summary>
     List<HistoryItem> SearchHistory(string query, int page = 0, int pageSize = 100);
     
     /// <summary>
-    /// Пошук в історії (перша сторінка для сумісності)
+    /// Searches in history (first page for compatibility)
     /// </summary>
     List<HistoryItem> SearchHistory(string query);
     
     /// <summary>
-    /// Отримує загальну кількість записів в історії
+    /// Gets the total number of records in the history
     /// </summary>
     int GetHistoryCount();
 }

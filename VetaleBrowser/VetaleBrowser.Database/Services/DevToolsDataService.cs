@@ -11,7 +11,7 @@ using VetaleBrowser.VetaleBrowser.Database.Models;
 namespace VetaleBrowser.VetaleBrowser.Database.Services;
 
 /// <summary>
-/// Сервіс для роботи з даними DevTools з AES шифруванням
+/// Service for working with DevTools data with AES encryption
 /// </summary>
 public class DevToolsDataService : IDevToolsDataService, IDisposable
 {
