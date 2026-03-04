@@ -11,8 +11,8 @@ using WebViewControl;
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
 
 /// <summary>
-/// Панель з Perplexity AI через WebView
-/// AI пошук з джерелами - працює без реєстрації (обмежено)
+/// Panel with Perplexity AI via WebView
+/// AI search with sources - works without registration (limited)
 /// </summary>
 public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
 {
@@ -23,13 +23,13 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
     private bool _isDisposed;
     private bool _isLoaded;
     private bool _isWebViewReady;
-    private string? _pendingMessage; // Повідомлення для відправки після завантаження
+    private string? _pendingMessage; // Message to send after loading
     
-    // Perplexity AI URL - можна передати запит через параметр q
+    // Perplexity AI URL - query can be passed via the q parameter
     private const string PerplexityAiUrl = "https://www.perplexity.ai";
 
     /// <summary>
-    /// Подія для навігації до URL у браузері
+    /// Event for navigation to a URL in the browser
     /// </summary>
     public event EventHandler<string>? NavigateRequested;
 
@@ -62,7 +62,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
 
     private void OnUnloaded(object? sender, RoutedEventArgs e)
     {
-        // Не знищуємо WebView при вивантаженні, щоб зберегти сесію
+        // Do not destroy WebView on unload to preserve the session
         Debug.WriteLine("[DuckDuckGoAiChat] Panel unloaded (WebView preserved)");
     }
 
@@ -73,25 +73,25 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
         try
         {
             ShowLoading(true);
-            UpdateStatus("Ініціалізація...");
+            UpdateStatus("Initializing...");
 
-            // Очищуємо контейнер
+            // Clear the container
             _webViewContainer.Children.Clear();
 
-            // Створюємо WebView з правильними властивостями розтягування
+            // Create WebView with proper stretch properties
             _webView = new WebView
             {
                 HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
                 VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch
             };
             
-            // Підписуємось на події
+            // Subscribe to events
             _webView.PropertyChanged += OnWebViewPropertyChanged;
             
-            // Додаємо до контейнера
+            // Add to container
             _webViewContainer.Children.Add(_webView);
 
-            // Навігація до Perplexity AI
+            // Navigate to Perplexity AI
             _webView.Address = PerplexityAiUrl;
 
             Debug.WriteLine($"[PerplexityAiChat] WebView created, navigating to: {PerplexityAiUrl}");
@@ -101,7 +101,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
         {
             Debug.WriteLine($"[PerplexityAiChat] Error initializing WebView: {ex.Message}");
             Core.Scripts.Services.ConsoleLogger.LogError("Error initializing WebView", "PerplexityAiChat", ex);
-            ShowError($"Помилка завантаження: {ex.Message}");
+            ShowError($"Loading error: {ex.Message}");
         }
     }
 
@@ -112,26 +112,26 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
         var address = _webView.Address;
         Debug.WriteLine($"[DuckDuckGoAiChat] Address changed: {address}");
 
-        // Інжектимо скрипти для покращення UX
+        // Inject scripts to improve UX
         Dispatcher.UIThread.Post(async () =>
         {
-            await Task.Delay(2000); // Чекаємо завантаження сторінки (DuckDuckGo потребує більше часу)
+            await Task.Delay(2000); // Wait for the page to load (DuckDuckGo requires more time)
             
-            // Спочатку пробуємо прийняти згоду
+            // First try to accept consent
             await AcceptTermsIfNeededAsync();
             
             await InjectCustomScriptsAsync();
             ShowLoading(false);
-            UpdateStatus("Готово");
+            UpdateStatus("Ready");
             
-            // Помічаємо що WebView готовий
+            // Mark WebView as ready
             _isWebViewReady = true;
             
-            // Якщо є pending повідомлення - відправляємо з затримкою
+            // If there is a pending message - send it with a delay
             if (!string.IsNullOrWhiteSpace(_pendingMessage))
             {
                 Debug.WriteLine($"[DuckDuckGoAiChat] Sending pending message: {_pendingMessage}");
-                await Task.Delay(1000); // Більша затримка для стабільності після прийняття згоди
+                await Task.Delay(1000); // Longer delay for stability after accepting consent
                 await SendMessageInternalAsync(_pendingMessage);
                 _pendingMessage = null;
             }
@@ -139,7 +139,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
     }
     
     /// <summary>
-    /// Автоматично приймає Terms/Privacy якщо показується вікно згоди
+    /// Automatically accepts Terms/Privacy if a consent dialog is shown
     /// </summary>
     private async Task AcceptTermsIfNeededAsync()
     {
@@ -147,28 +147,28 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
         
         try
         {
-            // Скрипт для автоматичного прийняття згоди DuckDuckGo
+            // Script for automatically accepting DuckDuckGo consent
             var js = @"
                 (function() {
                     try {
                         console.log('[Vetale] Checking for consent dialog...');
                         
-                        // Шукаємо кнопки прийняття згоди (різні варіанти)
+                        // Search for accept buttons (various options)
                         var acceptButtons = [
-                            // DuckDuckGo AI Chat специфічні
+                            // DuckDuckGo AI Chat specific
                             document.querySelector('button[data-testid=""chat-terms-accept""]'),
                             document.querySelector('button[data-testid=""accept-terms""]'),
                             document.querySelector('button[aria-label*=""Accept""]'),
                             document.querySelector('button[aria-label*=""agree"" i]'),
                             document.querySelector('button[aria-label*=""Accept"" i]'),
-                            // Загальні селектори для кнопок згоди
+                            // General selectors for consent buttons
                             document.querySelector('button.terms-accept'),
                             document.querySelector('button.accept-btn'),
                             document.querySelector('button.consent-accept'),
                             document.querySelector('[class*=""accept"" i] button'),
                             document.querySelector('[class*=""consent"" i] button'),
                             document.querySelector('[class*=""terms"" i] button'),
-                            // Пошук за текстом
+                            // Search by text
                             Array.from(document.querySelectorAll('button')).find(b => 
                                 b.textContent && (
                                     b.textContent.toLowerCase().includes('accept') ||
@@ -183,7 +183,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
                         
                         for (var i = 0; i < acceptButtons.length; i++) {
                             var btn = acceptButtons[i];
-                            if (btn && btn.offsetParent !== null) { // Перевіряємо що кнопка видима
+                            if (btn && btn.offsetParent !== null) { // Check that the button is visible
                                 console.log('[Vetale] Found accept button:', btn.textContent || btn.outerHTML.substring(0, 100));
                                 btn.click();
                                 console.log('[Vetale] Clicked accept button!');
@@ -191,7 +191,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
                             }
                         }
                         
-                        // Також шукаємо чекбокси згоди
+                        // Also look for consent checkboxes
                         var checkboxes = document.querySelectorAll('input[type=""checkbox""]');
                         checkboxes.forEach(function(cb) {
                             if (!cb.checked) {
@@ -214,9 +214,9 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
             
             if (result)
             {
-                // Якщо прийняли згоду - чекаємо поки UI оновиться
+                // If consent was accepted - wait for UI to update
                 await Task.Delay(1500);
-                // Пробуємо ще раз на випадок якщо є ще одне вікно
+                // Try again in case there is another dialog
                 await _webView.EvaluateScript<bool>(js);
                 await Task.Delay(500);
             }
@@ -228,7 +228,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
     }
 
     /// <summary>
-    /// Інжектує кастомні скрипти для покращення UX
+    /// Injects custom scripts to improve UX
     /// </summary>
     private async Task InjectCustomScriptsAsync()
     {
@@ -236,16 +236,16 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
 
         try
         {
-            // Скрипт для:
-            // 1. Блокування відкриття нових вікон
-            // 2. Приховування зайвих елементів UI (опціонально)
-            // 3. Обробки зовнішніх посилань
+            // Script for:
+            // 1. Blocking opening new windows
+            // 2. Hiding unnecessary UI elements (optional)
+            // 3. Handling external links
             var js = @"
                 (function(){
                     if(window.__vetale_ddg_injected__) return;
                     window.__vetale_ddg_injected__ = true;
                     
-                    // Блокуємо window.open
+                    // Block window.open
                     var originalOpen = window.open;
                     window.open = function(url) {
                         try {
@@ -254,7 +254,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
                         return null;
                     };
                     
-                    // Перехоплюємо кліки на посилання з target=_blank
+                    // Intercept clicks on links with target=_blank
                     document.addEventListener('click', function(e) {
                         try {
                             var el = e.target;
@@ -268,13 +268,13 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
                             if(target && target.toLowerCase() === '_blank') {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                // Відкриваємо в тому ж вікні
+                                // Open in the same window
                                 location.href = href;
                             }
                         } catch(_) {}
                     }, true);
                     
-                    // Блокуємо середній клік миші
+                    // Block middle mouse button click
                     document.addEventListener('auxclick', function(e) {
                         try {
                             if(e.button === 1) {
@@ -306,7 +306,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
     }
 
     /// <summary>
-    /// Програмно відправити повідомлення в чат
+    /// Programmatically send a message to the chat
     /// </summary>
     public async Task SendMessageAsync(string message)
     {
@@ -314,8 +314,8 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
         
         Debug.WriteLine($"[PerplexityAiChat] SendMessageAsync called: {message}");
         
-        // Для Perplexity найкраще використовувати URL з параметром q
-        // Це автоматично виконає пошук
+        // For Perplexity it is best to use URL with the q parameter
+        // This will automatically perform the search
         if (_webView != null)
         {
             var encodedQuery = Uri.EscapeDataString(message);
@@ -326,7 +326,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
             return;
         }
         
-        // Якщо WebView ще не готовий - зберігаємо повідомлення в чергу
+        // If WebView is not ready yet - queue the message
         if (!_isWebViewReady)
         {
             Debug.WriteLine($"[PerplexityAiChat] WebView not ready, queuing message");
@@ -338,7 +338,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
     }
     
     /// <summary>
-    /// Внутрішній метод для відправки повідомлення через навігацію URL
+    /// Internal method for sending a message via URL navigation
     /// </summary>
     private Task SendMessageInternalAsync(string message)
     {
@@ -347,7 +347,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
 
         try
         {
-            // Для Perplexity краще використовувати URL напряму
+            // For Perplexity it is better to use the URL directly
             var encodedQuery = Uri.EscapeDataString(message);
             var searchUrl = $"{PerplexityAiUrl}/search?q={encodedQuery}";
             
@@ -369,7 +369,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
             try
             {
                 ShowLoading(true);
-                UpdateStatus("Оновлення...");
+                UpdateStatus("Refreshing...");
                 _webView.Reload();
                 Debug.WriteLine("[DuckDuckGoAiChat] Refreshing page");
             }
@@ -388,9 +388,9 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
             try
             {
                 ShowLoading(true);
-                UpdateStatus("Новий чат...");
+                UpdateStatus("New chat...");
                 _isWebViewReady = false;
-                // Перезавантажуємо сторінку для нового чату
+                // Reload the page for a new chat
                 _webView.Address = PerplexityAiUrl;
                 Debug.WriteLine("[PerplexityAiChat] Starting new chat");
             }
@@ -455,7 +455,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
                     },
                     new Button
                     {
-                        Content = "Спробувати знову",
+                        Content = "Retry",
                         HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
                         Command = new RelayCommand(() => InitializeWebView())
                     }
@@ -487,7 +487,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
     }
 
     /// <summary>
-    /// Простий RelayCommand для кнопок
+    /// Simple RelayCommand for buttons
     /// </summary>
     private class RelayCommand : System.Windows.Input.ICommand
     {

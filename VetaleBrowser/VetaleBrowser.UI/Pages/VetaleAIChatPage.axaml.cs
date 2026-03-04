@@ -182,7 +182,7 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
 
         if (_messagesPanel == null) return;
 
-        // Парсимо HTML-код із markdown-блоку ```html ... ```
+        // Parse HTML code from markdown block ```html ... ```
         string? codePart = null;
         string descriptionPart = text;
 
@@ -190,7 +190,7 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
         if (match.Success && match.Groups.Count > 1)
         {
             codePart = match.Groups[1].Value.Trim('\r', '\n');
-            // Все, що до і після блока коду
+            // Everything before and after the code block
             var before = text.Substring(0, match.Index).Trim();
             var after = text[(match.Index + match.Length)..].Trim();
             descriptionPart = string.Join("\n\n", new[] { before, after }.Where(s => !string.IsNullOrWhiteSpace(s)));
@@ -202,7 +202,7 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
             Spacing = 6
         };
 
-        // Заголовок "Vetale AI"
+        // "Vetale AI" header
         contentStack.Children.Add(new TextBlock
         {
             Text = Application.Current?.FindResource("VetaleAI.Assistant") as string ?? "Vetale AI",
@@ -211,7 +211,7 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
             Foreground = new SolidColorBrush(Color.Parse("#4CAF50"))
         });
 
-        // Описова частина (якщо є)
+        // Descriptive part (if present)
         if (!string.IsNullOrWhiteSpace(descriptionPart))
         {
             contentStack.Children.Add(new TextBlock
@@ -223,7 +223,7 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
             });
         }
 
-        // HTML-код у окремому контейнері (якщо є)
+        // HTML code in a separate container (if present)
         if (!string.IsNullOrWhiteSpace(codePart))
         {
             var codeTextBlock = new TextBlock
@@ -720,7 +720,7 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
             return new TextBlock { Text = initialText };
         }
 
-        // Для стрімінгу використовуємо простий текст без спец-контейнера коду
+        // For streaming we use plain text without a special code container
         var contentTextBlock = new TextBlock
         {
             Text = initialText,
@@ -774,10 +774,10 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
         _isProcessing = true;
         UpdateSendButtonState();
 
-        // Додаємо в чат повідомлення користувача з позначкою режиму
+        // Add user message to chat with mode label
         AddUserMessage(userPrompt + "\n\n[Режим: створення веб-сторінки]");
 
-        // Очищаємо поле вводу
+        // Clear the input field
         _messageInput.Text = string.Empty;
 
         try
@@ -805,7 +805,7 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
             _cancellationTokenSource = new CancellationTokenSource();
             var ct = _cancellationTokenSource.Token;
 
-            // Промпт для генерації гарної HTML-сторінки зі стилями та markdown-контейнером коду
+            // Prompt for generating a nice HTML page with styles and a markdown code container
             var webPagePrompt = userPrompt +
                                 "\n\nСтвори повну HTML5 веб-сторінку з такою структурою:" +
                                 "\n- doctype, <html>, <head>, <body>." +

@@ -12,23 +12,23 @@ using VetaleBrowser.VetaleBrowser.Core.Scripts.Models;
 namespace VetaleBrowser.VetaleBrowser.UI.Windows;
 
 /// <summary>
-/// Дані для перетягування вкладки
+/// Tab drag data
 /// </summary>
 public class TabDragData
 {
     public TabWorker Worker { get; set; } = null!;
     public Tab SourceTab { get; set; } = null!;
     public TabOverflowWindow? SourceWindow { get; set; }
-    public object? SourceMainWindow { get; set; } // MainWindow-джерело (object щоб уникнути циклічних залежностей)
+    public object? SourceMainWindow { get; set; } // MainWindow source (object to avoid circular dependencies)
     public string Title { get; set; } = "New Tab";
     public IImage? Favicon { get; set; }
     public bool IsMuted { get; set; }
 }
 
 /// <summary>
-/// Вікно для overflow вкладок - з'являється коли основна панель переповнена
-/// Можна переміщати, перетягуючи за drag handle або за border
-/// Підтримує перетягування вкладок між вікнами (правою кнопкою миші)
+/// Window for overflow tabs - appears when the main panel is full
+/// Can be moved by dragging the drag handle or border
+/// Supports dragging tabs between windows (right mouse button)
 /// </summary>
 public partial class TabOverflowWindow : Window
 {
@@ -39,41 +39,41 @@ public partial class TabOverflowWindow : Window
     private Window? _parentWindow;
     private readonly Dictionary<Tab, TabWorker> _tabWorkerMap = new();
     private double _tabWidth = 200;
-    private bool _isManuallyPositioned = false; // Прапор ручного позиціонування
-    private int _dropTargetIndex = -1; // Індекс куди буде вставлена вкладка
+    private bool _isManuallyPositioned = false; // Manual positioning flag
+    private int _dropTargetIndex = -1; // Index where the tab will be inserted
 
-    /// <summary>Подія закриття вкладки</summary>
+    /// <summary>Tab close event</summary>
     public event EventHandler<TabWorker>? TabCloseRequested;
 
-    /// <summary>Подія активації вкладки</summary>
+    /// <summary>Tab activation event</summary>
     public event EventHandler<TabWorker>? TabActivated;
 
-    /// <summary>Подія закриття всіх overflow вкладок</summary>
+    /// <summary>Close all overflow tabs event</summary>
     public event EventHandler? CloseAllTabsRequested;
 
-    /// <summary>Подія коли overflow вікно стає порожнім</summary>
+    /// <summary>Event when overflow window becomes empty</summary>
     public event EventHandler? BecameEmpty;
 
-    /// <summary>Подія початку перетягування вкладки</summary>
+    /// <summary>Tab drag start event</summary>
     public event EventHandler<TabDragData>? TabDragStarted;
     
-    /// <summary>Подія коли вкладка переноситься з основної панелі MainWindow</summary>
+    /// <summary>Event when a tab is transferred from the MainWindow main panel</summary>
     public event EventHandler<TabWorker>? TabRemovedFromMainPanel;
     
-    /// <summary>Подія коли вкладка переноситься з основної панелі MainWindow (з джерелом)</summary>
+    /// <summary>Event when a tab is transferred from the MainWindow main panel (with source)</summary>
     public event EventHandler<(TabWorker Worker, object SourceMainWindow)>? TabRemovedFromMainPanelWithSource;
 
-    /// <summary>Чи переповнено overflow вікно</summary>
+    /// <summary>Whether the overflow window is full</summary>
     public bool IsFull { get; private set; }
 
-    /// <summary>Кількість вкладок</summary>
+    /// <summary>Number of tabs</summary>
     public int TabCount => _tabWorkerMap.Count;
 
     public TabOverflowWindow()
     {
         InitializeComponent();
         
-        // Додаємо підтримку drop
+        // Add drop support
         AddHandler(DragDrop.DropEvent, OnDropHandler);
         AddHandler(DragDrop.DragOverEvent, OnDragOverHandler);
         DragDrop.SetAllowDrop(this, true);
@@ -95,7 +95,7 @@ public partial class TabOverflowWindow : Window
             _closeButton.Click += OnCloseButtonClick;
         }
         
-        // Створюємо індикатор місця вставки
+        // Create the insertion position indicator
         _dropIndicator = new Border
         {
             Width = 3,
@@ -111,7 +111,7 @@ public partial class TabOverflowWindow : Window
     }
 
     /// <summary>
-    /// Обробник натискання на drag handle для переміщення вікна
+    /// Handler for pressing the drag handle to move the window
     /// </summary>
     private void OnDragHandlePointerPressed(object? sender, PointerPressedEventArgs e)
     {
@@ -123,13 +123,13 @@ public partial class TabOverflowWindow : Window
     }
 
     /// <summary>
-    /// Обробник натискання на border для переміщення вікна
+    /// Handler for pressing the border to move the window
     /// </summary>
     private void OnDragBorderPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            // Перевіряємо чи це не клік на контролі (кнопки, вкладки)
+            // Check if this is not a click on a control (buttons, tabs)
             var source = e.Source;
             if (source is Border || source is Grid || source is TextBlock)
             {
@@ -141,22 +141,22 @@ public partial class TabOverflowWindow : Window
 
     private void OnCloseButtonClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        // Закриваємо всі вкладки в overflow
+        // Close all tabs in overflow
         CloseAllTabsRequested?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
-    /// Ініціалізує вікно з прив'язкою до батьківського вікна
+    /// Initializes the window with binding to the parent window
     /// </summary>
     public void Initialize(Window parentWindow, double tabWidth)
     {
         _parentWindow = parentWindow;
         _tabWidth = tabWidth;
         
-        // Оновлюємо максимальну ширину панелі
+        // Update the maximum panel width
         UpdateMaxWidth();
         
-        // Підписуємося на зміни розміру батьківського вікна
+        // Subscribe to parent window resize events
         _parentWindow.PropertyChanged += OnParentPropertyChanged;
         _parentWindow.PositionChanged += OnParentPositionChanged;
         
@@ -181,27 +181,27 @@ public partial class TabOverflowWindow : Window
     {
         if (_parentWindow == null) return;
         
-        double maxWidth = _parentWindow.Width - 40; // Залишаємо відступ
+        double maxWidth = _parentWindow.Width - 40; // Leave some margin
         MaxWidth = maxWidth;
     }
 
     /// <summary>
-    /// Оновлює позицію вікна під батьківським вікном
-    /// Якщо користувач переміщав вікно вручну - позиція зберігається
+    /// Updates the window position below the parent window
+    /// If the user moved the window manually - the position is preserved
     /// </summary>
     public void UpdatePosition()
     {
         if (_parentWindow == null) return;
         
-        // Якщо вікно було переміщено вручну - не перезаписуємо позицію
+        // If the window was moved manually - do not overwrite the position
         if (_isManuallyPositioned) return;
         
         try
         {
-            // Позиціонуємо під табами головного вікна
+            // Position below the main window's tabs
             var parentPos = _parentWindow.Position;
             
-            // Позиція під tab bar (приблизно 50px від верху)
+            // Position below the tab bar (approximately 50px from top)
             int x = parentPos.X + 10;
             int y = parentPos.Y + 50;
             
@@ -214,7 +214,7 @@ public partial class TabOverflowWindow : Window
     }
 
     /// <summary>
-    /// Скидає ручне позиціонування і повертає вікно до стандартної позиції
+    /// Resets manual positioning and returns the window to the default position
     /// </summary>
     public void ResetPosition()
     {
@@ -223,18 +223,18 @@ public partial class TabOverflowWindow : Window
     }
 
     /// <summary>
-    /// Перевіряє чи можна додати ще одну вкладку
+    /// Checks whether another tab can be added
     /// </summary>
     public bool CanAddTab()
     {
         if (_tabsContainer == null) return false;
         
-        // Розрахунок поточної ширини
+        // Calculate current width
         double currentWidth = CalculateCurrentWidth();
-        double closeButtonWidth = 50; // Ширина кнопки закриття + margin
-        double padding = 24; // Загальний padding
+        double closeButtonWidth = 50; // Close button width + margin
+        double padding = 24; // Total padding
         
-        // Перевіряємо чи є місце для нової вкладки
+        // Check if there is room for a new tab
         return (currentWidth + _tabWidth + closeButtonWidth + padding) <= MaxWidth;
     }
     
@@ -247,14 +247,14 @@ public partial class TabOverflowWindow : Window
         {
             if (child is Tab tab)
             {
-                width += tab.Width + 4; // 4 - spacing між вкладками
+                width += tab.Width + 4; // 4 - spacing between tabs
             }
         }
         return width;
     }
 
     /// <summary>
-    /// Обробник DragOver - показує що можна скинути вкладку та індикатор позиції
+    /// DragOver handler - shows that a tab can be dropped and the position indicator
     /// </summary>
     private void OnDragOver(object? sender, DragEventArgs e)
     {
@@ -263,13 +263,13 @@ public partial class TabOverflowWindow : Window
         {
             e.DragEffects = DragDropEffects.Move;
             
-            // Визначаємо позицію для вставки
+            // Determine the insertion position
             if (_tabsContainer != null)
             {
                 var position = e.GetPosition(_tabsContainer);
                 _dropTargetIndex = CalculateDropIndex(position.X);
                 
-                // Показуємо індикатор
+                // Show the indicator
                 ShowDropIndicator(_dropTargetIndex);
             }
         }
@@ -282,7 +282,7 @@ public partial class TabOverflowWindow : Window
     }
     
     /// <summary>
-    /// Обчислює індекс для вставки на основі позиції X
+    /// Calculates the insertion index based on position X
     /// </summary>
     private int CalculateDropIndex(double x)
     {
@@ -307,23 +307,23 @@ public partial class TabOverflowWindow : Window
             }
         }
         
-        return index; // Вставка в кінець
+        return index; // Insert at end
     }
     
     /// <summary>
-    /// Показує індикатор місця вставки
+    /// Shows the insertion position indicator
     /// </summary>
     private void ShowDropIndicator(int index)
     {
         if (_tabsContainer == null || _dropIndicator == null) return;
         
-        // Видаляємо індикатор якщо він вже є
+        // Remove the indicator if it already exists
         if (_tabsContainer.Children.Contains(_dropIndicator))
         {
             _tabsContainer.Children.Remove(_dropIndicator);
         }
         
-        // Обчислюємо позицію для вставки індикатора
+        // Calculate the insertion position for the indicator
         int insertIndex = 0;
         int tabIndex = 0;
         
@@ -341,7 +341,7 @@ public partial class TabOverflowWindow : Window
             }
         }
         
-        // Вставляємо індикатор
+        // Insert the indicator
         _dropIndicator.IsVisible = true;
         
         if (insertIndex >= _tabsContainer.Children.Count)
@@ -355,7 +355,7 @@ public partial class TabOverflowWindow : Window
     }
     
     /// <summary>
-    /// Приховує індикатор місця вставки
+    /// Hides the insertion position indicator
     /// </summary>
     private void HideDropIndicator()
     {
@@ -368,11 +368,11 @@ public partial class TabOverflowWindow : Window
     }
 
     /// <summary>
-    /// Обробник Drop - приймає вкладку з іншого вікна
+    /// Drop handler - accepts a tab from another window
     /// </summary>
     private void OnDrop(object? sender, DragEventArgs e)
     {
-        // Приховуємо індикатор
+        // Hide the indicator
         int insertIndex = _dropTargetIndex;
         HideDropIndicator();
         
@@ -380,42 +380,42 @@ public partial class TabOverflowWindow : Window
         if (e.Data.Get("TabDragData") is TabDragData dragData)
 #pragma warning restore CS0618
         {
-            // Перевіряємо чи це не те саме вікно
+            // Check if this is not the same window
             if (dragData.SourceWindow == this)
             {
-                // Переміщуємо в межах того ж вікна
+                // Move within the same window
                 if (insertIndex >= 0)
                 {
                     ReorderTab(dragData.Worker, insertIndex);
                 }
                 
-                // Скидаємо візуальний стан вкладки
+                // Reset the visual state of the tab
                 dragData.SourceTab.ResetDragState();
                 
                 System.Diagnostics.Debug.WriteLine("[TabOverflowWindow] Tab reordered within same window");
                 return;
             }
 
-            // Видаляємо з вікна-джерела
+            // Remove from source window
             if (dragData.SourceWindow != null)
             {
-                // Вкладка з іншого overflow вікна
+                // Tab from another overflow window
                 dragData.SourceWindow.RemoveWorker(dragData.Worker);
             }
             else if (dragData.SourceMainWindow != null)
             {
-                // Вкладка з основної панелі MainWindow - сповіщаємо через подію
-                // Передаємо і worker, і SourceMainWindow
+                // Tab from main panel of MainWindow - notify via event
+                // Pass both worker and SourceMainWindow
                 TabRemovedFromMainPanelWithSource?.Invoke(this, (dragData.Worker, dragData.SourceMainWindow));
             }
             
-            // Скидаємо візуальний стан вкладки
+            // Reset the visual state of the tab
             dragData.SourceTab.ResetDragState();
 
-            // Додаємо до цього вікна в потрібну позицію
+            // Add to this window at the required position
             if (AddTabAtIndex(dragData.Worker, insertIndex >= 0 ? insertIndex : _tabWorkerMap.Count))
             {
-                // Оновлюємо title та favicon
+                // Update title and favicon
                 UpdateTabTitle(dragData.Worker, dragData.Title);
                 UpdateTabFavicon(dragData.Worker, dragData.Favicon);
                 
@@ -425,7 +425,7 @@ public partial class TabOverflowWindow : Window
     }
     
     /// <summary>
-    /// Переміщує вкладку на нову позицію в межах вікна
+    /// Moves a tab to a new position within the window
     /// </summary>
     private void ReorderTab(TabWorker worker, int newIndex)
     {
@@ -434,10 +434,10 @@ public partial class TabOverflowWindow : Window
         Tab? tab = GetTabByWorker(worker);
         if (tab == null) return;
         
-        // Видаляємо з поточної позиції
+        // Remove from current position
         _tabsContainer.Children.Remove(tab);
         
-        // Обчислюємо нову позицію
+        // Calculate the new position
         int actualIndex = 0;
         int tabIndex = 0;
         
@@ -455,7 +455,7 @@ public partial class TabOverflowWindow : Window
             }
         }
         
-        // Вставляємо на нову позицію
+        // Insert at the new position
         if (actualIndex >= _tabsContainer.Children.Count)
         {
             _tabsContainer.Children.Add(tab);
@@ -467,7 +467,7 @@ public partial class TabOverflowWindow : Window
     }
     
     /// <summary>
-    /// Додає вкладку в конкретну позицію
+    /// Adds a tab at a specific position
     /// </summary>
     public bool AddTabAtIndex(TabWorker worker, int index)
     {
@@ -486,7 +486,7 @@ public partial class TabOverflowWindow : Window
             Width = _tabWidth
         };
 
-        // Підписуємося на події вкладки
+        // Subscribe to tab events
         tab.Clicked += (_, __) => TabActivated?.Invoke(this, worker);
         tab.CloseRequested += (_, __) =>
         {
@@ -494,10 +494,10 @@ public partial class TabOverflowWindow : Window
             _tabsContainer.Children.Remove(tab);
             TabCloseRequested?.Invoke(this, worker);
             
-            // Оновлюємо ширину вікна
+            // Update window width
             UpdateWindowWidth();
             
-            // Перевіряємо чи порожнє вікно
+            // Check if the window is empty
             if (_tabWorkerMap.Count == 0)
             {
                 Hide();
@@ -505,14 +505,14 @@ public partial class TabOverflowWindow : Window
             }
         };
         
-        // Підтримка перетягування (правою кнопкою миші)
+        // Drag support (right mouse button)
         tab.DragStarted += OnTabDragStarted;
         void OnTabDragStarted(object? sender, TabDragStartedEventArgs dragArgs)
         {
             StartTabDrag(tab, worker, dragArgs.PointerEvent);
         }
 
-        // Обчислюємо позицію для вставки
+        // Calculate the insertion position
         int actualIndex = 0;
         int tabIndex = 0;
         
@@ -530,7 +530,7 @@ public partial class TabOverflowWindow : Window
             }
         }
         
-        // Вставляємо вкладку
+        // Insert the tab
         if (actualIndex >= _tabsContainer.Children.Count)
         {
             _tabsContainer.Children.Add(tab);
@@ -542,10 +542,10 @@ public partial class TabOverflowWindow : Window
         
         _tabWorkerMap[tab] = worker;
         
-        // Оновлюємо ширину вікна
+        // Update window width
         UpdateWindowWidth();
         
-        // Показуємо вікно якщо ще не показане
+        // Show the window if not yet shown
         if (!IsVisible)
         {
             Show();
@@ -557,7 +557,7 @@ public partial class TabOverflowWindow : Window
     }
 
     /// <summary>
-    /// Запускає перетягування вкладки
+    /// Starts dragging a tab
     /// </summary>
     public async void StartTabDrag(Tab tab, TabWorker worker, PointerEventArgs pointerEvent)
     {
@@ -576,7 +576,7 @@ public partial class TabOverflowWindow : Window
         dataObject.Set("TabDragData", dragData);
 #pragma warning restore CS0618
 
-        // Повідомляємо про початок перетягування
+        // Notify about the start of dragging
         TabDragStarted?.Invoke(this, dragData);
 
         System.Diagnostics.Debug.WriteLine($"[TabOverflowWindow] Starting drag for tab: {tab.Title}");
@@ -594,13 +594,13 @@ public partial class TabOverflowWindow : Window
         }
         finally
         {
-            // Скидаємо візуальний стан вкладки після завершення drag
+            // Reset the visual state of the tab after drag completes
             tab.ResetDragState();
         }
     }
 
     /// <summary>
-    /// Додає вкладку до overflow вікна
+    /// Adds a tab to the overflow window
     /// </summary>
     public bool AddTab(TabWorker worker)
     {
@@ -619,7 +619,7 @@ public partial class TabOverflowWindow : Window
             Width = _tabWidth
         };
 
-        // Підписуємося на події вкладки
+        // Subscribe to tab events
         tab.Clicked += (_, __) => TabActivated?.Invoke(this, worker);
         tab.CloseRequested += (_, __) =>
         {
@@ -627,10 +627,10 @@ public partial class TabOverflowWindow : Window
             _tabsContainer.Children.Remove(tab);
             TabCloseRequested?.Invoke(this, worker);
             
-            // Оновлюємо ширину вікна
+            // Update window width
             UpdateWindowWidth();
             
-            // Перевіряємо чи порожнє вікно
+            // Check if the window is empty
             if (_tabWorkerMap.Count == 0)
             {
                 Hide();
@@ -638,7 +638,7 @@ public partial class TabOverflowWindow : Window
             }
         };
         
-        // Підтримка перетягування (правою кнопкою миші)
+        // Drag support (right mouse button)
         tab.DragStarted += OnTabDragStarted;
         void OnTabDragStarted(object? sender, TabDragStartedEventArgs dragArgs)
         {
@@ -648,10 +648,10 @@ public partial class TabOverflowWindow : Window
         _tabsContainer.Children.Add(tab);
         _tabWorkerMap[tab] = worker;
         
-        // Оновлюємо ширину вікна
+        // Update window width
         UpdateWindowWidth();
         
-        // Показуємо вікно якщо ще не показане
+        // Show the window if not yet shown
         if (!IsVisible)
         {
             Show();
@@ -663,7 +663,7 @@ public partial class TabOverflowWindow : Window
     }
 
     /// <summary>
-    /// Оновлює ширину вікна відповідно до кількості вкладок
+    /// Updates the window width based on the number of tabs
     /// </summary>
     private void UpdateWindowWidth()
     {
@@ -679,7 +679,7 @@ public partial class TabOverflowWindow : Window
     }
 
     /// <summary>
-    /// Оновлює стан вкладки
+    /// Updates the tab state
     /// </summary>
     public void UpdateTab(TabWorker worker)
     {
@@ -695,7 +695,7 @@ public partial class TabOverflowWindow : Window
     }
 
     /// <summary>
-    /// Оновлює favicon для вкладки в overflow вікні
+    /// Updates the favicon for a tab in the overflow window
     /// </summary>
     public void UpdateTabFavicon(TabWorker worker, Avalonia.Media.IImage? favicon)
     {
@@ -711,7 +711,7 @@ public partial class TabOverflowWindow : Window
     }
 
     /// <summary>
-    /// Оновлює title для вкладки в overflow вікні
+    /// Updates the title for a tab in the overflow window
     /// </summary>
     public void UpdateTabTitle(TabWorker worker, string title)
     {
@@ -727,7 +727,7 @@ public partial class TabOverflowWindow : Window
     }
 
     /// <summary>
-    /// Встановлює активну вкладку
+    /// Sets the active tab
     /// </summary>
     public void SetActiveTab(TabWorker? worker)
     {
@@ -738,7 +738,7 @@ public partial class TabOverflowWindow : Window
     }
 
     /// <summary>
-    /// Отримує worker по вкладці
+    /// Gets the worker for a tab
     /// </summary>
     public TabWorker? GetWorker(Tab tab)
     {
@@ -746,7 +746,7 @@ public partial class TabOverflowWindow : Window
     }
 
     /// <summary>
-    /// Отримує вкладку по worker
+    /// Gets the tab for a worker
     /// </summary>
     public Tab? GetTabByWorker(TabWorker worker)
     {
@@ -761,7 +761,7 @@ public partial class TabOverflowWindow : Window
     }
 
     /// <summary>
-    /// Отримує всіх workers в overflow вікні
+    /// Gets all workers in the overflow window
     /// </summary>
     public IEnumerable<TabWorker> GetAllWorkers()
     {
@@ -769,7 +769,7 @@ public partial class TabOverflowWindow : Window
     }
     
     /// <summary>
-    /// Видаляє worker з overflow вікна
+    /// Removes a worker from the overflow window
     /// </summary>
     public void RemoveWorker(TabWorker worker)
     {

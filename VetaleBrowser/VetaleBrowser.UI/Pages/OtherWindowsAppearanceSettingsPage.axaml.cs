@@ -94,7 +94,7 @@ public partial class OtherWindowsAppearanceSettingsPage : UserControl
             return;
         }
         
-        // Якщо сервіс null - спробуємо створити свій
+        // If service is null - try to create our own
         var service = _appearanceSettingsService;
         if (service == null)
         {

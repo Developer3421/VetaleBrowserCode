@@ -11,7 +11,7 @@ using VetaleBrowser.VetaleBrowser.UI.Helpers;
 namespace VetaleBrowser.VetaleBrowser.UI.Controls;
 
 /// <summary>
-/// Контрол для асинхронного завантаження зображень з оптимізацією пам'яті
+/// Control for asynchronous image loading with memory optimization
 /// </summary>
 public class AsyncImage : Control
 {
@@ -73,7 +73,7 @@ public class AsyncImage : Control
         base.OnDetachedFromVisualTree(e);
         CancelLoading();
         
-        // Не звільняємо bitmap тут - він може бути в кеші та використовуватись іншими
+        // Do not release the bitmap here - it may be in the cache and used by others
         _loadedBitmap = null;
     }
 
@@ -96,7 +96,7 @@ public class AsyncImage : Control
             return;
         }
 
-        // Скасовуємо попереднє завантаження
+        // Cancel previous load
         CancelLoading();
 
         _isLoading = true;
@@ -122,7 +122,7 @@ public class AsyncImage : Control
         }
         catch (OperationCanceledException)
         {
-            // Нормальне скасування
+            // Normal cancellation
         }
         catch (Exception ex)
         {
@@ -138,7 +138,7 @@ public class AsyncImage : Control
 
         if (_loadedBitmap != null)
         {
-            // Малюємо зображення
+            // Draw the image
             var sourceSize = new Size(_loadedBitmap.PixelSize.Width, _loadedBitmap.PixelSize.Height);
             var destRect = CalculateDestRect(bounds, sourceSize, Stretch);
             
@@ -146,19 +146,19 @@ public class AsyncImage : Control
         }
         else
         {
-            // Малюємо placeholder
+            // Draw placeholder
             if (PlaceholderBrush != null)
             {
                 context.FillRectangle(PlaceholderBrush, bounds);
             }
 
-            // Показуємо індикатор завантаження
+            // Show loading indicator
             if (_isLoading)
             {
                 var centerX = bounds.Width / 2;
                 var centerY = bounds.Height / 2;
                 
-                // Простий індикатор - коло
+                // Simple indicator - circle
                 var indicatorBrush = new SolidColorBrush(Color.Parse("#CCCCCC"));
                 context.DrawEllipse(indicatorBrush, null, new Point(centerX, centerY), 8, 8);
             }

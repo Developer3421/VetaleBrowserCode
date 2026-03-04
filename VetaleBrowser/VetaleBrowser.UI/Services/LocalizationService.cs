@@ -98,7 +98,7 @@ public static class LocalizationService
         try
         {
             var cfg = DatabaseConfiguration.CreateDefault();
-            // Використовуємо окремий файл settings.db
+            // Use a separate settings.db file
             var settingsDbPath = System.IO.Path.Combine(
                 System.IO.Path.GetDirectoryName(cfg.DatabasePath) ?? "",
                 "settings.db");

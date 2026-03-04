@@ -35,7 +35,7 @@ public partial class ConsoleWindow : Window
     
     private bool _isMaximized;
 
-    // Прапорець для одноразового банера ініціалізації при відкритті консолі
+    // Flag for one-time initialization banner when the console is opened
     private bool _initBannerAdded;
 
     public ConsoleWindow()
@@ -105,8 +105,8 @@ public partial class ConsoleWindow : Window
     public void SetConsoleService(ConsoleDatabaseService? service)
     {
         _consoleService = service;
-        // Не викликаємо LoadLogs тут, бо вікно може бути не повністю завантажене
-        // LoadLogs викличеться в OnWindowOpened
+        // Do not call LoadLogs here as the window may not be fully loaded yet
+        // LoadLogs will be called in OnWindowOpened
     }
 
     private void OnWindowOpened(object? sender, EventArgs e)
@@ -115,11 +115,11 @@ public partial class ConsoleWindow : Window
         {
             System.Diagnostics.Trace.WriteLine("[ConsoleWindow] Window opened");
             
-            // Додаємо одноразовий банер ініціалізації та виконуємо перше завантаження
-            _initBannerAdded = false; // гарантуємо додавання саме при відкритті
+            // Add the one-time initialization banner and perform the first load
+            _initBannerAdded = false; // ensure it is added exactly when opening
             LoadLogs(addInitBannerOnce: true);
 
-            // Автооновлення тепер керується лише чекбоксом, не запускаємо автоматично
+            // Auto-refresh is now controlled only by the checkbox, not started automatically
             
             System.Diagnostics.Trace.WriteLine("[ConsoleWindow] OnWindowOpened completed");
         }
@@ -147,16 +147,16 @@ public partial class ConsoleWindow : Window
         {
             System.Diagnostics.Trace.WriteLine("[ConsoleWindow] Cleanup started");
             
-            // Очищаємо таймер
+            // Clear the timer
             StopAutoRefresh();
 
-            // Очищаємо колекцію логів
+            // Clear the log collection
             _logItems.Clear();
 
-            // Очищаємо сервіс
+            // Clear the service
             _consoleService = null;
 
-            // Очищаємо посилання на контроли
+            // Clear references to controls
             if (_logItemsControl != null)
             {
                 _logItemsControl.ItemsSource = null;
@@ -169,7 +169,7 @@ public partial class ConsoleWindow : Window
             _levelFilterComboBox = null;
             _autoRefreshCheckBox = null;
 
-            // Відписуємося від подій
+            // Unsubscribe from events
             this.Opened -= OnWindowOpened;
             this.Closing -= OnWindowClosing;
             
@@ -190,7 +190,7 @@ public partial class ConsoleWindow : Window
         
         _autoRefreshTimer = new Timer(_ =>
         {
-            // Перевіряємо чи не disposed вікно перед викликом
+            // Check if the window has not been disposed before calling
             if (!_isDisposed && _consoleService != null)
             {
                 try
@@ -230,7 +230,7 @@ public partial class ConsoleWindow : Window
 
     private void LoadLogs(bool isAutoRefresh = false, bool addInitBannerOnce = false)
     {
-        // Захист від виклику після закриття вікна
+        // Guard against call after window is closed
         if (_isDisposed || _consoleService == null) return;
 
         try
@@ -249,8 +249,8 @@ public partial class ConsoleWindow : Window
                 logs = _consoleService.GetLogs(level: selectedLevel);
             }
 
-            // Обмежуємо кількість логів для запобігання витоку пам'яті
-            var maxLogs = 1000; // максимум 1000 логів
+            // Limit the number of logs to prevent memory leaks
+            var maxLogs = 1000; // maximum 1000 logs
             if (logs.Count > maxLogs)
             {
                 logs = logs.Skip(logs.Count - maxLogs).ToList();
@@ -266,7 +266,7 @@ public partial class ConsoleWindow : Window
 
             _logItems.Clear();
 
-            // Одноразовий банер ініціалізації (локалізований)
+            // One-time initialization banner (localized)
             if (addInitBannerOnce && !_initBannerAdded)
             {
                 var initMsg = TryGetString("Console.InitBanner", "Console initialized");

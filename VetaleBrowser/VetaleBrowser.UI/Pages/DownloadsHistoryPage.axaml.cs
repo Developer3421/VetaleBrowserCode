@@ -72,7 +72,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
             DownloadManager.Initialize();
             _items.Clear();
 
-            // 1. Показуємо все, що вже є в БД
+            // 1. Show everything already in the DB
             var all = DownloadManager.GetRecent(2000);
             var completed = all.Where(d => d.Status == "Completed");
             var term = _searchTextBox?.Text;
@@ -86,7 +86,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
             foreach (var d in completed.OrderByDescending(x => x.EndTime ?? x.StartTime))
                 _items.Add(new DownloadHistoryItemViewModel(d));
 
-            // 2. Асинхронно скануємо головну папку завантажень (без підпапок)
+                    // 2. Asynchronously scan the main downloads folder (no subfolders)
             try
             {
                 var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -97,7 +97,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
 
                 if (forceFullRescan)
                 {
-                    // Примусовий повний скан: беремо дуже стару дату як fromUtc
+                    // Forced full scan: use a very old date as fromUtc
                     var newItems = await DownloadManager.ScanDownloadsFolderAsync(DateTime.UtcNow.AddYears(-5));
                     foreach (var e in newItems)
                         Upsert(e);
@@ -112,7 +112,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
             }
             catch
             {
-                // Якщо не вдалося ініціалізувати SettingsService або просканувати, просто залишаємо список як є
+                // If SettingsService could not be initialized or scan failed, just leave the list as is
             }
         }
 
@@ -140,7 +140,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
             else
             {
                 var index = _items.IndexOf(existing);
-                // Якщо змінився шлях або ім'я — замінюємо елемент, щоб оновити іконку/текст
+            // If the path or name changed — replace the element to update the icon/text
                 if (!string.Equals(existing.TargetPath, e.TargetPath, StringComparison.OrdinalIgnoreCase)
                     || !string.Equals(existing.FileName, e.FileName, StringComparison.OrdinalIgnoreCase))
                 {

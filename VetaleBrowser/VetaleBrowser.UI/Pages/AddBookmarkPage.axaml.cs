@@ -101,12 +101,12 @@ public partial class AddBookmarkPage : UserControl
             
             if (_folderComboBox?.SelectedItem is ComboBoxItem selectedItem)
             {
-                BookmarkFolder = selectedItem.Content?.ToString() ?? "Закладки";
+                BookmarkFolder = selectedItem.Content?.ToString() ?? "Bookmarks";
             }
 
             try
             {
-                // Зберігаємо закладку в базу даних
+                // Save bookmark to the database
                 DatabaseManager.Instance.AddBookmark(
                     BookmarkUrl,
                     BookmarkName,
