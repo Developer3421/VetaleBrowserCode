@@ -4,48 +4,48 @@ using System.Threading.Tasks;
 namespace VetaleBrowser.VetaleBrowser.VoiceRecognition.Services;
 
 /// <summary>
-/// Сервіс для розпізнавання голосу
+/// Voice recognition service
 /// </summary>
 public interface IVoiceRecognitionService
 {
     /// <summary>
-    /// Подія, що викликається при розпізнаванні тексту
+    /// Event raised when text is recognized
     /// </summary>
     event EventHandler<string>? TextRecognized;
 
     /// <summary>
-    /// Подія, що викликається при зміні стану розпізнавання
+    /// Event raised when the recognition state changes
     /// </summary>
     event EventHandler<VoiceRecognitionState>? StateChanged;
 
     /// <summary>
-    /// Подія, що викликається при виникненні помилки
+    /// Event raised when an error occurs
     /// </summary>
     event EventHandler<string>? ErrorOccurred;
 
     /// <summary>
-    /// Починає прослуховування голосу
+    /// Starts listening for voice input
     /// </summary>
     Task StartListeningAsync();
 
     /// <summary>
-    /// Зупиняє прослуховування голосу
+    /// Stops listening for voice input
     /// </summary>
     void StopListening();
 
     /// <summary>
-    /// Перевіряє, чи доступне розпізнавання голосу
+    /// Checks whether voice recognition is available
     /// </summary>
     bool IsAvailable();
 
     /// <summary>
-    /// Поточний стан розпізнавання
+    /// Current recognition state
     /// </summary>
     VoiceRecognitionState CurrentState { get; }
 }
 
 /// <summary>
-/// Стан розпізнавання голосу
+/// Voice recognition state
 /// </summary>
 public enum VoiceRecognitionState
 {
