@@ -17,20 +17,19 @@ using System.Threading.Tasks;
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 {
     /// <summary>
-    /// Представляє один запис в історії навігації вкладки
-    /// </summary>
+    /// Represents a single entry in the tab navigation history    /// </summary>
     public class NavigationEntry
     {
-        /// <summary>URL сторінки (може бути як http(s):// так і vetale://)</summary>
+        /// <summary>Page URL (can be either http(s):// or vetale://)</summary>
         public string Url { get; set; } = string.Empty;
         
-        /// <summary>Заголовок сторінки</summary>
+        /// <summary>Page title</summary>
         public string? Title { get; set; }
         
-        /// <summary>Чи є це внутрішня сторінка (vetale://)</summary>
+        /// <summary>Is this an internal page (vetale://)</summary>
         public bool IsInternal { get; set; }
         
-        /// <summary>UserControl для внутрішніх сторінок (VetaleSearchHomePage, тощо)</summary>
+        /// <summary>UserControl for internal pages (VetaleSearchHomePage, etc.)</summary>
         public UserControl? InternalPageContent { get; set; }
         
         /// <summary>Час створення запису</summary>
