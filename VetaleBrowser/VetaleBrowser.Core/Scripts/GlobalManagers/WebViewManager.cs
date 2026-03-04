@@ -121,15 +121,15 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers
                 {
                     try
                     {
-                        // WebViewControl використовує ExecuteJavascript або подібні методи
-                        // Оскільки точний API невідомий, використовуємо альтернативний підхід
+                        // WebViewControl uses ExecuteJavascript or similar methods
+                        // Since the exact API is unknown, we use an alternative approach
                         var result = string.Empty;
                         Dispatcher.UIThread.Post(() =>
                         {
                             try
                             {
-                                // Спроба виконати через address bar з javascript: protocol
-                                // або інший доступний спосіб
+                                // Attempt to execute via address bar using javascript: protocol
+                                // or another available method
                                 Debug.WriteLine($"WebViewManager: Attempting to execute script: {script.Substring(0, Math.Min(100, script.Length))}...");
                             }
                             catch (Exception ex)
