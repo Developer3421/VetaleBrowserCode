@@ -31,7 +31,7 @@ public partial class GeminiChatPanel : UserControl, IDisposable
     private bool _isDisposed;
     
     /// <summary>
-    /// Подія для навігації до URL у браузері Vetale
+    /// Event for navigation to a URL in the Vetale browser
     /// </summary>
     public event EventHandler<string>? NavigateRequested;
 
@@ -199,7 +199,7 @@ public partial class GeminiChatPanel : UserControl, IDisposable
         {
             System.Diagnostics.Debug.WriteLine("[GeminiChat] Sending request to Gemini...");
             
-            // Оновлюємо API ключ перед запитом (на випадок якщо користувач змінив його в налаштуваннях)
+            // Update API key before request (in case the user changed it in settings)
             _geminiService.RefreshApiKey();
             System.Diagnostics.Debug.WriteLine($"[GeminiChat] API key refreshed, current key: {_geminiService.CurrentApiKey?.Substring(0, Math.Min(10, _geminiService.CurrentApiKey?.Length ?? 0))}...");
 
@@ -227,10 +227,10 @@ public partial class GeminiChatPanel : UserControl, IDisposable
             {
                 System.Diagnostics.Debug.WriteLine($"[GeminiChat] Error: {summary.ErrorMessage}");
                 
-                // Перевіряємо чи потрібен API ключ
+                // Check whether API key is needed
                 if (summary.ErrorMessage == "API_KEY_REQUIRED")
                 {
-                    // Показуємо повідомлення що треба налаштувати ключ в налаштуваннях VetaleSearch
+                    // Show message that the key needs to be configured in VetaleSearch settings
                     AddAssistantMessage("⚠️ Gemini API key is not configured. Please add your API key in Tools → VetaleSearch Settings.");
                 }
                 else
@@ -431,7 +431,7 @@ public partial class GeminiChatPanel : UserControl, IDisposable
         {
             var parentWindow = TopLevel.GetTopLevel(this) as Window;
             
-            // Передаємо callback для навігації у браузері Vetale
+            // Pass callback for navigation in the Vetale browser
             var result = await ApiKeyConfigWindow.ShowGeminiConfigAsync(parentWindow, url =>
             {
                 NavigateRequested?.Invoke(this, url);
@@ -446,22 +446,22 @@ public partial class GeminiChatPanel : UserControl, IDisposable
 
             if (result.Skipped)
             {
-                // Використовуємо дефолтний ключ
+                // Use the default key
                 GeminiAiSummaryService.ClearCustomApiKey();
                 System.Diagnostics.Debug.WriteLine("[GeminiChat] Using default API key");
             }
             else if (result.Saved && !string.IsNullOrWhiteSpace(result.ApiKey))
             {
-                // Встановлюємо кастомний ключ (вже збережено в БД)
+                // Set the custom key (already saved to DB)
                 GeminiAiSummaryService.SetCustomApiKey(result.ApiKey);
                 System.Diagnostics.Debug.WriteLine("[GeminiChat] Custom API key set");
             }
 
-            // Переініціалізуємо сервіс з новим ключем
+            // Re-initialize service with the new key
             _geminiService?.Dispose();
             _geminiService = new GeminiAiSummaryService();
 
-            // Повторюємо запит
+            // Repeat the request
             var apiKeySetMsg = GetLocalizedString("GeminiChat.Error.ApiKeySet", "API ключ налаштовано. Обробляю ваш запит...");
             AddAssistantMessage($"✨ {apiKeySetMsg}");
             await GenerateResponseAsync(originalMessage);

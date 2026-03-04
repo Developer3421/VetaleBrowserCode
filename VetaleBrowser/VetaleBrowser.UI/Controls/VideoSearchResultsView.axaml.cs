@@ -28,7 +28,7 @@ public partial class VideoSearchResultsView : UserControl
     private readonly HttpClient _httpClient;
 
     /// <summary>
-    /// Максимум результатів на сторінку
+    /// Maximum results per page
     /// </summary>
     public const int MaxResultsPerPage = 50;
 
@@ -53,7 +53,7 @@ public partial class VideoSearchResultsView : UserControl
         {
             _itemsHost.ItemsSource = _items;
             
-            // Підключаємо обробник кліку для контейнерів
+            // Connect click handler for containers
             _itemsHost.AddHandler(Avalonia.Input.InputElement.PointerPressedEvent, OnItemPointerPressed, Avalonia.Interactivity.RoutingStrategies.Tunnel);
         }
 
@@ -69,7 +69,7 @@ public partial class VideoSearchResultsView : UserControl
     
     private void OnItemPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        // Знаходимо VideoSearchResult з DataContext
+        // Find VideoSearchResult from DataContext
         if (e.Source is Control control)
         {
             var current = control;
@@ -112,7 +112,7 @@ public partial class VideoSearchResultsView : UserControl
         
         _loadCts?.Cancel();
         _loadCts = new CancellationTokenSource();
-        // Додаємо таймаут 15 секунд щоб уникнути зависання
+        // Add a 15-second timeout to avoid freezing
         _loadCts.CancelAfter(TimeSpan.FromSeconds(15));
         var ct = _loadCts.Token;
 
@@ -122,7 +122,7 @@ public partial class VideoSearchResultsView : UserControl
             
             if (string.IsNullOrWhiteSpace(apiKey))
             {
-                // Немає API ключа - показуємо повідомлення і завершуємо
+                // No API key - show message and exit
                 System.Diagnostics.Debug.WriteLine("[VideoSearch] No YouTube API key configured - skipping search");
                 _hasNextPage = false;
                 
@@ -202,7 +202,7 @@ public partial class VideoSearchResultsView : UserControl
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
 
-            // Наступна сторінка
+            // Next page
             if (root.TryGetProperty("nextPageToken", out var nextToken))
             {
                 _nextPageToken = nextToken.GetString();
@@ -237,7 +237,7 @@ public partial class VideoSearchResultsView : UserControl
                             VideoUrl = $"https://www.youtube.com/watch?v={id}",
                             ChannelUrl = snippet.TryGetProperty("channelId", out var chUrl) 
                                 ? $"https://www.youtube.com/channel/{chUrl.GetString()}" : "",
-                            Duration = "—" // Потрібен додатковий запит до videos API
+                            Duration = "—" // Additional request to the videos API is required
                         };
 
                         // Thumbnail
@@ -251,7 +251,7 @@ public partial class VideoSearchResultsView : UserControl
                                 video.ThumbnailUrl = def.GetProperty("url").GetString() ?? "";
                         }
 
-                        // Дата публікації
+                        // Publication date
                         if (snippet.TryGetProperty("publishedAt", out var pubDate))
                         {
                             if (DateTime.TryParse(pubDate.GetString(), out var date))
@@ -287,7 +287,7 @@ public partial class VideoSearchResultsView : UserControl
         var extent = _scrollViewer.Extent.Height;
         var viewport = _scrollViewer.Viewport.Height;
 
-        // Завантажуємо більше коли майже в кінці
+        // Load more when near the end
         if (extent - (offset + viewport) < 300)
         {
             _ = LoadNextPageAsync();

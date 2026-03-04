@@ -15,7 +15,7 @@ public partial class ToolsMainPage : UserControl
     private readonly IFaviconService? _faviconService;
     private StackPanel? _toolsListPanel;
 
-    // Статичні посилання на вікна для уникнення витоків пам'яті
+    // Static window references to prevent memory leaks
     private static Windows.HistoryWindow? _historyWindowInstance;
     private static Windows.ConsoleWindow? _consoleWindowInstance;
     private static Windows.DevToolsWindow? _devToolsWindowInstance;
@@ -302,7 +302,7 @@ public partial class ToolsMainPage : UserControl
     {
         try
         {
-            // Перевіряємо, чи існує вже відкрите вікно
+            // Check if a window is already open
             if (_vetaleAiWindowInstance != null)
             {
                 try
@@ -315,7 +315,7 @@ public partial class ToolsMainPage : UserControl
                 }
                 catch
                 {
-                    // Вікно закрите, очищаємо посилання
+                    // Window is closed, clear the reference
                     System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Previous VetaleAI window was closed, creating new one");
                     _vetaleAiWindowInstance = null;
                 }
@@ -324,7 +324,7 @@ public partial class ToolsMainPage : UserControl
             System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Creating new VetaleAIWindow instance...");
             _vetaleAiWindowInstance = new Windows.VetaleAIWindow();
             
-            // Підписуємося на закриття вікна для очищення посилання
+            // Subscribe to window close event to clear the reference
             _vetaleAiWindowInstance.Closed += (s, e) =>
             {
                 System.Diagnostics.Debug.WriteLine("[ToolsMainPage] VetaleAIWindow closed, clearing reference");
@@ -347,7 +347,7 @@ public partial class ToolsMainPage : UserControl
         
         try
         {
-            // Перевіряємо, чи існує вже відкрите вікно
+            // Check if a window is already open
             if (_devToolsWindowInstance != null)
             {
                 try
@@ -360,7 +360,7 @@ public partial class ToolsMainPage : UserControl
                 }
                 catch
                 {
-                    // Вікно закрите, очищаємо посилання
+                    // Window is closed, clear the reference
                     System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Previous DevTools window was closed, creating new one");
                     _devToolsWindowInstance = null;
                 }
@@ -369,7 +369,7 @@ public partial class ToolsMainPage : UserControl
             System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Creating new DevToolsWindow instance...");
             _devToolsWindowInstance = new Windows.DevToolsWindow();
             
-            // Підписуємося на закриття вікна для очищення посилання
+            // Subscribe to window close event to clear the reference
             _devToolsWindowInstance.Closed += (s, e) =>
             {
                 System.Diagnostics.Debug.WriteLine("[ToolsMainPage] DevToolsWindow closed, clearing reference");
@@ -394,7 +394,7 @@ public partial class ToolsMainPage : UserControl
         
         try
         {
-            // Перевіряємо, чи існує вже відкрите вікно
+            // Check if a window is already open
             if (_historyWindowInstance != null)
             {
                 try
@@ -407,7 +407,7 @@ public partial class ToolsMainPage : UserControl
                 }
                 catch
                 {
-                    // Вікно закрите, очищаємо посилання
+                    // Window is closed, clear the reference
                     System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Previous window was closed, creating new one");
                     _historyWindowInstance = null;
                 }
@@ -417,7 +417,7 @@ public partial class ToolsMainPage : UserControl
             _historyWindowInstance = new Windows.HistoryWindow();
             System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Step 1: SUCCESS - HistoryWindow created");
             
-            // Підписуємося на закриття вікна для очищення посилання
+            // Subscribe to window close event to clear the reference
             _historyWindowInstance.Closed += (s, e) =>
             {
                 System.Diagnostics.Debug.WriteLine("[ToolsMainPage] HistoryWindow closed, clearing reference");
@@ -458,7 +458,7 @@ public partial class ToolsMainPage : UserControl
                 System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Inner Stack trace: {ex.InnerException.StackTrace}");
             }
             
-            // Показуємо користувачу діалог з помилкою
+            // Show error dialog to the user
             try
             {
                 var errorWindow = new Window
@@ -529,7 +529,7 @@ public partial class ToolsMainPage : UserControl
         
         try
         {
-            // Перевіряємо, чи існує вже відкрите вікно
+            // Check if a window is already open
             if (_consoleWindowInstance != null)
             {
                 try
@@ -542,7 +542,7 @@ public partial class ToolsMainPage : UserControl
                 }
                 catch
                 {
-                    // Вікно закрите, очищаємо посилання
+                    // Window is closed, clear the reference
                     System.Diagnostics.Trace.WriteLine("[ToolsMainPage] Previous console window was closed, creating new one");
                     _consoleWindowInstance = null;
                 }
@@ -550,7 +550,7 @@ public partial class ToolsMainPage : UserControl
 
             _consoleWindowInstance = new Windows.ConsoleWindow();
             
-            // Підписуємося на закриття вікна для очищення посилання
+            // Subscribe to window close event to clear the reference
             _consoleWindowInstance.Closed += (s, e) =>
             {
                 System.Diagnostics.Trace.WriteLine("[ToolsMainPage] ConsoleWindow closed, clearing reference");
@@ -576,7 +576,7 @@ public partial class ToolsMainPage : UserControl
         
         try
         {
-            // Перевіряємо, чи існує вже відкрите вікно
+            // Check if a window is already open
             if (_downloadsWindowInstance != null)
             {
                 try
@@ -589,7 +589,7 @@ public partial class ToolsMainPage : UserControl
                 }
                 catch
                 {
-                    // Вікно закрите, очищаємо посилання
+                    // Window is closed, clear the reference
                     System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Previous Downloads window was closed, creating new one");
                     _downloadsWindowInstance = null;
                 }
@@ -598,7 +598,7 @@ public partial class ToolsMainPage : UserControl
             System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Creating new DownloadsWindow instance...");
             _downloadsWindowInstance = new Windows.DownloadsWindow();
             
-            // Підписуємося на закриття вікна для очищення посилання
+            // Subscribe to window close event to clear the reference
             _downloadsWindowInstance.Closed += (s, e) =>
             {
                 System.Diagnostics.Debug.WriteLine("[ToolsMainPage] DownloadsWindow closed, clearing reference");
@@ -623,7 +623,7 @@ public partial class ToolsMainPage : UserControl
         
         try
         {
-            // Перевіряємо, чи існує вже відкрите вікно
+            // Check if a window is already open
             if (_userAgreementWindowInstance != null)
             {
                 try
@@ -636,7 +636,7 @@ public partial class ToolsMainPage : UserControl
                 }
                 catch
                 {
-                    // Вікно закрите, очищаємо посилання
+                    // Window is closed, clear the reference
                     System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Previous UserAgreement window was closed, creating new one");
                     _userAgreementWindowInstance = null;
                 }
@@ -645,7 +645,7 @@ public partial class ToolsMainPage : UserControl
             System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Creating new UserAgreementWindow instance (read-only)...");
             _userAgreementWindowInstance = new Windows.UserAgreementWindow(readOnly: true);
             
-            // Підписуємося на закриття вікна для очищення посилання
+            // Subscribe to window close event to clear the reference
             _userAgreementWindowInstance.Closed += (s, e) =>
             {
                 System.Diagnostics.Debug.WriteLine("[ToolsMainPage] UserAgreementWindow closed, clearing reference");
@@ -670,7 +670,7 @@ public partial class ToolsMainPage : UserControl
         
         try
         {
-            // Перевіряємо, чи існує вже відкрите вікно
+            // Check if a window is already open
             if (_aboutWindowInstance != null)
             {
                 try
@@ -683,7 +683,7 @@ public partial class ToolsMainPage : UserControl
                 }
                 catch
                 {
-                    // Вікно закрите, очищаємо посилання
+                    // Window is closed, clear the reference
                     System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Previous About window was closed, creating new one");
                     _aboutWindowInstance = null;
                 }
@@ -692,7 +692,7 @@ public partial class ToolsMainPage : UserControl
             System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Creating new AboutWindow instance...");
             _aboutWindowInstance = new Windows.AboutWindow();
             
-            // Підписуємося на закриття вікна для очищення посилання
+            // Subscribe to window close event to clear the reference
             _aboutWindowInstance.Closed += (s, e) =>
             {
                 System.Diagnostics.Debug.WriteLine("[ToolsMainPage] AboutWindow closed, clearing reference");
@@ -717,7 +717,7 @@ public partial class ToolsMainPage : UserControl
         
         try
         {
-            // Перевіряємо, чи існує вже відкрите вікно
+            // Check if a window is already open
             if (_vetaleSearchSettingsWindowInstance != null)
             {
                 try
@@ -730,7 +730,7 @@ public partial class ToolsMainPage : UserControl
                 }
                 catch
                 {
-                    // Вікно закрите, очищаємо посилання
+                    // Window is closed, clear the reference
                     System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Previous VetaleSearchSettings window was closed, creating new one");
                     _vetaleSearchSettingsWindowInstance = null;
                 }
@@ -739,7 +739,7 @@ public partial class ToolsMainPage : UserControl
             System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Creating new VetaleSearchSettingsWindow instance...");
             _vetaleSearchSettingsWindowInstance = new Windows.VetaleSearchSettingsWindow();
             
-            // Підписуємося на закриття вікна для очищення посилання
+            // Subscribe to window close event to clear the reference
             _vetaleSearchSettingsWindowInstance.Closed += (s, e) =>
             {
                 System.Diagnostics.Debug.WriteLine("[ToolsMainPage] VetaleSearchSettingsWindow closed, clearing reference");

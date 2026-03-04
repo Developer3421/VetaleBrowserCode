@@ -12,8 +12,8 @@ using Avalonia.Threading;
 namespace VetaleBrowser.VetaleBrowser.UI.Helpers;
 
 /// <summary>
-/// Оптимізований завантажувач зображень з кешуванням та обмеженням розміру
-/// для економії оперативної пам'яті та запобігання витокам
+/// Optimized image loader with caching and size limits
+/// to save RAM and prevent memory leaks
 /// </summary>
 public static class OptimizedImageLoader
 {
@@ -22,21 +22,21 @@ public static class OptimizedImageLoader
         Timeout = TimeSpan.FromSeconds(15)
     };
 
-    // Кеш для зображень (обмежений розмір)
+    // Image cache (limited size)
     private static readonly ConcurrentDictionary<string, WeakReference<Bitmap>> _imageCache = new();
     
-    // Максимальний розмір кешу
+    // Maximum cache size
     private const int MaxCacheSize = 100;
     
-    // Максимальна ширина/висота зображення для превью
+    // Maximum image width/height for previews
     public const int MaxPreviewWidth = 300;
     public const int MaxPreviewHeight = 250;
     
-    // Семафор для обмеження паралельних завантажень
+    // Semaphore to limit concurrent downloads
     private static readonly SemaphoreSlim _loadSemaphore = new(4, 4);
 
     /// <summary>
-    /// Завантажує зображення з URL з оптимізацією розміру
+    /// Loads an image from a URL with size optimization
     /// </summary>
     public static async Task<Bitmap?> LoadImageAsync(string? url, CancellationToken ct = default)
     {
@@ -45,7 +45,7 @@ public static class OptimizedImageLoader
 
         try
         {
-            // Перевіряємо кеш
+            // Check cache
             if (_imageCache.TryGetValue(url, out var weakRef) && weakRef.TryGetTarget(out var cached))
             {
                 return cached;
@@ -54,28 +54,28 @@ public static class OptimizedImageLoader
             await _loadSemaphore.WaitAsync(ct);
             try
             {
-                // Повторна перевірка після отримання семафору
+                // Double-check after acquiring the semaphore
                 if (_imageCache.TryGetValue(url, out weakRef) && weakRef.TryGetTarget(out cached))
                 {
                     return cached;
                 }
 
-                // Завантажуємо зображення
+                // Download the image
                 var bytes = await _httpClient.GetByteArrayAsync(url, ct);
                 
                 if (bytes == null || bytes.Length == 0)
                     return null;
 
-                // Декодуємо з обмеженням розміру
+                // Decode with size limit
                 using var stream = new MemoryStream(bytes);
                 var bitmap = await Task.Run(() => DecodeWithSizeLimit(stream), ct);
 
                 if (bitmap != null)
                 {
-                    // Очищуємо кеш якщо він переповнений
+                    // Clear cache if it is full
                     CleanupCacheIfNeeded();
                     
-                    // Додаємо в кеш з WeakReference
+                    // Add to cache with WeakReference
                     _imageCache[url] = new WeakReference<Bitmap>(bitmap);
                 }
 
@@ -98,23 +98,23 @@ public static class OptimizedImageLoader
     }
 
     /// <summary>
-    /// Декодує зображення з обмеженням розміру для економії пам'яті
+    /// Decodes an image with a size limit to save memory
     /// </summary>
     private static Bitmap? DecodeWithSizeLimit(Stream stream)
     {
         try
         {
-            // Спочатку читаємо оригінальне зображення
+            // First read the original image
             stream.Position = 0;
             var original = new Bitmap(stream);
 
-            // Якщо зображення вже маленьке - повертаємо як є
+            // If the image is already small - return as is
             if (original.PixelSize.Width <= MaxPreviewWidth && original.PixelSize.Height <= MaxPreviewHeight)
             {
                 return original;
             }
 
-            // Обчислюємо новий розмір зі збереженням пропорцій
+            // Calculate new size preserving aspect ratio
             var ratioX = (double)MaxPreviewWidth / original.PixelSize.Width;
             var ratioY = (double)MaxPreviewHeight / original.PixelSize.Height;
             var ratio = Math.Min(ratioX, ratioY);
@@ -122,10 +122,10 @@ public static class OptimizedImageLoader
             var newWidth = (int)(original.PixelSize.Width * ratio);
             var newHeight = (int)(original.PixelSize.Height * ratio);
 
-            // Створюємо зменшену версію
+            // Create a scaled-down version
             var scaled = original.CreateScaledBitmap(new PixelSize(newWidth, newHeight), BitmapInterpolationMode.MediumQuality);
             
-            // Звільняємо оригінал
+            // Release the original
             original.Dispose();
 
             return scaled;
@@ -138,14 +138,14 @@ public static class OptimizedImageLoader
     }
 
     /// <summary>
-    /// Очищує кеш якщо він переповнений
+    /// Clears the cache if it is full
     /// </summary>
     private static void CleanupCacheIfNeeded()
     {
         if (_imageCache.Count <= MaxCacheSize)
             return;
 
-        // Видаляємо записи з мертвими посиланнями
+        // Remove entries with dead references
         var keysToRemove = new System.Collections.Generic.List<string>();
         
         foreach (var kvp in _imageCache)
@@ -161,7 +161,7 @@ public static class OptimizedImageLoader
             _imageCache.TryRemove(key, out _);
         }
 
-        // Якщо все ще забагато - видаляємо половину
+        // If still too many - remove half
         if (_imageCache.Count > MaxCacheSize)
         {
             var count = 0;
@@ -176,7 +176,7 @@ public static class OptimizedImageLoader
     }
 
     /// <summary>
-    /// Очищує весь кеш (викликати при закритті вкладки пошуку)
+    /// Clears the entire cache (call when closing the search tab)
     /// </summary>
     public static void ClearCache()
     {

@@ -33,9 +33,9 @@ public partial class NormalModePage : UserControl
     public Grid? TabBar => _tabBarRow;
 
     /// <summary>
-    /// Повертає активний контент вкладки (якщо це внутрішня сторінка),
-    /// який відображається всередині контейнера WebViewContainer.
-    /// Використовується MainWindow для визначення, чи показується зараз VetaleSearchResultsPage.
+    /// Returns the active tab content (if it is an internal page)
+    /// that is displayed inside the WebViewContainer.
+    /// Used by MainWindow to determine whether VetaleSearchResultsPage is currently shown.
     /// </summary>
     public UserControl? GetActiveTabContent()
     {

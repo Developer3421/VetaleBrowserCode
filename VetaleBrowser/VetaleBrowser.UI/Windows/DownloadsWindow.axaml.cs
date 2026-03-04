@@ -62,7 +62,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Windows
 
         private void TopBar_DoubleTapped(object? sender, RoutedEventArgs e)
         {
-            // Максимізація для додаткових вікон не використовується
+            // Maximization is not used for secondary windows
         }
 
         private void MinimizeWindow(object? sender, RoutedEventArgs e)

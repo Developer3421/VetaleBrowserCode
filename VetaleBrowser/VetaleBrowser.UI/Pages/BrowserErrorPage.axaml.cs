@@ -10,19 +10,19 @@ using VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers;
 namespace VetaleBrowser.VetaleBrowser.UI.Pages
 {
     /// <summary>
-    /// Сторінка помилки браузера з локалізованими повідомленнями
-    /// Сучасний дизайн у стилі Chrome/Firefox
+    /// Browser error page with localized messages
+    /// Modern design in the style of Chrome/Firefox
     /// </summary>
     public partial class BrowserErrorPage : UserControl
     {
         private BrowserError? _error;
         
         /// <summary>
-        /// Поточна помилка
+        /// Current error
         /// </summary>
         public BrowserError? Error => _error;
         
-        // Елементи UI
+        // UI elements
         private Border? _errorIconCircle;
         private TextBlock? _errorIconText;
         private TextBlock? _errorTitleText;
@@ -45,27 +45,27 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         private TextBlock? _gameDeveloperText;
 
         /// <summary>
-        /// Подія запиту повторної спроби завантаження
+        /// Event for requesting a retry of page loading
         /// </summary>
         public event EventHandler? RetryRequested;
         
         /// <summary>
-        /// Подія запиту повернення назад
+        /// Event for requesting navigation back
         /// </summary>
         public event EventHandler? GoBackRequested;
         
         /// <summary>
-        /// Подія запиту переходу на головну (залишаємо для сумісності)
+        /// Event for requesting navigation home (kept for compatibility)
         /// </summary>
         public event EventHandler? GoHomeRequested;
         
         /// <summary>
-        /// Подія запиту пошуку
+        /// Event for requesting a search
         /// </summary>
         public event EventHandler<string>? SearchRequested;
         
         /// <summary>
-        /// Подія запиту запуску гри HexGL
+        /// Event for requesting the HexGL game to be launched
         /// </summary>
         public event EventHandler? PlayGameRequested;
 
@@ -111,7 +111,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         }
         
         /// <summary>
-        /// Застосувати локалізацію до статичних елементів
+        /// Apply localization to static elements
         /// </summary>
         private void ApplyLocalization()
         {
@@ -134,7 +134,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         }
         
         /// <summary>
-        /// Отримати локалізований рядок
+        /// Get a localized string
         /// </summary>
         private string GetLocalizedString(string key, string defaultValue)
         {
@@ -148,19 +148,19 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         }
 
         /// <summary>
-        /// Встановлює дані помилки та оновлює UI
+        /// Sets the error data and updates the UI
         /// </summary>
         public void SetError(BrowserError error)
         {
             _error = error ?? throw new ArgumentNullException(nameof(error));
             
-            // Оновлюємо колір кола іконки відповідно до категорії
+            // Update the icon circle color according to category
             if (_errorIconCircle != null)
             {
                 _errorIconCircle.Background = new SolidColorBrush(GetIconCircleColor(error.Category));
             }
             
-            // Оновлюємо іконку та заголовок
+            // Update icon and title
             if (_errorIconText != null)
                 _errorIconText.Text = error.Icon;
             
@@ -170,37 +170,37 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
             if (_errorCategoryText != null)
                 _errorCategoryText.Text = GetCategoryDisplayName(error.Category);
             
-            // Оновлюємо опис
+            // Update description
             if (_errorDescriptionText != null)
                 _errorDescriptionText.Text = error.Description;
             
-            // Оновлюємо URL
+            // Update URL
             if (_failedUrlText != null)
                 _failedUrlText.Text = error.FailedUrl;
             
-            // Оновлюємо код помилки
+            // Update error code
             if (_errorCodeText != null)
                 _errorCodeText.Text = $"{error.ErrorName} ({error.ErrorCode})";
             
-            // Оновлюємо час
+            // Update timestamp
             if (_timestampText != null)
             {
                 var timeLabel = GetLocalizedString("ErrorPage.Time", "Час");
                 _timestampText.Text = $"{timeLabel}: {error.OccurredAt.ToLocalTime():HH:mm:ss dd.MM.yyyy}";
             }
             
-            // Оновлюємо підказки
+            // Update tips
             UpdateTips(error.Tips);
             
-            // Показуємо/приховуємо секцію пошуку
+            // Show/hide search section
             if (_searchSection != null)
                 _searchSection.IsVisible = error.ShowSearch;
             
-            // Показуємо/приховуємо кнопку повторної спроби
+            // Show/hide retry button
             if (_retryButton != null)
                 _retryButton.IsVisible = error.CanRetry;
             
-            // Заповнюємо поле пошуку доменом з URL
+            // Pre-fill search field with domain from URL
             if (_searchTextBox != null && error.ShowSearch)
             {
                 try
@@ -216,22 +216,22 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         }
         
         /// <summary>
-        /// Отримує колір кола іконки за категорією
+        /// Gets the icon circle color by category
         /// </summary>
         private Color GetIconCircleColor(BrowserErrorCategory category)
         {
             return category switch
             {
-                BrowserErrorCategory.NetworkError => Color.Parse("#FEF3C7"),    // Помаранчевий/жовтий
-                BrowserErrorCategory.ServerError => Color.Parse("#FEE2E2"),     // Червоний
-                BrowserErrorCategory.SecurityError => Color.Parse("#FECACA"),   // Темно-червоний
-                BrowserErrorCategory.GeneralError => Color.Parse("#E2E8F0"),    // Сірий
+                BrowserErrorCategory.NetworkError => Color.Parse("#FEF3C7"),    // Orange/yellow
+                BrowserErrorCategory.ServerError => Color.Parse("#FEE2E2"),     // Red
+                BrowserErrorCategory.SecurityError => Color.Parse("#FECACA"),   // Dark red
+                BrowserErrorCategory.GeneralError => Color.Parse("#E2E8F0"),    // Gray
                 _ => Color.Parse("#E2E8F0")
             };
         }
         
         /// <summary>
-        /// Отримує назву категорії для відображення
+        /// Gets the category display name
         /// </summary>
         private string GetCategoryDisplayName(BrowserErrorCategory category)
         {
@@ -246,7 +246,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         }
         
         /// <summary>
-        /// Оновлює список підказок
+        /// Updates the tips list
         /// </summary>
         private void UpdateTips(string[] tips)
         {
@@ -268,7 +268,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
                     Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand)
                 };
                 
-                // Ефект наведення
+                // Hover effect
                 tipBorder.PointerEntered += (s, e) =>
                 {
                     tipBorder.Background = new SolidColorBrush(Color.Parse("#F1F5F9"));
@@ -286,7 +286,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
                     Spacing = 14
                 };
                 
-                // Номер підказки в колі
+                // Tip number in a circle
                 var numberBorder = new Border
                 {
                     Width = 28,
@@ -307,7 +307,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
                 };
                 numberBorder.Child = numberText;
                 
-                // Текст підказки
+                // Tip text
                 var tipText = new TextBlock
                 {
                     Text = tip,
@@ -328,7 +328,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         }
         
         /// <summary>
-        /// Обробник кнопки "Спробувати знову"
+        /// Handler for the "Retry" button
         /// </summary>
         private void OnRetryClicked(object? sender, RoutedEventArgs e)
         {
@@ -336,7 +336,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         }
         
         /// <summary>
-        /// Обробник кнопки "Назад"
+        /// Handler for the "Go Back" button
         /// </summary>
         private void OnGoBackClicked(object? sender, RoutedEventArgs e)
         {
@@ -344,7 +344,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         }
         
         /// <summary>
-        /// Обробник кнопки "Шукати"
+        /// Handler for the "Search" button
         /// </summary>
         private void OnSearchClicked(object? sender, RoutedEventArgs e)
         {
@@ -356,7 +356,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         }
         
         /// <summary>
-        /// Обробник кнопки "Грати в гру"
+        /// Handler for the "Play Game" button
         /// </summary>
         private void OnPlayGameClicked(object? sender, RoutedEventArgs e)
         {
@@ -364,7 +364,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         }
         
         /// <summary>
-        /// Статичний метод для швидкого створення сторінки помилки
+        /// Static method for quickly creating an error page
         /// </summary>
         public static BrowserErrorPage CreateForCefError(int errorCode, string failedUrl, string? errorText = null)
         {
@@ -373,7 +373,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages
         }
         
         /// <summary>
-        /// Статичний метод для створення сторінки HTTP помилки
+        /// Static method for creating an HTTP error page
         /// </summary>
         public static BrowserErrorPage CreateForHttpError(int httpStatusCode, string failedUrl)
         {

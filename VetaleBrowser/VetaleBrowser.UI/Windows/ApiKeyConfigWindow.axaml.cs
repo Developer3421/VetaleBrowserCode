@@ -11,7 +11,7 @@ using VetaleBrowser.VetaleBrowser.Database.Services;
 namespace VetaleBrowser.VetaleBrowser.UI.Windows;
 
 /// <summary>
-/// Тип API сервісу для конфігурації
+/// API service type for configuration
 /// </summary>
 public enum ApiServiceType
 {
@@ -22,7 +22,7 @@ public enum ApiServiceType
 }
 
 /// <summary>
-/// Конфігурація для вікна API ключа
+/// Configuration for the API key window
 /// </summary>
 public class ApiKeyWindowConfig
 {
@@ -61,7 +61,7 @@ public class ApiKeyWindowConfig
     }
     
     /// <summary>
-    /// Створює конфігурацію для Gemini
+    /// Creates a configuration for Gemini
     /// </summary>
     public static ApiKeyWindowConfig CreateGemini() => new()
     {
@@ -86,7 +86,7 @@ public class ApiKeyWindowConfig
     };
     
     /// <summary>
-    /// Створює конфігурацію для Pexels
+    /// Creates a configuration for Pexels
     /// </summary>
     public static ApiKeyWindowConfig CreatePexels() => new()
     {
@@ -111,7 +111,7 @@ public class ApiKeyWindowConfig
     };
     
     /// <summary>
-    /// Створює конфігурацію для Unsplash
+    /// Creates a configuration for Unsplash
     /// </summary>
     public static ApiKeyWindowConfig CreateUnsplash() => new()
     {
@@ -136,7 +136,7 @@ public class ApiKeyWindowConfig
     };
     
     /// <summary>
-    /// Створює конфігурацію для YouTube
+    /// Creates a configuration for YouTube
     /// </summary>
     public static ApiKeyWindowConfig CreateYouTube() => new()
     {
@@ -162,7 +162,7 @@ public class ApiKeyWindowConfig
 }
 
 /// <summary>
-/// Результат діалогу API ключа
+/// API key dialog result
 /// </summary>
 public class ApiKeyConfigResult
 {
@@ -172,13 +172,13 @@ public class ApiKeyConfigResult
     public string? ApiKey { get; set; }
     public ApiServiceType ServiceType { get; set; }
     /// <summary>
-    /// URL який потрібно відкрити у браузері (якщо користувач натиснув на посилання)
+    /// URL to open in the browser (if the user clicked a link)
     /// </summary>
     public string? NavigateToUrl { get; set; }
 }
 
 /// <summary>
-/// Універсальне вікно для конфігурації API ключів
+/// Universal window for configuring API keys
 /// </summary>
 public partial class ApiKeyConfigWindow : Window
 {
@@ -201,12 +201,12 @@ public partial class ApiKeyConfigWindow : Window
     private TaskCompletionSource<ApiKeyConfigResult>? _resultTcs;
     
     /// <summary>
-    /// Подія для навігації до URL у браузері Vetale
+    /// Event for navigation to a URL in the Vetale browser
     /// </summary>
     public event EventHandler<string>? NavigateRequested;
     
     /// <summary>
-    /// Callback для навігації (альтернатива до події)
+    /// Navigation callback (alternative to the event)
     /// </summary>
     private Action<string>? _navigateCallback;
 
@@ -268,7 +268,7 @@ public partial class ApiKeyConfigWindow : Window
     }
     
     /// <summary>
-    /// Встановлює конфігурацію вікна
+    /// Sets the window configuration
     /// </summary>
     public void SetConfig(ApiKeyWindowConfig config)
     {
@@ -277,7 +277,7 @@ public partial class ApiKeyConfigWindow : Window
     }
 
     /// <summary>
-    /// Показує діалог та повертає результат
+    /// Shows the dialog and returns the result
     /// </summary>
     public Task<ApiKeyConfigResult> ShowDialogAsync(Window? parent = null)
     {
@@ -337,7 +337,7 @@ public partial class ApiKeyConfigWindow : Window
 
         try
         {
-            // Зберігаємо ключ в базу даних
+            // Save the key to the database
             var apiKeysService = DatabaseServicesFactory.TryGetApiKeysService();
             if (apiKeysService != null)
             {
@@ -379,7 +379,7 @@ public partial class ApiKeyConfigWindow : Window
         
         System.Diagnostics.Debug.WriteLine($"[ApiKeyConfigWindow] Opening portal: {_config.PortalUrl}");
         
-        // Спочатку пробуємо callback
+        // First try callback
         if (_navigateCallback != null)
         {
             _navigateCallback(_config.PortalUrl);
@@ -387,7 +387,7 @@ public partial class ApiKeyConfigWindow : Window
             return;
         }
         
-        // Потім пробуємо подію
+        // Then try the event
         if (NavigateRequested != null)
         {
             NavigateRequested.Invoke(this, _config.PortalUrl);
@@ -395,7 +395,7 @@ public partial class ApiKeyConfigWindow : Window
             return;
         }
         
-        // Fallback: відкриваємо в системному браузері
+        // Fallback: open in the system browser
         try
         {
             var psi = new ProcessStartInfo
@@ -411,13 +411,13 @@ public partial class ApiKeyConfigWindow : Window
         }
     }
     
-    // ==================== Статичні методи для швидкого виклику ====================
+    // ==================== Static methods for quick invocation ====================
     
     /// <summary>
-    /// Показує вікно для налаштування Gemini API
+    /// Shows the window for configuring the Gemini API
     /// </summary>
-    /// <param name="parent">Батьківське вікно</param>
-    /// <param name="navigateCallback">Callback для відкриття URL у браузері Vetale (опціонально)</param>
+    /// <param name="parent">Parent window</param>
+    /// <param name="navigateCallback">Callback for opening a URL in the Vetale browser (optional)</param>
     public static Task<ApiKeyConfigResult> ShowGeminiConfigAsync(Window? parent = null, Action<string>? navigateCallback = null)
     {
         var window = new ApiKeyConfigWindow(ApiKeyWindowConfig.CreateGemini());
@@ -426,7 +426,7 @@ public partial class ApiKeyConfigWindow : Window
     }
     
     /// <summary>
-    /// Показує вікно для налаштування Pexels API
+    /// Shows the window for configuring the Pexels API
     /// </summary>
     public static Task<ApiKeyConfigResult> ShowPexelsConfigAsync(Window? parent = null, Action<string>? navigateCallback = null)
     {
@@ -436,7 +436,7 @@ public partial class ApiKeyConfigWindow : Window
     }
     
     /// <summary>
-    /// Показує вікно для налаштування Unsplash API
+    /// Shows the window for configuring the Unsplash API
     /// </summary>
     public static Task<ApiKeyConfigResult> ShowUnsplashConfigAsync(Window? parent = null, Action<string>? navigateCallback = null)
     {
@@ -446,7 +446,7 @@ public partial class ApiKeyConfigWindow : Window
     }
     
     /// <summary>
-    /// Показує вікно для налаштування YouTube API
+    /// Shows the window for configuring the YouTube API
     /// </summary>
     public static Task<ApiKeyConfigResult> ShowYouTubeConfigAsync(Window? parent = null, Action<string>? navigateCallback = null)
     {

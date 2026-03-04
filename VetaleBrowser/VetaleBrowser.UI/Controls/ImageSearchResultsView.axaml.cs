@@ -45,7 +45,7 @@ public partial class ImageSearchResultsView : UserControl
         {
             _itemsHost.ItemsSource = _items;
             
-            // Підключаємо обробник кліку для контейнерів
+            // Connect click handler for containers
             _itemsHost.AddHandler(Avalonia.Input.InputElement.PointerPressedEvent, OnItemPointerPressed, Avalonia.Interactivity.RoutingStrategies.Tunnel);
         }
 
@@ -61,7 +61,7 @@ public partial class ImageSearchResultsView : UserControl
     
     private void OnItemPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        // Знаходимо ImageSearchResult з DataContext
+        // Find ImageSearchResult from DataContext
         if (e.Source is Control control)
         {
             var current = control;
@@ -88,7 +88,7 @@ public partial class ImageSearchResultsView : UserControl
         _currentPage = 0;
         _hasNextPage = true;
         
-        // Ховаємо повідомлення про відсутність результатів
+        // Hide the "no results" message
         if (_noResultsMessage != null) _noResultsMessage.IsVisible = false;
         
         _ = LoadNextPageAsync();
@@ -111,7 +111,7 @@ public partial class ImageSearchResultsView : UserControl
             var nextPage = _currentPage + 1;
             System.Diagnostics.Debug.WriteLine($"[ImageSearch] Loading page {nextPage} for query: {_query}");
             
-            // Максимум 50 результатів на сторінку
+            // Maximum 50 results per page
             var page = await ImageSearchService.SearchAsync(_query, nextPage, ImageSearchServiceFactory.MaxResultsPerPage, null, ct);
             if (ct.IsCancellationRequested)
                 return;
@@ -126,7 +126,7 @@ public partial class ImageSearchResultsView : UserControl
                 _items.Add(r);
             }
             
-            // Показуємо повідомлення якщо немає результатів
+            // Show message if there are no results
             if (_items.Count == 0 && _noResultsMessage != null)
             {
                 _noResultsMessage.IsVisible = true;

@@ -7,7 +7,7 @@ using VetaleBrowser.VetaleBrowser.VoiceRecognition.Services;
 namespace VetaleBrowser.VetaleBrowser.UI.Services;
 
 /// <summary>
-/// Сервіс для обробки внутрішніх URL браузера (vetale://)
+/// Service for handling internal browser URLs (vetale://)
 /// MEMORY OPTIMIZATION: Uses lazy service providers for on-demand creation
 /// </summary>
 public static class InternalUrlHandler
@@ -36,7 +36,7 @@ public static class InternalUrlHandler
     }
     
     /// <summary>
-    /// Перевірити чи є URL внутрішнім
+    /// Check whether a URL is internal
     /// </summary>
     public static bool IsInternalUrl(string url)
     {
@@ -44,7 +44,7 @@ public static class InternalUrlHandler
     }
     
     /// <summary>
-    /// Отримати тип внутрішньої сторінки з URL
+    /// Get the internal page type from a URL
     /// </summary>
     public static InternalPageType GetPageType(string url)
     {
@@ -55,7 +55,7 @@ public static class InternalUrlHandler
                       .TrimStart('/')
                       .TrimEnd('/');
         
-        // Відкидаємо query string якщо є
+        // Discard query string if present
         var queryIndex = path.IndexOf('?');
         if (queryIndex >= 0)
         {
@@ -78,7 +78,7 @@ public static class InternalUrlHandler
     }
     
     /// <summary>
-    /// Створити UserControl для внутрішньої сторінки
+    /// Create a UserControl for an internal page
     /// </summary>
     public static UserControl? CreatePageContent(string url)
     {
@@ -104,7 +104,7 @@ public static class InternalUrlHandler
         var page = new VetaleSearchHomePage();
         System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] VetaleSearchHomePage instance created");
         
-        // Налаштовуємо сервіси якщо вони доступні
+        // Configure services if they are available
         System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] GlobalSuggestionsService null? {GlobalSuggestionsService == null}");
         if (GlobalSuggestionsService != null)
             page.SetSuggestionsService(GlobalSuggestionsService);
@@ -145,7 +145,7 @@ public static class InternalUrlHandler
     }
     
     /// <summary>
-    /// Створити сторінку результатів пошуку з query параметром
+    /// Create a search results page with a query parameter
     /// </summary>
     private static VetaleSearchResultsPage CreateSearchResultsPage(string url)
     {
@@ -165,11 +165,11 @@ public static class InternalUrlHandler
             }
         };
 
-        // Налаштовуємо сервіси якщо вони доступні
+        // Configure services if they are available
         if (GlobalVoiceRecognitionService != null)
             page.SetVoiceRecognitionService(GlobalVoiceRecognitionService);
         
-        // Витягуємо query параметр з URL
+        // Extract the query parameter from the URL
         var query = GetQueryParameter(url, "q");
         System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] Extracted query: '{query}'");
         
@@ -182,7 +182,7 @@ public static class InternalUrlHandler
     }
     
     /// <summary>
-    /// Отримати значення query параметра з URL
+    /// Get the value of a query parameter from a URL
     /// </summary>
     public static string? GetQueryParameter(string url, string parameterName)
     {
@@ -213,7 +213,7 @@ public static class InternalUrlHandler
     }
     
     /// <summary>
-    /// Отримати заголовок для внутрішньої сторінки
+    /// Get the title for an internal page
     /// </summary>
     public static string GetPageTitle(string url)
     {
@@ -239,7 +239,7 @@ public static class InternalUrlHandler
 }
 
 /// <summary>
-/// Типи внутрішніх сторінок браузера
+/// Internal browser page types
 /// </summary>
 public enum InternalPageType
 {

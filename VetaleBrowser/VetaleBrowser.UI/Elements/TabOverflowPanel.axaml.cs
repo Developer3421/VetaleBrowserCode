@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace VetaleBrowser.VetaleBrowser.UI.Elements;
 
 /// <summary>
-/// Панель для overflow вкладок - з'являється коли основна панель переповнена
+/// Panel for overflow tabs - appears when the main panel is full
 /// </summary>
 public class TabOverflowPanel : TemplatedControl
 {
@@ -18,23 +18,23 @@ public class TabOverflowPanel : TemplatedControl
     private Button? _closeAllButton;
     private readonly List<Tab> _overflowTabs = new();
 
-    /// <summary>Максимальна ширина панелі (зазвичай = ширина головного вікна)</summary>
+    /// <summary>Maximum panel width (usually = main window width)</summary>
     public double MaxPanelWidth
     {
         get => GetValue(MaxPanelWidthProperty);
         set => SetValue(MaxPanelWidthProperty, value);
     }
 
-    /// <summary>Кількість вкладок в overflow панелі</summary>
+    /// <summary>Number of tabs in the overflow panel</summary>
     public int TabCount => _overflowTabs.Count;
 
-    /// <summary>Подія закриття всіх overflow вкладок</summary>
+    /// <summary>Event for closing all overflow tabs</summary>
     public event EventHandler? CloseAllRequested;
 
-    /// <summary>Подія коли overflow панель стає порожньою</summary>
+    /// <summary>Event when the overflow panel becomes empty</summary>
     public event EventHandler? BecameEmpty;
 
-    /// <summary>Подія коли overflow панель заповнена (досягла максимальної ширини)</summary>
+    /// <summary>Event when the overflow panel is full (reached maximum width)</summary>
     public event EventHandler? BecameFull;
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -62,23 +62,23 @@ public class TabOverflowPanel : TemplatedControl
     }
 
     /// <summary>
-    /// Перевіряє чи можна додати ще одну вкладку
+    /// Checks whether another tab can be added
     /// </summary>
     public bool CanAddTab(double tabWidth)
     {
         if (_tabsContainer == null) return false;
         
-        // Розрахунок поточної ширини
+        // Calculate current width
         double currentWidth = CalculateCurrentWidth();
-        double closeButtonWidth = 32; // Ширина кнопки закриття + margin
-        double padding = 16; // Загальний padding
+        double closeButtonWidth = 32; // Close button width + margin
+        double padding = 16; // Total padding
         
-        // Перевіряємо чи є місце для нової вкладки
+        // Check if there is room for a new tab
         return (currentWidth + tabWidth + closeButtonWidth + padding) <= MaxPanelWidth;
     }
 
     /// <summary>
-    /// Додає вкладку до overflow панелі
+    /// Adds a tab to the overflow panel
     /// </summary>
     public bool AddTab(Tab tab)
     {
@@ -95,14 +95,14 @@ public class TabOverflowPanel : TemplatedControl
         _overflowTabs.Add(tab);
         _tabsContainer.Children.Add(tab);
         
-        // Підписуємося на закриття вкладки
+        // Subscribe to tab close event
         tab.CloseRequested += OnTabCloseRequested;
         
         return true;
     }
 
     /// <summary>
-    /// Видаляє вкладку з overflow панелі
+    /// Removes a tab from the overflow panel
     /// </summary>
     public void RemoveTab(Tab tab)
     {
@@ -127,7 +127,7 @@ public class TabOverflowPanel : TemplatedControl
     }
 
     /// <summary>
-    /// Очищає всі вкладки з overflow панелі
+    /// Clears all tabs from the overflow panel
     /// </summary>
     public void ClearAllTabs()
     {
@@ -145,7 +145,7 @@ public class TabOverflowPanel : TemplatedControl
     }
 
     /// <summary>
-    /// Отримує всі вкладки в overflow панелі
+    /// Gets all tabs in the overflow panel
     /// </summary>
     public IReadOnlyList<Tab> GetTabs() => _overflowTabs.AsReadOnly();
 

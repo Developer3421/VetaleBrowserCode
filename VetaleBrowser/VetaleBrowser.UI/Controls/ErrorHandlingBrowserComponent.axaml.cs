@@ -11,8 +11,8 @@ using WebViewControl;
 namespace VetaleBrowser.VetaleBrowser.UI.Controls
 {
     /// <summary>
-    /// Компонент для обробки помилок CefGlue Web View з відображенням BrowserErrorPage
-    /// Інкапсулює логіку перемикання між браузером та сторінкою помилки
+    /// Component for handling CefGlue Web View errors with BrowserErrorPage display
+    /// Encapsulates the logic for switching between the browser and the error page
     /// </summary>
     public partial class ErrorHandlingBrowserComponent : UserControl
     {
@@ -23,45 +23,45 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
         private BrowserErrorPage? _currentErrorPage;
         private string? _lastUrl;
         private bool _isShowingError;
-        private bool _ownsErrorHandler; // Чи ми створили ErrorHandler самі (і маємо його знищити)
+        private bool _ownsErrorHandler; // Whether we created the ErrorHandler ourselves (and must destroy it)
 
         /// <summary>
-        /// Подія запиту повторної спроби завантаження
+        /// Event for requesting a retry of page loading
         /// </summary>
         public event EventHandler? RetryRequested;
 
         /// <summary>
-        /// Подія запиту повернення назад
+        /// Event for requesting navigation back
         /// </summary>
         public event EventHandler? GoBackRequested;
 
         /// <summary>
-        /// Подія запиту переходу на головну
+        /// Event for requesting navigation home
         /// </summary>
         public event EventHandler? GoHomeRequested;
 
         /// <summary>
-        /// Подія запиту пошуку
+        /// Event for requesting a search
         /// </summary>
         public event EventHandler<string>? SearchRequested;
 
         /// <summary>
-        /// Подія виникнення помилки (для зовнішньої обробки)
+        /// Event raised when an error occurs (for external handling)
         /// </summary>
         public event EventHandler<BrowserErrorEventArgs>? ErrorOccurred;
 
         /// <summary>
-        /// Доступ до WebView
+        /// Access to WebView
         /// </summary>
         public WebView? WebView => _webView;
 
         /// <summary>
-        /// Чи відображається сторінка помилки
+        /// Whether the error page is currently displayed
         /// </summary>
         public bool IsShowingError => _isShowingError;
 
         /// <summary>
-        /// Поточна помилка
+        /// Current error
         /// </summary>
         public BrowserError? CurrentError => _currentErrorPage != null ? GetErrorFromPage(_currentErrorPage) : null;
 
@@ -72,7 +72,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
         }
 
         /// <summary>
-        /// Конструктор з переданим WebView
+        /// Constructor with a provided WebView
         /// </summary>
         public ErrorHandlingBrowserComponent(WebView webView) : this()
         {
@@ -80,7 +80,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
         }
         
         /// <summary>
-        /// Конструктор з переданим WebView та існуючим ErrorHandler
+        /// Constructor with a provided WebView and existing ErrorHandler
         /// </summary>
         public ErrorHandlingBrowserComponent(WebView webView, WebViewErrorHandler errorHandler) : this()
         {
@@ -99,38 +99,38 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
         }
 
         /// <summary>
-        /// Встановлює WebView та налаштовує обробку помилок (створює новий ErrorHandler)
+        /// Sets the WebView and configures error handling (creates a new ErrorHandler)
         /// </summary>
         public void SetWebView(WebView webView)
         {
             if (webView == null)
                 throw new ArgumentNullException(nameof(webView));
 
-            // Відписуємось від старого
+            // Unsubscribe from the old one
             DetachErrorHandler();
 
             _webView = webView;
 
-            // Встановлюємо WebView в контейнер
+            // Set the WebView in the container
             if (_webViewContainer != null)
             {
                 _webViewContainer.Content = _webView;
             }
 
-            // Створюємо новий обробник помилок
+            // Create a new error handler
             _errorHandler = new WebViewErrorHandler(_webView);
             _errorHandler.ErrorOccurred += OnErrorHandlerError;
             _errorHandler.Attach();
             _ownsErrorHandler = true;
 
-            // Відстежуємо зміни Address для збереження останнього URL
+            // Track Address changes to save the last URL
             _webView.PropertyChanged += OnWebViewPropertyChanged;
 
             Debug.WriteLine("[ErrorHandlingBrowserComponent] WebView set, new error handler created and attached");
         }
         
         /// <summary>
-        /// Встановлює WebView та використовує існуючий ErrorHandler (з TabWorker)
+        /// Sets the WebView and uses an existing ErrorHandler (from TabWorker)
         /// </summary>
         public void SetWebView(WebView webView, WebViewErrorHandler errorHandler)
         {
@@ -139,37 +139,37 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
             if (errorHandler == null)
                 throw new ArgumentNullException(nameof(errorHandler));
 
-            // Відписуємось від старого
+            // Unsubscribe from the old one
             DetachErrorHandler();
 
             _webView = webView;
 
-            // Встановлюємо WebView в контейнер
+            // Set the WebView in the container
             if (_webViewContainer != null)
             {
                 _webViewContainer.Content = _webView;
             }
 
-            // Використовуємо існуючий обробник помилок
+            // Use the existing error handler
             _errorHandler = errorHandler;
             _errorHandler.ErrorOccurred += OnErrorHandlerError;
-            _ownsErrorHandler = false; // Не ми його створили, не ми знищуємо
+            _ownsErrorHandler = false; // We did not create it, we do not destroy it
 
-            // Відстежуємо зміни Address для збереження останнього URL
+            // Track Address changes to save the last URL
             _webView.PropertyChanged += OnWebViewPropertyChanged;
 
             Debug.WriteLine("[ErrorHandlingBrowserComponent] WebView set, using existing error handler");
         }
         
         /// <summary>
-        /// Встановлює тільки ErrorHandler (якщо WebView вже встановлено іншим чином)
+        /// Sets only the ErrorHandler (if WebView was already set by other means)
         /// </summary>
         public void SetErrorHandler(WebViewErrorHandler errorHandler)
         {
             if (errorHandler == null)
                 throw new ArgumentNullException(nameof(errorHandler));
 
-            // Відписуємось від старого
+            // Unsubscribe from the old one
             DetachErrorHandler();
 
             _errorHandler = errorHandler;
@@ -180,7 +180,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
         }
         
         /// <summary>
-        /// Відключає поточний ErrorHandler
+        /// Disconnects the current ErrorHandler
         /// </summary>
         private void DetachErrorHandler()
         {
@@ -197,7 +197,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
         }
 
         /// <summary>
-        /// Отримує ErrorHandler для прямого доступу
+        /// Gets the ErrorHandler for direct access
         /// </summary>
         public WebViewErrorHandler? ErrorHandler => _errorHandler;
 
@@ -215,7 +215,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
         }
 
         /// <summary>
-        /// Обробник помилок від WebViewErrorHandler
+        /// Error handler from WebViewErrorHandler
         /// </summary>
         private void OnErrorHandlerError(object? sender, BrowserErrorEventArgs e)
         {
@@ -223,16 +223,16 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
             {
                 Debug.WriteLine($"[ErrorHandlingBrowserComponent] Error received: {e.Error.Title} ({e.Error.ErrorName})");
 
-                // Запам'ятовуємо URL для повторної спроби
+                // Save the URL for retry
                 if (!string.IsNullOrEmpty(e.Error.FailedUrl))
                 {
                     _lastUrl = e.Error.FailedUrl;
                 }
 
-                // Повідомляємо зовнішніх підписників
+                // Notify external subscribers
                 ErrorOccurred?.Invoke(this, e);
 
-                // Якщо зовнішній обробник не позначив як оброблену - показуємо сторінку помилки
+                // If the external handler did not mark as handled - show the error page
                 if (!e.Handled)
                 {
                     Dispatcher.UIThread.Post(() => ShowError(e.Error));
@@ -245,7 +245,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
         }
 
         /// <summary>
-        /// Показує сторінку помилки
+        /// Shows the error page
         /// </summary>
         public void ShowError(BrowserError error)
         {
@@ -254,16 +254,16 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
 
             try
             {
-                // Створюємо сторінку помилки
+                // Create the error page
                 _currentErrorPage = new BrowserErrorPage(error);
                 
-                // Підписуємось на події сторінки помилки
+                // Subscribe to error page events
                 _currentErrorPage.RetryRequested += OnRetryRequested;
                 _currentErrorPage.GoBackRequested += OnGoBackRequested;
                 _currentErrorPage.GoHomeRequested += OnGoHomeRequested;
                 _currentErrorPage.SearchRequested += OnSearchRequested;
 
-                // Показуємо сторінку помилки, приховуємо WebView
+                // Show error page, hide WebView
                 if (_errorPageContainer != null && _webViewContainer != null)
                 {
                     _errorPageContainer.Content = _currentErrorPage;
@@ -281,13 +281,13 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
         }
 
         /// <summary>
-        /// Приховує сторінку помилки та показує WebView
+        /// Hides the error page and shows the WebView
         /// </summary>
         public void HideError()
         {
             try
             {
-                // Відписуємось від старої сторінки помилки
+                // Unsubscribe from the old error page
                 if (_currentErrorPage != null)
                 {
                     _currentErrorPage.RetryRequested -= OnRetryRequested;
@@ -297,7 +297,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
                     _currentErrorPage = null;
                 }
 
-                // Приховуємо сторінку помилки, показуємо WebView
+                // Hide error page, show WebView
                 if (_errorPageContainer != null && _webViewContainer != null)
                 {
                     _errorPageContainer.IsVisible = false;
@@ -315,7 +315,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
         }
 
         /// <summary>
-        /// Повторна спроба завантаження останнього URL
+        /// Retry loading the last URL
         /// </summary>
         public void Retry()
         {
@@ -329,14 +329,14 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
         }
 
         /// <summary>
-        /// Навігація до URL
+        /// Navigate to a URL
         /// </summary>
         public void Navigate(string url)
         {
             if (string.IsNullOrEmpty(url))
                 return;
 
-            // Приховуємо помилку якщо показується
+            // Hide the error if it is currently shown
             if (_isShowingError)
             {
                 HideError();
@@ -354,7 +354,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
         {
             RetryRequested?.Invoke(this, e);
             
-            // Якщо немає зовнішнього обробника - виконуємо стандартну логіку
+            // If there is no external handler - execute standard logic
             if (RetryRequested == null)
             {
                 Retry();
@@ -377,7 +377,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
         }
 
         /// <summary>
-        /// Отримує помилку зі сторінки
+        /// Gets the error from the page
         /// </summary>
         private BrowserError? GetErrorFromPage(BrowserErrorPage page)
         {
@@ -385,7 +385,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
         }
 
         /// <summary>
-        /// Звільняє ресурси
+        /// Releases resources
         /// </summary>
         public void Dispose()
         {

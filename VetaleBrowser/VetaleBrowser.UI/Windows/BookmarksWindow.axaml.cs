@@ -38,12 +38,12 @@ public partial class BookmarksWindow : Window
         
         if (!string.IsNullOrEmpty(_initialUrl))
         {
-            // Якщо передано URL, показуємо сторінку додавання
+            // If a URL is provided, show the add page
             ShowAddBookmarkPage(_initialUrl, _initialTitle ?? string.Empty);
         }
         else
         {
-            // Інакше показуємо список закладок
+            // Otherwise show the bookmarks list
             ShowBookmarksPage();
         }
     }
@@ -55,7 +55,7 @@ public partial class BookmarksWindow : Window
         addBookmarkPage.BookmarkSaved += (s, e) =>
         {
             ShowBookmarksPage();
-            // Перезавантажуємо список закладок
+            // Reload the bookmarks list
             _bookmarksPage?.RefreshBookmarks();
         };
         
@@ -68,7 +68,7 @@ public partial class BookmarksWindow : Window
         {
             _contentHost.Content = addBookmarkPage;
             
-            // Зменшуємо розмір вікна для форми додавання
+            // Reduce window size for the add form
             Width = 600;
             Height = 480;
             MinWidth = 600;
@@ -81,14 +81,14 @@ public partial class BookmarksWindow : Window
         _bookmarksPage = new BookmarksPage();
         _bookmarksPage.SetDatabaseService(DatabaseManager.Instance);
         
-        // Підписуємось на подію запиту додавання закладки
+        // Subscribe to the add bookmark request event
         _bookmarksPage.AddBookmarkRequested += OnAddBookmarkRequested;
         
         if (_contentHost != null)
         {
             _contentHost.Content = _bookmarksPage;
             
-            // Збільшуємо розмір вікна для списку закладок
+            // Enlarge window size for the bookmarks list
             Width = 900;
             Height = 700;
             MinWidth = 700;
@@ -97,11 +97,11 @@ public partial class BookmarksWindow : Window
     }
     
     /// <summary>
-    /// Обробник запиту на додавання закладки з BookmarksPage
+    /// Handler for add bookmark request from BookmarksPage
     /// </summary>
     private void OnAddBookmarkRequested(object? sender, EventArgs e)
     {
-        // Показуємо форму додавання закладки в тому ж вікні
+        // Show the add bookmark form in the same window
         ShowAddBookmarkPage(string.Empty, string.Empty);
     }
 
@@ -137,7 +137,7 @@ public partial class BookmarksWindow : Window
 
     private void OpenMainWindow(object? sender, RoutedEventArgs e)
     {
-        // Знаходимо головне вікно
+        // Find the main window
         foreach (var window in ((Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)
             Avalonia.Application.Current!.ApplicationLifetime!).Windows)
         {

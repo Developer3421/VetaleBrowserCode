@@ -56,7 +56,7 @@ public partial class HistoryPage : UserControl
         _filterPanel = this.FindControl<StackPanel>("PART_FilterPanel");
         _emptyState = this.FindControl<Border>("PART_EmptyState");
         
-        // Встановлюємо перший фільтр активним
+        // Set the first filter as active
         UpdateFilterButtonStyles();
         LoadHistory();
     }
@@ -79,7 +79,7 @@ public partial class HistoryPage : UserControl
         {
             List<HistoryItem> historyItems;
             
-            // Отримуємо історію за фільтром
+            // Get history by filter
             if (!string.IsNullOrWhiteSpace(_searchBox?.Text))
             {
                 historyItems = _historyService.SearchHistory(_searchBox.Text);
@@ -92,7 +92,7 @@ public partial class HistoryPage : UserControl
 
             System.Diagnostics.Debug.WriteLine($"[HistoryPage] Loaded {historyItems.Count} history items");
 
-            // Перевіряємо на пустий результат
+            // Check for empty result
             if (historyItems.Count == 0)
             {
                 _historyItemsControl.ItemsSource = new List<HistoryItemViewModel>();
@@ -100,16 +100,16 @@ public partial class HistoryPage : UserControl
                 return;
             }
 
-            // Сховуємо empty state коли є дані
+            // Hide empty state when data is present
             if (_emptyState != null) _emptyState.IsVisible = false;
 
-            // Створюємо ViewModel з завантаженням favicon
+            // Create ViewModels with favicon loading
             var viewModels = new List<HistoryItemViewModel>();
             foreach (var item in historyItems)
             {
                 var vm = new HistoryItemViewModel(item);
                 
-                // Завантажуємо favicon асинхронно
+                // Load favicon asynchronously
                 try
                 {
                     if (!string.IsNullOrWhiteSpace(item.Url) && Uri.TryCreate(item.Url, UriKind.Absolute, out var uri))
@@ -146,9 +146,9 @@ public partial class HistoryPage : UserControl
                     var favicon = await _faviconService.GetFaviconAsync(uri, 18);
                     if (favicon != null)
                     {
-                        // Зберігаємо favicon в FaviconData для подальшого відображення
-                        // Але краще використати прив'язку до Source
-                        // Поки що просто логуємо
+                        // Store favicon in FaviconData for later display
+                        // But it is better to use binding to Source
+                        // For now just log it
                         System.Diagnostics.Debug.WriteLine($"[HistoryPage] Loaded favicon for {item.Url}");
                     }
                 }
@@ -196,7 +196,7 @@ public partial class HistoryPage : UserControl
             if (child is Button btn)
             {
                 var isActive = btn.Tag?.ToString() == _currentFilter;
-                // Використовуємо сучасний стиль як в Chrome
+                // Use modern style like Chrome
                 btn.Background = isActive 
                     ? Brush.Parse("#1A73E8")  // Google Blue
                     : Brush.Parse("#F0F0F0");
@@ -220,7 +220,7 @@ public partial class HistoryPage : UserControl
             {
                 var historyItem = viewModel.Item;
                 
-                // Знаходимо головне вікно та переходимо до URL
+                // Find the main window and navigate to URL
                 var appLifetime = Avalonia.Application.Current?.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime;
                 if (appLifetime != null)
                 {
@@ -270,7 +270,7 @@ public partial class HistoryPage : UserControl
 
         try
         {
-            // Показуємо діалог підтвердження (спрощена версія)
+            // Show confirmation dialog (simplified version)
             _historyService.ClearHistory();
             LoadHistory();
         }

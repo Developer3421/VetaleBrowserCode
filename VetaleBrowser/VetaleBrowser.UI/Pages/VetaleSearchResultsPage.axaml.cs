@@ -55,7 +55,7 @@ public partial class VetaleSearchResultsPage : UserControl
     private Popup? _suggestionsPopup;
     private ItemsControl? _suggestionsListBox;
     
-    // Панель пагінації
+    // Pagination panel
     private StackPanel? _paginationPanel;
     
     // Perplexity AI Chat panel
@@ -71,15 +71,15 @@ public partial class VetaleSearchResultsPage : UserControl
 
     private readonly ObservableCollection<string> _relatedQueries = new();
     
-    // Стан пагінації
+    // Pagination state
     private int _currentPage = 1;
     private bool _hasNextPage = false;
     private bool _hasPreviousPage = false;
     private const int ResultsPerPage = 50;
     
-    // Прапорці для контролю показу вікон API ключів
-    // true = треба показати вікно, false = вже показали
-    // Налаштування API ключів тепер в Tools → VetaleSearch Settings
+    // Flags for controlling API key window display
+    // true = need to show window, false = already shown
+    // API key settings are now in Tools → VetaleSearch Settings
 
     public VetaleSearchResultsPage()
     {
@@ -143,7 +143,7 @@ public partial class VetaleSearchResultsPage : UserControl
         _duckDuckGoChat = this.FindControl<DuckDuckGoAiChatPanel>("DuckDuckGoChat");
         _duckDuckGoChatContainer = this.FindControl<Border>("DuckDuckGoChatContainer");
         
-        // Підключаємо навігацію з Perplexity AI Chat
+        // Connect navigation from Perplexity AI Chat
         if (_duckDuckGoChat != null)
         {
             _duckDuckGoChat.NavigateRequested += (s, url) =>
@@ -163,7 +163,7 @@ public partial class VetaleSearchResultsPage : UserControl
             _searchButton.IsEnabled = !string.IsNullOrWhiteSpace(_searchInput?.Text);
         }
 
-        // Підключаємо навігацію з ImageResultsView
+        // Connect navigation from ImageResultsView
         if (_imageResultsView != null)
         {
             _imageResultsView.SourcePageOpenRequested += (s, url) =>
@@ -173,7 +173,7 @@ public partial class VetaleSearchResultsPage : UserControl
             };
         }
         
-        // Підключаємо навігацію з VideoResultsView
+        // Connect navigation from VideoResultsView
         if (_videoResultsView != null)
         {
             _videoResultsView.VideoOpenRequested += (s, url) =>
@@ -185,7 +185,7 @@ public partial class VetaleSearchResultsPage : UserControl
     }
 
     /// <summary>
-    /// Встановити пошуковий запит та завантажити результати
+    /// Set the search query and load results
     /// </summary>
     public void SetSearchQuery(string query, string? mode = null)
     {
@@ -223,7 +223,7 @@ public partial class VetaleSearchResultsPage : UserControl
     }
 
     /// <summary>
-    /// Оновити статистику пошуку (для сумісності)
+    /// Update search statistics (for compatibility)
     /// </summary>
     public void UpdateSearchStats(int totalResults, double searchTime)
     {
@@ -231,7 +231,7 @@ public partial class VetaleSearchResultsPage : UserControl
     }
 
     /// <summary>
-    /// Завантажити результати пошуку
+    /// Load search results
     /// </summary>
     private async void LoadSearchResults(string query, int page = 1)
     {
@@ -248,7 +248,7 @@ public partial class VetaleSearchResultsPage : UserControl
         {
             _currentPage = page;
             
-            // Локалізовані повідомлення
+            // Localized messages
             var searchingText = GetLocalizedString("Search.Results.SearchingIn") 
                 ?? "Шукаємо в Wikipedia, WebArchive, MetaSearx…";
             var loadingPageTemplate = GetLocalizedString("Search.Results.LoadingPage") 
@@ -292,7 +292,7 @@ public partial class VetaleSearchResultsPage : UserControl
     }
     
     /// <summary>
-    /// Оновлює статистику пошуку
+    /// Updates search statistics
     /// </summary>
     private void UpdateSearchStats(int totalResults, double elapsed, int page = 1)
     {
@@ -300,7 +300,7 @@ public partial class VetaleSearchResultsPage : UserControl
         {
             if (page > 1)
             {
-                // Спробуємо отримати локалізований рядок
+                // Try to get a localized string
                 var template = GetLocalizedString("Search.Results.StatsWithPage") 
                     ?? "Знайдено {0} результатів за {1} сек. (сторінка {2})";
                 _searchStats.Text = string.Format(template, totalResults, elapsed.ToString("F2"), page);
@@ -315,7 +315,7 @@ public partial class VetaleSearchResultsPage : UserControl
     }
     
     /// <summary>
-    /// Отримує локалізований рядок з ресурсів
+    /// Gets a localized string from resources
     /// </summary>
     private string? GetLocalizedString(string key)
     {
@@ -333,17 +333,17 @@ public partial class VetaleSearchResultsPage : UserControl
     }
     
     /// <summary>
-    /// Рендерить панель пагінації
+    /// Renders the pagination panel
     /// </summary>
     private void RenderPaginationPanel()
     {
-        // Видаляємо стару панель пагінації якщо є
+        // Remove the old pagination panel if present
         if (_paginationPanel != null && _resultsPanel != null)
         {
             _resultsPanel.Children.Remove(_paginationPanel);
         }
         
-        // Створюємо нову панель пагінації
+        // Create a new pagination panel
         _paginationPanel = new StackPanel
         {
             Orientation = Avalonia.Layout.Orientation.Horizontal,
@@ -352,22 +352,22 @@ public partial class VetaleSearchResultsPage : UserControl
             Spacing = 8
         };
         
-        // Локалізовані тексти
+        // Localized texts
         var prevText = GetLocalizedString("Search.Pagination.Previous") ?? "← Попередня";
         var nextText = GetLocalizedString("Search.Pagination.Next") ?? "Наступна →";
         
-        // Кнопка "Попередня"
+        // "Previous" button
         if (_hasPreviousPage)
         {
             var prevButton = CreatePaginationButton(prevText, _currentPage - 1);
             _paginationPanel.Children.Add(prevButton);
         }
         
-        // Номери сторінок (показуємо 5 сторінок навколо поточної)
+        // Page numbers (showing 5 pages around the current one)
         var startPage = Math.Max(1, _currentPage - 2);
         var endPage = startPage + 4;
         
-        // Перша сторінка якщо не в діапазоні
+        // First page if not in range
         if (startPage > 1)
         {
             _paginationPanel.Children.Add(CreatePaginationButton("1", 1));
@@ -383,30 +383,30 @@ public partial class VetaleSearchResultsPage : UserControl
             }
         }
         
-        // Сторінки в діапазоні
+        // Pages in range
         for (int i = startPage; i <= endPage; i++)
         {
             var pageButton = CreatePaginationButton(i.ToString(), i, i == _currentPage);
             _paginationPanel.Children.Add(pageButton);
             
-            // Якщо це остання відома сторінка і немає наступної - виходимо
+            // If this is the last known page and there is no next - exit
             if (i == _currentPage && !_hasNextPage)
                 break;
         }
         
-        // Кнопка "Наступна"
+        // "Next" button
         if (_hasNextPage)
         {
             var nextButton = CreatePaginationButton(nextText, _currentPage + 1);
             _paginationPanel.Children.Add(nextButton);
         }
         
-        // Додаємо панель в кінець результатів
+        // Add the panel at the end of results
         _resultsPanel?.Children.Add(_paginationPanel);
     }
     
     /// <summary>
-    /// Створює кнопку пагінації
+    /// Creates a pagination button
     /// </summary>
     private Button CreatePaginationButton(string text, int targetPage, bool isCurrentPage = false)
     {
@@ -437,7 +437,7 @@ public partial class VetaleSearchResultsPage : UserControl
                 {
                     LoadSearchResults(_currentQuery, targetPage);
                     
-                    // Скролимо вгору
+                    // Scroll to top
                     var scrollViewer = this.FindControl<ScrollViewer>("MainScrollViewer");
                     scrollViewer?.ScrollToHome();
                 }
@@ -451,10 +451,10 @@ public partial class VetaleSearchResultsPage : UserControl
     {
         _resultsPanel?.Children.Clear();
 
-        // Зберігаємо SessionId для відстеження навігації
+        // Save SessionId for navigation tracking
         _currentSessionId = page.SearchSessionId;
 
-        // 1) Якщо початковий запит схожий на прямий URL — додаємо його першим елементом
+        // 1) If the initial query looks like a direct URL — add it as the first element
         var query = _currentQuery ?? string.Empty;
         if (!string.IsNullOrWhiteSpace(query) && NavigationBar.TryNormalizeUserUrl(query, out var directUrl))
         {
@@ -495,13 +495,13 @@ public partial class VetaleSearchResultsPage : UserControl
                 Title = result.Title,
                 Description = result.Snippet,
                 Date = result.Timestamp,
-                SourceType = result.Source.ToString() // зберігаємо тип джерела
+                SourceType = result.Source.ToString() // save the source type
             };
             var img = AddSearchResult(searchResult);
             _ = LoadFaviconAsync(searchResult, img);
         }
 
-        // Після малювання результатів завантажуємо пов'язані запити (Google Suggestions)
+        // After rendering results, load related queries (Google Suggestions)
         _ = LoadRelatedQueriesAsync(_currentQuery ?? string.Empty);
     }
 
@@ -514,7 +514,7 @@ public partial class VetaleSearchResultsPage : UserControl
             var path = uri.AbsolutePath?.Trim('/') ?? string.Empty;
             if (string.IsNullOrEmpty(path)) return host;
             var parts = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
-            // Формат: host › part1 › part2 (не більше 2 частин)
+            // Format: host › part1 › part2 (at most 2 parts)
             var sb = new System.Text.StringBuilder(host);
             for (int i = 0; i < Math.Min(parts.Length, 2); i++)
             {
@@ -597,12 +597,12 @@ public partial class VetaleSearchResultsPage : UserControl
         }
         catch
         {
-            // ігноруємо помилки фавікона
+            // ignore favicon errors
         }
     }
 
     /// <summary>
-    /// Додати результат пошуку програмно
+    /// Add a search result programmatically
     /// </summary>
     public Image? AddSearchResult(SearchResult result)
     {
@@ -611,7 +611,7 @@ public partial class VetaleSearchResultsPage : UserControl
 
         var resultBorder = new Border();
         
-        // Застосувати спеціальний клас для прямих URL
+        // Apply special class for direct URLs
         if (result.SourceType == "DirectUrl")
         {
             resultBorder.Classes.Add("result-item-direct");
@@ -621,7 +621,7 @@ public partial class VetaleSearchResultsPage : UserControl
             resultBorder.Classes.Add("result-item");
         }
 
-        // верхній ряд: фавікон + URL
+        // top row: favicon + URL
         var headerPanel = new StackPanel
         {
             Orientation = Avalonia.Layout.Orientation.Horizontal,
@@ -759,7 +759,7 @@ public partial class VetaleSearchResultsPage : UserControl
         resultBorder.Child = stackPanel;
         resultBorder.DataContext = result;
         
-        // ВАЖЛИВО: додаємо обробник кліку на сам Border, щоб клік точно спрацював
+        // IMPORTANT: add a click handler on the Border itself so that clicks work reliably
         resultBorder.PointerPressed += ResultBorder_Click;
 
         _resultsPanel.Children.Add(resultBorder);
@@ -768,7 +768,7 @@ public partial class VetaleSearchResultsPage : UserControl
 
 
     /// <summary>
-    /// Очистити всі результати
+    /// Clear all results
     /// </summary>
     public void ClearResults()
     {
@@ -786,27 +786,27 @@ public partial class VetaleSearchResultsPage : UserControl
             _searchButton.IsEnabled = !string.IsNullOrWhiteSpace(_searchInput?.Text);
         }
 
-        // Завантажуємо підказки з дебаунсом
+        // Load suggestions with debouncing
         _ = LoadSuggestionsAsync();
     }
 
     public async Task LoadSuggestionsAsync()
     {
-        // Скасовуємо попередній запит
+        // Cancel the previous request
         _suggestionsCts?.Cancel();
         _suggestionsCts = new CancellationTokenSource();
         var token = _suggestionsCts.Token;
 
         try
         {
-            // Дебаунс 300мс
+            // 300ms debounce
             await Task.Delay(300, token);
 
             var query = _searchInput?.Text ?? string.Empty;
 
             if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
             {
-                // Ховаємо попап якщо запит короткий
+                // Hide popup if query is too short
                 if (_suggestionsPopup != null)
                 {
                     _suggestionsPopup.IsOpen = false;
@@ -814,13 +814,13 @@ public partial class VetaleSearchResultsPage : UserControl
                 return;
             }
 
-            // Завантажуємо підказки
+            // Load suggestions
             var suggestions = await _suggestionsService.GetSuggestionsAsync(query, 8);
 
             if (token.IsCancellationRequested)
                 return;
 
-            // Оновлюємо UI
+            // Update UI
             Dispatcher.UIThread.Post(() =>
             {
                 if (_suggestionsListBox != null)
@@ -840,7 +840,7 @@ public partial class VetaleSearchResultsPage : UserControl
         }
         catch (TaskCanceledException)
         {
-            // Нормальна ситуація при скасуванні
+            // Normal situation when cancelled
         }
         catch (Exception ex)
         {
@@ -852,10 +852,10 @@ public partial class VetaleSearchResultsPage : UserControl
     {
         try
         {
-            // Знаходимо елемент на який клікнули
+            // Find the element that was clicked
             if (e.Source is Control clickedControl)
             {
-                // Шукаємо SearchSuggestion в DataContext поточного або батьківських елементів
+                // Search for SearchSuggestion in DataContext of current or parent elements
                 var current = clickedControl;
                 SearchSuggestion? suggestion = null;
                 
@@ -873,7 +873,7 @@ public partial class VetaleSearchResultsPage : UserControl
                 {
                     System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Suggestion clicked: {suggestion.Text}");
                     
-                    // Вставляємо текст підказки в поле пошуку
+                    // Insert suggestion text into the search field
                     if (_searchInput != null)
                     {
                         _searchInput.Text = suggestion.Text;
@@ -881,14 +881,14 @@ public partial class VetaleSearchResultsPage : UserControl
                         _searchInput.Focus();
                     }
 
-                    // Ховаємо попап
+                    // Hide popup
                     if (_suggestionsPopup != null)
                     {
                         _suggestionsPopup.IsOpen = false;
                     }
 
-                    // НЕ виконуємо пошук автоматично - даємо користувачу редагувати
-                    // Якщо потрібно автоматично шукати, розкоментуйте:
+                    // Do NOT perform search automatically - allow user to edit
+                    // If automatic search is needed, uncomment:
                     // PerformSearch();
                     
                     e.Handled = true;
@@ -922,7 +922,7 @@ public partial class VetaleSearchResultsPage : UserControl
 
     public void SearchEngineSelector_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        // Поки що просто лог для діагностики
+        // Currently just a diagnostic log
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Search engine changed to index: {_searchEngineSelector?.SelectedIndex}");
     }
 
@@ -940,10 +940,10 @@ public partial class VetaleSearchResultsPage : UserControl
         _currentQuery = query;
 
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] PerformSearch query: '{query}'");
-        _currentPage = 1; // Скидаємо на першу сторінку
+        _currentPage = 1; // Reset to first page
         LoadSearchResults(query, 1);
 
-        // Оновлюємо Perplexity AI з новим запитом
+        // Update Perplexity AI with the new query
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Triggering Perplexity AI for query: {query}");
         _ = _duckDuckGoChat?.SendMessageAsync(query);
     }
@@ -971,12 +971,12 @@ public partial class VetaleSearchResultsPage : UserControl
                 System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] SessionId: {_currentSessionId}");
                 System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Query: '{_currentQuery}'");
                 
-                // ГОЛОВНЕ: викликаємо NavigateRequested першою (вона точно працює)
+                // IMPORTANT: call NavigateRequested first (it definitely works)
                 System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Invoking NavigateRequested with URL: '{result.Url}'");
                 NavigateRequested?.Invoke(this, result.Url);
                 System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] NavigateRequested invoked");
                 
-                // Також викликаємо нову подію для історії
+                // Also trigger the new event for history
                 var args = new SearchResultNavigationEventArgs
                 {
                     Url = result.Url,
@@ -1110,12 +1110,12 @@ public partial class VetaleSearchResultsPage : UserControl
             System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] SessionId: {_currentSessionId}");
             System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Query: '{_currentQuery}'");
             
-            // Викликаємо NavigateRequested
+            // Invoke NavigateRequested
             System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Invoking NavigateRequested with URL: '{result.Url}'");
             NavigateRequested?.Invoke(this, result.Url);
             System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] NavigateRequested invoked");
             
-            // Також викликаємо подію для історії
+            // Also trigger the new event for history
             var args = new SearchResultNavigationEventArgs
             {
                 Url = result.Url,
@@ -1128,7 +1128,7 @@ public partial class VetaleSearchResultsPage : UserControl
             SearchResultNavigateRequested?.Invoke(this, args);
             System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] SearchResultNavigateRequested invoked");
             
-            // Позначаємо подію як оброблену, щоб не спливала далі
+            // Mark the event as handled so it does not bubble further
             e.Handled = true;
         }
         else
@@ -1144,7 +1144,7 @@ public partial class VetaleSearchResultsPage : UserControl
     {
         _voiceRecognitionService = service;
         
-        // Підписуємося на події
+        // Subscribe to events
         if (_voiceRecognitionService != null)
         {
             _voiceRecognitionService.TextRecognized += OnVoiceTextRecognized;
@@ -1153,7 +1153,7 @@ public partial class VetaleSearchResultsPage : UserControl
         }
     }
 
-    // Обробники подій голосового розпізнавання
+    // Voice recognition event handlers
     private async void VoiceButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_voiceRecognitionService == null)
@@ -1166,12 +1166,12 @@ public partial class VetaleSearchResultsPage : UserControl
         {
             if (_voiceRecognitionService.CurrentState == VoiceRecognitionState.Listening)
             {
-                // Якщо вже слухаємо, зупиняємо
+                // If already listening, stop
                 _voiceRecognitionService.StopListening();
             }
             else
             {
-                // Перевіряємо доступність
+                // Check availability
                 if (!_voiceRecognitionService.IsAvailable())
                 {
                     System.Diagnostics.Debug.WriteLine("[VetaleSearchResultsPage] Voice recognition not available");
@@ -1179,7 +1179,7 @@ public partial class VetaleSearchResultsPage : UserControl
                     return;
                 }
 
-                // Починаємо слухати
+                // Start listening
                 await _voiceRecognitionService.StartListeningAsync();
             }
         }
@@ -1194,7 +1194,7 @@ public partial class VetaleSearchResultsPage : UserControl
     {
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Voice text recognized: {text}");
         
-        // Оновлюємо UI в UI-потоці
+        // Update UI on the UI thread
         Dispatcher.UIThread.Post(() =>
         {
             if (_searchInput != null)
@@ -1206,10 +1206,10 @@ public partial class VetaleSearchResultsPage : UserControl
                 }
             }
             
-            // Автоматично зупиняємо після розпізнавання
+            // Automatically stop after recognition
             _voiceRecognitionService?.StopListening();
             
-            // Автоматично виконуємо пошук
+            // Automatically perform search
             PerformSearch();
         });
     }
@@ -1218,20 +1218,20 @@ public partial class VetaleSearchResultsPage : UserControl
     {
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Voice state changed: {state}");
         
-        // Оновлюємо UI в UI-потоці
+        // Update UI on the UI thread
         Dispatcher.UIThread.Post(() =>
         {
             if (_voiceButton != null)
             {
-                // Змінюємо вигляд кнопки в залежності від стану
+                // Change button appearance based on state
                 var iconText = state switch
                 {
-                    VoiceRecognitionState.Listening => "⏹️", // Зупинити
-                    VoiceRecognitionState.Processing => "⏳", // Обробка
-                    _ => "🎤" // Мікрофон
+                    VoiceRecognitionState.Listening => "⏹️", // Stop
+                    VoiceRecognitionState.Processing => "⏳", // Processing
+                    _ => "🎤" // Microphone
                 };
                 
-                // Створюємо новий TextBlock
+                // Create a new TextBlock
                 _voiceButton.Content = new TextBlock 
                 { 
                     Text = iconText,
@@ -1247,7 +1247,7 @@ public partial class VetaleSearchResultsPage : UserControl
     {
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Voice error: {error}");
         
-        // TODO: Показати користувачу повідомлення про помилку
+        // TODO: Show error message to the user
     }
 
     public void GeoSearch_Click(object? sender, RoutedEventArgs e)
@@ -1259,14 +1259,14 @@ public partial class VetaleSearchResultsPage : UserControl
     }
 
     /// <summary>
-    /// Обробник кнопки пошуку по картинках (📷) біля пошукового бару
+    /// Handler for image search button (📷) near the search bar
     /// </summary>
     public void ImageSearchButton_Click(object? sender, RoutedEventArgs e)
     {
-        // Перемикаємо на режим пошуку картинок
+        // Switch to image search mode
         SetMode(SearchMode.Images);
         
-        // Запускаємо пошук якщо є запит
+        // Start search if there is a query
         if (!string.IsNullOrWhiteSpace(_currentQuery) && _imageResultsView != null)
         {
             _imageResultsView.SetQuery(_currentQuery);
@@ -1281,14 +1281,14 @@ public partial class VetaleSearchResultsPage : UserControl
     }
 
     /// <summary>
-    /// Обробник кнопки пошуку по відео (📹) біля пошукового бару
+    /// Handler for video search button (📹) near the search bar
     /// </summary>
     public void VideoSearchButton_Click(object? sender, RoutedEventArgs e)
     {
-        // Перемикаємо на режим пошуку відео
+        // Switch to video search mode
         SetMode(SearchMode.Videos);
         
-        // Запускаємо пошук якщо є запит
+        // Start search if there is a query
         if (!string.IsNullOrWhiteSpace(_currentQuery) && _videoResultsView != null)
         {
             _videoResultsView.SetQuery(_currentQuery);
@@ -1359,7 +1359,7 @@ public partial class VetaleSearchResultsPage : UserControl
     
 
     /// <summary>
-    /// Показує вікна для налаштування API ключів пошуку зображень (Pexels, Unsplash)
+    /// Shows windows for configuring image search API keys (Pexels, Unsplash)
     /// </summary>
     private async Task ShowImageSearchApiKeyPromptAsync()
     {
@@ -1367,24 +1367,24 @@ public partial class VetaleSearchResultsPage : UserControl
         {
             var parentWindow = TopLevel.GetTopLevel(this) as Window;
             
-            // Callback для навігації у браузері Vetale
+            // Callback for navigation in the Vetale browser
             Action<string> navigateCallback = url => NavigateRequested?.Invoke(this, url);
             
-            // Показуємо вікно для Pexels
+            // Show window for Pexels
             var pexelsResult = await ApiKeyConfigWindow.ShowPexelsConfigAsync(parentWindow, navigateCallback);
             if (pexelsResult.Saved)
             {
                 System.Diagnostics.Debug.WriteLine("[VetaleSearch] Pexels API key configured");
             }
             
-            // Показуємо вікно для Unsplash
+            // Show window for Unsplash
             var unsplashResult = await ApiKeyConfigWindow.ShowUnsplashConfigAsync(parentWindow, navigateCallback);
             if (unsplashResult.Saved)
             {
                 System.Diagnostics.Debug.WriteLine("[VetaleSearch] Unsplash API key configured");
             }
             
-            // Переініціалізуємо сервіс пошуку зображень
+            // Re-initialize the image search service
             if (_imageResultsView != null)
             {
                 _imageResultsView.ImageSearchService = ImageSearchServiceFactory.Create();
@@ -1401,7 +1401,7 @@ public partial class VetaleSearchResultsPage : UserControl
 
         SetMode(SearchMode.Videos);
         
-        // Запускаємо пошук відео
+        // Start video search
         if (_currentQuery != null && _videoResultsView != null)
         {
             _videoResultsView.SetQuery(_currentQuery);
@@ -1409,13 +1409,13 @@ public partial class VetaleSearchResultsPage : UserControl
     }
     
     /// <summary>
-    /// Показує вікно для налаштування YouTube API ключа
+    /// Shows the window for configuring the YouTube API key
     /// </summary>
     private async Task ShowVideoSearchApiKeyPromptAsync()
     {
         try
         {
-            // Перевіряємо чи вже є ключ в БД
+            // Check if a key already exists in the DB
             var apiKeysService = DatabaseServicesFactory.TryGetApiKeysService();
             if (apiKeysService != null)
             {
@@ -1429,7 +1429,7 @@ public partial class VetaleSearchResultsPage : UserControl
             
             var parentWindow = TopLevel.GetTopLevel(this) as Window;
             
-            // Передаємо callback для навігації у браузері Vetale
+            // Pass callback for navigation in the Vetale browser
             var result = await ApiKeyConfigWindow.ShowYouTubeConfigAsync(parentWindow, url =>
             {
                 NavigateRequested?.Invoke(this, url);
@@ -1448,7 +1448,7 @@ public partial class VetaleSearchResultsPage : UserControl
 }
 
 /// <summary>
-/// Модель результату пошуку
+/// Search result model
 /// </summary>
 public class SearchResult
 {
@@ -1464,7 +1464,7 @@ public class SearchResult
 }
 
 /// <summary>
-/// Аргументи події навігації з результату пошуку
+/// Navigation event arguments from a search result
 /// </summary>
 public class SearchResultNavigationEventArgs : EventArgs
 {

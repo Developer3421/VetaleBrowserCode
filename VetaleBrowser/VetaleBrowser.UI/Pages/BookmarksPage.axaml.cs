@@ -15,12 +15,12 @@ public partial class BookmarksPage : UserControl
     private string? _currentFolder;
     
     /// <summary>
-    /// Подія для запиту на показ форми додавання закладки
+    /// Event for requesting display of the add bookmark form
     /// </summary>
     public event EventHandler? AddBookmarkRequested;
     
     /// <summary>
-    /// Подія для відкриття URL закладки
+    /// Event for opening a bookmark URL
     /// </summary>
     public event EventHandler<string>? BookmarkOpenRequested;
 
@@ -66,12 +66,12 @@ public partial class BookmarksPage : UserControl
 
     private void AddBookmark_Click(object? sender, RoutedEventArgs e)
     {
-        // Викликаємо подію для показу форми додавання в тому ж вікні
+        // Trigger event for showing the add form in the same window
         AddBookmarkRequested?.Invoke(this, EventArgs.Empty);
     }
     
     /// <summary>
-    /// Перезавантажує список закладок
+    /// Reloads the bookmarks list
     /// </summary>
     public void RefreshBookmarks()
     {

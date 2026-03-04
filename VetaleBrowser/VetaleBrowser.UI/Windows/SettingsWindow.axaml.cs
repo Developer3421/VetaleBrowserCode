@@ -42,10 +42,10 @@ public partial class SettingsWindow : Window
         {
             System.Diagnostics.Debug.WriteLine("[SettingsWindow] Initializing services via DatabaseServicesFactory...");
             
-            // Ініціалізуємо через централізовану фабрику
+            // Initialize via centralized factory
             DatabaseServicesFactory.Initialize();
             
-            // Отримуємо сервіси
+            // Get services
             _settingsService = DatabaseServicesFactory.TryGetSettingsService();
             _appearanceSettingsService = DatabaseServicesFactory.TryGetAppearanceSettingsService();
             
@@ -150,14 +150,14 @@ public partial class SettingsWindow : Window
     {
         System.Diagnostics.Debug.WriteLine("[SettingsWindow] OnTabSettingsRequested called");
         
-        // Спробувати ініціалізувати сервіс, якщо він не був ініціалізований
+        // Try to initialize the service if it was not initialized
         if (_appearanceSettingsService == null)
         {
             System.Diagnostics.Debug.WriteLine("[SettingsWindow] _appearanceSettingsService is null, trying to initialize");
             InitializeSettingsService();
         }
         
-        // Створюємо сторінку навіть якщо сервіс null - вона покаже дефолтні значення
+        // Create the page even if service is null - it will show default values
         System.Diagnostics.Debug.WriteLine($"[SettingsWindow] Creating TabAppearanceSettingsPage, service is {(_appearanceSettingsService != null ? "OK" : "NULL")}");
         try
         {
@@ -186,14 +186,14 @@ public partial class SettingsWindow : Window
     {
         System.Diagnostics.Debug.WriteLine("[SettingsWindow] OnMainWindowSettingsRequested called");
         
-        // Спробувати ініціалізувати сервіс, якщо він не був ініціалізований
+        // Try to initialize the service if it was not initialized
         if (_appearanceSettingsService == null)
         {
             System.Diagnostics.Debug.WriteLine("[SettingsWindow] _appearanceSettingsService is null, trying to initialize");
             InitializeSettingsService();
         }
         
-        // Створюємо сторінку навіть якщо сервіс null - вона покаже дефолтні значення
+        // Create the page even if service is null - it will show default values
         System.Diagnostics.Debug.WriteLine($"[SettingsWindow] Creating MainWindowAppearanceSettingsPage, service is {(_appearanceSettingsService != null ? "OK" : "NULL")}");
         try
         {
@@ -221,14 +221,14 @@ public partial class SettingsWindow : Window
     {
         System.Diagnostics.Debug.WriteLine("[SettingsWindow] OnOtherWindowsSettingsRequested called");
         
-        // Спробувати ініціалізувати сервіс, якщо він не був ініціалізований
+        // Try to initialize the service if it was not initialized
         if (_appearanceSettingsService == null)
         {
             System.Diagnostics.Debug.WriteLine("[SettingsWindow] _appearanceSettingsService is null, trying to initialize");
             InitializeSettingsService();
         }
         
-        // Створюємо сторінку навіть якщо сервіс null - вона покаже дефолтні значення
+        // Create the page even if service is null - it will show default values
         System.Diagnostics.Debug.WriteLine($"[SettingsWindow] Creating OtherWindowsAppearanceSettingsPage, service is {(_appearanceSettingsService != null ? "OK" : "NULL")}");
         try
         {
@@ -350,14 +350,14 @@ public partial class SettingsWindow : Window
     {
         System.Diagnostics.Debug.WriteLine("[SettingsWindow] OnSearchEngineRequested called");
         
-        // Спробувати ініціалізувати сервіс, якщо він не був ініціалізований
+        // Try to initialize the service if it was not initialized
         if (_settingsService == null)
         {
             System.Diagnostics.Debug.WriteLine("[SettingsWindow] _settingsService is null, trying to initialize");
             InitializeSettingsService();
         }
         
-        // Створюємо сторінку навіть якщо сервіс null - вона покаже дефолтні значення
+        // Create the page even if service is null - it will show default values
         System.Diagnostics.Debug.WriteLine($"[SettingsWindow] Creating SearchEngineSettingsPage, service is {(_settingsService != null ? "OK" : "NULL")}");
         try
         {
@@ -396,7 +396,7 @@ public partial class SettingsWindow : Window
                 var mainWindow = desktop.Windows.OfType<MainWindow>().FirstOrDefault();
                 if (mainWindow != null)
                 {
-                    // Якщо явно просять відкрити домашню сторінку Vetale Search — використовуємо спеціальний метод
+                    // If explicitly asked to open Vetale Search home page — use a special method
                     if (string.Equals(url, "vetale://search", StringComparison.OrdinalIgnoreCase) ||
                         string.Equals(url, "vetale://search/home", StringComparison.OrdinalIgnoreCase))
                     {
@@ -404,11 +404,11 @@ public partial class SettingsWindow : Window
                     }
                     else
                     {
-                        // Для інших URL (у т.ч. vetale://search/results) використовуємо стандартну навігацію поточної вкладки
+                        // For other URLs (incl. vetale://search/results) use standard navigation for the active tab
                         mainWindow.NavigateCurrentTabToUrl(url);
                     }
 
-                    // Закрити вікно налаштувань
+                    // Close the settings window
                     Close();
                 }
             }
@@ -440,11 +440,11 @@ public partial class SettingsWindow : Window
                     {
                         await main.NavigateToSelectedSearchHomeAsync();
                         
-                        // Активувати головне вікно
+                        // Activate the main window
                         main.Activate();
                         main.Focus();
                         
-                        // Закрити вікно налаштувань після успішного оновлення
+                        // Close the settings window after successful update
                         Close();
                         break;
                     }

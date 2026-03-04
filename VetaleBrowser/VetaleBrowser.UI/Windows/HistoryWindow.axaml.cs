@@ -33,7 +33,7 @@ public partial class HistoryWindow : Window
 
     private void OnWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
-        // Очищаємо ресурси при закритті вікна
+        // Clean up resources when window is closed
         Cleanup();
     }
 
@@ -93,30 +93,30 @@ public partial class HistoryWindow : Window
 
     private void Cleanup()
     {
-        // Відписуємося від подій
+        // Unsubscribe from events
         Loaded -= OnLoaded;
         Closing -= OnWindowClosing;
 
-        // Очищаємо ContentControl
+        // Clear ContentControl
         if (_contentHost != null)
         {
             _contentHost.Content = null;
         }
 
-        // Очищаємо HistoryPage
+        // Clear HistoryPage
         if (_historyPage != null)
         {
             _historyPage = null;
         }
 
-        // Очищаємо сервіси
+        // Clear services
         _historyService = null;
         _contentHost = null;
     }
 
     private void OpenMainWindow(object? sender, RoutedEventArgs e)
     {
-        // Знаходимо головне вікно
+        // Find the main window
         foreach (var window in ((Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)
             Avalonia.Application.Current!.ApplicationLifetime!).Windows)
         {

@@ -12,7 +12,7 @@ public partial class SearchEngineSettingsPage : UserControl
 {
     public event EventHandler? BackRequested;
     public event EventHandler? SettingsSaved;
-    public event EventHandler<string>? NavigateRequested; // Нова подія для навігації
+    public event EventHandler<string>? NavigateRequested; // New event for navigation
 
     private RadioButton? _vetaleRadio;
     private RadioButton? _googleRadio;
@@ -26,7 +26,7 @@ public partial class SearchEngineSettingsPage : UserControl
     private bool _isLoading = true;
 
     private const string VetaleSearchName = "Vetale Search";
-    private const string VetaleSearchUrl = ""; // маркер локального пошуку, без зовнішнього URL
+    private const string VetaleSearchUrl = ""; // local search marker, no external URL
 
     private readonly Dictionary<string, string> _searchEngines = new()
     {
@@ -36,7 +36,7 @@ public partial class SearchEngineSettingsPage : UserControl
         { "Baidu", "https://www.baidu.com/s?wd={0}" }
     };
 
-    // Конструктор для XAML
+    // Constructor for XAML
     public SearchEngineSettingsPage() : this(null)
     {
     }
@@ -63,7 +63,7 @@ public partial class SearchEngineSettingsPage : UserControl
         _customRadio = this.FindControl<RadioButton>("CustomRadio");
         _customUrlTextBox = this.FindControl<TextBox>("CustomUrlTextBox");
 
-        // Завантажуємо поточні налаштування
+        // Load current settings
         await LoadCurrentSettings();
         _isLoading = false;
     }
@@ -93,7 +93,7 @@ public partial class SearchEngineSettingsPage : UserControl
                 System.Diagnostics.Debug.WriteLine("[SearchEngineSettingsPage] SettingsService is null, using defaults");
             }
 
-            // Спеціальний випадок: Vetale Search як локальний пошук
+            // Special case: Vetale Search as local search
             if (string.Equals(currentName, VetaleSearchName, StringComparison.OrdinalIgnoreCase))
             {
                 if (_vetaleRadio != null)
@@ -103,7 +103,7 @@ public partial class SearchEngineSettingsPage : UserControl
                 return;
             }
 
-            // Знаходимо відповідний RadioButton для вбудованих веб-пошукових систем
+            // Find the corresponding RadioButton for built-in web search engines
             if (_searchEngines.TryGetValue(currentName, out var url) && url == currentUrl)
             {
                 var radio = currentName switch
@@ -122,7 +122,7 @@ public partial class SearchEngineSettingsPage : UserControl
             }
             else
             {
-                // Це кастомна пошукова система
+                // This is a custom search engine
                 if (_customRadio != null)
                 {
                     _customRadio.IsChecked = true;
@@ -145,7 +145,7 @@ public partial class SearchEngineSettingsPage : UserControl
         if (_isLoading)
             return;
 
-        // Вмикаємо/вимикаємо TextBox в залежності від вибору
+        // Enable/disable TextBox depending on selection
         if (_customUrlTextBox != null)
         {
             _customUrlTextBox.IsEnabled = _customRadio?.IsChecked == true;
@@ -154,14 +154,14 @@ public partial class SearchEngineSettingsPage : UserControl
 
     private void OnCustomUrlChanged(object? sender, TextChangedEventArgs e)
     {
-        // Можна додати валідацію URL тут
+        // URL validation can be added here
     }
 
     private async void OnSaveClick(object? sender, RoutedEventArgs e)
     {
         System.Diagnostics.Debug.WriteLine("[SearchEngineSettingsPage] OnSaveClick called");
         
-        // Якщо сервіс null - спробуємо створити свій
+        // If service is null - try to create our own
         var settingsService = _settingsService;
         if (settingsService == null)
         {
@@ -186,7 +186,7 @@ public partial class SearchEngineSettingsPage : UserControl
 
             if (_vetaleRadio?.IsChecked == true)
             {
-                // Вибрано Vetale Search як локальний пошук
+                // Vetale Search selected as local search
                 searchEngineName = VetaleSearchName;
                 searchEngineUrl = VetaleSearchUrl;
             }
@@ -215,7 +215,7 @@ public partial class SearchEngineSettingsPage : UserControl
                 searchEngineName = "Custom";
                 searchEngineUrl = _customUrlTextBox?.Text?.Trim() ?? "";
 
-                // Валідація кастомного URL
+                // Custom URL validation
                 if (string.IsNullOrWhiteSpace(searchEngineUrl))
                 {
                     System.Diagnostics.Debug.WriteLine("SearchEngineSettingsPage: Custom URL is empty");
@@ -230,16 +230,16 @@ public partial class SearchEngineSettingsPage : UserControl
             }
             else
             {
-                // Нічого не вибрано
+                // Nothing selected
                 return;
             }
 
-            // Зберігаємо налаштування
+            // Save settings
             await settingsService.SetSearchEngineAsync(searchEngineName, searchEngineUrl);
             
             System.Diagnostics.Debug.WriteLine($"[SearchEngineSettingsPage] Saved {searchEngineName} - {searchEngineUrl}");
             
-            // Повідомляємо про успішне збереження (SettingsWindow сам закриється після навігації)
+            // Notify about successful save (SettingsWindow will close itself after navigation)
             SettingsSaved?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception ex)

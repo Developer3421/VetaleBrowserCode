@@ -7,8 +7,8 @@ using Avalonia.Media.Imaging;
 namespace VetaleBrowser.VetaleBrowser.UI.Services
 {
     /// <summary>
-    /// Отримує системну іконку для файлу (Windows) і кешує в пам'яті.
-    /// На Linux/macOS повертає null (UI має показати дефолтну іконку).
+    /// Gets the system icon for a file (Windows) and caches it in memory.
+    /// On Linux/macOS returns null (the UI should show a default icon).
     /// </summary>
     public static class FileIconService
     {

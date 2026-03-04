@@ -169,10 +169,10 @@ public partial class VetaleSearchHomePage : UserControl
     {
         try
         {
-            // Знаходимо елемент на який клікнули
+            // Find the element that was clicked
             if (e.Source is Control clickedControl)
             {
-                // Шукаємо SearchSuggestion в DataContext поточного або батьківських елементів
+                // Search for SearchSuggestion in DataContext of current or parent elements
                 var current = clickedControl;
                 SearchSuggestion? suggestion = null;
                 
@@ -190,20 +190,20 @@ public partial class VetaleSearchHomePage : UserControl
                 {
                     System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] Suggestion clicked: {suggestion.Text}");
                     
-                    // Вставляємо текст підказки в поле пошуку
+                    // Insert suggestion text into the search field
                     _searchInput.Text = suggestion.Text;
                     
-                    // Ставимо курсор в кінець тексту
+                    // Place cursor at the end of the text
                     _searchInput.CaretIndex = suggestion.Text.Length;
                     
-                    // Закриваємо popup
+                    // Close the popup
                     if (_suggestionsPopup != null) _suggestionsPopup.IsOpen = false;
                     
-                    // Фокусуємо поле пошуку
+                    // Focus the search field
                     _searchInput.Focus();
                     
-                    // НЕ виконуємо пошук автоматично - даємо користувачу можливість редагувати
-                    // Якщо потрібно автоматично шукати, розкоментуйте:
+                    // Do NOT perform search automatically - allow user to edit
+                    // If automatic search is needed, uncomment:
                     // PerformSearch();
                     
                     e.Handled = true;
@@ -323,7 +323,7 @@ public partial class VetaleSearchHomePage : UserControl
             return;
         }
 
-        // Открываем страницу результатов в режиме изображений
+        // Open results page in image search mode
         var resultsUrl = $"vetale://search/results?mode=images&q={Uri.EscapeDataString(query)}";
         NavigateRequested?.Invoke(this, resultsUrl);
     }
@@ -351,7 +351,7 @@ public partial class VetaleSearchHomePage : UserControl
         
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] Query: '{query}', Engine: {selectedEngine}");
 
-        if (selectedEngine == 0) // Vetale Search (локальний)
+        if (selectedEngine == 0) // Vetale Search (local)
         {
             var resultsUrl = $"vetale://search/results?q={Uri.EscapeDataString(query)}";
 
@@ -400,7 +400,7 @@ public partial class VetaleSearchHomePage : UserControl
         if (_searchInput != null)
         {
             _searchInput.Text = query;
-            // оновити стан кнопки пошуку
+            // update search button state
             if (_searchButton != null)
             {
                 _searchButton.IsEnabled = !string.IsNullOrWhiteSpace(_searchInput.Text);
@@ -408,7 +408,7 @@ public partial class VetaleSearchHomePage : UserControl
         }
     }
 
-    // Обробники подій голосового розпізнавання
+    // Voice recognition event handlers
     private async void VoiceButton_Click(object? sender, RoutedEventArgs e)
     {
         var msg = "🎤🎤🎤 VOICE BUTTON CLICKED 🎤🎤🎤";
@@ -489,7 +489,7 @@ public partial class VetaleSearchHomePage : UserControl
             return;
         }
         
-        // Оновлюємо UI в UI-потоці
+        // Update UI on the UI thread
         await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
         {
             try
@@ -512,14 +512,14 @@ public partial class VetaleSearchHomePage : UserControl
                     System.Diagnostics.Debug.WriteLine("[VOICE][HOME] ⚠️ Search input is null!");
                 }
                 
-                // Автоматично зупиняємо після розпізнавання
+                // Automatically stop after recognition
                 System.Diagnostics.Debug.WriteLine("[VOICE][HOME] Stopping voice recognition...");
                 _voiceRecognitionService?.StopListening();
                 
-                // Невелика асинхронна затримка перед пошуком для оновлення UI
+                // Small async delay before search to update UI
                 await System.Threading.Tasks.Task.Delay(150);
                 
-                // Автоматично виконуємо пошук
+                // Automatically perform search
                 System.Diagnostics.Debug.WriteLine("[VOICE][HOME] Performing search...");
                 PerformSearch();
                 System.Diagnostics.Debug.WriteLine("[VOICE][HOME] ✓ Search performed!");
@@ -536,20 +536,20 @@ public partial class VetaleSearchHomePage : UserControl
     {
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] Voice state changed: {state}");
         
-        // Оновлюємо UI в UI-потоці
+        // Update UI on the UI thread
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             if (_voiceButton != null)
             {
-                // Змінюємо вигляд кнопки в залежності від стану
+                // Change button appearance based on state
                 var iconText = state switch
                 {
-                    VoiceRecognitionState.Listening => "⏹️", // Зупинити
-                    VoiceRecognitionState.Processing => "⏳", // Обробка
-                    _ => "🎤" // Мікрофон
+                    VoiceRecognitionState.Listening => "⏹️", // Stop
+                    VoiceRecognitionState.Processing => "⏳", // Processing
+                    _ => "🎤" // Microphone
                 };
                 
-                // Створюємо новий TextBlock
+                // Create a new TextBlock
                 _voiceButton.Content = new TextBlock 
                 { 
                     Text = iconText,
@@ -565,8 +565,8 @@ public partial class VetaleSearchHomePage : UserControl
     {
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] Voice error: {error}");
         
-        // TODO: Показати користувачу повідомлення про помилку
-        // Наприклад, через MessageBox або Toast notification
+        // TODO: Show error message to the user
+        // For example, via MessageBox or Toast notification
     }
 
     private void OnThemeChanged(object? sender, EventArgs e)

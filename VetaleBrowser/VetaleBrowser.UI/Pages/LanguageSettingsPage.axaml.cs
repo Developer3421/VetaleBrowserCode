@@ -74,7 +74,7 @@ public partial class LanguageSettingsPage : UserControl
         {
             System.Diagnostics.Debug.WriteLine("[LanguageSettingsPage] InitializeAsync started");
             
-            // Завжди спочатку заповнюємо ComboBox мовами
+    // Always populate ComboBox with languages first
             if (_combo != null)
             {
                 var languages = LocalizationService.SupportedLanguages.ToList();
@@ -84,7 +84,7 @@ public partial class LanguageSettingsPage : UserControl
                     System.Diagnostics.Debug.WriteLine($"  - {lang.DisplayName} ({lang.Code})");
                 }
                 
-                // Переконуємось що ItemTemplate встановлено
+                // Make sure ItemTemplate is set
                 if (_combo.ItemTemplate == null)
                 {
                     System.Diagnostics.Debug.WriteLine("[LanguageSettingsPage] Setting ItemTemplate manually");
@@ -114,11 +114,11 @@ public partial class LanguageSettingsPage : UserControl
                 // Default selection
                 string current = "en";
                 
-                // Спробуємо завантажити поточну мову з налаштувань
+                // Try to load the current language from settings
                 try
                 {
                     var cfg = DatabaseConfiguration.CreateDefault();
-                    // Використовуємо окремий файл settings.db замість browser.db
+                // Use a separate settings.db file instead of browser.db
                     var settingsDbPath = System.IO.Path.Combine(
                         System.IO.Path.GetDirectoryName(cfg.DatabasePath) ?? "",
                         "settings.db");
@@ -154,7 +154,7 @@ public partial class LanguageSettingsPage : UserControl
         {
             System.Diagnostics.Debug.WriteLine("[LanguageSettingsPage] OnSave called");
             
-            // Перевіряємо вибір
+            // Check selection
             if (_combo?.SelectedItem is not LocalizationService.LanguageOption selected)
             {
                 System.Diagnostics.Debug.WriteLine("[LanguageSettingsPage] Save: no language selected");
@@ -163,7 +163,7 @@ public partial class LanguageSettingsPage : UserControl
             
             System.Diagnostics.Debug.WriteLine($"[LanguageSettingsPage] Saving language: {selected.Code}");
             
-            // Ініціалізуємо settings service якщо ще не ініціалізований
+            // Initialize settings service if not yet initialized
             if (_settingsService == null)
             {
                 try
@@ -181,7 +181,7 @@ public partial class LanguageSettingsPage : UserControl
                 }
             }
             
-            // Зберігаємо в базу даних
+            // Save to database
             if (_settingsService != null)
             {
                 await _settingsService.SetLanguageAsync(selected.Code);
@@ -192,11 +192,11 @@ public partial class LanguageSettingsPage : UserControl
                 System.Diagnostics.Debug.WriteLine("[LanguageSettingsPage] WARNING: Could not save to DB - settings service is null");
             }
             
-            // Застосовуємо мову до UI (це працює навіть без збереження в БД)
+            // Apply language to UI (this works even without saving to DB)
             LocalizationService.ApplyLanguage(selected.Code);
             System.Diagnostics.Debug.WriteLine($"[LanguageSettingsPage] Language applied to UI: {selected.Code}");
             
-            // Сповіщаємо про збереження
+            // Notify about save
             SettingsSaved?.Invoke(this, EventArgs.Empty);
             
             System.Diagnostics.Debug.WriteLine("[LanguageSettingsPage] Save completed successfully");
