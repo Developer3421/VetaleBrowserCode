@@ -16,49 +16,49 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
 {
     private readonly HttpClient _httpClient;
     
-    // Поточна мова для генерації відповідей
+    // Current language for response generation
 
     
     // Google Gemini API endpoint
     private const string ApiBaseUrl = "https://generativelanguage.googleapis.com/v1beta/models";
     
-    // БЕЗКОШТОВНІ моделі Google Gemini (оберіть одну):
-    // 1. "gemini-2.5-flash" - найновіша швидка модель (РЕКОМЕНДОВАНО)
-    // 2. "gemini-1.5-flash" - попередня швидка версія
-    // 3. "gemini-1.5-pro" - найпотужніша, але повільніша
+    // Free Google Gemini models (choose one):
+    // 1. "gemini-2.5-flash" - latest fast model (RECOMMENDED)
+    // 2. "gemini-1.5-flash" - previous fast version
+    // 3. "gemini-1.5-pro" - most powerful, but slower
     private const string ModelName = "gemini-2.5-flash";
     
-    // ===== ЯК ОТРИМАТИ API КЛЮЧ =====
-    // 1. Відкрийте: https://aistudio.google.com/app/apikey
-    // 2. Натисніть "Get API key" або "Create API key"
-    // 3. Виберіть або створіть новий проект Google Cloud
-    // 4. Скопіюйте згенерований API ключ
-    // 5. Вставте його нижче замість "YOUR_GEMINI_API_KEY_HERE"
+    // ===== HOW TO GET AN API KEY =====
+    // 1. Open: https://aistudio.google.com/app/apikey
+    // 2. Click "Get API key" or "Create API key"
+    // 3. Select or create a new Google Cloud project
+    // 4. Copy the generated API key
+    // 5. Paste it below instead of "YOUR_GEMINI_API_KEY_HERE"
     
-    // БЕЗКОШТОВНІ ЛІМІТИ:
-    // - 15 запитів на хвилину
-    // - 1 мільйон токенів на місяць
-    // - 1500 запитів на день
+    // FREE LIMITS:
+    // - 15 requests per minute
+    // - 1 million tokens per month
+    // - 1500 requests per day
     
-    // ВСТАВТЕ ВАШ GEMINI API КЛЮЧ ТУТ:
-    private const string DefaultApiKey = ""; // ← API ключ видалено для безпеки. Користувачі повинні ввести свій ключ.
-    // Або встановіть змінну середовища: GEMINI_API_KEY
+    // INSERT YOUR GEMINI API KEY HERE:
+    private const string DefaultApiKey = ""; // ← API key removed for security. Users must enter their own key.
+    // Or set the environment variable: GEMINI_API_KEY
     
     private bool _isDisposed;
     private string _apiKeyToUse = DefaultApiKey;
     
     /// <summary>
-    /// Статичний кастомний API ключ, встановлений користувачем
+    /// Static custom API key set by the user
     /// </summary>
     private static string? _customApiKey;
     
     /// <summary>
-    /// Чи використовується кастомний API ключ
+    /// Whether a custom API key is being used
     /// </summary>
     public static bool IsUsingCustomApiKey => !string.IsNullOrWhiteSpace(_customApiKey);
     
     /// <summary>
-    /// Отримати поточний API ключ (для перевірки)
+    /// Get the current API key (for verification)
     /// </summary>
     public string CurrentApiKey => _apiKeyToUse;
 
@@ -76,7 +76,7 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
     }
     
     /// <summary>
-    /// Конструктор з кастомним API ключем
+    /// Constructor with custom API key
     /// </summary>
     public GeminiAiSummaryService(string? customApiKey)
     {
@@ -101,9 +101,9 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
         System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] === InitializeApiKey START ===");
         System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] _customApiKey (static): {(_customApiKey != null ? $"'{_customApiKey.Substring(0, Math.Min(10, _customApiKey.Length))}...'" : "null")}");
         
-        // Пріоритет: 1) пам'ять (_customApiKey) > 2) дефолтний ключ > 3) база даних > 4) змінна середовища
+        // Priority: 1) memory (_customApiKey) > 2) default key > 3) database > 4) environment variable
         
-        // 1. Кастомний ключ в пам'яті
+        // 1. Custom key in memory
         if (!string.IsNullOrWhiteSpace(_customApiKey))
         {
             _apiKeyToUse = _customApiKey;
@@ -111,7 +111,7 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
             return;
         }
         
-        // 2. Дефолтний ключ (якщо встановлено в коді)
+        // 2. Default key (if set in code)
         if (!string.IsNullOrWhiteSpace(DefaultApiKey) && DefaultApiKey != "YOUR_GEMINI_API_KEY_HERE")
         {
             _apiKeyToUse = DefaultApiKey;
@@ -119,7 +119,7 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
             return;
         }
         
-        // 3. Змінна середовища (швидко, без блокування)
+        // 3. Environment variable (fast, without blocking)
         var envKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
         System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] GEMINI_API_KEY env var: {(envKey != null ? $"'{envKey.Substring(0, Math.Min(10, envKey.Length))}...'" : "not set")}");
         if (!string.IsNullOrWhiteSpace(envKey))
@@ -129,7 +129,7 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
             return;
         }
         
-        // 4. Спробуємо завантажити з бази даних (може бути повільно)
+        // 4. Try to load from database (may be slow)
         try
         {
             System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Trying to load from database...");
@@ -137,7 +137,7 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
             System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Database returned: {(dbKey != null ? $"'{dbKey.Substring(0, Math.Min(10, dbKey.Length))}...'" : "null")}");
             if (!string.IsNullOrWhiteSpace(dbKey))
             {
-                _customApiKey = dbKey; // Кешуємо
+                _customApiKey = dbKey; // Cache it
                 _apiKeyToUse = dbKey;
                 System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] ✓ Using saved API Key (database): {_apiKeyToUse.Substring(0, Math.Min(10, _apiKeyToUse.Length))}...");
                 return;
@@ -148,7 +148,7 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
             System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Error loading from database: {ex.Message}");
         }
         
-        // Якщо нічого не знайдено - використовуємо плейсхолдер
+        // If nothing is found - use placeholder
         _apiKeyToUse = "YOUR_GEMINI_API_KEY_HERE";
         System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] ⚠️ WARNING: API Key not set! Using placeholder.");
         System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Get your free key at: https://aistudio.google.com/app/apikey");
@@ -156,7 +156,7 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
     }
     
     /// <summary>
-    /// Завантажити API ключ з бази даних
+    /// Load API key from database
     /// </summary>
     private static string? LoadApiKeyFromDatabase()
     {
@@ -165,7 +165,7 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
             var apiKeysService = DatabaseServicesFactory.TryGetApiKeysService();
             if (apiKeysService != null)
             {
-                // Використовуємо Task.Run щоб уникнути deadlock в UI потоці
+                // Use Task.Run to avoid deadlock in UI thread
                 var key = Task.Run(async () => await apiKeysService.GetGeminiApiKeyAsync().ConfigureAwait(false)).GetAwaiter().GetResult();
                 if (!string.IsNullOrWhiteSpace(key))
                 {
@@ -182,7 +182,7 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
     }
     
     /// <summary>
-    /// Зберегти API ключ у базу даних
+    /// Save API key to database
     /// </summary>
     private static void SaveApiKeyToDatabase(string? apiKey)
     {
@@ -191,7 +191,7 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
             var apiKeysService = DatabaseServicesFactory.TryGetApiKeysService();
             if (apiKeysService != null)
             {
-                // Використовуємо Task.Run щоб уникнути deadlock в UI потоці
+                // Use Task.Run to avoid deadlock in UI thread
                 if (string.IsNullOrWhiteSpace(apiKey))
                 {
                     Task.Run(async () => await apiKeysService.RemoveApiKeyAsync(ApiServiceIds.Gemini).ConfigureAwait(false)).GetAwaiter().GetResult();
@@ -211,27 +211,27 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
     }
     
     /// <summary>
-    /// Встановити кастомний API ключ для всіх екземплярів сервісу та зберегти в базу даних
+    /// Set custom API key for all service instances and save to database
     /// </summary>
     public static void SetCustomApiKey(string? apiKey)
     {
         _customApiKey = apiKey;
-        SaveApiKeyToDatabase(apiKey); // Зберігаємо в БД для постійного збереження
+        SaveApiKeyToDatabase(apiKey); // Save to DB for persistent storage
         System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Custom API key set: {(string.IsNullOrWhiteSpace(apiKey) ? "cleared" : apiKey.Substring(0, Math.Min(10, apiKey.Length)) + "...")}");
     }
     
     /// <summary>
-    /// Очистити кастомний API ключ (використовувати дефолтний) та видалити з бази даних
+    /// Clear custom API key (use default) and remove from database
     /// </summary>
     public static void ClearCustomApiKey()
     {
         _customApiKey = null;
-        SaveApiKeyToDatabase(null); // Видаляємо з БД
+        SaveApiKeyToDatabase(null); // Remove from DB
         System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Custom API key cleared, using default");
     }
     
     /// <summary>
-    /// Переініціалізувати API ключ (викликати після SetCustomApiKey)
+    /// Reinitialize API key (call after SetCustomApiKey)
     /// </summary>
     public void RefreshApiKey()
     {
@@ -239,11 +239,11 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
     }
 
     /// <summary>
-    /// Встановити мову для AI-відповідей
+    /// Set language for AI responses
     /// </summary>
 
     /// <summary>
-    /// Отримати назву мови для промпта
+    /// Get language name for prompt
     /// </summary>
     private string GetLanguageName(string code) => code switch
     {
@@ -289,7 +289,7 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
             State = AiSummaryState.Loading
         };
 
-        // Отримуємо поточну мову інтерфейсу на початку
+        // Get the current interface language at the start
         var currentLanguage = GetCurrentInterfaceLanguage();
         var languageName = GetLanguageName(currentLanguage);
         
@@ -304,30 +304,30 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
                 return summary;
             }
 
-            // Перевірка наявності API ключа
+            // Check for API key presence
             if (_apiKeyToUse == "YOUR_GEMINI_API_KEY_HERE" || string.IsNullOrWhiteSpace(_apiKeyToUse))
             {
                 summary.State = AiSummaryState.Error;
-                summary.ErrorMessage = "API_KEY_REQUIRED"; // Спеціальний код для UI - треба показати вікно вводу ключа
+                summary.ErrorMessage = "API_KEY_REQUIRED"; // Special code for UI - need to show key input window
                 System.Diagnostics.Debug.WriteLine("[GeminiAiSummary] API key not configured");
                 return summary;
             }
             
-            // Створюємо промпт для Gemini на основі поточної мови
+            // Create prompt for Gemini based on current language
             string prompt;
             
             if (isChat)
             {
-                // Промпт для чату - природна розмова
+                // Chat prompt - natural conversation
                 prompt = GetChatPrompt(query, currentLanguage, languageName);
             }
             else
             {
-                // Промпт для підсумування пошуку
+                // Search summary prompt
                 prompt = GetSearchSummaryPrompt(query, currentLanguage, languageName);
             }
 
-            // Gemini API використовує формат generateContent
+            // Gemini API uses generateContent format
             var requestData = new
             {
                 contents = new[]
@@ -345,7 +345,7 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
                     temperature = 0.7,
                     topK = 40,
                     topP = 0.95,
-                    maxOutputTokens = 8192, // Максимум токенів без обмежень
+                    maxOutputTokens = 8192, // Maximum tokens without limits
                     candidateCount = 1
                 },
                 safetySettings = new[]
@@ -362,18 +362,18 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
                 WriteIndented = false 
             });
 
-            // Формуємо URL з API ключем
+            // Compose URL with API key
             var apiUrl = $"{ApiBaseUrl}/{ModelName}:generateContent?key={_apiKeyToUse}";
 
             System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Sending request for query: {query}");
             System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Model: {ModelName}");
             System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Request size: {jsonContent.Length} bytes");
 
-            // Retry логіка для rate limits (429) - чекаємо без показу помилки
+            // Retry logic for rate limits (429) - wait without showing error
             HttpResponseMessage response;
-            int maxRetries = 10; // Більше спроб
+            int maxRetries = 10; // More retries
             int retryCount = 0;
-            int delayMs = 2000; // Починаємо з 2 секунд
+            int delayMs = 2000; // Start with 2 seconds
             
             while (true)
             {
@@ -382,19 +382,19 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
                 
                 System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Response Status: {response.StatusCode} ({(int)response.StatusCode}), Attempt: {retryCount + 1}");
                 
-                // Якщо успіх - виходимо
+                // If success - exit
                 if (response.IsSuccessStatusCode)
                 {
                     break;
                 }
                 
-                // Якщо rate limit (429) - чекаємо і пробуємо знову (без показу помилки)
+                // If rate limited (429) - wait and retry (without showing error)
                 if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
                 {
                     retryCount++;
                     if (retryCount >= maxRetries)
                     {
-                        // Після багатьох спроб - просто повертаємо пусту відповідь без помилки
+                        // After many retries - just return empty response without error
                         System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Max retries reached, returning empty response");
                         summary.State = AiSummaryState.NoSummary;
                         summary.SummaryText = "";
@@ -403,11 +403,11 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
                     
                     System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Rate limited, waiting {delayMs}ms before retry...");
                     await Task.Delay(delayMs, cancellationToken);
-                    delayMs = Math.Min(delayMs * 2, 30000); // Exponential backoff до 30 секунд
+                    delayMs = Math.Min(delayMs * 2, 30000); // Exponential backoff up to 30 seconds
                     continue;
                 }
                 
-                // Інші помилки - виходимо з циклу
+                // Other errors - exit the loop
                 break;
             }
 
@@ -419,10 +419,10 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
                 
                 summary.State = AiSummaryState.Error;
                 
-                // Детальний аналіз помилок з локалізацією
+                // Detailed error analysis with localization
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    // 404 - модель не знайдена
+                    // 404 - model not found
                     summary.ErrorMessage = $"Model '{ModelName}' not found. Check model name.";
                     System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Model not found: {ModelName}");
                 }
@@ -437,7 +437,7 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
                 }
                 else
                 {
-                    // Для всіх інших помилок - загальне повідомлення без деталей
+                    // For all other errors - generic message without details
                     summary.ErrorMessage = LocalizeMessage("ApiError", currentLanguage);
                 }
                 
@@ -447,16 +447,16 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
             var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
             System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Response received: {responseJson.Length} bytes");
 
-            // Парсинг відповіді Gemini
+            // Parse Gemini response
             using var doc = JsonDocument.Parse(responseJson);
             
-            // Gemini повертає: {"candidates": [{"content": {"parts": [{"text": "..."}]}}]}
+            // Gemini returns: {"candidates": [{"content": {"parts": [{"text": "..."}]}}]}
             if (doc.RootElement.TryGetProperty("candidates", out var candidatesElement) &&
                 candidatesElement.GetArrayLength() > 0)
             {
                 var firstCandidate = candidatesElement[0];
                 
-                // Перевірка на блокування контенту
+                // Check for content blocking
                 if (firstCandidate.TryGetProperty("finishReason", out var finishReasonElement))
                 {
                     var finishReason = finishReasonElement.GetString();
@@ -479,10 +479,10 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
                         var generatedText = textElement.GetString() ?? string.Empty;
                         System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Raw text length: {generatedText.Length}");
                         
-                        // Очищення відповіді
+                        // Clean up response
                         generatedText = generatedText.Trim();
                         
-                        // Видаляємо можливі префікси
+                        // Remove possible prefixes
                         var prefixes = new[] { "Підсумок:", "Відповідь:", "Результат:" };
                         foreach (var prefix in prefixes)
                         {
@@ -494,7 +494,7 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
 
                         summary.SummaryText = generatedText;
                         summary.State = AiSummaryState.Ready;
-                        summary.Confidence = 0.90; // Gemini зазвичай дає якісніші результати
+                        summary.Confidence = 0.90; // Gemini usually provides higher quality results
                         summary.GeneratedAt = DateTime.UtcNow;
 
                         System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] ✓ Summary generated successfully!");
@@ -544,13 +544,13 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
     }
 
     /// <summary>
-    /// Отримати поточну мову інтерфейсу з LocalizationService
+    /// Get current interface language from LocalizationService
     /// </summary>
     private static string GetCurrentInterfaceLanguage()
     {
         try
         {
-            // Отримуємо мову безпосередньо з LocalizationService (UI)
+            // Get language directly from LocalizationService (UI)
             var langCode = VetaleBrowser.UI.Services.LocalizationService.CurrentLanguageCode;
             System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Got langCode from LocalizationService: '{langCode}'");
             
@@ -564,7 +564,7 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
             System.Diagnostics.Debug.WriteLine($"[GeminiAiSummary] Error getting interface language from LocalizationService: {ex.Message}");
         }
         
-        // Fallback: спробуємо отримати мову з налаштувань через базу даних
+        // Fallback: try to get language from settings via database
         try
         {
             var settingsService = DatabaseServicesFactory.TryGetSettingsService();
@@ -585,12 +585,12 @@ public class GeminiAiSummaryService : IAiSummaryService, IDisposable
         }
         
         System.Diagnostics.Debug.WriteLine("[GeminiAiSummary] Returning default language: en");
-        // За замовчуванням - англійська (стандарт)
+        // Default - English (standard)
         return "en";
     }
 
     /// <summary>
-    /// Генерувати промпт для чату на основі мови
+    /// Generate chat prompt based on language
     /// </summary>
     private static string GetChatPrompt(string query, string langCode, string languageName)
     {
@@ -671,7 +671,7 @@ Your response:"
     }
 
     /// <summary>
-    /// Генерувати промпт для пошукового підсумку на основі мови
+    /// Generate search summary prompt based on language
     /// </summary>
     private static string GetSearchSummaryPrompt(string query, string langCode, string languageName)
     {
@@ -746,7 +746,7 @@ Summary:"
     }
 
     /// <summary>
-    /// Локалізація повідомлень про помилки
+    /// Localization of error messages
     /// </summary>
     private static string LocalizeMessage(string key, string langCode)
     {

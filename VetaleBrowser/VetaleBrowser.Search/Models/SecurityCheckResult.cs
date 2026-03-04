@@ -3,55 +3,55 @@ using System;
 namespace VetaleBrowser.VetaleBrowser.Search.Models;
 
 /// <summary>
-/// Результат перевірки безпеки URL
+/// URL security check result
 /// </summary>
 public class SecurityCheckResult
 {
-    /// <summary>Перевірений URL</summary>
+    /// <summary>Checked URL</summary>
     public string Url { get; set; } = string.Empty;
     
-    /// <summary>Статус безпеки</summary>
+    /// <summary>Security status</summary>
     public SecurityStatus Status { get; set; } = SecurityStatus.Unknown;
     
-    /// <summary>Джерело інформації про безпеку</summary>
+    /// <summary>Security information source</summary>
     public SecuritySource Source { get; set; } = SecuritySource.Unknown;
     
-    /// <summary>Опис результату</summary>
+    /// <summary>Result description</summary>
     public string Description { get; set; } = string.Empty;
     
-    /// <summary>Чи є сайт в базі фішингу</summary>
+    /// <summary>Whether the site is in the phishing database</summary>
     public bool IsPhishing { get; set; }
     
-    /// <summary>Час перевірки</summary>
+    /// <summary>Check time</summary>
     public DateTime CheckedAt { get; set; } = DateTime.Now;
     
-    /// <summary>Деталі з PhishTank (якщо є)</summary>
+    /// <summary>Details from PhishTank (if available)</summary>
     public PhishTankDetails? Details { get; set; }
     
-    /// <summary>Деталі з VirusTotal (якщо є)</summary>
+    /// <summary>Details from VirusTotal (if available)</summary>
     public VirusTotalDetails? VirusTotalDetails { get; set; }
 }
 
 /// <summary>
-/// Деталі з PhishTank API
+/// Details from PhishTank API
 /// </summary>
 public class PhishTankDetails
 {
-    /// <summary>ID запису в PhishTank</summary>
+    /// <summary>PhishTank record ID</summary>
     public string? PhishId { get; set; }
     
-    /// <summary>Час додавання до бази</summary>
+    /// <summary>Time added to database</summary>
     public DateTime? SubmittedAt { get; set; }
     
-    /// <summary>Підтверджений фішинг</summary>
+    /// <summary>Confirmed phishing</summary>
     public bool Verified { get; set; }
     
-    /// <summary>Додаткова інформація</summary>
+    /// <summary>Additional information</summary>
     public string? AdditionalInfo { get; set; }
 }
 
 /// <summary>
-/// Деталі з VirusTotal API
+/// Details from VirusTotal API
 /// </summary>
 public class VirusTotalDetails
 {

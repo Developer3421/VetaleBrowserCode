@@ -1,16 +1,16 @@
 namespace VetaleBrowser.VetaleBrowser.Search.Models;
 
 /// <summary>
-/// Модель підказки пошуку.
+/// Search suggestion model.
 /// </summary>
 public class SearchSuggestion
 {
-    /// <summary>Текст підказки.</summary>
+    /// <summary>Suggestion text.</summary>
     public string Text { get; set; } = string.Empty;
-    /// <summary>Тип підказки (search, history, bookmark).</summary>
+    /// <summary>Suggestion type (search, history, bookmark).</summary>
     public string Type { get; set; } = "search";
-    /// <summary>Іконка (емодзі чи символ).</summary>
+    /// <summary>Icon (emoji or symbol).</summary>
     public string Icon { get; set; } = "🔍";
-    /// <summary>URL для переходу (опціонально).</summary>
+    /// <summary>URL to navigate to (optional).</summary>
     public string? Url { get; set; }
 }

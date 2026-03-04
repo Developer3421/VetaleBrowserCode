@@ -9,8 +9,8 @@ using VetaleBrowser.VetaleBrowser.Search.Models;
 namespace VetaleBrowser.VetaleBrowser.Search.Services
 {
     /// <summary>
-    /// Провайдер пошуку зображень через Pexels API.
-    /// API документація: https://www.pexels.com/api/documentation/
+    /// Image search provider via Pexels API.
+    /// API documentation: https://www.pexels.com/api/documentation/
     /// </summary>
     public class PexelsImageSearchProvider : IImageSearchProvider
     {
