@@ -32,12 +32,12 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         /// <summary>UserControl for internal pages (VetaleSearchHomePage, etc.)</summary>
         public UserControl? InternalPageContent { get; set; }
         
-        /// <summary>Час створення запису</summary>
+        /// <summary>Timestamp of when the entry was created</summary>
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     }
 
     /// <summary>
-    /// Керує історією навігації для вкладки (стек вперед/назад)
+    /// Manages the navigation history for a tab (forward/back stack)
     /// MEMORY OPTIMIZED: Limited history size, cleanup of old entries
     /// </summary>
     public class NavigationHistory
@@ -50,21 +50,21 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
         public event EventHandler? HistoryChanged;
 
-        /// <summary>Поточний запис в історії</summary>
+        /// <summary>Current entry in the history</summary>
         public NavigationEntry? CurrentEntry => _currentIndex >= 0 && _currentIndex < _entries.Count 
             ? _entries[_currentIndex] 
             : null;
 
-        /// <summary>Чи можна повернутися назад</summary>
+        /// <summary>Whether it is possible to go back</summary>
         public bool CanGoBack => _currentIndex > 0;
 
-        /// <summary>Чи можна перейти вперед</summary>
+        /// <summary>Whether it is possible to go forward</summary>
         public bool CanGoForward => _currentIndex >= 0 && _currentIndex < _entries.Count - 1;
 
-        /// <summary>Додає новий запис в історію (видаляє всі "вперед" записи)</summary>
+        /// <summary>Adds a new entry to history (removes all "forward" entries)</summary>
         public void AddEntry(NavigationEntry entry)
         {
-            // Видаляємо всі записи після поточного (при новій навігації)
+            // Remove all entries after the current one (on new navigation)
             if (_currentIndex < _entries.Count - 1)
             {
                 // MEMORY OPTIMIZATION: Clear InternalPageContent before removal
@@ -89,7 +89,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             HistoryChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        /// <summary>Переходить на один запис назад</summary>
+        /// <summary>Goes back one entry in history</summary>
         public NavigationEntry? GoBack()
         {
             if (!CanGoBack) return null;
@@ -99,7 +99,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             return CurrentEntry;
         }
 
-        /// <summary>Переходить на один запис вперед</summary>
+        /// <summary>Goes forward one entry in history</summary>
         public NavigationEntry? GoForward()
         {
             if (!CanGoForward) return null;
@@ -109,7 +109,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             return CurrentEntry;
         }
 
-        /// <summary>Очищує всю історію</summary>
+        /// <summary>Clears the entire history</summary>
         public void Clear()
         {
             // MEMORY OPTIMIZATION: Clear all references first
@@ -122,7 +122,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             HistoryChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        /// <summary>Кількість записів в історії</summary>
+        /// <summary>Number of entries in history</summary>
         public int Count => _entries.Count;
     }
 
@@ -138,7 +138,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         public NavigationHistory History { get; } = new NavigationHistory();
         
         /// <summary>
-        /// Обробник помилок WebView для локалізації CefGlue помилок
+        /// WebView error handler for localization of CefGlue errors
         /// </summary>
         public WebViewErrorHandler ErrorHandler { get; }
 
@@ -162,7 +162,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         // New: subprocess launched per tab (system-level process)
         private readonly TabSubprocessService _subprocess;
         
-        // Прапорець для запобігання рекурсивним викликам при навігації
+        // Flag to prevent recursive calls during navigation
         private bool _isNavigating;
 
         private string? _prevAddress;
@@ -198,7 +198,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     OnPropertyChanged(); 
                     ApplyMuteState();
                     
-                    // Якщо вмикається mute, ін'єктуємо interceptor для перехоплення нових AudioContext
+                    // If mute is enabled, inject interceptor to capture new AudioContext instances
                     if (_isMuted)
                     {
                         _ = InjectAudioInterceptorAsync();
@@ -213,7 +213,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         public event EventHandler<NavigationEntry>? NavigationChanged;
         
         /// <summary>
-        /// Подія виникнення помилки з локалізованим контентом
+        /// Event fired when an error occurs with localized content
         /// </summary>
         public event EventHandler<BrowserErrorEventArgs>? ErrorOccurred;
 
@@ -277,7 +277,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 // Initialize subprocess title
                 TryUpdateSubprocessTitle();
                 
-                // Підписуємося на зміни історії навігації
+                // Subscribe to navigation history changes
                 History.HistoryChanged += (_, __) => OnPropertyChanged(nameof(History));
                 
                 System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Setting up fullscreen events...");
@@ -320,11 +320,11 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 var prev = _prevAddress;
                 _prevAddress = newAddr;
                 
-                // Перевіряємо чи це зовнішній протокол і блокуємо
+                // Check if this is an external protocol and block it
                 if (!string.IsNullOrEmpty(newAddr) && IsExternalProtocol(newAddr))
                 {
                     System.Diagnostics.Debug.WriteLine($"[TabWorker] BLOCKED external protocol: {newAddr}");
-                    // Повертаємось на попередню сторінку
+                    // Go back to the previous page
                     if (!string.IsNullOrEmpty(prev))
                     {
                         try { WebView.Address = prev; } catch { }
@@ -332,14 +332,14 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     return;
                 }
                 
-                // Ре-ін'єктуємо JavaScript guards після кожної навігації
+                // Re-inject JavaScript guards after each navigation
                 InjectNavigationGuards();
                 
-                // Повторно застосовуємо стан mute після кожної навігації
-                // Це гарантує що mute працює для нового контенту (ігри, WebGL, нові вкладки)
+                // Re-apply mute state after each navigation
+                // This ensures that mute works for new content (games, WebGL, new tabs)
                 if (_isMuted)
                 {
-                    // Даємо час на ініціалізацію нового контенту
+                    // Give time for new content to initialize
                     ScheduleMuteReapply();
                 }
             }
@@ -359,7 +359,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         }
         
         /// <summary>
-        /// Перевіряє чи URL є зовнішнім протоколом (intent://, tel://, mailto://, etc.)
+        /// Checks whether the URL is an external protocol (intent://, tel://, mailto://, etc.)
         /// </summary>
         private static bool IsExternalProtocol(string url)
         {
@@ -367,7 +367,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             
             var u = url.Trim().ToLowerInvariant();
             
-            // Дозволені протоколи - все всередині браузера
+            // Allowed protocols - everything within the browser
             if (u.StartsWith("http://") || u.StartsWith("https://") || 
                 u.StartsWith("file://") || u.StartsWith("data:") || 
                 u.StartsWith("javascript:") || u.StartsWith("blob:") ||
@@ -376,7 +376,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 return false;
             }
             
-            // Заблоковані протоколи
+            // Blocked protocols
             string[] blockedProtocols = {
                 "intent:", "android-app:", "market:", "tel:", "mailto:", 
                 "sms:", "whatsapp:", "tg:", "viber:", "skype:", "zoom:",
@@ -388,12 +388,12 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 if (u.StartsWith(p) || u.Contains("://" + p)) return true;
             }
             
-            // Якщо є ":" в перших 20 символах і це не http/https - заблокувати
+            // If there is a ":" within the first 20 characters and it is not http/https - block
             var colonIndex = u.IndexOf(':');
             if (colonIndex > 0 && colonIndex < 20)
             {
                 var protocol = u.Substring(0, colonIndex);
-                // Перевіряємо чи це не звичайний URL
+                // Check whether this is not a regular URL
                 if (protocol != "http" && protocol != "https" && protocol != "file" && 
                     protocol != "data" && protocol != "javascript" && protocol != "blob" &&
                     protocol != "about" && protocol != "vetale")
@@ -506,12 +506,12 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         }
 
         /// <summary>
-        /// Навігація на URL (підтримує як звичайні http(s):// так і внутрішні vetale:// URL)
-        /// MEMORY OPTIMIZATION: Примусове очищення пам'яті при переході
+        /// Navigate to a URL (supports both regular http(s):// and internal vetale:// URLs)
+        /// MEMORY OPTIMIZATION: Forced memory cleanup on navigation
         /// </summary>
         public async void Navigate(string url, UserControl? internalPageContent = null)
         {
-            if (_isNavigating) return; // Запобігаємо рекурсії
+            if (_isNavigating) return; // Prevent recursion
             
             try
             {
@@ -525,17 +525,17 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
                 System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Navigate: {url}");
 
-                // MEMORY OPTIMIZATION: Примусове очищення пам'яті перед навігацією
-                // Це критично для AMD карт (RX 5700 XT) де текстури WebView не звільняються
+                // MEMORY OPTIMIZATION: Forced memory cleanup before navigation
+                // This is critical for AMD cards (RX 5700 XT) where WebView textures are not released
                 TriggerMemoryCleanup();
 
-                // Визначаємо чи це внутрішній URL
+                // Determine whether this is an internal URL
                 bool isInternal = url.StartsWith("vetale://", StringComparison.OrdinalIgnoreCase);
 
-                // Встановлюємо pending URL для error handler
+                // Set pending URL for error handler
                 ErrorHandler?.SetPendingNavigation(url);
 
-                // Створюємо запис в історії
+                // Create a history entry
                 var entry = new NavigationEntry
                 {
                     Url = url,
@@ -544,34 +544,34 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     Timestamp = DateTime.UtcNow
                 };
 
-                // Додаємо в історію
+                // Add to history
                 History.AddEntry(entry);
 
-                // Оновлюємо Address
+                // Update Address
                 Address = url;
 
                 if (isInternal)
                 {
-                    // Для внутрішніх URL не викликаємо WebView.Navigate
+                    // For internal URLs, do not call WebView.Navigate
                     System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Internal navigation to: {url}");
                     
-                    // Заголовок буде встановлено через подію NavigationChanged
+                    // Title will be set via the NavigationChanged event
                     Title = GetInternalPageTitle(url);
                 }
                 else
                 {
-                    // Для зовнішніх URL - опціонально перевіряємо доступність через HTTP pre-check
-                    // Це дає швидку детекцію помилок DNS та недоступних серверів
+                    // For external URLs - optionally check availability via HTTP pre-check
+                    // This provides fast detection of DNS errors and unreachable servers
                     System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] External navigation to: {url}");
                     
-                    // Pre-check для швидкої детекції помилок (не блокуємо навігацію)
+                    // Pre-check for fast error detection (does not block navigation)
                     _ = PreCheckAndNavigateAsync(url);
                 }
 
-                // Сповіщаємо про зміну навігації
+                // Notify about navigation change
                 NavigationChanged?.Invoke(this, entry);
                 
-                // MEMORY OPTIMIZATION: Очищення після навігації
+                // MEMORY OPTIMIZATION: Cleanup after navigation
                 _ = Task.Delay(500).ContinueWith(_ => TriggerMemoryCleanup());
             }
             catch (Exception ex)
@@ -585,20 +585,20 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         }
         
         /// <summary>
-        /// Асинхронна перевірка URL та навігація
+        /// Async URL check and navigation
         /// </summary>
         private async Task PreCheckAndNavigateAsync(string url)
         {
             try
             {
-                // КРИТИЧНО: Блокуємо зовнішні протоколи ДО будь-якої навігації
+                // CRITICAL: Block external protocols BEFORE any navigation
                 if (IsExternalProtocol(url))
                 {
                     System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] BLOCKED external protocol in PreCheck: {url}");
-                    return; // Нічого не робимо - просто блокуємо
+                    return; // Do nothing - just block
                 }
                 
-                // Перевіряємо доступність URL через HTTP HEAD request
+                // Check URL availability via HTTP HEAD request
                 if (ErrorHandler != null)
                 {
                     var (isSuccess, errorCode, errorMessage) = await ErrorHandler.PreCheckUrlAsync(url);
@@ -607,8 +607,8 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     {
                         System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] PreCheck failed: {errorCode} - {errorMessage}");
                         
-                        // Повідомляємо про помилку через ErrorHandler
-                        // Це покаже сторінку помилки швидше ніж WebView
+                        // Report the error via ErrorHandler
+                        // This will show the error page faster than WebView
                         if (errorCode >= 400)
                         {
                             ErrorHandler.ReportHttpError(errorCode, url);
@@ -617,17 +617,17 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                         {
                             ErrorHandler.ReportError(errorCode, url, errorMessage);
                         }
-                        return; // Не навігуємо в WebView
+                        return; // Do not navigate in WebView
                     }
                 }
                 
-                // Якщо pre-check пройшов - навігуємо в WebView
+                // If pre-check passed - navigate in WebView
                 await Manager.NavigateAsync(url);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] PreCheckAndNavigateAsync error: {ex.Message}");
-                // Fallback - навігуємо в WebView напряму (тільки якщо не зовнішній протокол)
+                // Fallback - navigate in WebView directly (only if not an external protocol)
                 if (!IsExternalProtocol(url))
                 {
                     await Manager.NavigateAsync(url);
@@ -636,8 +636,8 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         }
         
         /// <summary>
-        /// Обробник помилок від WebViewErrorHandler
-        /// Пересилає подію підписникам TabWorker
+        /// Error handler from WebViewErrorHandler
+        /// Forwards the event to TabWorker subscribers
         /// </summary>
         private void OnErrorHandlerError(object? sender, BrowserErrorEventArgs e)
         {
@@ -653,8 +653,8 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         }
         
         /// <summary>
-        /// Повідомляє про помилку CefGlue вручну
-        /// Може бути викликаний ззовні при виявленні помилки
+        /// Reports a CefGlue error manually
+        /// Can be called from outside when an error is detected
         /// </summary>
         public void ReportError(int errorCode, string failedUrl, string? errorText = null)
         {
@@ -662,7 +662,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         }
         
         /// <summary>
-        /// Повідомляє про HTTP помилку сервера
+        /// Reports an HTTP server error
         /// </summary>
         public void ReportHttpError(int httpStatusCode, string failedUrl)
         {
@@ -670,19 +670,19 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         }
         
         /// <summary>
-        /// MEMORY OPTIMIZATION: Примусове звільнення пам'яті
-        /// Критично для AMD карт де GPU текстури не звільняються автоматично
+        /// MEMORY OPTIMIZATION: Forced memory release
+        /// Critical for AMD cards where GPU textures are not released automatically
         /// </summary>
         private static int _lastGcGeneration = 0;
         private void TriggerMemoryCleanup()
         {
             try
             {
-                // Не викликаємо GC занадто часто (мінімум раз на 3 секунди)
+                // Do not call GC too often (at least once every 3 seconds)
                 var currentGen = GC.CollectionCount(2);
                 if (currentGen == _lastGcGeneration)
                 {
-                    // Ще не було GC Gen2 - можемо запустити
+                    // No GC Gen2 has occurred yet - we can run it
                     GC.Collect(1, GCCollectionMode.Optimized, false);
                 }
                 _lastGcGeneration = GC.CollectionCount(2);
@@ -694,7 +694,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         }
 
         /// <summary>
-        /// Повертається на одну сторінку назад в історії
+        /// Goes back one page in history
         /// </summary>
         public void GoBack()
         {
@@ -713,7 +713,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         }
 
         /// <summary>
-        /// Переходить на одну сторінку вперед в історії
+        /// Goes forward one page in history
         /// </summary>
         public void GoForward()
         {
@@ -732,7 +732,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         }
 
         /// <summary>
-        /// Навігація до існуючого запису з історії (без додавання нового запису)
+        /// Navigate to an existing history entry (without adding a new entry)
         /// </summary>
         private async void NavigateToHistoryEntry(NavigationEntry entry)
         {
@@ -766,13 +766,13 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         }
 
         /// <summary>
-        /// Отримує заголовок для внутрішньої сторінки за URL
+        /// Gets the title for an internal page by URL
         /// </summary>
         private string GetInternalPageTitle(string url)
         {
             if (url.StartsWith("vetale://search?", StringComparison.OrdinalIgnoreCase))
             {
-                // Витягуємо запит з URL
+                // Extract the query from the URL
                 try
                 {
                     var uri = new Uri(url);
@@ -868,34 +868,34 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                         if(window.__vetale_no_external_v2__) return; 
                         window.__vetale_no_external_v2__ = true;
                         
-                        // Список заблокованих протоколів
+                        // List of blocked protocols
                         var blockedProtocols = ['intent:', 'android-app:', 'market:', 'tel:', 'mailto:', 'sms:', 'whatsapp:', 'tg:', 'viber:', 'skype:', 'zoom:', 'ms-', 'vnd.'];
                         
                         function isBlockedUrl(url){
                             if(!url) return false;
                             var u = url.toString().toLowerCase().trim();
-                            // Блокуємо всі non-http/https протоколи крім file, javascript, data, blob
+                            // Block all non-http/https protocols except file, javascript, data, blob
                             if(u.startsWith('http:') || u.startsWith('https:') || u.startsWith('file:') || 
                                u.startsWith('javascript:') || u.startsWith('data:') || u.startsWith('blob:') ||
                                u.startsWith('about:') || u.startsWith('vetale:')) {
                                 return false;
                             }
-                            // Блокуємо все інше
+                            // Block everything else
                             for(var i=0; i<blockedProtocols.length; i++){
                                 if(u.indexOf(blockedProtocols[i]) !== -1) return true;
                             }
-                            // Якщо є ':' і це не http/https - блокуємо
+                            // If there is a ':' and it is not http/https - block
                             var colonIdx = u.indexOf(':');
                             if(colonIdx > 0 && colonIdx < 20) return true;
                             return false;
                         }
                         
-                        // КРИТИЧНО: Перехоплюємо location.href та location.assign
+                        // CRITICAL: Intercept location.href and location.assign
                         try {
                             var origLocationDescriptor = Object.getOwnPropertyDescriptor(window, 'location');
                             var origLocation = window.location;
                             
-                            // Перехоплюємо window.location.href = ...
+                            // Intercept window.location.href = ...
                             if(origLocation && origLocation.href !== undefined) {
                                 var origHrefSetter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(origLocation), 'href');
                                 if(origHrefSetter && origHrefSetter.set) {
@@ -914,7 +914,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                             }
                         } catch(e){ console.log('[VetaleBrowser] location override failed:', e); }
                         
-                        // Перехоплюємо location.assign та location.replace
+                        // Intercept location.assign and location.replace
                         try {
                             var origAssign = location.assign;
                             var origReplace = location.replace;
@@ -934,7 +934,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                             };
                         } catch(e){ console.log('[VetaleBrowser] location methods override failed:', e); }
                         
-                        // Перехоплюємо window.open
+                        // Intercept window.open
                         try {
                             var originalOpen = window.open;
                             window.open = function(url, name, specs){
@@ -942,7 +942,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                                     console.log('[VetaleBrowser] Blocked window.open:', url);
                                     return null;
                                 }
-                                // Відкриваємо в тій самій вкладці замість нового вікна
+                                // Open in the same tab instead of a new window
                                 try{
                                     if(url){ location.href = url; }
                                 }catch(e){}
@@ -950,7 +950,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                             };
                         } catch(e) {}
                         
-                        // Перехоплюємо всі кліки на посилання
+                        // Intercept all link clicks
                         document.addEventListener('click', function(e){
                             try{
                                 var el = e.target;
@@ -959,7 +959,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                                 var href = el.getAttribute('href') || el.href;
                                 if(!href) return;
                                 
-                                // Блокуємо зовнішні протоколи
+                                // Block external protocols
                                 if(isBlockedUrl(href)){
                                     e.preventDefault(); 
                                     e.stopPropagation();
@@ -968,7 +968,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                                     return false;
                                 }
                                 
-                                // _blank відкриваємо в тій самій вкладці
+                                // Open _blank in the same tab
                                 var target = el.getAttribute('target');
                                 if(target && target.toLowerCase() === '_blank'){
                                     e.preventDefault();
@@ -978,7 +978,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                             }catch(_){ }
                         }, true);
                         
-                        // Перехоплюємо форми
+                        // Intercept forms
                         document.addEventListener('submit', function(e){
                             try{
                                 var f = e.target; if(!f) return;
@@ -996,7 +996,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                             }catch(_){ }
                         }, true);
                         
-                        // Блокуємо navigator.registerProtocolHandler
+                        // Block navigator.registerProtocolHandler
                         try {
                             if(navigator.registerProtocolHandler){
                                 navigator.registerProtocolHandler = function(){ 
@@ -1007,9 +1007,9 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                         } catch(e){}
                         
                         // ========== DOWNLOAD PROTECTION (SafeDownloadHandler) ==========
-                        // Перехоплюємо автоматичні завантаження без підтвердження користувача
+                        // Intercept automatic downloads without user confirmation
                         
-                        // Трекаємо чи користувач активно клікає (для визначення user-initiated)
+                        // Track whether the user is actively clicking (to determine user-initiated actions)
                         window._vetaleUserClickActive = false;
                         window._vetaleLastClickTime = 0;
                         
@@ -1019,13 +1019,13 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                         }, true);
                         
                         document.addEventListener('mouseup', function(e){
-                            // Даємо невеликий час після кліку
+                            // Give a short delay after a click
                             setTimeout(function(){
                                 window._vetaleUserClickActive = false;
                             }, 500);
                         }, true);
                         
-                        // Перехоплюємо посилання з атрибутом download
+                        // Intercept links with the download attribute
                         document.addEventListener('click', function(e){
                             try {
                                 var el = e.target;
@@ -1035,7 +1035,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                                 var download = el.getAttribute('download');
                                 var href = el.getAttribute('href') || el.href || '';
                                 
-                                // Якщо є атрибут download або blob URL - потенційне завантаження
+                                // If there is a download attribute or blob URL - potential download
                                 if(download !== null || href.startsWith('blob:') || href.startsWith('data:')) {
                                     var isUserClick = window._vetaleUserClickActive || (Date.now() - window._vetaleLastClickTime < 1000);
                                     if(!isUserClick){
@@ -1050,7 +1050,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                             } catch(_){}
                         }, true);
                         
-                        // Перехоплюємо створення blob URL та автоматичне завантаження
+                        // Intercept blob URL creation and automatic download
                         try {
                             var origCreateObjectURL = URL.createObjectURL;
                             URL.createObjectURL = function(blob){
@@ -1060,7 +1060,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                             };
                         } catch(e){}
                         
-                        // Перехоплюємо програмне клікання на прихованих елементах (типова тактика для auto-download)
+                        // Intercept programmatic clicking on hidden elements (typical auto-download tactic)
                         try {
                             var origClick = HTMLElement.prototype.click;
                             HTMLElement.prototype.click = function(){
@@ -1079,13 +1079,13 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                             };
                         } catch(e){}
                         
-                        // Перехоплюємо динамічне додавання посилань для завантаження
+                        // Intercept dynamic addition of download links
                         try {
                             var origAppendChild = Node.prototype.appendChild;
                             Node.prototype.appendChild = function(child){
                                 var result = origAppendChild.call(this, child);
                                 
-                                // Якщо додається прихований елемент з download - логуємо попередження
+                                // If a hidden element with download is added - log a warning
                                 if(child && child.tagName === 'A' && child.hasAttribute && child.hasAttribute('download')){
                                     var isHidden = !child.offsetParent;
                                     if(isHidden){
@@ -1104,7 +1104,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 await WebView.EvaluateScript<object>(js);
                 Debug.WriteLine("[TabWorker] Navigation guards v2 injected");
                 
-                // Якщо вкладка замутована, ін'єктуємо audio interceptor для перехоплення нових AudioContext
+                // If the tab is muted, inject audio interceptor to capture new AudioContext instances
                 if (_isMuted)
                 {
                     await InjectAudioInterceptorAsync();
@@ -1117,8 +1117,8 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         }
 
         /// <summary>
-        /// Ін'єктує JavaScript код, який перехоплює AudioContext до його створення.
-        /// Це гарантує що ігри типу HexGL будуть замутовані з самого початку.
+        /// Injects JavaScript code that intercepts AudioContext before it is created.
+        /// This ensures that games like HexGL are muted from the very beginning.
         /// </summary>
         private async Task InjectAudioInterceptorAsync()
         {
@@ -1200,7 +1200,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         }
 
         /// <summary>
-        /// Спроба отримати CefBrowserHost через рефлексію з WebViewControl
+        /// Attempt to get CefBrowserHost via reflection from WebViewControl
         /// </summary>
         private object? TryGetCefBrowserHost()
         {
@@ -1209,7 +1209,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 var webViewType = WebView.GetType();
                 object? browser = null;
                 
-                // Шукаємо browser через різні назви властивостей/полів
+                // Search for browser using various property/field names
                 string[] browserNames = { "Browser", "_browser", "browser", "chromiumBrowser", "_chromiumBrowser", 
                                           "InternalBrowser", "_internalBrowser", "CefBrowser", "_cefBrowser" };
                 
@@ -1240,7 +1240,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     }
                 }
                 
-                // Якщо не знайшли за назвою, шукаємо за типом
+                // If not found by name, search by type
                 if (browser == null)
                 {
                     foreach (var field in webViewType.GetFields(System.Reflection.BindingFlags.Instance | 
@@ -1270,11 +1270,11 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     return null;
                 }
 
-                // Отримуємо Host з browser
+                // Get Host from browser
                 var browserType = browser.GetType();
                 object? host = null;
                 
-                // Шукаємо Host через різні назви
+                // Search for Host using various names
                 string[] hostNames = { "Host", "BrowserHost", "_host", "_browserHost" };
                 
                 foreach (var name in hostNames)
@@ -1292,7 +1292,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     }
                 }
                 
-                // Спробуємо метод GetHost
+                // Try the GetHost method
                 if (host == null)
                 {
                     var hostMethod = browserType.GetMethod("GetHost", 
@@ -1325,7 +1325,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 
                 bool applied = false;
                 
-                // Пріоритет 1: CEF native API через рефлексію (найнадійніший метод)
+                // Priority 1: CEF native API via reflection (most reliable method)
                 try
                 {
                     var cefBrowserHost = TryGetCefBrowserHost();
@@ -1355,7 +1355,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     Debug.WriteLine($"[TabWorker] CEF native mute failed: {cefEx.Message}");
                 }
 
-                // Пріоритет 2: Windows Audio Session API
+                // Priority 2: Windows Audio Session API
                 if (!applied && RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && _relatedPids.Count > 0)
                 {
                     var pidsCopy = _relatedPids.ToList();
@@ -1377,8 +1377,8 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     }
                 }
 
-                // Пріоритет 3: JavaScript для control всіх media елементів + Web Audio API
-                // Завжди виконуємо JavaScript як додатковий захист
+                // Priority 3: JavaScript to control all media elements + Web Audio API
+                // Always execute JavaScript as additional protection
                 try
                 {
                     var js = _isMuted
@@ -1489,12 +1489,12 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         }
         
         /// <summary>
-        /// Планує відкладене повторне застосування mute після навігації.
-        /// Викликається кілька разів з інтервалом для гарантії що mute працює для динамічного контенту.
+        /// Schedules a delayed re-application of mute after navigation.
+        /// Called multiple times at an interval to ensure mute works for dynamic content.
         /// </summary>
         private void ScheduleMuteReapply()
         {
-            _muteReapplyCount = 4; // Застосуємо mute 4 рази з інтервалом 500ms
+            _muteReapplyCount = 4; // Apply mute 4 times at 500ms intervals
             _muteReapplyTimer.Stop();
             _muteReapplyTimer.Tick -= MuteReapplyTick;
             _muteReapplyTimer.Tick += MuteReapplyTick;
@@ -1514,13 +1514,13 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             
             if (_isMuted)
             {
-                // Оновлюємо PID-и для нових процесів що могли з'явитись
+                // Update PIDs for new processes that may have appeared
                 RefreshRelatedProcessesBestEffort();
                 ApplyMuteState();
             }
             else
             {
-                // Mute було вимкнено - зупиняємо таймер
+                // Mute was disabled - stop the timer
                 _muteReapplyTimer.Stop();
                 _muteReapplyTimer.Tick -= MuteReapplyTick;
             }
