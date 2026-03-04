@@ -44,14 +44,14 @@
             </Grid>
         </Border>
 
-        <!-- Основний контент -->
+        <!-- Main content -->
         <Grid Grid.Row="1" ColumnDefinitions="250,*" Margin="15" Background="#FFFFFF">
-            <!-- Ліва панель - дерево файлів -->
+            <!-- Left panel - file tree -->
             <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="1" Margin="0,0,8,0" Background="#FAFAFA">
                 <Grid RowDefinitions="Auto,Auto,*">
                     <TextBlock Grid.Row="0" Text="{DynamicResource DevTools.Sources.FileTree}" FontWeight="SemiBold" Margin="10" Foreground="#303030" FontSize="14"/>
                     
-                    <!-- Фільтр -->
+                    <!-- Filter -->
                     <StackPanel Grid.Row="1" Margin="10,0,10,5">
                         <TextBlock Text="{DynamicResource DevTools.Sources.FilterByType}" Margin="0,5,0,2" FontWeight="SemiBold" Foreground="#505050"/>
                         <ComboBox Name="FileTypeFilter" SelectionChanged="OnFilterChanged">
@@ -69,13 +69,13 @@
                 </Grid>
             </Border>
 
-            <!-- Права панель - перегляд коду -->
+            <!-- Right panel - code viewer -->
             <Border Grid.Column="1" BorderBrush="#E0E0E0" BorderThickness="1" Margin="8,0,0,0" Background="#FAFAFA">
                 <Grid RowDefinitions="Auto,Auto,*,Auto">
-                    <!-- Заголовок -->
+                    <!-- Title -->
                     <TextBlock Grid.Row="0" Name="FileNameText" Text="{DynamicResource DevTools.Sources.SelectFile}" FontWeight="SemiBold" Margin="10" Foreground="#303030" FontSize="14"/>
                     
-                    <!-- Інформація про файл -->
+                    <!-- File info -->
                     <Border Grid.Row="1" Background="#F5F5F5" Padding="10" Margin="10,0,10,10">
                         <StackPanel Orientation="Horizontal" Spacing="15">
                             <StackPanel Orientation="Horizontal" Spacing="5">
@@ -89,7 +89,7 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Перегляд коду -->
+                    <!-- Code viewer -->
                     <ScrollViewer Grid.Row="2" Margin="10,0,10,10">
                         <TextBox Name="CodeViewer" 
                                IsReadOnly="True" 

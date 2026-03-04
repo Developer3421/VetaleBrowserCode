@@ -235,7 +235,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
                 ? _resources 
                 : _resources.Where(kv => kv.Value.Type.Contains(_currentFilter)).ToDictionary(kv => kv.Key, kv => kv.Value);
 
-            // Групуємо за типом
+            // Group by type
             var groups = filtered.GroupBy(kv => kv.Value.Type);
 
             foreach (var group in groups.OrderBy(g => g.Key))

@@ -44,9 +44,9 @@
             </Grid>
         </Border>
 
-        <!-- Основний контент -->
+        <!-- Main content -->
         <Grid Grid.Row="1" ColumnDefinitions="200,*" Margin="15" Background="#FFFFFF">
-            <!-- Ліва панель - типи storage -->
+            <!-- Left panel - storage types -->
             <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="1" Margin="0,0,8,0" Background="#FAFAFA">
                 <Grid RowDefinitions="Auto,*">
                     <TextBlock Grid.Row="0" Text="{DynamicResource DevTools.Application.StorageTypes}" FontWeight="SemiBold" Margin="10" Foreground="#303030" FontSize="14"/>
@@ -67,17 +67,17 @@
                 </Grid>
             </Border>
 
-            <!-- Права панель - дані storage -->
+            <!-- Right panel - storage data -->
             <Border Grid.Column="1" BorderBrush="#E0E0E0" BorderThickness="1" Margin="8,0,0,0" Background="#FAFAFA">
                 <Grid RowDefinitions="Auto,*,Auto">
                     <TextBlock Grid.Row="0" Name="StorageTypeTitle" Text="{DynamicResource DevTools.Application.SelectStorageType}" FontWeight="SemiBold" Margin="10" Foreground="#303030" FontSize="14"/>
                     
-                    <!-- Список елементів -->
+                    <!-- Item list -->
                     <ScrollViewer Grid.Row="1" Padding="10">
                         <ListBox Name="StorageDataList" SelectionChanged="OnStorageItemSelected" Background="White" BorderThickness="0"/>
                     </ScrollViewer>
 
-                    <!-- Деталі вибраного елемента -->
+                    <!-- Selected item details -->
                     <Border Grid.Row="2" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="10" Background="#F5F5F5">
                         <Grid RowDefinitions="Auto,Auto,Auto">
                             <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
