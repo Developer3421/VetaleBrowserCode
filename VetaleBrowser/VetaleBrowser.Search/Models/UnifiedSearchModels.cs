@@ -3,7 +3,7 @@ using System;
 namespace VetaleBrowser.VetaleBrowser.Search.Models;
 
 /// <summary>
-/// Джерело результату пошуку.
+/// Source of search result.
 /// </summary>
 public enum SearchSourceType
 {
@@ -12,12 +12,12 @@ public enum SearchSourceType
     WebArchive = 2,
     CommonCrawl = 3,
     YouTube = 4,
-    Curlie = 5,       // Curlie.org - відкритий веб-каталог (наступник DMOZ)
-    MetaSearx = 6     // MetaSearx - метапошукова система (агрегатор Google, Bing, DuckDuckGo тощо)
+    Curlie = 5,       // Curlie.org - open web directory (successor to DMOZ)
+    MetaSearx = 6     // MetaSearx - meta search engine (aggregator for Google, Bing, DuckDuckGo, etc.)
 }
 
 /// <summary>
-/// Уніфікований результат пошуку для відображення у Vetale Search.
+/// Unified search result for display in Vetale Search.
 /// </summary>
 public sealed class UnifiedSearchResult
 {
@@ -25,24 +25,24 @@ public sealed class UnifiedSearchResult
     public string Title { get; set; } = string.Empty;
     public string Url { get; set; } = string.Empty;
     /// <summary>
-    /// Людинозрозумілий варіант URL (без "http(s)://"), що використовується в breadcrumb.
+    /// Human-readable URL variant (without "http(s)://"), used in breadcrumb.
     /// </summary>
     public string DisplayUrl { get; set; } = string.Empty;
     public string Snippet { get; set; } = string.Empty;
     public SearchSourceType Source { get; set; } = SearchSourceType.Unknown;
     public DateTime? Timestamp { get; set; }
     /// <summary>
-    /// Додатковий ранг/бал релевантності для сортування.
+    /// Additional rank/relevance score for sorting.
     /// </summary>
     public double RankScore { get; set; }
     /// <summary>
-    /// Номер сторінки в межах сесії, на якій розташований результат.
+    /// Page number within the session where the result is located.
     /// </summary>
     public int PageNumber { get; set; }
 }
 
 /// <summary>
-/// Сторінка результатів уніфікованого пошуку.
+/// Unified search results page.
 /// </summary>
 public sealed class UnifiedSearchPage
 {
@@ -53,17 +53,17 @@ public sealed class UnifiedSearchPage
     public UnifiedSearchResult[] Results { get; set; } = Array.Empty<UnifiedSearchResult>();
     
     /// <summary>
-    /// Чи є наступна сторінка результатів
+    /// Whether there is a next page of results
     /// </summary>
     public bool HasNextPage { get; set; }
     
     /// <summary>
-    /// Чи є попередня сторінка результатів
+    /// Whether there is a previous page of results
     /// </summary>
     public bool HasPreviousPage { get; set; }
     
     /// <summary>
-    /// Пошуковий запит
+    /// Search query
     /// </summary>
     public string Query { get; set; } = string.Empty;
 }

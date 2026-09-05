@@ -5,37 +5,37 @@ namespace VetaleBrowser.VetaleBrowser.Search.Models
         public string Query { get; set; } = string.Empty;
         public int PageNumber { get; set; } = 1;
         /// <summary>
-        /// Максимальна кількість результатів на сторінку (максимум 50)
+        /// Maximum number of results per page (maximum 50)
         /// </summary>
         public int PageSize { get; set; } = 50;
         /// <summary>
-        /// Источник: "Pexels", "Unsplash" или "All".
+        /// Source: "Pexels", "Unsplash" or "All".
         /// </summary>
         public string Provider { get; set; } = "All";
     }
 
     /// <summary>
-    /// Фільтр для пошуку зображень
+    /// Filter for image search
     /// </summary>
     public class ImageSearchFilter
     {
         /// <summary>
-        /// Орієнтація: "landscape", "portrait", "square"
+        /// Orientation: "landscape", "portrait", "square"
         /// </summary>
         public string? Orientation { get; set; }
         
         /// <summary>
-        /// Розмір: "large", "medium", "small" (Pexels)
+        /// Size: "large", "medium", "small" (Pexels)
         /// </summary>
         public string? Size { get; set; }
         
         /// <summary>
-        /// Колір: "red", "orange", "yellow", "green", "turquoise", "blue", "violet", "pink", "brown", "black", "gray", "white"
+        /// Color: "red", "orange", "yellow", "green", "turquoise", "blue", "violet", "pink", "brown", "black", "gray", "white"
         /// </summary>
         public string? Color { get; set; }
         
         /// <summary>
-        /// Локаль: "en-US", "pt-BR" тощо (Pexels)
+        /// Locale: "en-US", "pt-BR" etc. (Pexels)
         /// </summary>
         public string? Locale { get; set; }
     }
@@ -63,14 +63,14 @@ namespace VetaleBrowser.VetaleBrowser.Search.Models
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         
-        // URL властивості (старий формат для сумісності)
+        // URL properties (old format for compatibility)
         public string ThumbnailUrl { get; set; } = string.Empty;
         public string MediumUrl { get; set; } = string.Empty;
         public string LargeUrl { get; set; } = string.Empty;
         public string OriginalUrl { get; set; } = string.Empty;
         public string ImageUrl { get; set; } = string.Empty;
         
-        // URL властивості (новий формат через ImageUrlSet)
+        // URL properties (new format via ImageUrlSet)
         public string PhotographerName { get; set; } = string.Empty;
         public string Photographer { get; set; } = string.Empty;
         public string PhotographerUrl { get; set; } = string.Empty;

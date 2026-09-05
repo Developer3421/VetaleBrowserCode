@@ -9,7 +9,7 @@ using VetaleBrowser.VetaleBrowser.Search.Models;
 namespace VetaleBrowser.VetaleBrowser.Search.Services;
 
 /// <summary>
-/// Сервіс перевірки URL без API ключа (публічна база + локальна перевірка)
+/// URL check service without API key (public database + local check)
 /// </summary>
 public class PhishTankSecurityService : ISecurityCheckService
 {
@@ -28,7 +28,7 @@ public class PhishTankSecurityService : ISecurityCheckService
         _cache = new Dictionary<string, SecurityCheckResult>();
         _knownPhishingDomains = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            // Деякі відомі фішингові домени (приклади)
+            // Some known phishing domains (examples)
             "paypal-secure-login.com",
             "apple-account-verify.com",
             "microsoft-account-security.com",
@@ -39,7 +39,7 @@ public class PhishTankSecurityService : ISecurityCheckService
     }
     
     /// <summary>
-    /// Перевірити URL на фішинг
+    /// Check URL for phishing
     /// </summary>
     public async Task<SecurityCheckResult> CheckUrlAsync(string url)
     {
@@ -49,14 +49,14 @@ public class PhishTankSecurityService : ISecurityCheckService
             {
                 Url = url,
                 Status = SecurityStatus.Unknown,
-                Description = "Порожній URL"
+                Description = "Empty URL"
             };
         }
         
-        // Нормалізація URL
+        // URL normalization
         var normalizedUrl = NormalizeUrl(url);
         
-        // Перевірка кешу
+        // Cache check
         if (_cache.TryGetValue(normalizedUrl, out var cachedResult))
         {
             var cacheAge = DateTime.Now - cachedResult.CheckedAt;
@@ -67,17 +67,17 @@ public class PhishTankSecurityService : ISecurityCheckService
             _cache.Remove(normalizedUrl);
         }
         
-        // Виконання перевірки
+        // Perform check
         var result = await PerformSecurityCheckAsync(normalizedUrl);
         
-        // Збереження в кеш
+        // Save to cache
         _cache[normalizedUrl] = result;
         
         return result;
     }
     
     /// <summary>
-    /// Перевірка URL через публічний PhishTank API без ключа
+    /// Check URL via public PhishTank API without a key
     /// </summary>
     private async Task<bool> IsPhishingAsync(string url)
     {
@@ -117,13 +117,13 @@ public class PhishTankSecurityService : ISecurityCheckService
     }
 
     /// <summary>
-    /// Виконати перевірку безпеки (багаторівнева)
+    /// Perform security check (multi-level)
     /// </summary>
     private async Task<SecurityCheckResult> PerformSecurityCheckAsync(string url)
     {
         try
         {
-            // Рівень 1: локальні URL
+            // Level 1: local URLs
             if (IsLocalUrl(url))
             {
                 return new SecurityCheckResult
@@ -131,12 +131,12 @@ public class PhishTankSecurityService : ISecurityCheckService
                     Url = url,
                     Status = SecurityStatus.Safe,
                     Source = SecuritySource.LocalList,
-                    Description = "Локальний ресурс",
+                    Description = "Local resource",
                     IsPhishing = false
                 };
             }
 
-            // Рівень 2: локальна база
+            // Level 2: local database
             var localCheckResult = CheckLocalDatabase(url);
             if (localCheckResult != null)
             {
@@ -144,7 +144,7 @@ public class PhishTankSecurityService : ISecurityCheckService
                 return localCheckResult;
             }
 
-            // Рівень 3: евристика
+            // Level 3: heuristics
             var heuristicResult = PerformHeuristicCheck(url);
             if (heuristicResult != null)
             {
@@ -152,7 +152,7 @@ public class PhishTankSecurityService : ISecurityCheckService
                 return heuristicResult;
             }
 
-            // Рівень 4: PhishTank public API без ключа
+            // Level 4: PhishTank public API without key
             var isPhishing = await IsPhishingAsync(url);
             if (isPhishing)
             {
@@ -161,16 +161,16 @@ public class PhishTankSecurityService : ISecurityCheckService
                     Url = url,
                     Status = SecurityStatus.Dangerous,
                     Source = SecuritySource.LocalList,
-                    Description = "⚠️ Домен знайдено в базі PhishTank (public API)",
+                    Description = "⚠️ Domain found in PhishTank database (public API)",
                     IsPhishing = true
                 };
             }
 
-            // Рівень 5: VirusTotal (якщо є ключ)
+            // Level 5: VirusTotal (if key is available)
             var vtDetails = await _virusTotal.CheckUrlAsync(url);
             if (vtDetails != null)
             {
-                // Якщо VT виявляє загрозу
+                // If VT detects a threat
                 if (vtDetails.Malicious > 0 || vtDetails.Suspicious > 0)
                 {
                     return new SecurityCheckResult
@@ -178,31 +178,31 @@ public class PhishTankSecurityService : ISecurityCheckService
                         Url = url,
                         Status = SecurityStatus.Dangerous,
                         Source = SecuritySource.VirusTotal,
-                        Description = vtDetails.RawLabel ?? "⚠️ Виявлено шкідливу активність за даними VirusTotal",
+                        Description = vtDetails.RawLabel ?? "⚠️ Malicious activity detected according to VirusTotal",
                         IsPhishing = true,
                         VirusTotalDetails = vtDetails
                     };
                 }
 
-                // VT каже, що все ок або невідомо
+                // VT says everything is ok or unknown
                 return new SecurityCheckResult
                 {
                     Url = url,
                     Status = SecurityStatus.Safe,
                     Source = SecuritySource.VirusTotal,
-                    Description = vtDetails.RawLabel ?? "Безпечний за даними VirusTotal",
+                    Description = vtDetails.RawLabel ?? "Safe according to VirusTotal",
                     IsPhishing = false,
                     VirusTotalDetails = vtDetails
                 };
             }
 
-            // Якщо всі перевірки пройшли - вважаємо безпечним
+            // If all checks passed - consider safe
             return new SecurityCheckResult
             {
                 Url = url,
                 Status = SecurityStatus.Safe,
                 Source = SecuritySource.Heuristic,
-                Description = "Перевірено локально та через PhishTank: підозрілих ознак не виявлено",
+                Description = "Checked locally and via PhishTank: no suspicious signs found",
                 IsPhishing = false
             };
         }
@@ -213,27 +213,27 @@ public class PhishTankSecurityService : ISecurityCheckService
                 Url = url,
                 Status = SecurityStatus.Error,
                 Source = SecuritySource.Unknown,
-                Description = "Час очікування вичерпано",
+                Description = "Request timed out",
                 IsPhishing = false
             };
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[Security] Помилка перевірки: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[Security] Check error: {ex.Message}");
 
             return new SecurityCheckResult
             {
                 Url = url,
                 Status = SecurityStatus.Safe,
                 Source = SecuritySource.Unknown,
-                Description = "Помилка перевірки (безпечність не підтверджена)",
+                Description = "Check error (safety not confirmed)",
                 IsPhishing = false
             };
         }
     }
     
     /// <summary>
-    /// Перевірка по локальній базі відомих фішингових доменів
+    /// Check against local database of known phishing domains
     /// </summary>
     private SecurityCheckResult? CheckLocalDatabase(string url)
     {
@@ -242,40 +242,40 @@ public class PhishTankSecurityService : ISecurityCheckService
             var uri = new Uri(url);
             var domain = uri.Host.ToLower();
             
-            // Перевірка в локальній базі
+            // Check in local database
             if (_knownPhishingDomains.Contains(domain))
             {
                 return new SecurityCheckResult
                 {
                     Url = url,
                     Status = SecurityStatus.Dangerous,
-                    Description = "⚠️ УВАГА! Відомий фішинговий домен",
+                    Description = "⚠️ WARNING! Known phishing domain",
                     IsPhishing = true
                 };
             }
             
-            // Перевірка підозрілих підменів доменів
+            // Check suspicious domain spoofing
             if (IsSuspiciousDomain(domain))
             {
                 return new SecurityCheckResult
                 {
                     Url = url,
                     Status = SecurityStatus.Dangerous,
-                    Description = "⚠️ УВАГА! Підозріла імітація відомого домену",
+                    Description = "⚠️ WARNING! Suspicious imitation of a known domain",
                     IsPhishing = true
                 };
             }
         }
         catch
         {
-            // Неможливо розпарсити URL
+            // Cannot parse URL
         }
         
         return null;
     }
     
     /// <summary>
-    /// Евристична перевірка (аналіз підозрілих ознак)
+    /// Heuristic check (analysis of suspicious signs)
     /// </summary>
     private SecurityCheckResult? PerformHeuristicCheck(string url)
     {
@@ -286,58 +286,58 @@ public class PhishTankSecurityService : ISecurityCheckService
             var suspicionScore = 0;
             var reasons = new List<string>();
             
-            // 1. Надмірно довгий домен
+            // 1. Excessively long domain
             if (domain.Length > 50)
             {
                 suspicionScore += 2;
-                reasons.Add("Надмірно довгий домен");
+                reasons.Add("Excessively long domain");
             }
             
-            // 2. Багато дефісів
+            // 2. Many hyphens
             if (domain.Count(c => c == '-') > 3)
             {
                 suspicionScore += 2;
-                reasons.Add("Багато дефісів в домені");
+                reasons.Add("Many hyphens in domain");
             }
             
-            // 3. Використання IP адреси замість домену
+            // 3. Using IP address instead of domain
             if (System.Net.IPAddress.TryParse(domain, out _))
             {
                 suspicionScore += 3;
-                reasons.Add("IP адреса замість домену");
+                reasons.Add("IP address instead of domain");
             }
             
-            // 4. Підозрілі ключові слова
+            // 4. Suspicious keywords
             string[] suspiciousKeywords = { "verify", "secure", "account", "login", "update", "confirm", "banking" };
             int keywordCount = suspiciousKeywords.Count(kw => domain.Contains(kw));
             if (keywordCount >= 2)
             {
                 suspicionScore += keywordCount;
-                reasons.Add($"Підозрілі ключові слова ({keywordCount})");
+                reasons.Add($"Suspicious keywords ({keywordCount})");
             }
             
-            // 5. Нестандартні порти
+            // 5. Non-standard ports
             if (uri.Port != 80 && uri.Port != 443 && !uri.IsDefaultPort)
             {
                 suspicionScore += 1;
-                reasons.Add("Нестандартний порт");
+                reasons.Add("Non-standard port");
             }
             
-            // 6. HTTP замість HTTPS для "безпечних" сервісів
+            // 6. HTTP instead of HTTPS for "secure" services
             if (uri.Scheme == "http" && (domain.Contains("bank") || domain.Contains("pay") || domain.Contains("secure")))
             {
                 suspicionScore += 3;
-                reasons.Add("HTTP для фінансового сервісу");
+                reasons.Add("HTTP for financial service");
             }
             
-            // Оцінка рівня підозрілості
+            // Evaluate suspicion level
             if (suspicionScore >= 5)
             {
                 return new SecurityCheckResult
                 {
                     Url = url,
                     Status = SecurityStatus.Dangerous,
-                    Description = $"⚠️ Підозрілий сайт! Ознаки: {string.Join(", ", reasons)}",
+                    Description = $"⚠️ Suspicious site! Signs: {string.Join(", ", reasons)}",
                     IsPhishing = true
                 };
             }
@@ -347,14 +347,14 @@ public class PhishTankSecurityService : ISecurityCheckService
                 {
                     Url = url,
                     Status = SecurityStatus.Error,
-                    Description = $"⚠ Будьте обережні! Можливі ознаки фішингу: {string.Join(", ", reasons)}",
+                    Description = $"⚠ Be careful! Possible phishing signs: {string.Join(", ", reasons)}",
                     IsPhishing = false
                 };
             }
         }
         catch
         {
-            // Помилка аналізу
+            // Analysis error
         }
         
         return null;
@@ -362,11 +362,11 @@ public class PhishTankSecurityService : ISecurityCheckService
     
 
     /// <summary>
-    /// Перевірка чи є домен підозрілою імітацією
+    /// Check whether domain is a suspicious imitation
     /// </summary>
     private bool IsSuspiciousDomain(string domain)
     {
-        // Відомі бренди для перевірки підміни
+        // Known brands for spoofing check
         var trustedBrands = new Dictionary<string, string[]>
         {
             { "google", new[] { "google.com", "google.ua" } },
@@ -382,14 +382,14 @@ public class PhishTankSecurityService : ISecurityCheckService
         
         foreach (var brand in trustedBrands)
         {
-            // Якщо домен містить назву бренду, але це не офіційний домен
+            // If domain contains brand name but is not the official domain
             if (domain.Contains(brand.Key) && !brand.Value.Any(official => domain == official || domain.EndsWith("." + official)))
             {
                 return true;
             }
         }
         
-        // Перевірка homograph атак (схожі символи)
+        // Check for homograph attacks (similar characters)
         if (ContainsHomographCharacters(domain))
         {
             return true;
@@ -399,18 +399,18 @@ public class PhishTankSecurityService : ISecurityCheckService
     }
     
     /// <summary>
-    /// Перевірка наявності homograph символів (підміна схожих літер)
+    /// Check for presence of homograph characters (substitution of similar letters)
     /// </summary>
     private bool ContainsHomographCharacters(string domain)
     {
-        // Кирилічні літери, схожі на латинські
+        // Cyrillic letters similar to Latin ones
         char[] cyrillicLookalikes = { 'а', 'е', 'і', 'о', 'р', 'с', 'х', 'у' }; // a, e, i, o, p, c, x, y
         
         return domain.Any(c => cyrillicLookalikes.Contains(c));
     }
     
     /// <summary>
-    /// Нормалізувати URL для перевірки
+    /// Normalize URL for check
     /// </summary>
     private string NormalizeUrl(string url)
     {
@@ -432,7 +432,7 @@ public class PhishTankSecurityService : ISecurityCheckService
     }
     
     /// <summary>
-    /// Перевірити чи є URL локальним
+    /// Check if URL is local
     /// </summary>
     private bool IsLocalUrl(string url)
     {
@@ -445,7 +445,7 @@ public class PhishTankSecurityService : ISecurityCheckService
     }
     
     /// <summary>
-    /// Очистити кеш
+    /// Clear cache
     /// </summary>
     public void ClearCache()
     {
@@ -453,7 +453,7 @@ public class PhishTankSecurityService : ISecurityCheckService
     }
     
     /// <summary>
-    /// Додати домен до локальної бази фішингових сайтів
+    /// Add domain to local phishing sites database
     /// </summary>
     public void AddPhishingDomain(string domain)
     {
@@ -461,7 +461,7 @@ public class PhishTankSecurityService : ISecurityCheckService
     }
     
     /// <summary>
-    /// Видалити домен з локальної бази
+    /// Remove domain from local database
     /// </summary>
     public void RemovePhishingDomain(string domain)
     {

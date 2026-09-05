@@ -56,9 +56,9 @@
             </Grid>
         </Border>
 
-        <!-- Основний контент -->
+        <!-- Main content -->
         <Grid Grid.Row="1" ColumnDefinitions="2*,3*" Margin="15" Background="#FFFFFF">
-            <!-- Ліва панель - DOM дерево -->
+            <!-- Left panel - DOM tree -->
             <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="1" Margin="0,0,8,0" Background="#FAFAFA">
                 <Grid RowDefinitions="Auto,*">
                     <TextBlock Grid.Row="0" Text="{DynamicResource DevTools.Elements.DomTree}" FontWeight="SemiBold" Margin="10" Foreground="#303030" FontSize="14"/>
@@ -68,12 +68,12 @@
                 </Grid>
             </Border>
 
-            <!-- Права панель - Деталі елемента -->
+            <!-- Right panel - Element details -->
             <Grid Grid.Column="1" RowDefinitions="Auto,*,*" Margin="8,0,0,0">
-                <!-- Назва елемента -->
+                <!-- Element name -->
                 <TextBlock Grid.Row="0" Name="ElementTitle" Text="{DynamicResource DevTools.Elements.SelectElement}" FontWeight="SemiBold" Margin="0,0,0,10" Foreground="#303030" FontSize="14"/>
 
-                <!-- Атрибути -->
+                <!-- Attributes -->
                 <Border Grid.Row="1" BorderBrush="#E0E0E0" BorderThickness="1" Margin="0,0,0,8" Background="#FAFAFA">
                     <Grid RowDefinitions="Auto,*">
                         <TextBlock Grid.Row="0" Text="{DynamicResource DevTools.Elements.Attributes}" FontWeight="SemiBold" Margin="10" Foreground="#303030" FontSize="14"/>
@@ -89,7 +89,7 @@
                     </Grid>
                 </Border>
 
-                <!-- Стилі -->
+                <!-- Styles -->
                 <Border Grid.Row="2" BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA">
                     <Grid RowDefinitions="Auto,*">
                         <TextBlock Grid.Row="0" Text="{DynamicResource DevTools.Elements.ComputedStyles}" FontWeight="SemiBold" Margin="10" Foreground="#303030" FontSize="14"/>

@@ -1,5 +1,5 @@
 // VetaleBrowser DevTools JavaScript API
-// Використовується для збору даних з WebView для DevTools
+// Used to collect data from WebView for DevTools
 
 (function() {
     'use strict';

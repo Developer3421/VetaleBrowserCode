@@ -8,7 +8,7 @@ using VetaleBrowser.VetaleBrowser.Search.Models;
 namespace VetaleBrowser.VetaleBrowser.Search.Services;
 
 /// <summary>
-/// Сервіс отримання підказок від Google Suggest API
+/// Service for getting suggestions from Google Suggest API
 /// </summary>
 public class GoogleSuggestionsService : ISuggestionsService
 {
@@ -18,7 +18,7 @@ public class GoogleSuggestionsService : ISuggestionsService
     };
 
     /// <summary>
-    /// Отримати підказки від Google
+    /// Get suggestions from Google
     /// </summary>
     public async Task<List<SearchSuggestion>> GetSuggestionsAsync(string query, int maxResults = 8)
     {
@@ -34,11 +34,11 @@ public class GoogleSuggestionsService : ISuggestionsService
 
             var response = await _httpClient.GetStringAsync(url);
 
-            // Парсимо JSON відповідь
+            // Parse JSON response
             using var doc = JsonDocument.Parse(response);
             var root = doc.RootElement;
 
-            // Формат відповіді: [query, [suggestions...]]
+            // Response format: [query, [suggestions...]]
             if (root.ValueKind == JsonValueKind.Array && root.GetArrayLength() >= 2)
             {
                 var suggestionsArray = root[1];

@@ -106,7 +106,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
                     }
                 }
 
-                UpdateStatus("✅", "WebView готовий");
+                UpdateStatus("✅", "WebView ready");
                 Debug.WriteLine("[WebViewWorkerPage] WebView initialized successfully");
             }
             catch (Exception ex)
@@ -116,7 +116,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
                 
                 if (_placeholderText != null)
                 {
-                    _placeholderText.Text = $"❌ Помилка ініціалізації WebView:\n{ex.Message}";
+                    _placeholderText.Text = $"❌ WebView initialization error:\n{ex.Message}";
                     _placeholderText.IsVisible = true;
                 }
             }

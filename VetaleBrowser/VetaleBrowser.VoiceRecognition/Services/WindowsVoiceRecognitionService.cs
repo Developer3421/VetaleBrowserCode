@@ -78,7 +78,7 @@ public class WindowsVoiceRecognitionService : IVoiceRecognitionService, IDisposa
         if (!IsAvailable())
         {
             CurrentState = VoiceRecognitionState.Error;
-            ErrorOccurred?.Invoke(this, "Розпізнавання голосу недоступне: немає доступного пристрою запису");
+            ErrorOccurred?.Invoke(this, "Voice recognition is unavailable: no recording device available");
             return;
         }
 
@@ -109,7 +109,7 @@ public class WindowsVoiceRecognitionService : IVoiceRecognitionService, IDisposa
             catch (Exception ex)
             {
                 CurrentState = VoiceRecognitionState.Error;
-                ErrorOccurred?.Invoke(this, $"Не вдалося запустити запис: {ex.Message}");
+                ErrorOccurred?.Invoke(this, $"Failed to start recording: {ex.Message}");
             }
         });
     }

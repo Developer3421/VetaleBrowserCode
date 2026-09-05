@@ -242,7 +242,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
                     Margin = new Avalonia.Thickness(0, 5, 0, 0)
                 };
 
-                // Визначаємо колір на основі значень
+                // Determine color based on values
                 if (vital.Key == "LCP")
                 {
                     valueText.Foreground = vital.Value < 2500 ? Avalonia.Media.Brushes.Green :

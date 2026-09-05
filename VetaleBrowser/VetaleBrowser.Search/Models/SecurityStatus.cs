@@ -1,23 +1,23 @@
 namespace VetaleBrowser.VetaleBrowser.Search.Models;
 
 /// <summary>
-/// Статус безпеки веб-сайту
+/// Website security status
 /// </summary>
 public enum SecurityStatus
 {
-    /// <summary>Невідомий статус (перевірка не виконана)</summary>
+    /// <summary>Unknown status (check not performed)</summary>
     Unknown,
     
-    /// <summary>Безпечний сайт</summary>
+    /// <summary>Safe site</summary>
     Safe,
     
-    /// <summary>Перевірка в процесі</summary>
+    /// <summary>Check in progress</summary>
     Checking,
     
-    /// <summary>Небезпечний сайт (фішинг)</summary>
+    /// <summary>Dangerous site (phishing)</summary>
     Dangerous,
     
-    /// <summary>Помилка перевірки</summary>
+    /// <summary>Check error</summary>
     Error
 }
 

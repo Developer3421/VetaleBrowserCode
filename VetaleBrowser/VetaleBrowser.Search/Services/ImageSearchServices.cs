@@ -8,7 +8,7 @@ using VetaleBrowser.VetaleBrowser.Database.Services;
 namespace VetaleBrowser.VetaleBrowser.Search.Services
 {
     /// <summary>
-    /// Дефолтні API ключі для пошуку
+    /// Default API keys for search
     /// </summary>
     public static class DefaultApiKeys
     {
@@ -168,21 +168,21 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
             System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] GetEffectivePexelsKey called");
             System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] _cachedPexelsKey: {(_cachedPexelsKey == null ? "null" : _cachedPexelsKey.Length + " chars")}");
             
-            // 1. Кешований ключ
+            // 1. Cached key
             if (!string.IsNullOrWhiteSpace(_cachedPexelsKey))
             {
                 System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Returning cached Pexels key: {_cachedPexelsKey.Substring(0, Math.Min(15, _cachedPexelsKey.Length))}...");
                 return _cachedPexelsKey;
             }
             
-            // 2. Дефолтний
+            // 2. Default
             if (!string.IsNullOrWhiteSpace(DefaultApiKeys.PexelsApiKey))
             {
                 System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Returning default Pexels key");
                 return DefaultApiKeys.PexelsApiKey;
             }
             
-            // 3. БД
+            // 3. DB
             System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Trying to load Pexels key from DB...");
             var dbKey = LoadApiKeyFromDatabase(ApiServiceIds.Pexels);
             if (!string.IsNullOrWhiteSpace(dbKey))
@@ -341,7 +341,7 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
     }
 
     /// <summary>
-    /// Мок-реалізація для тестування без API ключів
+    /// Mock implementation for testing without API keys
     /// </summary>
     public class MockImageSearchService : IImageSearchService
     {

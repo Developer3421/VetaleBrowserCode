@@ -1,7 +1,7 @@
 namespace VetaleBrowser.VetaleBrowser.Search.Models;
 
 /// <summary>
-/// Джерело інформації про безпеку URL
+/// Source of URL security information
 /// </summary>
 public enum SecuritySource
 {

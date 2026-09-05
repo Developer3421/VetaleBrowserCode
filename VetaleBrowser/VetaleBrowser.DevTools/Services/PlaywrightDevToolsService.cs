@@ -10,9 +10,9 @@ using VetaleBrowser.VetaleBrowser.Database.Services;
 namespace VetaleBrowser.VetaleBrowser.DevTools.Services
 {
     /// <summary>
-    /// Сервіс для DevTools з використанням Microsoft Playwright
-    /// Надає функціонал для Elements, Performance, Application та Sources
-    /// Singleton - один екземпляр для всього додатку
+    /// DevTools service using Microsoft Playwright.
+    /// Provides functionality for Elements, Performance, Application and Sources.
+    /// Singleton - one instance per application.
     /// </summary>
     public class PlaywrightDevToolsService : IDisposable
     {
@@ -55,7 +55,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         }
 
         /// <summary>
-        /// Ініціалізація Playwright браузера
+        /// Initialize Playwright browser.
         /// </summary>
         public async Task InitializeAsync()
         {
@@ -115,7 +115,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         }
 
         /// <summary>
-        /// Навігація до URL
+        /// Navigate to a URL.
         /// </summary>
         public async Task NavigateAsync(string url)
         {
@@ -148,7 +148,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         #region Elements - DOM Inspection
 
         /// <summary>
-        /// Захоплює повну DOM структуру сторінки
+        /// Captures the full DOM structure of the page.
         /// </summary>
         public async Task<List<DomElement>> CaptureDomStructureAsync()
         {
@@ -264,7 +264,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         }
 
         /// <summary>
-        /// Отримує деталі конкретного елемента за селектором
+        /// Gets details of a specific element by selector.
         /// </summary>
         public async Task<DomElement?> GetElementDetailsAsync(string selector)
         {
@@ -314,7 +314,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         }
 
         /// <summary>
-        /// Виконує CSS selector пошук
+        /// Performs a CSS selector search.
         /// </summary>
         public async Task<List<DomElement>> QuerySelectorAllAsync(string selector)
         {
@@ -385,7 +385,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         #region Performance - Metrics & Timing
 
         /// <summary>
-        /// Захоплює метрики продуктивності сторінки
+        /// Captures performance metrics of the page.
         /// </summary>
         public async Task<PerformanceSnapshot?> CapturePerformanceSnapshotAsync()
         {
@@ -394,7 +394,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
 
             try
             {
-                // Отримуємо Navigation Timing API дані
+                // Retrieve Navigation Timing API data
                 var timingScript = @"
                     (function() {
                         const perf = window.performance;
@@ -460,7 +460,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         }
 
         /// <summary>
-        /// Отримує метрики Core Web Vitals
+        /// Gets Core Web Vitals metrics.
         /// </summary>
         public async Task<Dictionary<string, double>> GetCoreWebVitalsAsync()
         {
@@ -526,7 +526,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         #region Application - Storage & Cookies
 
         /// <summary>
-        /// Захоплює всі типи storage (localStorage, sessionStorage, cookies, indexedDB)
+        /// Captures all storage types (localStorage, sessionStorage, cookies, indexedDB).
         /// </summary>
         public async Task<List<StorageItem>> CaptureStorageAsync()
         {
@@ -647,7 +647,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
                 }
                 catch
                 {
-                    // IndexedDB може не бути доступним
+                    // IndexedDB may not be available
                 }
 
                 Debug.WriteLine($"[PlaywrightDevTools] Captured {items.Count} storage items");
@@ -663,7 +663,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         }
 
         /// <summary>
-        /// Встановлює значення в localStorage
+        /// Sets a value in localStorage.
         /// </summary>
         public async Task SetLocalStorageAsync(string key, string value)
         {
@@ -674,7 +674,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         }
 
         /// <summary>
-        /// Видаляє ключ з localStorage
+        /// Removes a key from localStorage.
         /// </summary>
         public async Task RemoveLocalStorageAsync(string key)
         {
@@ -685,7 +685,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         }
 
         /// <summary>
-        /// Очищає всі cookies
+        /// Clears all cookies.
         /// </summary>
         public async Task ClearCookiesAsync()
         {
@@ -700,7 +700,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         #region Sources - Resources & Scripts
 
         /// <summary>
-        /// Захоплює всі ресурси сторінки (scripts, stylesheets, images, etc.)
+        /// Captures all page resources (scripts, stylesheets, images, etc.).
         /// </summary>
         public async Task<List<PageResource>> CapturePageResourcesAsync()
         {
@@ -768,12 +768,12 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
                         CapturedAt = DateTime.UtcNow
                     };
 
-                    // Якщо це external resource, спробуємо завантажити вміст
+                    // If this is an external resource, try to load its content
                     if (!string.IsNullOrEmpty(resource.Url) && resource.Url != "inline" && string.IsNullOrEmpty(resource.EncryptedContent))
                     {
                         try
                         {
-                            // Використовуємо fetch через JavaScript для завантаження ресурсу
+                            // Use fetch via JavaScript to load the resource
                             var fetchScript = $@"
                                 fetch('{resource.Url}')
                                     .then(r => r.text())
@@ -791,7 +791,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
                         }
                         catch
                         {
-                            // Не вдалося завантажити external resource
+                            // Failed to load external resource
                         }
                     }
 
@@ -811,7 +811,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         }
 
         /// <summary>
-        /// Отримує вміст HTML сторінки
+        /// Gets the HTML content of the page.
         /// </summary>
         public async Task<string> GetPageHtmlAsync()
         {
@@ -822,7 +822,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         }
 
         /// <summary>
-        /// Виконує JavaScript код на сторінці
+        /// Executes JavaScript code on the page.
         /// </summary>
         public async Task<string> ExecuteScriptAsync(string script)
         {
@@ -845,7 +845,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         #region Network Monitoring
 
         /// <summary>
-        /// Відстежує всі мережеві запити
+        /// Monitors all network requests.
         /// </summary>
         public void EnableNetworkMonitoring(Action<string, string, int> onRequest)
         {

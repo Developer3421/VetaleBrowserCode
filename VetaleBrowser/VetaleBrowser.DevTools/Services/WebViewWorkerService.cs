@@ -12,8 +12,8 @@ using VetaleBrowser.VetaleBrowser.Core.Scripts.Browser;
 namespace VetaleBrowser.VetaleBrowser.DevTools.Services
 {
     /// <summary>
-    /// Сервіс для інтеграції WebViewWorker з DevTools сторінками
-    /// Надає доступ до DOM, Performance, Resources та Storage через активний таб або локальний WebView
+    /// Service for integrating WebViewWorker with DevTools pages.
+    /// Provides access to DOM, Performance, Resources and Storage via the active tab or local WebView.
     /// </summary>
     public class WebViewWorkerService
     {
@@ -94,7 +94,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         }
 
         /// <summary>
-        /// Під'єднати локальний WebView зі сторінки DevTools (не залежить від MainWindow)
+        /// Attach a local WebView from the DevTools page (independent of MainWindow).
         /// </summary>
         public void AttachLocalWebView(IBrowserView webView)
         {
@@ -112,7 +112,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         }
 
         /// <summary>
-        /// Від'єднати локальний WebView
+        /// Detach the local WebView.
         /// </summary>
         public void DetachLocalWebView()
         {
@@ -201,7 +201,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         #region DOM Elements
 
         /// <summary>
-        /// Захоплює DOM структуру поточної сторінки через JavaScript
+        /// Captures the DOM structure of the current page via JavaScript.
         /// </summary>
         public async Task<List<DomElement>> CaptureDomStructureAsync()
         {
@@ -233,7 +233,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
                 // Clear old DOM elements for this session
                 await _dataService.ClearDomElementsAsync(_sessionId);
 
-                // JavaScript для отримання DOM структури
+                // JavaScript to retrieve DOM structure
                 var script = @"
                     (function() {
                         function serializeElement(element, path = '0') {
@@ -346,7 +346,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         #region Performance
 
         /// <summary>
-        /// Захоплює метрики продуктивності поточної сторінки
+        /// Captures performance metrics of the current page.
         /// </summary>
         public async Task<PerformanceSnapshot?> CapturePerformanceSnapshotAsync()
         {
@@ -444,7 +444,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         #region Resources (Sources Page)
 
         /// <summary>
-        /// Захоплює всі ресурси сторінки (scripts, styles, images)
+        /// Captures all page resources (scripts, styles, images).
         /// </summary>
         public async Task<List<PageResource>> CapturePageResourcesAsync()
         {
@@ -578,7 +578,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         #region Storage (Application Page)
 
         /// <summary>
-        /// Захоплює Storage (localStorage, sessionStorage, cookies)
+        /// Captures Storage (localStorage, sessionStorage, cookies).
         /// </summary>
         public async Task<List<StorageItem>> CaptureStorageAsync(string storageType = "all")
         {
