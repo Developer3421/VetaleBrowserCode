@@ -11,10 +11,8 @@ public static class DatabaseManager
 {
     private static TabDatabaseService? _instance;
     private static HistoryDatabaseService? _historyInstance;
-    private static ConsoleDatabaseService? _consoleInstance;
     private static readonly object _lock = new object();
     private static readonly object _historyLock = new object();
-    private static readonly object _consoleLock = new object();
 
     /// <summary>
     /// Gets the database service instance
@@ -84,27 +82,6 @@ public static class DatabaseManager
     }
 
     /// <summary>
-    /// Gets the console database service instance
-    /// </summary>
-    public static ConsoleDatabaseService ConsoleInstance
-    {
-        get
-        {
-            if (_consoleInstance == null)
-            {
-                lock (_consoleLock)
-                {
-                    if (_consoleInstance == null)
-                    {
-                        InitializeConsole();
-                    }
-                }
-            }
-            return _consoleInstance!;
-        }
-    }
-
-    /// <summary>
     /// Initializes the database
     /// </summary>
     public static void Initialize(string? customPath = null, string? customKey = null)
@@ -166,27 +143,6 @@ public static class DatabaseManager
     }
 
     /// <summary>
-    /// Initializes the console database
-    /// </summary>
-    public static void InitializeConsole(string? customPath = null, string? customKey = null)
-    {
-        lock (_consoleLock)
-        {
-            // Close previous instance if exists
-            _consoleInstance?.Dispose();
-
-            // Determine console database path
-            var dbPath = customPath ?? GetDefaultConsoleDatabasePath();
-            
-            // Determine encryption key
-            var encryptionKey = customKey ?? GenerateEncryptionKey();
-
-            // Create new instance
-            _consoleInstance = new ConsoleDatabaseService(dbPath, encryptionKey);
-        }
-    }
-
-    /// <summary>
     /// Gets the default database path
     /// </summary>
     private static string GetDefaultDatabasePath()
@@ -218,23 +174,6 @@ public static class DatabaseManager
         }
 
         return Path.Combine(browserDataPath, "history.db");
-    }
-
-    /// <summary>
-    /// Gets the default console database path
-    /// </summary>
-    private static string GetDefaultConsoleDatabasePath()
-    {
-        var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var browserDataPath = Path.Combine(appDataPath, "VetaleBrowser", "Data");
-        
-        // Create directory if it doesn't exist
-        if (!Directory.Exists(browserDataPath))
-        {
-            Directory.CreateDirectory(browserDataPath);
-        }
-
-        return Path.Combine(browserDataPath, "console.db");
     }
 
     /// <summary>
@@ -293,12 +232,6 @@ public static class DatabaseManager
         {
             _historyInstance?.Dispose();
             _historyInstance = null;
-        }
-        
-        lock (_consoleLock)
-        {
-            _consoleInstance?.Dispose();
-            _consoleInstance = null;
         }
     }
 }

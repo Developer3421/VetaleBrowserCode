@@ -1,4 +1,4 @@
-using WebViewControl;
+using VetaleBrowser.VetaleBrowser.Core.Scripts.Browser;
 
 namespace VetaleBrowser.VetaleBrowser.DevTools.Services
 {
@@ -8,8 +8,8 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
     /// </summary>
     public static class DevToolsWebViewRegistry
     {
-        private static WebView? _current;
-        public static WebView? CurrentWebView
+        private static IBrowserView? _current;
+        public static IBrowserView? CurrentWebView
         {
             get => _current;
             set => _current = value;

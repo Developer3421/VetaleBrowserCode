@@ -207,17 +207,6 @@ public partial class App : Application
     private async Task InitializeServicesAsync(IClassicDesktopStyleApplicationLifetime desktop, bool skipDatabaseInit = false)
     {
         await Task.Yield(); // Ensure window is shown first
-        
-        // Initialize logging (fast, do first)
-        try
-        {
-            VetaleBrowser.Core.Scripts.Services.ConsoleLogger.Initialize();
-            System.Diagnostics.Trace.WriteLine("App: ConsoleLogger initialized");
-        }
-        catch (System.Exception ex)
-        {
-            System.Diagnostics.Trace.WriteLine($"App: ConsoleLogger failed: {ex.Message}");
-        }
 
         // Initialize database in background (skip if already done)
         if (!skipDatabaseInit)

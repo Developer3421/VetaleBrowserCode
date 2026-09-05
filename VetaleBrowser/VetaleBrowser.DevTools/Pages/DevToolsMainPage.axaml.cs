@@ -34,16 +34,6 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
             }
         }
 
-        private void OpenConsole(object? sender, PointerPressedEventArgs e)
-        {
-            var window = GetParentWindow();
-            var tabButton = window?.FindControl<Button>("TabConsole");
-            if (tabButton != null)
-            {
-                tabButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-            }
-        }
-
         private void OpenNetworkPage(object? sender, PointerPressedEventArgs e)
         {
             var window = GetParentWindow();

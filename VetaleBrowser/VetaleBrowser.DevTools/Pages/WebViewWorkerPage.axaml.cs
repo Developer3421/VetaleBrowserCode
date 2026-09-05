@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -15,7 +15,7 @@ using VetaleBrowser.VetaleBrowser.Core.Scripts.Models;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
 using VetaleBrowser.VetaleBrowser.DevTools.Services;
 using VetaleBrowser.VetaleBrowser.Database.Services;
-using WebViewControl;
+using VetaleBrowser.VetaleBrowser.Core.Scripts.Browser;
 
 namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
 {
@@ -25,7 +25,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
         private TabWorker? _currentActiveTab;
         
         // WebView Control
-        private WebView? _webView;
+        private IBrowserView? _webView;
         
         // Current file tracking
         private string? _currentFilePath;
@@ -33,7 +33,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
         
         // Public properties
         public string? CurrentUrl => _webView?.Address;
-        public WebView? WebView => _webView;
+        public IBrowserView? WebView => _webView;
         
         // UI Controls
         private Grid? _webViewContainer;
@@ -88,10 +88,8 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
             {
                 Debug.WriteLine("[WebViewWorkerPage] Initializing WebView...");
                 
-                _webView = new WebView
-                {
-                    [!IsVisibleProperty] = this[!IsVisibleProperty]
-                };
+                _webView = new CefSharpAdapter();
+                _webView.View[!IsVisibleProperty] = this[!IsVisibleProperty];
 
                 // Subscribe to WebView events
                 _webView.PropertyChanged += OnWebViewPropertyChanged;
@@ -99,7 +97,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
                 // Add WebView to container
                 if (_webViewContainer != null)
                 {
-                    _webViewContainer.Children.Add(_webView);
+                    _webViewContainer.Children.Add(_webView.View);
                     
                     // Hide placeholder when WebView is initialized
                     if (_placeholderText != null)
@@ -419,10 +417,10 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
                         try
                         {
                             // Try LoadHtml method via reflection
-                            var loadHtmlMethod = _webView.GetType().GetMethod("LoadHtml");
+                            var loadHtmlMethod = _webView.InnerView.GetType().GetMethod("LoadHtml");
                             if (loadHtmlMethod != null)
                             {
-                                loadHtmlMethod.Invoke(_webView, new object[] { htmlContent });
+                                loadHtmlMethod.Invoke(_webView.InnerView, new object[] { htmlContent });
                                 Debug.WriteLine("[WebViewWorkerPage] Loaded via LoadHtml method");
                             }
                             else
@@ -577,7 +575,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
                         try
                         {
                             // WebView might have LoadHtml method
-                            var loadHtmlMethod = _webView.GetType().GetMethod("LoadHtml");
+                            var loadHtmlMethod = _webView.InnerView.GetType().GetMethod("LoadHtml");
                             if (loadHtmlMethod != null)
                             {
                                 loadHtmlMethod.Invoke(_webView, new object[] { _currentHtmlContent });
@@ -910,4 +908,5 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
         }
     }
 }
+
 

@@ -17,7 +17,7 @@ public partial class ToolsMainPage : UserControl
 
     // Static window references to prevent memory leaks
     private static Windows.HistoryWindow? _historyWindowInstance;
-    private static Windows.ConsoleWindow? _consoleWindowInstance;
+
     private static Windows.DevToolsWindow? _devToolsWindowInstance;
     private static Windows.VetaleAIWindow? _vetaleAiWindowInstance;
     private static Windows.DownloadsWindow? _downloadsWindowInstance;
@@ -121,14 +121,6 @@ public partial class ToolsMainPage : UserControl
                 IconUrl = null,
                 IconEmoji = "📜",
                 Action = () => OpenHistory()
-            },
-            new ToolItem
-            {
-                NameKey = "Tools.Console.Name",
-                DescriptionKey = "Tools.Console.Description",
-                IconUrl = null,
-                IconEmoji = "🖥️",
-                Action = () => OpenConsole()
             },
             new ToolItem
             {
@@ -520,53 +512,6 @@ public partial class ToolsMainPage : UserControl
             {
                 System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Failed to show error dialog: {dialogEx.Message}");
             }
-        }
-    }
-
-    private void OpenConsole()
-    {
-        System.Diagnostics.Trace.WriteLine("[ToolsMainPage] Opening Console...");
-        
-        try
-        {
-            // Check if a window is already open
-            if (_consoleWindowInstance != null)
-            {
-                try
-                {
-                    System.Diagnostics.Trace.WriteLine("[ToolsMainPage] Reusing existing ConsoleWindow");
-                    _consoleWindowInstance.Activate();
-                    _consoleWindowInstance.WindowState = WindowState.Normal;
-                    System.Diagnostics.Trace.WriteLine("[ToolsMainPage] Console window reused successfully");
-                    return;
-                }
-                catch
-                {
-                    // Window is closed, clear the reference
-                    System.Diagnostics.Trace.WriteLine("[ToolsMainPage] Previous console window was closed, creating new one");
-                    _consoleWindowInstance = null;
-                }
-            }
-
-            _consoleWindowInstance = new Windows.ConsoleWindow();
-            
-            // Subscribe to window close event to clear the reference
-            _consoleWindowInstance.Closed += (s, e) =>
-            {
-                System.Diagnostics.Trace.WriteLine("[ToolsMainPage] ConsoleWindow closed, clearing reference");
-                _consoleWindowInstance = null;
-            };
-            
-            var consoleService = Core.Scripts.GlobalManagers.DatabaseManager.ConsoleInstance;
-            _consoleWindowInstance.SetConsoleService(consoleService);
-            _consoleWindowInstance.Show();
-            
-            System.Diagnostics.Trace.WriteLine("[ToolsMainPage] Console window opened successfully");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Trace.WriteLine($"[ToolsMainPage] Error opening console: {ex.Message}");
-            _consoleWindowInstance = null;
         }
     }
 

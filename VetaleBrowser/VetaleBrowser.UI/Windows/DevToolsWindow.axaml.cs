@@ -13,7 +13,6 @@ namespace VetaleBrowser.VetaleBrowser.UI.Windows
     {
         private readonly ContentControl? _contentHost;
         private Button? _currentActiveTab;
-        private static ConsoleWindow? _consoleWindow;
 
         public DevToolsWindow()
         {
@@ -160,23 +159,6 @@ namespace VetaleBrowser.VetaleBrowser.UI.Windows
                 _contentHost.Content = new WebViewWorkerPage();
                 SetActiveTab(this.FindControl<Button>("TabWebViewWorker"));
             }
-        }
-
-        private void ShowConsoleWindow(object? sender, RoutedEventArgs e)
-        {
-            // Open Console as separate window (already exists)
-            if (_consoleWindow == null || !_consoleWindow.IsVisible)
-            {
-                _consoleWindow = new ConsoleWindow();
-                _consoleWindow.Closed += (s, args) => _consoleWindow = null;
-                _consoleWindow.Show();
-            }
-            else
-            {
-                _consoleWindow.Activate();
-            }
-
-            // Don't change active tab for console since it's a separate window
         }
 
         #endregion

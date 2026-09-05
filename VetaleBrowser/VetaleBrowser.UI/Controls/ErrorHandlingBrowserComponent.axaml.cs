@@ -4,9 +4,10 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+using CefSharp.Avalonia;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers;
 using VetaleBrowser.VetaleBrowser.UI.Pages;
-using WebViewControl;
+using VetaleBrowser.VetaleBrowser.Core.Scripts.Browser;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Controls
 {
@@ -18,7 +19,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
     {
         private ContentControl? _webViewContainer;
         private ContentControl? _errorPageContainer;
-        private WebView? _webView;
+        private IBrowserView? _webView;
         private WebViewErrorHandler? _errorHandler;
         private BrowserErrorPage? _currentErrorPage;
         private string? _lastUrl;
@@ -53,7 +54,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
         /// <summary>
         /// Access to WebView
         /// </summary>
-        public WebView? WebView => _webView;
+        public IBrowserView? WebView => _webView;
 
         /// <summary>
         /// Whether the error page is currently displayed
@@ -74,7 +75,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
         /// <summary>
         /// Constructor with a provided WebView
         /// </summary>
-        public ErrorHandlingBrowserComponent(WebView webView) : this()
+        public ErrorHandlingBrowserComponent(IBrowserView webView) : this()
         {
             SetWebView(webView);
         }
@@ -82,7 +83,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
         /// <summary>
         /// Constructor with a provided WebView and existing ErrorHandler
         /// </summary>
-        public ErrorHandlingBrowserComponent(WebView webView, WebViewErrorHandler errorHandler) : this()
+        public ErrorHandlingBrowserComponent(IBrowserView webView, WebViewErrorHandler errorHandler) : this()
         {
             SetWebView(webView, errorHandler);
         }
@@ -101,7 +102,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
         /// <summary>
         /// Sets the WebView and configures error handling (creates a new ErrorHandler)
         /// </summary>
-        public void SetWebView(WebView webView)
+        public void SetWebView(IBrowserView webView)
         {
             if (webView == null)
                 throw new ArgumentNullException(nameof(webView));
@@ -114,7 +115,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
             // Set the WebView in the container
             if (_webViewContainer != null)
             {
-                _webViewContainer.Content = _webView;
+                _webViewContainer.Content = _webView.View;
             }
 
             // Create a new error handler
@@ -132,7 +133,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
         /// <summary>
         /// Sets the WebView and uses an existing ErrorHandler (from TabWorker)
         /// </summary>
-        public void SetWebView(WebView webView, WebViewErrorHandler errorHandler)
+        public void SetWebView(IBrowserView webView, WebViewErrorHandler errorHandler)
         {
             if (webView == null)
                 throw new ArgumentNullException(nameof(webView));
@@ -147,7 +148,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Controls
             // Set the WebView in the container
             if (_webViewContainer != null)
             {
-                _webViewContainer.Content = _webView;
+                _webViewContainer.Content = _webView.View;
             }
 
             // Use the existing error handler

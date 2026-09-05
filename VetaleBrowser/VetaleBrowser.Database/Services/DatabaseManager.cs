@@ -22,7 +22,6 @@ public sealed class DatabaseServiceManager : IDisposable
     private AppearanceSettingsService? _appearanceService;
     private DownloadDatabaseService? _downloadService;
     private SearchIndexService? _searchIndexService;
-    private ConsoleDatabaseService? _consoleService;
     
     private bool _disposed;
     
@@ -33,7 +32,6 @@ public sealed class DatabaseServiceManager : IDisposable
     private readonly object _appearanceLock = new object();
     private readonly object _downloadLock = new object();
     private readonly object _searchLock = new object();
-    private readonly object _consoleLock = new object();
 
     private DatabaseServiceManager()
     {
@@ -188,24 +186,6 @@ public sealed class DatabaseServiceManager : IDisposable
     }
 
     /// <summary>
-    /// Gets or creates the Console Database Service (lazy initialized)
-    /// </summary>
-    public ConsoleDatabaseService GetConsoleService()
-    {
-        if (_consoleService != null) return _consoleService;
-        
-        lock (_consoleLock)
-        {
-            if (_consoleService != null) return _consoleService;
-            
-            var consolePath = Path.Combine(_basePath, "console_logs.db");
-            _consoleService = new ConsoleDatabaseService(consolePath, _configuration.EncryptionKey);
-            Console.WriteLine("[DatabaseServiceManager] Console service initialized (lazy)");
-            return _consoleService;
-        }
-    }
-
-    /// <summary>
     /// Gets the database configuration
     /// </summary>
     public DatabaseConfiguration Configuration => _configuration;
@@ -267,7 +247,6 @@ public sealed class DatabaseServiceManager : IDisposable
         try { (_appearanceService as IDisposable)?.Dispose(); } catch { }
         try { _downloadService?.Dispose(); } catch { }
         try { (_searchIndexService as IDisposable)?.Dispose(); } catch { }
-        try { _consoleService?.Dispose(); } catch { }
         
         _historyService = null;
         _tabService = null;
@@ -275,7 +254,6 @@ public sealed class DatabaseServiceManager : IDisposable
         _appearanceService = null;
         _downloadService = null;
         _searchIndexService = null;
-        _consoleService = null;
         
         Console.WriteLine("[DatabaseServiceManager] All services disposed");
     }

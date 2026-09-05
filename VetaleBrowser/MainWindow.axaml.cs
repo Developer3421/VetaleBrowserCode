@@ -11,7 +11,7 @@ using VetaleBrowser.VetaleBrowser.UI.Scripts;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers;
 
 using VetaleBrowser.VetaleBrowser.UI.Services;
-using WebViewControl;
+using VetaleBrowser.VetaleBrowser.Core.Scripts.Browser;
 using Avalonia.Threading;
 using Avalonia;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.Models;
@@ -1007,15 +1007,14 @@ public partial class MainWindow : Window
         var tabsHost = _normalModePage?.TabsHostPanel;
         if (tabsHost == null) return;
         
-#pragma warning disable CS0618 // Data is obsolete
-        if (e.Data.Contains("TabDragData"))
+        if (e.DataTransfer.Contains(TabDragHelper.Format))
         {
             e.DragEffects = DragDropEffects.Move;
-            
+
             // Визначаємо позицію для вставки
             var position = e.GetPosition(tabsHost);
             _mainTabsDropTargetIndex = CalculateMainTabsDropIndex(position.X, tabsHost);
-            
+
             // Показуємо індикатор
             ShowMainTabsDropIndicator(_mainTabsDropTargetIndex, tabsHost);
         }
@@ -1024,7 +1023,6 @@ public partial class MainWindow : Window
             e.DragEffects = DragDropEffects.None;
             HideMainTabsDropIndicator(tabsHost);
         }
-#pragma warning restore CS0618
     }
     
     /// <summary>
@@ -1051,9 +1049,7 @@ public partial class MainWindow : Window
         int insertIndex = _mainTabsDropTargetIndex;
         HideMainTabsDropIndicator(tabsHost);
         
-#pragma warning disable CS0618 // Data is obsolete
-        if (e.Data.Get("TabDragData") is TabDragData dragData)
-#pragma warning restore CS0618
+        if (DataTransferExtensions.TryGetValue(e.DataTransfer, TabDragHelper.Format) is TabDragData dragData)
         {
             System.Diagnostics.Debug.WriteLine($"[MainWindow] Tab dropped from {(dragData.SourceWindow != null ? "overflow" : "main")} at index {insertIndex}");
             
@@ -1278,7 +1274,7 @@ public partial class MainWindow : Window
     /// <summary>
     /// Запускає перетягування вкладки з основної панелі
     /// </summary>
-    private async void StartMainTabDrag(Tab tab, TabWorker worker, PointerEventArgs pointerEvent)
+    private async void StartMainTabDrag(Tab tab, TabWorker worker, PointerPressedEventArgs pointerEvent)
     {
         var dragData = new TabDragData
         {
@@ -1291,18 +1287,13 @@ public partial class MainWindow : Window
             IsMuted = tab.IsMuted
         };
 
-#pragma warning disable CS0618 // DataObject is obsolete
-        var dataObject = new DataObject();
-        dataObject.Set("TabDragData", dragData);
-#pragma warning restore CS0618
+        using var dataTransfer = TabDragHelper.CreateTransfer(dragData);
 
         System.Diagnostics.Debug.WriteLine($"[MainWindow] Starting drag for main tab: {tab.Title}");
 
         try
         {
-#pragma warning disable CS0618 // DoDragDrop is obsolete
-            var result = await DragDrop.DoDragDrop(pointerEvent, dataObject, DragDropEffects.Move);
-#pragma warning restore CS0618
+            var result = await DragDrop.DoDragDropAsync(pointerEvent, dataTransfer, DragDropEffects.Move);
             System.Diagnostics.Debug.WriteLine($"[MainWindow] Drag result: {result}");
         }
         catch (Exception ex)
@@ -1337,7 +1328,7 @@ public partial class MainWindow : Window
             try
             {
                 // Ensure script evaluation runs on UI thread - WebView may require being called from UI dispatcher
-                res = await Dispatcher.UIThread.InvokeAsync(async () => await worker.WebView.EvaluateScript<object>(js));
+                res = await Dispatcher.UIThread.InvokeAsync(async () => await worker.WebView.EvaluateScriptAsync<object>(js));
             }
             catch (Exception jsEx)
             {
@@ -1793,13 +1784,13 @@ public partial class MainWindow : Window
             var webView = active.WebView;
 
             // Вилучити з попереднього контейнера якщо потрібно
-            if (webView.Parent is Panel prev && !ReferenceEquals(prev, target))
+            if (webView.View.Parent is Panel prev && !ReferenceEquals(prev, target))
             {
-                prev.Children.Remove(webView);
+                prev.Children.Remove(webView.View);
             }
 
             target.Children.Clear();
-            target.Children.Add(webView);
+            target.Children.Add(webView.View);
 
             System.Diagnostics.Debug.WriteLine($"[MainWindow] WebView moved to {(ReferenceEquals(target, _fullscreenModePage?.FullscreenGrid) ? "fullscreen" : "normal")} container");
         }
@@ -2014,7 +2005,7 @@ public partial class MainWindow : Window
             if (active == null) return;
             // Best-effort: try standard and webkit-prefixed APIs
             const string js = "(function(){try{if(document.fullscreenElement&&document.exitFullscreen){document.exitFullscreen();}else if(document.webkitFullscreenElement&&document.webkitExitFullscreen){document.webkitExitFullscreen();}}catch(e){}})();";
-            await active.WebView.EvaluateScript<object>(js);
+            await active.WebView.EvaluateScriptAsync<object>(js);
         }
         catch (Exception ex)
         {
@@ -2063,7 +2054,7 @@ public partial class MainWindow : Window
     }
 
     // Get the document title from the WebView using direct property access
-    private static string? TryGetWebViewTitle(WebView vw)
+    private static string? TryGetWebViewTitle(IBrowserView vw)
     {
         try
         {
@@ -2103,7 +2094,7 @@ public partial class MainWindow : Window
             if (!Uri.TryCreate(address, UriKind.Absolute, out var uri)) return;
 
             // Determine scale for better icon size
-            var visualRoot = this.GetVisualRoot();
+            var visualRoot = TopLevel.GetTopLevel(this);
             double scale = 1.0;
             if (visualRoot is TopLevel top)
             {
@@ -2577,7 +2568,7 @@ public partial class MainWindow : Window
 
         // Enter fullscreen mode
         WindowState = WindowState.FullScreen;
-        SystemDecorations = SystemDecorations.None;
+        SystemDecorations = WindowDecorations.None;
         
         // Реорганізовуємо вкладки - в fullscreen режимі дозволено більше вкладок (9 замість 4)
         ReorganizeTabsForMode();
@@ -2616,7 +2607,7 @@ public partial class MainWindow : Window
         Padding = new Thickness(8);
 
         // Exit fullscreen mode
-        SystemDecorations = SystemDecorations.BorderOnly;
+        SystemDecorations = WindowDecorations.BorderOnly;
         WindowState = _preFullscreenWindowState;
         
         // Реорганізовуємо вкладки - в звичайному режимі дозволено менше вкладок (4)

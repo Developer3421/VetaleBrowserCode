@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using WebViewControl;
+using VetaleBrowser.VetaleBrowser.Core.Scripts.Browser;
 using Avalonia.Threading;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -133,7 +133,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
     {
         public Guid Id { get; } = Guid.NewGuid();
 
-        public WebView WebView { get; }
+        public IBrowserView WebView { get; }
         public GlobalManagers.WebViewManager Manager { get; }
         public NavigationHistory History { get; } = new NavigationHistory();
         
@@ -237,11 +237,9 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 }
 
                 System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Creating WebView...");
-                WebView = new WebView
-                {
-                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
-                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch,
-                };
+                WebView = new CefSharpAdapter();
+                WebView.View.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
+                WebView.View.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch;
                 
                 if (WebView == null)
                 {
@@ -481,7 +479,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             try
             {
                 // Use direct EvaluateScript from WebViewControl (returns Task<object>)
-                var result = await WebView.EvaluateScript<object>(script);
+                var result = await WebView.EvaluateScriptAsync<object>(script);
                 
                 if (result is bool b) return b;
                 if (result is string s)
@@ -850,7 +848,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 ";
 
                 // Use direct EvaluateScript from WebViewControl with explicit type
-                await WebView.EvaluateScript<object>(script);
+                await WebView.EvaluateScriptAsync<object>(script);
                 System.Diagnostics.Debug.WriteLine("[TabWorker] Fullscreen listener injected via JavaScript");
             }
             catch (Exception ex)
@@ -1101,7 +1099,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     })();
                 ";
 
-                await WebView.EvaluateScript<object>(js);
+                await WebView.EvaluateScriptAsync<object>(js);
                 Debug.WriteLine("[TabWorker] Navigation guards v2 injected");
                 
                 // If the tab is muted, inject audio interceptor to capture new AudioContext instances
@@ -1190,7 +1188,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     console.log('[VetaleBrowser] Audio interceptor injected (muted mode)');
                 })();";
                 
-                await WebView.EvaluateScript<object>(js);
+                await WebView.EvaluateScriptAsync<object>(js);
                 Debug.WriteLine("[TabWorker] Audio interceptor injected");
             }
             catch (Exception ex)
@@ -1206,7 +1204,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         {
             try
             {
-                var webViewType = WebView.GetType();
+                var webViewType = WebView.InnerView.GetType();
                 object? browser = null;
                 
                 // Search for browser using various property/field names
@@ -1219,7 +1217,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                         System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
                     if (browserProp != null)
                     {
-                        browser = browserProp.GetValue(WebView);
+                        browser = browserProp.GetValue(WebView.InnerView);
                         if (browser != null)
                         {
                             Debug.WriteLine($"[TabWorker] Found browser via property '{name}'");
@@ -1231,7 +1229,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                         System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
                     if (browserField != null)
                     {
-                        browser = browserField.GetValue(WebView);
+                        browser = browserField.GetValue(WebView.InnerView);
                         if (browser != null)
                         {
                             Debug.WriteLine($"[TabWorker] Found browser via field '{name}'");
@@ -1248,7 +1246,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     {
                         try
                         {
-                            var val = field.GetValue(WebView);
+                            var val = field.GetValue(WebView.InnerView);
                             if (val != null)
                             {
                                 var typeName = val.GetType().FullName ?? "";
@@ -1474,7 +1472,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                             } catch(e) { console.log('[VetaleBrowser] Unmute error:', e); }
                         })();";
                     
-                    await WebView.EvaluateScript<object>(js);
+                    await WebView.EvaluateScriptAsync<object>(js);
                     Debug.WriteLine($"[TabWorker] Audio state applied via JavaScript: {_isMuted}");
                 }
                 catch (Exception jsEx)
@@ -1665,3 +1663,4 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }
+

@@ -73,10 +73,9 @@
                         <ComboBoxItem>Bootstrap Template</ComboBoxItem>
                         <ComboBoxItem>Responsive Layout</ComboBoxItem>
                     </ComboBox>
-                    <ToggleButton x:Name="PreviewToggle" 
+                    <ToggleButton x:Name="PreviewToggle"
                                   IsChecked="True"
-                                  Checked="TogglePreview"
-                                  Unchecked="TogglePreview"
+                                  IsCheckedChanged="TogglePreview"
                                   Padding="8,6"
                                   ToolTip.Tip="{DynamicResource HtmlEditor.Preview}">
                         <StackPanel Orientation="Horizontal" Spacing="4">

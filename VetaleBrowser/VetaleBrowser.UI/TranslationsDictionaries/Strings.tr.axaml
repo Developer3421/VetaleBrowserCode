@@ -1,4 +1,4 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <!-- Başlıklar -->
   <x:String x:Key="App.Title">Vetale Tarayıcı</x:String>
@@ -208,9 +208,6 @@
   <x:String x:Key="Tools.History.Name">Geçmiş</x:String>
   <x:String x:Key="Tools.History.Description">Gözatma geçmişi</x:String>
   
-  <x:String x:Key="Tools.Console.Name">Konsol</x:String>
-  <x:String x:Key="Tools.Console.Description">Günlükler ve teşhislerle geliştirici konsolu</x:String>
-  
   <x:String x:Key="Tools.UserAgreement.Name">Kullanıcı Sözleşmesi</x:String>
   <x:String x:Key="Tools.UserAgreement.Description">GDPR gizlilik politikasını ve kullanıcı sözleşmesini görüntüle</x:String>
   
@@ -220,7 +217,6 @@
   <x:String x:Key="DevTools.Header">Geliştirici Araçları</x:String>
   <x:String x:Key="DevTools.Tab.Main">Ana Sayfa</x:String>
   <x:String x:Key="DevTools.Tab.Elements">Öğeler</x:String>
-  <x:String x:Key="DevTools.Tab.Console">Konsol</x:String>
   <x:String x:Key="DevTools.Tab.Network">Ağ</x:String>
   <x:String x:Key="DevTools.Tab.Sources">Kaynaklar</x:String>
   <x:String x:Key="DevTools.Tab.HtmlEditor">HTML Editörü</x:String>
@@ -231,9 +227,6 @@
   <!-- DevTools Araç Listesi -->
   <x:String x:Key="DevTools.Tool.Elements.Title">Öğe Denetleyicisi</x:String>
   <x:String x:Key="DevTools.Tool.Elements.Description">Mevcut sayfanın DOM yapısını görüntüle ve düzenle</x:String>
-  
-  <x:String x:Key="DevTools.Tool.Console.Title">JavaScript Konsolu</x:String>
-  <x:String x:Key="DevTools.Tool.Console.Description">Günlükleri, hataları ve JavaScript konsol çıktısını görüntüle (ayrı pencere)</x:String>
   
   <x:String x:Key="DevTools.Tool.Network.Title">Ağ Monitörü</x:String>
   <x:String x:Key="DevTools.Tool.Network.Description">Tüm HTTP/HTTPS isteklerini ve yanıtlarını izle</x:String>
@@ -774,4 +767,5 @@
   <x:String x:Key="Search.Redirect.YouTube.Title">🎬 YouTube'da videolar: "{0}"</x:String>
   <x:String x:Key="Search.Redirect.YouTube.Snippet">"{0}" için YouTube video arama sonuçlarını görüntüle.</x:String>
 </ResourceDictionary>
+
 

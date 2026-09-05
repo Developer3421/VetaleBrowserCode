@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
-using WebViewControl;
+using VetaleBrowser.VetaleBrowser.Core.Scripts.Browser;
 using System.Diagnostics;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
@@ -11,7 +11,7 @@ public partial class ToolsWebViewPage : UserControl
 {
     private Grid? _webViewContainer;
     private TextBlock? _toolNameText;
-    private WebView? _webView;
+    private IBrowserView? _webView;
     private string? _currentUrl;
     
     public event EventHandler? BackRequested;
@@ -49,8 +49,8 @@ public partial class ToolsWebViewPage : UserControl
             _webViewContainer.Children.Clear();
 
             // Create new WebView
-            _webView = new WebView();
-            _webViewContainer.Children.Add(_webView);
+            _webView = new CefSharpAdapter();
+            _webViewContainer.Children.Add(_webView.View);
 
             // Navigate to URL
             _webView.Address = _currentUrl;
@@ -59,12 +59,10 @@ public partial class ToolsWebViewPage : UserControl
             _webView.PropertyChanged += WebViewOnPropertyChanged;
 
             System.Diagnostics.Trace.WriteLine($"[ToolsWebViewPage] Loading URL: {_currentUrl}");
-            VetaleBrowser.Core.Scripts.Services.ConsoleLogger.LogInfo($"Loading URL: {_currentUrl}", "ToolsWebViewPage");
         }
         catch (Exception ex)
         {
             System.Diagnostics.Trace.WriteLine($"[ToolsWebViewPage] Error initializing WebView: {ex.Message}");
-            Core.Scripts.Services.ConsoleLogger.LogError($"Error initializing WebView", "ToolsWebViewPage", ex);
             ShowError($"Помилка завантаження: {ex.Message}");
         }
     }
@@ -79,7 +77,7 @@ public partial class ToolsWebViewPage : UserControl
         }
     }
 
-    private static async void InjectNavigationGuards(WebView webView)
+    private static async void InjectNavigationGuards(IBrowserView webView)
     {
         try
         {
@@ -127,7 +125,7 @@ public partial class ToolsWebViewPage : UserControl
                     }, true);
                 })();
             ";
-            await webView.EvaluateScript<object>(js);
+            await webView.EvaluateScriptAsync<object>(js);
         }
         catch (Exception ex)
         {
@@ -185,3 +183,4 @@ public partial class ToolsWebViewPage : UserControl
         }
     }
 }
+

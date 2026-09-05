@@ -18,11 +18,105 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
     }
 
     /// <summary>
-    /// Інтерфейс для провайдерів пошуку зображень
+    /// Interface for image search providers
     /// </summary>
     public interface IImageSearchProvider
     {
         Task<ImageSearchPage> SearchAsync(ImageSearchQuery query, CancellationToken ct);
+    }
+
+    /// <summary>
+    /// High-level image search service (paged string-query API used by the UI).
+    /// </summary>
+    public interface IImageSearchService
+    {
+        Task<ImageSearchPage> SearchAsync(
+            string query,
+            int page = 1,
+            int perPage = 30,
+            ImageSearchFilter? filter = null,
+            CancellationToken cancellationToken = default);
+
+        Task<ImageSearchPage> GetCuratedAsync(
+            int page = 1,
+            int perPage = 30,
+            CancellationToken cancellationToken = default);
+    }
+
+    /// <summary>
+    /// Aggregates Pexels/Unsplash providers behind <see cref="IImageSearchService"/>.
+    /// Falls back to <see cref="MockImageSearchService"/> when no provider works.
+    /// </summary>
+    public sealed class UnifiedImageSearchService : IImageSearchService
+    {
+        private readonly string? _pexelsKey;
+        private readonly string? _unsplashKey;
+        private readonly MockImageSearchService _mock = new();
+
+        public UnifiedImageSearchService(string? pexelsKey, string? unsplashKey)
+        {
+            _pexelsKey = pexelsKey;
+            _unsplashKey = unsplashKey;
+        }
+
+        public async Task<ImageSearchPage> SearchAsync(
+            string query,
+            int page = 1,
+            int perPage = 30,
+            ImageSearchFilter? filter = null,
+            CancellationToken cancellationToken = default)
+        {
+            var errors = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(_pexelsKey))
+            {
+                try
+                {
+                    var pexels = new PexelsImageSearchProvider(_pexelsKey);
+                    return await pexels.SearchAsync(new ImageSearchQuery
+                    {
+                        Query = query,
+                        PageNumber = page,
+                        PageSize = perPage,
+                        Provider = "Pexels"
+                    }, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    errors.Add($"Pexels: {ex.Message}");
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(_unsplashKey))
+            {
+                try
+                {
+                    var unsplash = new UnsplashImageSearchProvider(_unsplashKey);
+                    return await unsplash.SearchAsync(new ImageSearchQuery
+                    {
+                        Query = query,
+                        PageNumber = page,
+                        PageSize = perPage,
+                        Provider = "Unsplash"
+                    }, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    errors.Add($"Unsplash: {ex.Message}");
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine($"[UnifiedImageSearch] Providers failed ({string.Join("; ", errors)}), using mock");
+            return await _mock.SearchAsync(query, page, perPage, filter, cancellationToken).ConfigureAwait(false);
+        }
+
+        public Task<ImageSearchPage> GetCuratedAsync(
+            int page = 1,
+            int perPage = 30,
+            CancellationToken cancellationToken = default)
+        {
+            return SearchAsync("curated", page, perPage, null, cancellationToken);
+        }
     }
 
     public static class ImageSearchServiceFactory

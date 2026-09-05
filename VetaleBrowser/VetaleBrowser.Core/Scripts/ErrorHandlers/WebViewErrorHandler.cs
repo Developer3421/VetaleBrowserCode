@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
-using WebViewControl;
+using VetaleBrowser.VetaleBrowser.Core.Scripts.Browser;
 using VetaleBrowser.VetaleBrowser.UI.Pages;
 using Avalonia.Threading;
 
@@ -15,7 +15,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
     /// </summary>
     public class WebViewErrorHandler : IDisposable
     {
-        private readonly WebView _webView;
+        private readonly IBrowserView _webView;
         private bool _isAttached;
         private string? _pendingUrl;
         private static readonly HttpClient _httpClient = new() { Timeout = TimeSpan.FromSeconds(10) };
@@ -33,7 +33,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         /// </summary>
         public event EventHandler<BrowserErrorEventArgs>? ErrorOccurred;
 
-        public WebViewErrorHandler(WebView webView)
+        public WebViewErrorHandler(IBrowserView webView)
         {
             _webView = webView ?? throw new ArgumentNullException(nameof(webView));
         }
@@ -70,7 +70,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         /// </summary>
         private void AttachWebViewEvents()
         {
-            var webViewType = _webView.GetType();
+            var webViewType = _webView.InnerView.GetType();
             Debug.WriteLine($"[WebViewErrorHandler] Attaching to WebView events...");
             
             // Print all WebView events for diagnostics
@@ -89,12 +89,12 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
             
             foreach (var eventName in errorEventNames)
             {
-                TrySubscribe(_webView, webViewType, eventName, nameof(OnBrowserLoadError));
+                TrySubscribe(_webView.InnerView, webViewType, eventName, nameof(OnBrowserLoadError));
             }
             
-            TrySubscribe(_webView, webViewType, "UnhandledException", nameof(OnBrowserUnhandledException));
-            TrySubscribe(_webView, webViewType, "JavascriptUncaughtException", nameof(OnJavascriptUncaughtException));
-            TrySubscribe(_webView, webViewType, "ConsoleMessage", nameof(OnConsoleMessage));
+            TrySubscribe(_webView.InnerView, webViewType, "UnhandledException", nameof(OnBrowserUnhandledException));
+            TrySubscribe(_webView.InnerView, webViewType, "JavascriptUncaughtException", nameof(OnJavascriptUncaughtException));
+            TrySubscribe(_webView.InnerView, webViewType, "ConsoleMessage", nameof(OnConsoleMessage));
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
         private void AttachAvaloniaCefBrowserEvents()
         {
             // Many CEF wrappers have a "Browser" property/field inside. Adjust the name if needed.
-            var webViewType = _webView.GetType();
+            var webViewType = _webView.InnerView.GetType();
             Debug.WriteLine($"[WebViewErrorHandler] WebView type: {webViewType.FullName}");
             
             // Print all properties and fields for diagnostics
@@ -128,7 +128,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 var browserProp = webViewType.GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
                 if (browserProp != null)
                 {
-                    browser = browserProp.GetValue(_webView);
+                    browser = browserProp.GetValue(_webView.InnerView);
                     if (browser != null)
                     {
                         Debug.WriteLine($"[WebViewErrorHandler] Found browser via property '{name}', type: {browser.GetType().FullName}");
@@ -139,7 +139,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 var browserField = webViewType.GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
                 if (browserField != null)
                 {
-                    browser = browserField.GetValue(_webView);
+                    browser = browserField.GetValue(_webView.InnerView);
                     if (browser != null)
                     {
                         Debug.WriteLine($"[WebViewErrorHandler] Found browser via field '{name}', type: {browser.GetType().FullName}");
@@ -154,7 +154,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                 Debug.WriteLine("[WebViewErrorHandler] Searching by type pattern...");
                 foreach (var field in webViewType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
                 {
-                    var val = field.GetValue(_webView);
+                    var val = field.GetValue(_webView.InnerView);
                     if (val != null)
                     {
                         var typeName = val.GetType().FullName ?? "";
@@ -173,7 +173,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
                     {
                         try
                         {
-                            var val = prop.GetValue(_webView);
+                            var val = prop.GetValue(_webView.InnerView);
                             if (val != null)
                             {
                                 var typeName = val.GetType().FullName ?? "";

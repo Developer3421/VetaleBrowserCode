@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using System;
@@ -181,7 +181,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
 
         private static TControl? FindSiblingOrParent<TControl>(Control start) where TControl : Control
         {
-            var root = start.GetVisualRoot() as Window;
+            var root = TopLevel.GetTopLevel(start) as Window;
             if (root == null) return null;
             return FindControlRecursive<TControl>(root);
         }
@@ -225,3 +225,4 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Pages
         }
     }
 }
+

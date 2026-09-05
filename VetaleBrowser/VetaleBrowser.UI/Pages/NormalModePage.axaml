@@ -124,14 +124,8 @@
             <controls:NavigationBar Name="NavigationBar" />
         </Grid>
 
-        <!-- Bottom row: WebView container -->
+        <!-- Bottom row: WebView container (browser view is placed here directly, like SuperLite) -->
         <Grid Grid.Row="2" Background="#FFFFFF" Name="WebViewContainer">
-            <TextBlock Text="Ініціалізація WebView..." 
-                       HorizontalAlignment="Center" 
-                       VerticalAlignment="Center" 
-                       Foreground="#A0A0A0" 
-                       FontSize="16" 
-                       />
         </Grid>
     </Grid>
 </UserControl>

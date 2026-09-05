@@ -1,4 +1,4 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <!-- Common Window Titles -->
   <x:String x:Key="App.Title">Vetale Browser</x:String>
@@ -211,9 +211,6 @@
   <x:String x:Key="Tools.History.Name">History</x:String>
   <x:String x:Key="Tools.History.Description">Browsing history</x:String>
   
-  <x:String x:Key="Tools.Console.Name">Console</x:String>
-  <x:String x:Key="Tools.Console.Description">Developer console with logs and diagnostics</x:String>
-  
   <x:String x:Key="Tools.UserAgreement.Name">User Agreement</x:String>
   <x:String x:Key="Tools.UserAgreement.Description">View GDPR privacy policy and user agreement</x:String>
   
@@ -223,7 +220,6 @@
   <x:String x:Key="DevTools.Header">Developer Tools</x:String>
   <x:String x:Key="DevTools.Tab.Main">Home</x:String>
   <x:String x:Key="DevTools.Tab.Elements">Elements</x:String>
-  <x:String x:Key="DevTools.Tab.Console">Console</x:String>
   <x:String x:Key="DevTools.Tab.Network">Network</x:String>
   <x:String x:Key="DevTools.Tab.Sources">Sources</x:String>
   <x:String x:Key="DevTools.Tab.HtmlEditor">HTML Editor</x:String>
@@ -234,9 +230,6 @@
   <!-- DevTools Tools List -->
   <x:String x:Key="DevTools.Tool.Elements.Title">Elements Inspector</x:String>
   <x:String x:Key="DevTools.Tool.Elements.Description">Inspect and edit the DOM structure of the current page</x:String>
-  
-  <x:String x:Key="DevTools.Tool.Console.Title">JavaScript Console</x:String>
-  <x:String x:Key="DevTools.Tool.Console.Description">View logs, errors, and JavaScript console output (separate window)</x:String>
   
   <x:String x:Key="DevTools.Tool.Network.Title">Network Monitor</x:String>
   <x:String x:Key="DevTools.Tool.Network.Description">Monitor all HTTP/HTTPS requests and responses</x:String>
@@ -795,3 +788,4 @@
   <x:String x:Key="Tools.VetaleSearchSettings.Name">Vetale Search Settings</x:String>
   <x:String x:Key="Tools.VetaleSearchSettings.Description">Configure API keys and appearance for Vetale Search</x:String>
 </ResourceDictionary>
+

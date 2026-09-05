@@ -54,33 +54,23 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="11.3.9" />
-        <PackageReference Include="Avalonia.Desktop" Version="11.3.9" />
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.9" />
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.9" />
+        <PackageReference Include="Avalonia" Version="12.1.2" />
+        <PackageReference Include="Avalonia.Desktop" Version="12.1.2" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.2" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.2" />
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-        <PackageReference Include="Avalonia.Diagnostics" Version="11.3.9">
-            <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
-            <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>none</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Jint" Version="4.4.2" />
+        <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" />
+        <PackageReference Include="CefSharp.Avalonia" Version="1.0.6" />
         <PackageReference Include="LiteDB" Version="6.0.0-prerelease.73" />
-        <PackageReference Include="LLamaSharp" Version="0.25.0" />
-        <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.25.0" Condition="'$(LlamaBackendChoice)' == 'cpu-avx2'" />
+        <PackageReference Include="LLamaSharp" Version="0.27.0" />
+        <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.27.0" Condition="'$(LlamaBackendChoice)' == 'cpu-avx2'" />
         <PackageReference Include="LLamaSharp.Backend.Vulkan" Version="0.25.0" Condition="'$(LlamaBackendChoice)' == 'vulkan'" />
 
         <!-- Audio/recording (Windows) -->
         <PackageReference Include="NAudio" Version="2.2.1" />
         <PackageReference Include="NAudio.Core" Version="2.2.1" />
         <PackageReference Include="NAudio.WinMM" Version="2.2.1" />
-
-        <PackageReference Include="Microsoft.Agents.AI.Abstractions" Version="1.0.0-preview.251104.1" />
-        <PackageReference Include="Microsoft.Playwright" Version="1.56.0" />
-
-
-        <PackageReference Include="WebViewControl-Avalonia" Version="3.120.10" />
+        <PackageReference Include="Microsoft.Playwright" Version="1.62.0" />
 
         <!-- Removed Windows-only / non-cross-platform packages -->
         <!-- <PackageReference Include="System.Drawing.Common" Version="10.0.0" /> -->
@@ -102,13 +92,12 @@
       <Folder Include="VetaleBrowser.DevTools\" />
       <Folder Include="VetaleBrowser.UI\Helpers\ArchitectureTools\" />
       <Folder Include="VetaleBrowser.VoiceRecognition\Models\" />
-      <Folder Include="VetaleBrowser.WebEngine\" />
       <Folder Include="VetaleBrowserOfflineGame\" />
     </ItemGroup>
 
     <ItemGroup>
       <AvaloniaResource Include="VetaleBrowser.UI\Sources\Icons\*.png" />
-      <AvaloniaResource Include="VetaleBrowser.UI\Elements\*.axaml" />
+      <!-- NB: *.axaml are auto-included as AvaloniaResource by the Avalonia SDK — explicit Include would duplicate keys -->
       <!-- Include single SettingsButton.png which sits in Sources/ (not Icons/) -->
       <AvaloniaResource Include="VetaleBrowser.UI\Sources\SettingsButton.png" />
       <!-- Removed explicit localization dictionaries include to avoid duplicate assets -->

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Avalonia.Threading;
 using System.Diagnostics;
 
-using WebViewControl;
+using VetaleBrowser.VetaleBrowser.Core.Scripts.Browser;
 
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers
 {
@@ -12,7 +12,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers
     /// </summary>
     public class WebViewManager : IDisposable
     {
-        private WebView? _webView;
+        private IBrowserView? _webView;
         private bool _isInitialized;
 
         public bool IsInitialized => _isInitialized;
@@ -26,7 +26,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers
         /// <summary>
         /// Initialize the manager with an existing WebView control instance.
         /// </summary>
-        public void Initialize(WebView webView)
+        public void Initialize(IBrowserView webView)
         {
             if (webView == null) throw new ArgumentNullException(nameof(webView));
             

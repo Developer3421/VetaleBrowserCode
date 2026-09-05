@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Avalonia;
@@ -6,7 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
-using WebViewControl;
+using VetaleBrowser.VetaleBrowser.Core.Scripts.Browser;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
 
@@ -19,7 +19,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
     private Grid? _webViewContainer;
     private Border? _loadingOverlay;
     private TextBlock? _statusText;
-    private WebView? _webView;
+    private IBrowserView? _webView;
     private bool _isDisposed;
     private bool _isLoaded;
     private bool _isWebViewReady;
@@ -79,28 +79,24 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
             _webViewContainer.Children.Clear();
 
             // Create WebView with proper stretch properties
-            _webView = new WebView
-            {
-                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch
-            };
+            _webView = new CefSharpAdapter();
+            _webView.View.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
+            _webView.View.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch;
             
             // Subscribe to events
             _webView.PropertyChanged += OnWebViewPropertyChanged;
             
             // Add to container
-            _webViewContainer.Children.Add(_webView);
+            _webViewContainer.Children.Add(_webView.View);
 
             // Navigate to Perplexity AI
             _webView.Address = PerplexityAiUrl;
 
             Debug.WriteLine($"[PerplexityAiChat] WebView created, navigating to: {PerplexityAiUrl}");
-            Core.Scripts.Services.ConsoleLogger.LogInfo($"Navigating to Perplexity AI", "PerplexityAiChat");
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[PerplexityAiChat] Error initializing WebView: {ex.Message}");
-            Core.Scripts.Services.ConsoleLogger.LogError("Error initializing WebView", "PerplexityAiChat", ex);
             ShowError($"Loading error: {ex.Message}");
         }
     }
@@ -209,7 +205,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
                 })();
             ";
             
-            var result = await _webView.EvaluateScript<bool>(js);
+            var result = await _webView.EvaluateScriptAsync<bool>(js);
             Debug.WriteLine($"[DuckDuckGoAiChat] AcceptTerms result: {result}");
             
             if (result)
@@ -217,7 +213,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
                 // If consent was accepted - wait for UI to update
                 await Task.Delay(1500);
                 // Try again in case there is another dialog
-                await _webView.EvaluateScript<bool>(js);
+                await _webView.EvaluateScriptAsync<bool>(js);
                 await Task.Delay(500);
             }
         }
@@ -296,7 +292,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
                 })();
             ";
 
-            await _webView.EvaluateScript<object>(js);
+            await _webView.EvaluateScriptAsync<object>(js);
             Debug.WriteLine("[DuckDuckGoAiChat] Custom scripts injected successfully");
         }
         catch (Exception ex)
@@ -500,4 +496,5 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
         public void Execute(object? parameter) => _execute();
     }
 }
+
 

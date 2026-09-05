@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AvaloniaProject">
+    <option name="projectPerEditor">
+      <map>
+        <entry key="VetaleBrowser/VetaleBrowser.DevTools/Pages/HtmlEditorPage.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Windows/HistoryWindow.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Windows/TabOverflowWindow.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Windows/UserAgreementWindow.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Windows/VetaleAIWindow.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+      </map>
+    </option>
+  </component>
+</project>

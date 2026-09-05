@@ -7,7 +7,7 @@ using Avalonia.Threading;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.Models;
 using VetaleBrowser.VetaleBrowser.Database.Models;
 using VetaleBrowser.VetaleBrowser.Database.Services;
-using WebViewControl;
+using VetaleBrowser.VetaleBrowser.Core.Scripts.Browser;
 
 namespace VetaleBrowser.VetaleBrowser.DevTools.Services
 {
@@ -25,7 +25,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         private string _sessionId;
 
         // New: local DevTools WebView (not tied to MainWindow tabs)
-        private WebView? _localWebView;
+        private IBrowserView? _localWebView;
         
         // Playwright integration - works in parallel with WebView
         private PlaywrightDevToolsService? _playwrightService;
@@ -96,7 +96,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
         /// <summary>
         /// Під'єднати локальний WebView зі сторінки DevTools (не залежить від MainWindow)
         /// </summary>
-        public void AttachLocalWebView(WebView webView)
+        public void AttachLocalWebView(IBrowserView webView)
         {
             if (_localWebView == webView) return;
 
@@ -773,7 +773,7 @@ namespace VetaleBrowser.VetaleBrowser.DevTools.Services
                 {
                     try
                     {
-                        var res = await webView.EvaluateScript<object>(script);
+                        var res = await webView.EvaluateScriptAsync<object>(script);
                         tcs.TrySetResult(res?.ToString() ?? "");
                     }
                     catch (Exception ex)

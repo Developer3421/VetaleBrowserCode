@@ -1,4 +1,4 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <!-- Заголовки -->
   <x:String x:Key="App.Title">Vetale Browser</x:String>
@@ -201,9 +201,6 @@
   
   <x:String x:Key="Tools.History.Name">История</x:String>
   <x:String x:Key="Tools.History.Description">История посещений</x:String>
-  
-  <x:String x:Key="Tools.Console.Name">Консоль</x:String>
-  <x:String x:Key="Tools.Console.Description">Консоль разработчика с логами и диагностикой</x:String>
   
   <x:String x:Key="Tools.UserAgreement.Name">Пользовательское соглашение</x:String>
   <x:String x:Key="Tools.UserAgreement.Description">Просмотр политики конфиденциальности GDPR и пользовательского соглашения</x:String>
@@ -434,7 +431,6 @@
   <x:String x:Key="DevTools.Header">Инструменты разработчика</x:String>
   <x:String x:Key="DevTools.Tab.Main">Главная</x:String>
   <x:String x:Key="DevTools.Tab.Elements">Элементы</x:String>
-  <x:String x:Key="DevTools.Tab.Console">Консоль</x:String>
   <x:String x:Key="DevTools.Tab.Network">Сеть</x:String>
   <x:String x:Key="DevTools.Tab.Sources">Источники</x:String>
   <x:String x:Key="DevTools.Tab.HtmlEditor">Редактор HTML</x:String>
@@ -445,9 +441,6 @@
   <!-- DevTools Список инструментов -->
   <x:String x:Key="DevTools.Tool.Elements.Title">Инспектор элементов</x:String>
   <x:String x:Key="DevTools.Tool.Elements.Description">Просмотр и редактирование DOM структуры текущей страницы</x:String>
-  
-  <x:String x:Key="DevTools.Tool.Console.Title">Консоль JavaScript</x:String>
-  <x:String x:Key="DevTools.Tool.Console.Description">Просмотр логов, ошибок и вывода JavaScript консоли (отдельное окно)</x:String>
   
   <x:String x:Key="DevTools.Tool.Network.Title">Монитор сети</x:String>
   <x:String x:Key="DevTools.Tool.Network.Description">Мониторинг всех HTTP/HTTPS запросов и ответов</x:String>
@@ -768,3 +761,4 @@
   <x:String x:Key="Tools.VetaleSearchSettings.Name">Настройки Vetale Search</x:String>
   <x:String x:Key="Tools.VetaleSearchSettings.Description">Настройка API ключей и внешнего вида Vetale Search</x:String>
 </ResourceDictionary>
+

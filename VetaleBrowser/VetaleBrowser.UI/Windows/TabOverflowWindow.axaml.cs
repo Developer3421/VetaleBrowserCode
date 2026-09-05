@@ -258,17 +258,16 @@ public partial class TabOverflowWindow : Window
     /// </summary>
     private void OnDragOver(object? sender, DragEventArgs e)
     {
-#pragma warning disable CS0618 // Data is obsolete
-        if (e.Data.Contains("TabDragData"))
+        if (e.DataTransfer.Contains(TabDragHelper.Format))
         {
             e.DragEffects = DragDropEffects.Move;
-            
+
             // Determine the insertion position
             if (_tabsContainer != null)
             {
                 var position = e.GetPosition(_tabsContainer);
                 _dropTargetIndex = CalculateDropIndex(position.X);
-                
+
                 // Show the indicator
                 ShowDropIndicator(_dropTargetIndex);
             }
@@ -278,7 +277,6 @@ public partial class TabOverflowWindow : Window
             e.DragEffects = DragDropEffects.None;
             HideDropIndicator();
         }
-#pragma warning restore CS0618
     }
     
     /// <summary>
@@ -376,9 +374,7 @@ public partial class TabOverflowWindow : Window
         int insertIndex = _dropTargetIndex;
         HideDropIndicator();
         
-#pragma warning disable CS0618 // Data is obsolete
-        if (e.Data.Get("TabDragData") is TabDragData dragData)
-#pragma warning restore CS0618
+        if (DataTransferExtensions.TryGetValue(e.DataTransfer, TabDragHelper.Format) is TabDragData dragData)
         {
             // Check if this is not the same window
             if (dragData.SourceWindow == this)
@@ -559,7 +555,7 @@ public partial class TabOverflowWindow : Window
     /// <summary>
     /// Starts dragging a tab
     /// </summary>
-    public async void StartTabDrag(Tab tab, TabWorker worker, PointerEventArgs pointerEvent)
+    public async void StartTabDrag(Tab tab, TabWorker worker, PointerPressedEventArgs pointerEvent)
     {
         var dragData = new TabDragData
         {
@@ -571,10 +567,7 @@ public partial class TabOverflowWindow : Window
             IsMuted = tab.IsMuted
         };
 
-#pragma warning disable CS0618 // DataObject is obsolete
-        var dataObject = new DataObject();
-        dataObject.Set("TabDragData", dragData);
-#pragma warning restore CS0618
+        using var dataTransfer = TabDragHelper.CreateTransfer(dragData);
 
         // Notify about the start of dragging
         TabDragStarted?.Invoke(this, dragData);
@@ -583,9 +576,7 @@ public partial class TabOverflowWindow : Window
 
         try
         {
-#pragma warning disable CS0618 // DoDragDrop is obsolete
-            var result = await DragDrop.DoDragDrop(pointerEvent, dataObject, DragDropEffects.Move);
-#pragma warning restore CS0618
+            var result = await DragDrop.DoDragDropAsync(pointerEvent, dataTransfer, DragDropEffects.Move);
             System.Diagnostics.Debug.WriteLine($"[TabOverflowWindow] Drag result: {result}");
         }
         catch (Exception ex)

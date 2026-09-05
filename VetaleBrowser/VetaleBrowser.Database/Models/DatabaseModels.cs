@@ -72,19 +72,6 @@ public class SettingItem
 }
 
 /// <summary>
-/// Model for console logs with AES encryption
-/// </summary>
-public class ConsoleLogItem
-{
-    public int Id { get; set; }
-    public string Level { get; set; } = "Info"; // Info, Warning, Error, Debug
-    public string Message { get; set; } = string.Empty;
-    public string? Source { get; set; } // Log source (WebView, System, User, etc.)
-    public string? StackTrace { get; set; }
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-}
-
-/// <summary>
 /// Model for page indexing for Vetale Search (local search)
 /// </summary>
 public class SearchIndex
