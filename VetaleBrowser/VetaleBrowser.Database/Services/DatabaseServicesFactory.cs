@@ -30,7 +30,10 @@ public static class DatabaseServicesFactory
             try
             {
                 System.Diagnostics.Debug.WriteLine("[DatabaseServicesFactory] Starting initialization...");
-                
+
+                // Import settings from Vetale Browser Lite on first launch (missing files only)
+                LiteSettingsMigrator.MigrateIfNeeded();
+
                 var config = DatabaseConfiguration.CreateDefault();
                 var dbDirectory = Path.GetDirectoryName(config.DatabasePath);
                 

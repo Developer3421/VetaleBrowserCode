@@ -3,8 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
-             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.ToolsMainPage"
-             Background="#FF9800">
+              x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.ToolsMainPage"
+              Background="#F3E8FF">
 
     <UserControl.Styles>
         <Style Selector="Border.tool-item">
@@ -16,21 +16,25 @@
             <Setter Property="Margin" Value="0,0,0,12"/>
         </Style>
         <Style Selector="Border.tool-item:pointerover">
-            <Setter Property="Background" Value="#F0F0F0"/>
-            <Setter Property="BorderBrush" Value="#4CAF50"/>
+            <Setter Property="Background" Value="#FFF5F3FF"/>
+            <Setter Property="BorderBrush" Value="#FF7C3AED"/>
         </Style>
         <Style Selector="Button.nav-button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderBrush" Value="#4CAF50"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#FFA78BFA"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Padding" Value="10,6"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Foreground" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="#FF7C3AED"/>
         </Style>
         <Style Selector="Button.nav-button:pointerover">
-            <Setter Property="Background" Value="#4CAF50"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#FFF5F3FF"/>
+            <Setter Property="Foreground" Value="#FF7C3AED"/>
+        </Style>
+        <Style Selector="Button.nav-button:pressed">
+            <Setter Property="Background" Value="#FFEBE4FF"/>
+            <Setter Property="Foreground" Value="#FF7C3AED"/>
         </Style>
     </UserControl.Styles>
 
@@ -44,6 +48,7 @@
         <Grid Grid.Row="0" Margin="30,30,30,20">
             <StackPanel Orientation="Horizontal" Spacing="12">
                 <TextBlock Text="🛠️" 
+                           FontFamily="Segoe UI Emoji, Noto Color Emoji, Apple Color Emoji"
                            FontSize="32" 
                            VerticalAlignment="Center"/>
                 <TextBlock Text="{DynamicResource Tools.Header}" 

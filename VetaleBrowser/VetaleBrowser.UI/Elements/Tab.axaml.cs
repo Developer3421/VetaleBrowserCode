@@ -48,6 +48,9 @@ public class Tab : TemplatedControl
     {
         base.OnApplyTemplate(e);
 
+        // Ensure the :active pseudo-class matches current state (ordering insurance)
+        PseudoClasses.Set(":active", IsActive);
+
         if (_border != null)
         {
             _border.PointerPressed -= OnBorderPointerPressed;

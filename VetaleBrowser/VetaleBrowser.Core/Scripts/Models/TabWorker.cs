@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using VetaleBrowser.VetaleBrowser.Core.Services.Windows;
 using VetaleBrowser.VetaleBrowser.Core.Services;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers;
+using VetaleBrowser.VetaleBrowser.UI.Services;
 using Avalonia.Controls;
 using System.Linq;
 using System.Net.Http;
@@ -156,7 +157,8 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         private int _muteReapplyCount;
 
         // Fullscreen poller to catch content-initiated fullscreen when events aren't exposed
-        private readonly DispatcherTimer _fullscreenPollTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
+        // (DevTools evaluate per poll - 750ms щоб не душити localhost сокетами)
+        private readonly DispatcherTimer _fullscreenPollTimer = new() { Interval = TimeSpan.FromMilliseconds(750) };
         private bool _lastFullscreenState;
 
         // New: subprocess launched per tab (system-level process)
@@ -164,6 +166,10 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         
         // Flag to prevent recursive calls during navigation
         private bool _isNavigating;
+
+        // Monotonic navigation generation: stale async pre-checks must not
+        // override a newer navigation or a Back/Forward step.
+        private int _navSeq;
 
         private string? _prevAddress;
         private bool _blockingDownloadNav;
@@ -277,8 +283,6 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 
                 // Subscribe to navigation history changes
                 History.HistoryChanged += (_, __) => OnPropertyChanged(nameof(History));
-                
-                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Setting up fullscreen events...");
             }
             catch (Exception ex)
             {
@@ -369,7 +373,10 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             if (u.StartsWith("http://") || u.StartsWith("https://") || 
                 u.StartsWith("file://") || u.StartsWith("data:") || 
                 u.StartsWith("javascript:") || u.StartsWith("blob:") ||
-                u.StartsWith("about:") || u.StartsWith("vetale:"))
+                u.StartsWith("about:") || u.StartsWith("vetale:") ||
+                u.StartsWith("chrome:") || u.StartsWith("edge:") ||
+                u.StartsWith("brave:") || u.StartsWith("opera:") ||
+                u.StartsWith("chromium:") || u.StartsWith("view-source:"))
             {
                 return false;
             }
@@ -394,7 +401,9 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 // Check whether this is not a regular URL
                 if (protocol != "http" && protocol != "https" && protocol != "file" && 
                     protocol != "data" && protocol != "javascript" && protocol != "blob" &&
-                    protocol != "about" && protocol != "vetale")
+                    protocol != "about" && protocol != "vetale" && protocol != "chrome" &&
+                    protocol != "edge" && protocol != "brave" && protocol != "opera" &&
+                    protocol != "chromium" && protocol != "view-source")
                 {
                     return true;
                 }
@@ -459,18 +468,61 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         {
             try
             {
-                bool isFs = await EvaluateScriptAsBoolAsync("!!(document.fullscreenElement||document.webkitFullscreenElement||document.msFullscreenElement)");
+                // Primary: DevTools Runtime.evaluate (JS bridge in this wrapper is a stub).
+                // Single source of the 2 states lives here on the worker;
+                // the window only hosts containers.
+                bool? viaDevTools = await VetaleBrowser.Core.Scripts.Browser.CefDevToolsClient.IsDocumentFullscreenAsync(Address);
+                bool isFs = viaDevTools ?? await EvaluateScriptAsBoolAsync("!!(document.fullscreenElement||document.webkitFullscreenElement||document.msFullscreenElement)");
                 if (isFs != _lastFullscreenState)
                 {
                     _lastFullscreenState = isFs;
-                    System.Diagnostics.Debug.WriteLine($"[TabWorker] Fullscreen polled: {isFs}");
                     FullscreenChanged?.Invoke(this, isFs);
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                // swallow polling errors, keep timer running
-                System.Diagnostics.Debug.WriteLine($"[TabWorker] Fullscreen poll failed: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Explicitly exits document fullscreen (no toggle) — for the way back.
+        /// </summary>
+        public async System.Threading.Tasks.Task RequestVideoFullscreenExitAsync()
+        {
+            try
+            {
+                await VetaleBrowser.Core.Scripts.Browser.CefDevToolsClient.EvaluateBooleanAsync(
+                    Address, "!!(document.exitFullscreen? (document.exitFullscreen(), true) : false)");
+            }
+            catch { }
+        }
+        /// <summary>
+        /// Toggles the 2 video-fullscreen states on the worker (not on the window):
+        /// requests/exits document fullscreen via DevTools; the poller syncs state
+        /// and the window follows with the video page. No-op when DevTools is down.
+        /// </summary>
+        public async System.Threading.Tasks.Task<bool?> RequestVideoFullscreenToggleAsync()
+        {
+            try
+            {
+                var current = await VetaleBrowser.Core.Scripts.Browser.CefDevToolsClient.IsDocumentFullscreenAsync(Address);
+                if (current == null)
+                    return null;
+                if (current == true)
+                {
+                    await VetaleBrowser.Core.Scripts.Browser.CefDevToolsClient.EvaluateBooleanAsync(
+                        Address, "!!(document.exitFullscreen? (document.exitFullscreen(), true) : false)");
+                }
+                else
+                {
+                    await VetaleBrowser.Core.Scripts.Browser.CefDevToolsClient.EvaluateBooleanAsync(
+                        Address, "(function(){var v=document.querySelector('video');if(v){if(v.requestFullscreen){v.requestFullscreen();return true;}if(v.webkitRequestFullscreen){v.webkitRequestFullscreen();return true;}}var p=document.querySelector('#player')||document.documentElement;if(p&&p.requestFullscreen){p.requestFullscreen();return true;}return false;})()");
+                }
+                return current == false;
+            }
+            catch
+            {
+                return null;
             }
         }
 
@@ -528,10 +580,19 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 TriggerMemoryCleanup();
 
                 // Determine whether this is an internal URL
-                bool isInternal = url.StartsWith("vetale://", StringComparison.OrdinalIgnoreCase);
+                // (vetale:// pages + chrome:// pages served built-in - engine has no WebUI scheme)
+                bool isInternal = url.StartsWith("vetale://", StringComparison.OrdinalIgnoreCase)
+                    || ChromiumInternalHandler.IsChromiumInternalUrl(url);
 
                 // Set pending URL for error handler
                 ErrorHandler?.SetPendingNavigation(url);
+
+                if (isInternal && internalPageContent == null)
+                {
+                    // Built-in chrome:// pages (gpu, version): create content here
+                    // so back/forward and address-bar navigation both work
+                    internalPageContent = ChromiumInternalHandler.CreatePageContent(url);
+                }
 
                 // Create a history entry
                 var entry = new NavigationEntry
@@ -563,7 +624,8 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] External navigation to: {url}");
                     
                     // Pre-check for fast error detection (does not block navigation)
-                    _ = PreCheckAndNavigateAsync(url);
+                    _navSeq++;
+                    _ = PreCheckAndNavigateAsync(url, _navSeq);
                 }
 
                 // Notify about navigation change
@@ -585,7 +647,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         /// <summary>
         /// Async URL check and navigation
         /// </summary>
-        private async Task PreCheckAndNavigateAsync(string url)
+        private async Task PreCheckAndNavigateAsync(string url, int seq)
         {
             try
             {
@@ -595,16 +657,24 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] BLOCKED external protocol in PreCheck: {url}");
                     return; // Do nothing - just block
                 }
-                
+
                 // Check URL availability via HTTP HEAD request
                 if (ErrorHandler != null)
                 {
                     var (isSuccess, errorCode, errorMessage) = await ErrorHandler.PreCheckUrlAsync(url);
-                    
+
+                    // A newer Navigate or a Back/Forward step superseded this one:
+                    // never touch the WebView or the error UI for a stale URL.
+                    if (seq != _navSeq)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] PreCheck result stale for {url}, skipping");
+                        return;
+                    }
+
                     if (!isSuccess)
                     {
                         System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] PreCheck failed: {errorCode} - {errorMessage}");
-                        
+
                         // Report the error via ErrorHandler
                         // This will show the error page faster than WebView
                         if (errorCode >= 400)
@@ -618,15 +688,18 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                         return; // Do not navigate in WebView
                     }
                 }
-                
+
+                if (seq != _navSeq) return;
+
                 // If pre-check passed - navigate in WebView
                 await Manager.NavigateAsync(url);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] PreCheckAndNavigateAsync error: {ex.Message}");
-                // Fallback - navigate in WebView directly (only if not an external protocol)
-                if (!IsExternalProtocol(url))
+                // Fallback - navigate in WebView directly (only if not an external protocol
+                // and still the latest navigation)
+                if (seq == _navSeq && !IsExternalProtocol(url))
                 {
                     await Manager.NavigateAsync(url);
                 }
@@ -741,13 +814,32 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 _isNavigating = true;
 
                 Address = entry.Url;
-                
+                ErrorHandler?.SetPendingNavigation(entry.Url);
+
                 if (entry.IsInternal)
                 {
+                    if (entry.InternalPageContent == null)
+                    {
+                        entry.InternalPageContent = VetaleBrowser.UI.Services.InternalUrlHandler.CreatePageContent(entry.Url)
+                            ?? ChromiumInternalHandler.CreatePageContent(entry.Url);
+                    }
+                    else
+                    {
+                        // Refresh query state: forward/back between vetale://search and
+                        // vetale://search?q=... reuses the cached control, so push the
+                        // query from the URL into it, otherwise stale content is shown.
+                        RefreshInternalPageQuery(entry);
+                    }
                     Title = entry.Title ?? GetInternalPageTitle(entry.Url);
                 }
                 else
                 {
+                    // Invalidate any stale PreCheck from a previous Navigate()
+                    // and use the same navigation path as Navigate() (Address setter
+                    // via Manager.NavigateAsync). LoadUrl/NavigateAsync of the
+                    // underlying adapter proved unreliable for history steps,
+                    // leaving the old WebView content on screen.
+                    _navSeq++;
                     await Manager.NavigateAsync(entry.Url);
                 }
 
@@ -760,6 +852,37 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             finally
             {
                 _isNavigating = false;
+            }
+        }
+
+        /// <summary>
+        /// Pushes the ?q= query from the entry URL into a cached internal page,
+        /// so Back/Forward between search home and search-with-query shows the
+        /// correct state instead of stale content.
+        /// </summary>
+        private static void RefreshInternalPageQuery(NavigationEntry entry)
+        {
+            try
+            {
+                var content = entry.InternalPageContent;
+                if (content == null) return;
+                var q = VetaleBrowser.UI.Services.InternalUrlHandler.GetQueryParameter(entry.Url, "q");
+                if (content is VetaleBrowser.UI.Pages.VetaleSearchHomePage home)
+                {
+                    if (!string.IsNullOrWhiteSpace(q)) home.SetQuery(q!);
+                }
+                else if (content is VetaleBrowser.UI.Pages.VetaleSearchResultsPage results)
+                {
+                    if (!string.IsNullOrWhiteSpace(q))
+                    {
+                        var mode = VetaleBrowser.UI.Services.InternalUrlHandler.GetQueryParameter(entry.Url, "mode");
+                        results.SetSearchQuery(q!, mode);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TabWorker] RefreshInternalPageQuery error: {ex.Message}");
             }
         }
 
@@ -808,6 +931,10 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             {
                 return "Завантаження";
             }
+            else if (ChromiumInternalHandler.IsChromiumInternalUrl(url))
+            {
+                return ChromiumInternalHandler.GetPageTitle(url);
+            }
             
             return "Vetale Browser";
         }
@@ -821,7 +948,6 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         {
             // WebViewControl (CefGlue-based) doesn't expose fullscreen events directly
             // We rely on JavaScript injection and polling instead
-            System.Diagnostics.Debug.WriteLine("[TabWorker] Using JavaScript polling for fullscreen detection");
             InjectFullscreenListener();
         }
 
@@ -849,11 +975,9 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
                 // Use direct EvaluateScript from WebViewControl with explicit type
                 await WebView.EvaluateScriptAsync<object>(script);
-                System.Diagnostics.Debug.WriteLine("[TabWorker] Fullscreen listener injected via JavaScript");
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine($"[TabWorker] Failed to inject fullscreen listener: {ex.Message}");
             }
         }
 

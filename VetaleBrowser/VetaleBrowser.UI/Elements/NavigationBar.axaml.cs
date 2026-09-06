@@ -55,7 +55,7 @@ public class NavigationBar : TemplatedControl
     private string? _lastAutoNavigatedUrl; // ����������� URL ���� ��� ������������� �+���������
     private bool _suppressTextChanged; // ��+��������� �+����������+����� ������������������ �+��� �+��������+���� ���+�����
 
-    // ������� ������������� ��+�� vetale://
+
     public event EventHandler<string>? NavigateRequested;
 
     public string Url
@@ -269,7 +269,7 @@ public class NavigationBar : TemplatedControl
 
     private async void OnAddressBarKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
     {
-        if (e.Key == Avalonia.Input.Key.Enter && _addressBar != null && _webViewManager != null)
+        if (e.Key == Avalonia.Input.Key.Enter && _addressBar != null && (_webViewManager != null || _tabWorker != null))
         {
             var url = _addressBar.Text ?? "";
             if (string.IsNullOrWhiteSpace(url))
@@ -288,7 +288,7 @@ public class NavigationBar : TemplatedControl
                 }
             }
 
-            if (InternalUrlHandler.IsInternalUrl(url))
+            if (InternalUrlHandler.IsInternalUrl(url) || ChromiumInternalHandler.IsChromiumInternalUrl(url))
             {
                 NavigateRequested?.Invoke(this, url);
                 System.Diagnostics.Trace.WriteLine($"NavigationBar: Internal navigate to {url}");
@@ -304,10 +304,17 @@ public class NavigationBar : TemplatedControl
                 _tabWorker.Navigate(url);
                 System.Diagnostics.Trace.WriteLine($"NavigationBar: Navigate via TabWorker to {url}");
             }
+            else if (InternalUrlHandler.IsInternalUrl(url) || ChromiumInternalHandler.IsChromiumInternalUrl(url))
+            {
+                // Без воркера внутрішні сторінки ведемо через подію, а не напряму в рушій
+                NavigateRequested?.Invoke(this, url);
+                System.Diagnostics.Trace.WriteLine($"NavigationBar: Internal navigate (no worker) to {url}");
+            }
             else
             {
                 // Fallback �� �+�����+��� �������������
-                await _webViewManager.NavigateAsync(url);
+                if (_webViewManager != null)
+                    await _webViewManager.NavigateAsync(url);
                 System.Diagnostics.Trace.WriteLine($"NavigationBar: Navigate to {url}");
             }
         }
@@ -315,7 +322,7 @@ public class NavigationBar : TemplatedControl
 
     private void OnAddressBarTextChanged(object? sender, Avalonia.Controls.TextChangedEventArgs e)
     {
-        if (_suppressTextChanged) return; // ����+���������� ��������������� ���+� �+� ����+�� �����+�����+� Url
+        if (_suppressTextChanged) return; 
         _ = LoadAddressSuggestionsAsync();
         _ = AutoNavigateDebouncedAsync();
     }
@@ -386,8 +393,10 @@ public class NavigationBar : TemplatedControl
                         var searchTemplate = await GetSearchEngineUrlAsync();
                         url = string.Format(searchTemplate, Uri.EscapeDataString(url));
                     }
-                    if (InternalUrlHandler.IsInternalUrl(url))
+                    if (InternalUrlHandler.IsInternalUrl(url) || ChromiumInternalHandler.IsChromiumInternalUrl(url))
                         NavigateRequested?.Invoke(this, url);
+                    else if (_tabWorker != null)
+                        _tabWorker.Navigate(url);
                     else
                         await _webViewManager.NavigateAsync(url);
                 }
@@ -520,32 +529,32 @@ public class NavigationBar : TemplatedControl
                 // �����+����� ����� - ������+������
                 _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#4CAF50"));
                 _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z");
-                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Safe.Tooltip", "ԣ� �������+������� ������"));
-                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Safe.Text", "����������������: ������+������");
+                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Safe.Tooltip", "✓ Безпечний сайт"));
+                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Safe.Text", "Перевірено: безпечно");
                 break;
 
             case SecurityStatus.Dangerous:
                 // ���������� ����� �� ���+���� - ���������+������
                 _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#F44336"));
                 _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z M11 7h2v6h-2V7z M11 15h2v2h-2v-2z");
-                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Dangerous.Tooltip", "��ᴩ� �������������������� �������� (���������)!"));
-                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Dangerous.Text", "������������������!");
+                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Dangerous.Tooltip", "⚠️ НЕБЕЗПЕЧНИЙ САЙТ (фішинг)!"));
+                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Dangerous.Text", "НЕБЕЗПЕЧНО!");
                 break;
 
             case SecurityStatus.Checking:
                 // �������� ����� - �+�������������
                 _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#FFC107"));
                 _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z");
-                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Checking.Tooltip", "�Ŧ �������������� ������+����..."));
-                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Checking.Text", "���������������Ǫ");
+                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Checking.Tooltip", "⏳ Перевірка безпеки..."));
+                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Checking.Text", "Перевірка…");
                 break;
 
             case SecurityStatus.Error:
                 // ���+������������ ����� - �+��+��+��
                 _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#FF9800"));
                 _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z");
-                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Error.Tooltip", "��� ���+��+�� �+�������������"));
-                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Error.Text", "���+��+�� �+�������������");
+                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Error.Tooltip", "⚠ Помилка перевірки"));
+                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Error.Text", "Помилка перевірки");
                 break;
 
             case SecurityStatus.Unknown:
@@ -553,8 +562,8 @@ public class NavigationBar : TemplatedControl
                 // �������� ����� - ���������+�
                 _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#9E9E9E"));
                 _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z");
-                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Unknown.Tooltip", "? ����������� ���������+��"));
-                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Unknown.Text", "����������� ���������+��");
+                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Unknown.Tooltip", "? Статус невідомий"));
+                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Unknown.Text", "Статус невідомий");
                 break;
         }
     }
@@ -575,7 +584,7 @@ public class NavigationBar : TemplatedControl
 
     private async System.Threading.Tasks.Task AutoNavigateDebouncedAsync()
     {
-        if (_addressBar == null || _webViewManager == null) return;
+        if (_addressBar == null || (_webViewManager == null && _tabWorker == null)) return;
         _autoNavigateCts?.Cancel();
         _autoNavigateCts = new System.Threading.CancellationTokenSource();
         var token = _autoNavigateCts.Token;
@@ -586,8 +595,8 @@ public class NavigationBar : TemplatedControl
             var raw = _addressBar.Text?.Trim() ?? string.Empty;
             if (string.IsNullOrEmpty(raw)) return;
 
-            // �������������� �� ���������������� vetale://
-            if (InternalUrlHandler.IsInternalUrl(raw))
+           
+            if (InternalUrlHandler.IsInternalUrl(raw) || ChromiumInternalHandler.IsChromiumInternalUrl(raw))
             {
                 if (!string.Equals(_lastAutoNavigatedUrl, raw, StringComparison.Ordinal))
                 {
@@ -599,13 +608,26 @@ public class NavigationBar : TemplatedControl
             }
 
             var normalized = ValidateAndNormalizeUrl(raw);
-            if (normalized == null) return; // ��� ���+������ URL, �������� ��� ������+�
-            if (string.Equals(_lastAutoNavigatedUrl, normalized, StringComparison.Ordinal)) return; // ����� ����+
+            if (normalized == null) return;
+            if (string.Equals(_lastAutoNavigatedUrl, normalized, StringComparison.Ordinal)) return;
             _lastAutoNavigatedUrl = normalized;
+
+            // Напряму в рушій — тільки http(s). Все інше (chrome:// тощо)
+            // веде TabWorker через подію, інакше нативний процес ламає схему (file://).
+            if (!normalized.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+                !normalized.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                System.Diagnostics.Debug.WriteLine($"[NavigationBar] Auto non-http navigate via event: {normalized}");
+                NavigateRequested?.Invoke(this, normalized);
+                return;
+            }
 
             System.Diagnostics.Debug.WriteLine($"[NavigationBar] Auto navigating to: {normalized}");
             await CheckUrlSecurityAsync(normalized);
-            await _webViewManager.NavigateAsync(normalized);
+            if (_tabWorker != null)
+                _tabWorker.Navigate(normalized);
+            else
+                await _webViewManager.NavigateAsync(normalized);
 
             // ��������� Url ��+��������������� ����� �+����������� ����� ����+�������
             _suppressTextChanged = true;
@@ -641,6 +663,15 @@ public class NavigationBar : TemplatedControl
 
     private static string? ValidateAndNormalizeUrl(string input)
     {
+        // Chromium internal pages (chrome://gpu, chrome://version, ...) — pass through as-is
+        if (input.StartsWith("chrome://", StringComparison.OrdinalIgnoreCase) ||
+            input.StartsWith("edge://", StringComparison.OrdinalIgnoreCase) ||
+            input.StartsWith("brave://", StringComparison.OrdinalIgnoreCase) ||
+            input.StartsWith("opera://", StringComparison.OrdinalIgnoreCase) ||
+            input.StartsWith("about:", StringComparison.OrdinalIgnoreCase) ||
+            input.StartsWith("view-source:", StringComparison.OrdinalIgnoreCase))
+            return input.Trim();
+
         // ������������ ���������� ����+����� �+������������
         if (input.Equals("http://", StringComparison.OrdinalIgnoreCase) || input.Equals("https://", StringComparison.OrdinalIgnoreCase))
             return null;

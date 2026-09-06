@@ -7,7 +7,6 @@
   <x:String x:Key="Console.Title">Консоль — Vetale Browser</x:String>
   <x:String x:Key="History.Title">Історія переглядів — Vetale Browser</x:String>
   <x:String x:Key="Bookmarks.Title">Закладки — Vetale Browser</x:String>
-  <x:String x:Key="DevTools.Title">Інструменти розробника — Vetale Browser</x:String>
   <x:String x:Key="VetaleAI.Title">Vetale AI Chat — Vetale Browser</x:String>
   <x:String x:Key="About.Title">Про програму — Vetale Browser</x:String>
 
@@ -202,9 +201,6 @@
   <x:String x:Key="Tools.Replika.Name">Replika AI</x:String>
   <x:String x:Key="Tools.Replika.Description">AI компаньйон для спілкування</x:String>
   
-  <x:String x:Key="Tools.DevTools.Name">Vetale DevTools</x:String>
-  <x:String x:Key="Tools.DevTools.Description">Інструменти розробника</x:String>
-  
   <x:String x:Key="Tools.History.Name">Історія</x:String>
   <x:String x:Key="Tools.History.Description">Історія відвідувань</x:String>
   
@@ -212,106 +208,6 @@
   <x:String x:Key="Tools.UserAgreement.Description">Переглянути політику конфіденційності GDPR та угоду користувача</x:String>
   
   <x:String x:Key="Tools.NavigateButton">→ Перейти в браузері</x:String>
-
-  <!-- DevTools -->
-  <x:String x:Key="DevTools.Header">Інструменти розробника</x:String>
-  <x:String x:Key="DevTools.Tab.Main">Головна</x:String>
-  <x:String x:Key="DevTools.Tab.Elements">Елементи</x:String>
-  <x:String x:Key="DevTools.Tab.Network">Мережа</x:String>
-  <x:String x:Key="DevTools.Tab.Sources">Джерела</x:String>
-  <x:String x:Key="DevTools.Tab.HtmlEditor">Редактор HTML</x:String>
-  <x:String x:Key="DevTools.Tab.Application">Застосунок</x:String>
-  <x:String x:Key="DevTools.Tab.Performance">Продуктивність</x:String>
-  <x:String x:Key="DevTools.Tab.WebViewWorker">WebView Worker</x:String>
-
-  <!-- DevTools Список інструментів -->
-  <x:String x:Key="DevTools.Tool.Elements.Title">Інспектор елементів</x:String>
-  <x:String x:Key="DevTools.Tool.Elements.Description">Перегляд та редагування DOM структури поточної сторінки</x:String>
-  
-  <x:String x:Key="DevTools.Tool.Network.Title">Монітор мережі</x:String>
-  <x:String x:Key="DevTools.Tool.Network.Description">Моніторинг всіх HTTP/HTTPS запитів та відповідей</x:String>
-  
-  <x:String x:Key="DevTools.Tool.Sources.Title">Перегляд джерел</x:String>
-  <x:String x:Key="DevTools.Tool.Sources.Description">Перегляд та налагодження JavaScript, CSS та HTML файлів</x:String>
-  
-  <x:String x:Key="DevTools.Tool.HtmlEditor.Title">Редактор HTML</x:String>
-  <x:String x:Key="DevTools.Tool.HtmlEditor.Description">Професійний редактор HTML з live preview та підсвіткою синтаксису</x:String>
-  
-  <x:String x:Key="DevTools.Tool.Application.Title">Сховище застосунку</x:String>
-  <x:String x:Key="DevTools.Tool.Application.Description">Управління Cookies, Local Storage, Session Storage та кешем</x:String>
-  
-  <x:String x:Key="DevTools.Tool.Performance.Title">Аналізатор продуктивності</x:String>
-  <x:String x:Key="DevTools.Tool.Performance.Description">Профілювання CPU, пам'яті та аналіз продуктивності сторінки</x:String>
-
-  <!-- DevTools - Performance Page -->
-  <x:String x:Key="DevTools.Performance.CapturePerformance">Захопити продуктивність</x:String>
-  <x:String x:Key="DevTools.Performance.CapturePerformance.Tooltip">Захопити дані продуктивності з WebView Worker</x:String>
-  <x:String x:Key="DevTools.Performance.GetWebVitals">Отримати Web Vitals</x:String>
-  <x:String x:Key="DevTools.Performance.LoadTime">Час завантаження</x:String>
-  <x:String x:Key="DevTools.Performance.DomContentLoaded">DOM завантажено</x:String>
-  <x:String x:Key="DevTools.Performance.FirstPaint">Перша відрисовка</x:String>
-  <x:String x:Key="DevTools.Performance.MemoryUsage">Використання пам'яті</x:String>
-  <x:String x:Key="DevTools.Performance.JsHeapSize">Розмір JavaScript Heap</x:String>
-  <x:String x:Key="DevTools.Performance.CoreWebVitals">Core Web Vitals</x:String>
-  <x:String x:Key="DevTools.Performance.ResourceTimings">Таймінги ресурсів</x:String>
-  <x:String x:Key="DevTools.Performance.Summary">Підсумок</x:String>
-  <x:String x:Key="DevTools.Performance.CurrentUrl">Поточний URL</x:String>
-  <x:String x:Key="DevTools.Performance.NoData">Немає захоплених даних</x:String>
-
-  <!-- DevTools - Elements Page -->
-  <x:String x:Key="DevTools.Elements.Query">Запит</x:String>
-  <x:String x:Key="DevTools.Elements.CaptureDom">Захопити DOM</x:String>
-  <x:String x:Key="DevTools.Elements.CaptureDom.Tooltip">Захопити DOM з WebView Worker</x:String>
-  <x:String x:Key="DevTools.Elements.ClearDom.Tooltip">Очистити дерево DOM</x:String>
-  <x:String x:Key="DevTools.Elements.DomTree">Дерево DOM</x:String>
-  <x:String x:Key="DevTools.Elements.SelectElement">Виберіть елемент</x:String>
-  <x:String x:Key="DevTools.Elements.Attributes">Атрибути</x:String>
-  <x:String x:Key="DevTools.Elements.ComputedStyles">Обчислені стилі</x:String>
-
-  <!-- DevTools - Network Page -->
-  <x:String x:Key="DevTools.Network.CaptureNetwork">Захопити мережу</x:String>
-  <x:String x:Key="DevTools.Network.CaptureNetwork.Tooltip">Захопити мережеві ресурси з WebView</x:String>
-  <x:String x:Key="DevTools.Network.ClearNetwork.Tooltip">Очистити дані мережі</x:String>
-  <x:String x:Key="DevTools.Network.Type">Тип</x:String>
-  <x:String x:Key="DevTools.Network.Url">URL</x:String>
-  <x:String x:Key="DevTools.Network.Size">Розмір</x:String>
-  <x:String x:Key="DevTools.Network.Duration">Тривалість</x:String>
-  <x:String x:Key="DevTools.Network.Status">Статус</x:String>
-  <x:String x:Key="DevTools.Network.SelectResource">Виберіть ресурс для перегляду деталей</x:String>
-
-  <!-- DevTools - Application Page -->
-  <x:String x:Key="DevTools.Application.CaptureStorage">Захопити сховище</x:String>
-  <x:String x:Key="DevTools.Application.CaptureStorage.Tooltip">Захопити дані сховища з WebView Worker</x:String>
-  <x:String x:Key="DevTools.Application.ClearStorage.Tooltip">Очистити захоплені дані</x:String>
-  <x:String x:Key="DevTools.Application.ClearCookies">Очистити Cookies</x:String>
-  <x:String x:Key="DevTools.Application.StorageTypes">Типи сховищ</x:String>
-  <x:String x:Key="DevTools.Application.LocalStorage">Local Storage</x:String>
-  <x:String x:Key="DevTools.Application.SessionStorage">Session Storage</x:String>
-  <x:String x:Key="DevTools.Application.Cookies">Cookies</x:String>
-  <x:String x:Key="DevTools.Application.IndexedDB">IndexedDB</x:String>
-  <x:String x:Key="DevTools.Application.SelectStorageType">Виберіть тип сховища</x:String>
-  <x:String x:Key="DevTools.Application.Key">Ключ:</x:String>
-  <x:String x:Key="DevTools.Application.Value">Значення:</x:String>
-
-  <!-- DevTools - Sources Page -->
-  <x:String x:Key="DevTools.Sources.CaptureSources">Захопити джерела</x:String>
-  <x:String x:Key="DevTools.Sources.CaptureSources.Tooltip">Захопити джерела з WebView Worker</x:String>
-  <x:String x:Key="DevTools.Sources.CaptureFromWebView">Захопити з WebView</x:String>
-  <x:String x:Key="DevTools.Sources.GetHtml">Отримати HTML</x:String>
-  <x:String x:Key="DevTools.Sources.FileTree">Дерево файлів</x:String>
-  <x:String x:Key="DevTools.Sources.Files">Файли</x:String>
-  <x:String x:Key="DevTools.Sources.FilterByType">Фільтр за типом:</x:String>
-  <x:String x:Key="DevTools.Sources.All">Всі</x:String>
-  <x:String x:Key="DevTools.Sources.Scripts">Скрипти</x:String>
-  <x:String x:Key="DevTools.Sources.Stylesheets">Таблиці стилів</x:String>
-  <x:String x:Key="DevTools.Sources.Images">Зображення</x:String>
-  <x:String x:Key="DevTools.Sources.Inline">Вбудовані</x:String>
-  <x:String x:Key="DevTools.Sources.SelectFile">Виберіть файл</x:String>
-  <x:String x:Key="DevTools.Sources.Type">Тип:</x:String>
-  <x:String x:Key="DevTools.Sources.Size">Розмір:</x:String>
-  <x:String x:Key="DevTools.Sources.ExecuteJavaScript">Виконати JavaScript:</x:String>
-  <x:String x:Key="DevTools.Sources.EnterJavaScriptCode">Введіть JavaScript код...</x:String>
-  <x:String x:Key="DevTools.Sources.Execute">Виконати</x:String>
 
   <!-- HTML Editor -->
   <x:String x:Key="HtmlEditor.New">Новий</x:String>
@@ -322,26 +218,6 @@
   <x:String x:Key="HtmlEditor.Validate">Перевірити HTML</x:String>
 
   <!-- WebView Worker -->
-  <x:String x:Key="DevTools.WebViewWorker.Title">WebView Worker</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Description">Окремий екземпляр WebView для тестування та налагодження веб-сторінок</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.CurrentTab">Поточна активна вкладка:</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.NoActiveTab">Немає активної вкладки</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.LoadCurrentTab">Завантажити з поточної вкладки</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.EnterUrl">Введіть URL або пошуковий запит...</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Go">Перейти</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Back">Назад</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Forward">Вперед</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Refresh">Оновити</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Placeholder">WebView Worker готовий. Введіть URL або завантажте з поточної вкладки.</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Ready">Готово</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.WebViewReady">WebView ініціалізовано та готовий</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Loading">Завантаження...</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Loaded">Сторінка завантажена</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Refreshing">Оновлення сторінки...</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Navigating">Навігація...</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.NoUrlToLoad">Немає URL для завантаження з поточної вкладки</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.LoadingFromTab">Завантаження URL з поточної вкладки...</x:String>
-
   <!-- Завантаження -->
   <x:String x:Key="Downloads.Title">Завантаження — Vetale Browser</x:String>
   <x:String x:Key="Downloads.Search">Пошук завантажень…</x:String>
@@ -721,20 +597,24 @@
   <x:String x:Key="UserAgreement.TitleView">Угода користувача - Vetale Browser (Перегляд)</x:String>
   <x:String x:Key="UserAgreement.Header">Угода користувача</x:String>
   <x:String x:Key="UserAgreement.Welcome">Ласкаво просимо до Vetale Browser</x:String>
-  <x:String x:Key="UserAgreement.Introduction">Перш ніж використовувати Vetale Browser, будь ласка, прочитайте та прийміть цю угоду користувача. Ця угода пояснює, які дані ми збираємо та як ми використовуємо інтернет-сервіси для забезпечення найкращого досвіду перегляду.</x:String>
+  <x:String x:Key="UserAgreement.Introduction">Ця угода користувача пояснює, які дані збирає Vetale Browser та як він використовує інтернет-сервіси для забезпечення найкращого досвіду перегляду. Ви можете переглянути її будь-коли через Інструменти — Угода користувача.</x:String>
   <x:String x:Key="UserAgreement.GDPR.Title">Повідомлення про відповідність GDPR</x:String>
   <x:String x:Key="UserAgreement.GDPR.Description">Відповідно до Загального регламенту захисту даних Європейського Союзу (GDPR), ми зобов'язані інформувати вас про збір даних та отримати вашу згоду перед обробкою будь-яких персональних даних.</x:String>
   <x:String x:Key="UserAgreement.Components.Title">📊 Компоненти, які можуть збирати дані</x:String>
-  <x:String x:Key="UserAgreement.Search.Title">Інтеграція пошукової системи (MetaSearx)</x:String>
-  <x:String x:Key="UserAgreement.Search.Description">Для веб-пошуку використовується MetaSearx API - відкрита метапошукова система, яка агрегує результати з Google, Bing, DuckDuckGo та інших пошукових систем. Ваші запити обробляються через metasearx.com.</x:String>
-  <x:String x:Key="UserAgreement.AI.Title">AI чат-сервіси (Vetale AI)</x:String>
-  <x:String x:Key="UserAgreement.AI.Description">Для AI функцій використовується Perplexity AI та веб-версії інших AI сервісів. API ключі НЕ потрібні - браузер працює з публічними веб-інтерфейсами AI провайдерів.</x:String>
+  <x:String x:Key="UserAgreement.Search.Title">Веб-пошук (MetaSearx, Wikipedia, Web Archive, Curlie, Google-підказки)</x:String>
+  <x:String x:Key="UserAgreement.Search.Description">Для веб-пошуку використовуються: MetaSearx API (metasearx.com) — відкрита метапошукова система, яка агрегує результати з Google, Bing, DuckDuckGo та інших систем; Wikipedia API — статті енциклопедії; Internet Archive (Web Archive) — архівні копії сайтів; Curlie — каталог сайтів; Google Suggestions — пошукові підказки під час введення запиту. Ваші пошукові запити передаються цим сервісам.</x:String>
+  <x:String x:Key="UserAgreement.AI.Title">AI-сервіси (Google Gemini, Vetale AI, веб-чати)</x:String>
+  <x:String x:Key="UserAgreement.AI.Description">AI-функції: стислі відповіді у пошуку через Google Gemini API (потрібен ваш API-ключ, зберігається локально із шифруванням); вбудований чат Vetale AI з історією листування на вашому пристрої; веб-версії сторонніх AI-чатів — DuckDuckGo AI Chat, Microsoft Copilot, Google Gemini, Replika (працюють за правилами відповідних сайтів). Ваші запити до цих сервісів передаються їх провайдерам.</x:String>
+  <x:String x:Key="UserAgreement.MediaSearch.Title">Пошук відео та карт (YouTube, OpenStreetMap)</x:String>
+  <x:String x:Key="UserAgreement.MediaSearch.Description">Пошук відео — через YouTube Data API v3 (потрібен ваш ключ); карти та геопошук — через OpenStreetMap. Ваші запити передаються цим сервісам.</x:String>
   <x:String x:Key="UserAgreement.Voice.Title">Голосовий пошук (Whisper - локально)</x:String>
   <x:String x:Key="UserAgreement.Voice.Description">Голосовий ввід обробляється ЛОКАЛЬНО на вашому комп'ютері за допомогою Whisper. Аудіо НЕ надсилається на зовнішні сервери - все розпізнавання відбувається офлайн. Для якісного розпізнавання говоріть щонайменше 2 секунди. ⚠️ УВАГА: Голосовий пошук може використовувати будь-яку кількість оперативної пам'яті. Використовуйте обережно на пристроях з обмеженою пам'яттю.</x:String>
   <x:String x:Key="UserAgreement.Web.Title">Веб-перегляд</x:String>
   <x:String x:Key="UserAgreement.Web.Description">Веб-сайти, які ви відвідуєте, можуть встановлювати файли cookie та збирати дані відповідно до їх політики. Ми використовуємо CefSharp (Chromium) для відображення веб-сторінок.</x:String>
   <x:String x:Key="UserAgreement.Favicon.Title">Сервіс іконок сайтів</x:String>
   <x:String x:Key="UserAgreement.Favicon.Description">Іконки веб-сайтів завантажуються через зовнішні API: favicon.im (основний), Google S2 Favicons API, DuckDuckGo Icons API, або безпосередньо з сайту (/favicon.ico). Ці сервіси використовуються для відображення іконок у вкладках та закладках.</x:String>
+  <x:String x:Key="UserAgreement.Security.Title">Перевірка безпеки (PhishTank)</x:String>
+  <x:String x:Key="UserAgreement.Security.Description">Адреси сайтів, які ви відвідуєте, можуть перевірятися через базу PhishTank для виявлення фішингу. Це допомагає попереджати про небезпечні сайти.</x:String>
   <x:String x:Key="UserAgreement.Download.Title">Менеджер завантажень</x:String>
   <x:String x:Key="UserAgreement.Download.Description">Файли завантажуються безпосередньо з веб-сайтів-джерел. Історія завантажень зберігається локально на вашому пристрої.</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Title">💾 Дані, що зберігаються локально</x:String>
@@ -742,7 +622,7 @@
   <x:String x:Key="UserAgreement.LocalStorage.Item1">• Історія перегляду та закладки</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item2">• Налаштування та параметри браузера</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item3">• Сесії вкладок для відновлення</x:String>
-  <x:String x:Key="UserAgreement.LocalStorage.Item4">• Логи консолі/DevTools</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item4">• Логи консолі</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item5">• Метадані завантажених файлів</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item6">• Моделі Whisper для локального розпізнавання мовлення</x:String>
   <x:String x:Key="UserAgreement.Rights.Title">⚖️ Ваші права за GDPR</x:String>
@@ -757,7 +637,7 @@
   <x:String x:Key="UserAgreement.Disclaimer.NoResponsibility">Розробник НЕ несе відповідальності за будь-які пошкодження вашої системи, пристрою або інші шкоди, спричинені вашими пошуками чи завантаженнями. Ви використовуєте ці функції на власний ризик.</x:String>
   <x:String x:Key="UserAgreement.Contact.Title">📧 Контакти</x:String>
   <x:String x:Key="UserAgreement.Contact.Description">Якщо у вас є питання щодо цієї угоди або ваших даних, ви можете очистити всі локальні дані через налаштування браузера або зв'язатися з нами через репозиторій проекту.</x:String>
-  <x:String x:Key="UserAgreement.Version">Версія угоди 2.0 | Останнє оновлення: грудень 2025</x:String>
+  <x:String x:Key="UserAgreement.Version">Версія угоди 3.0 | Останнє оновлення: вересень 2026</x:String>
   <x:String x:Key="UserAgreement.Checkbox">Я прочитав та погоджуюся з умовами вище</x:String>
   <x:String x:Key="UserAgreement.Decline">Відхилити</x:String>
   <x:String x:Key="UserAgreement.Accept">Прийняти та продовжити</x:String>

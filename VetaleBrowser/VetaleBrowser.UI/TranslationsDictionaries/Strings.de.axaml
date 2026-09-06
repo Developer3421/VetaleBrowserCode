@@ -7,7 +7,6 @@
   <x:String x:Key="Console.Title">Konsole — Vetale Browser</x:String>
   <x:String x:Key="History.Title">Verlauf — Vetale Browser</x:String>
   <x:String x:Key="Bookmarks.Title">Lesezeichen — Vetale Browser</x:String>
-  <x:String x:Key="DevTools.Title">Entwicklertools — Vetale Browser</x:String>
   <x:String x:Key="VetaleAI.Title">Vetale AI Chat — Vetale Browser</x:String>
   <x:String x:Key="About.Title">Über — Vetale Browser</x:String>
 
@@ -202,9 +201,6 @@
   <x:String x:Key="Tools.Replika.Name">Replika AI</x:String>
   <x:String x:Key="Tools.Replika.Description">AI-Begleiter zum Chatten</x:String>
   
-  <x:String x:Key="Tools.DevTools.Name">Vetale DevTools</x:String>
-  <x:String x:Key="Tools.DevTools.Description">Entwickler-Werkzeuge</x:String>
-  
   <x:String x:Key="Tools.History.Name">Verlauf</x:String>
   <x:String x:Key="Tools.History.Description">Browserverlauf</x:String>
   
@@ -212,83 +208,6 @@
   <x:String x:Key="Tools.UserAgreement.Description">DSGVO-Datenschutzrichtlinie und Nutzungsvereinbarung anzeigen</x:String>
   
   <x:String x:Key="Tools.NavigateButton">→ Im Browser öffnen</x:String>
-
-  <!-- DevTools -->
-  <x:String x:Key="DevTools.Header">Entwicklertools</x:String>
-  <x:String x:Key="DevTools.Tab.Main">Hauptseite</x:String>
-  <x:String x:Key="DevTools.Tab.Elements">Elemente</x:String>
-  <x:String x:Key="DevTools.Tab.Network">Netzwerk</x:String>
-  <x:String x:Key="DevTools.Tab.Sources">Quellen</x:String>
-  <x:String x:Key="DevTools.Tab.HtmlEditor">HTML-Editor</x:String>
-  <x:String x:Key="DevTools.Tab.Application">Anwendung</x:String>
-  <x:String x:Key="DevTools.Tab.Performance">Leistung</x:String>
-  <x:String x:Key="DevTools.Tab.WebViewWorker">WebView Worker</x:String>
-
-  <!-- DevTools Werkzeugliste -->
-  <x:String x:Key="DevTools.Tool.Elements.Title">Elemente-Inspektor</x:String>
-  <x:String x:Key="DevTools.Tool.Elements.Description">DOM-Struktur der aktuellen Seite anzeigen und bearbeiten</x:String>
-  
-  <x:String x:Key="DevTools.Tool.Network.Title">Netzwerk-Monitor</x:String>
-  <x:String x:Key="DevTools.Tool.Network.Description">Alle HTTP/HTTPS-Anfragen und -Antworten überwachen</x:String>
-  
-  <x:String x:Key="DevTools.Tool.Sources.Title">Quellen-Viewer</x:String>
-  <x:String x:Key="DevTools.Tool.Sources.Description">JavaScript, CSS und HTML-Dateien anzeigen und debuggen</x:String>
-  
-  <x:String x:Key="DevTools.Tool.HtmlEditor.Title">HTML-Editor</x:String>
-  <x:String x:Key="DevTools.Tool.HtmlEditor.Description">Professioneller HTML-Editor mit Live-Vorschau und Syntaxhervorhebung</x:String>
-  
-  <x:String x:Key="DevTools.Tool.Application.Title">Anwendungsspeicher</x:String>
-  <x:String x:Key="DevTools.Tool.Application.Description">Cookies, Local Storage, Session Storage und Cache verwalten</x:String>
-  
-  <x:String x:Key="DevTools.Tool.Performance.Title">Leistungsanalysator</x:String>
-  <x:String x:Key="DevTools.Tool.Performance.Description">CPU, Speicher profilieren und Seitenleistung analysieren</x:String>
-
-  <!-- DevTools - Leistungsseite -->
-  <x:String x:Key="DevTools.Performance.CapturePerformance">Leistung erfassen</x:String>
-  <x:String x:Key="DevTools.Performance.GetWebVitals">Web Vitals abrufen</x:String>
-  <x:String x:Key="DevTools.Performance.LoadTime">Ladezeit</x:String>
-  <x:String x:Key="DevTools.Performance.DomContentLoaded">DOM geladen</x:String>
-  <x:String x:Key="DevTools.Performance.FirstPaint">Erster Paint</x:String>
-  <x:String x:Key="DevTools.Performance.MemoryUsage">Speicherverbrauch</x:String>
-  <x:String x:Key="DevTools.Performance.CoreWebVitals">Core Web Vitals</x:String>
-  <x:String x:Key="DevTools.Performance.ResourceTimings">Ressourcen-Timings</x:String>
-
-  <!-- DevTools - Elementeseite -->
-  <x:String x:Key="DevTools.Elements.Query">Abfrage</x:String>
-  <x:String x:Key="DevTools.Elements.CaptureDom">DOM erfassen</x:String>
-  <x:String x:Key="DevTools.Elements.DomTree">DOM-Baum</x:String>
-  <x:String x:Key="DevTools.Elements.SelectElement">Element auswählen</x:String>
-  <x:String x:Key="DevTools.Elements.Attributes">Attribute</x:String>
-  <x:String x:Key="DevTools.Elements.ComputedStyles">Berechnete Stile</x:String>
-
-  <!-- DevTools - Anwendungsseite -->
-  <x:String x:Key="DevTools.Application.CaptureStorage">Speicher erfassen</x:String>
-  <x:String x:Key="DevTools.Application.ClearCookies">Cookies löschen</x:String>
-  <x:String x:Key="DevTools.Application.StorageTypes">Speichertypen</x:String>
-  <x:String x:Key="DevTools.Application.LocalStorage">Lokaler Speicher</x:String>
-  <x:String x:Key="DevTools.Application.SessionStorage">Sitzungsspeicher</x:String>
-  <x:String x:Key="DevTools.Application.Cookies">Cookies</x:String>
-  <x:String x:Key="DevTools.Application.IndexedDB">IndexedDB</x:String>
-  <x:String x:Key="DevTools.Application.SelectStorageType">Speichertyp auswählen</x:String>
-  <x:String x:Key="DevTools.Application.Key">Schlüssel:</x:String>
-  <x:String x:Key="DevTools.Application.Value">Wert:</x:String>
-
-  <!-- DevTools - Quellenseite -->
-  <x:String x:Key="DevTools.Sources.CaptureSources">Quellen erfassen</x:String>
-  <x:String x:Key="DevTools.Sources.GetHtml">HTML abrufen</x:String>
-  <x:String x:Key="DevTools.Sources.FileTree">Dateibaum</x:String>
-  <x:String x:Key="DevTools.Sources.FilterByType">Nach Typ filtern:</x:String>
-  <x:String x:Key="DevTools.Sources.All">Alle</x:String>
-  <x:String x:Key="DevTools.Sources.Scripts">Skripte</x:String>
-  <x:String x:Key="DevTools.Sources.Stylesheets">Stylesheets</x:String>
-  <x:String x:Key="DevTools.Sources.Images">Bilder</x:String>
-  <x:String x:Key="DevTools.Sources.Inline">Inline</x:String>
-  <x:String x:Key="DevTools.Sources.SelectFile">Datei auswählen</x:String>
-  <x:String x:Key="DevTools.Sources.Type">Typ:</x:String>
-  <x:String x:Key="DevTools.Sources.Size">Größe:</x:String>
-  <x:String x:Key="DevTools.Sources.ExecuteJavaScript">JavaScript ausführen:</x:String>
-  <x:String x:Key="DevTools.Sources.EnterJavaScriptCode">JavaScript-Code eingeben...</x:String>
-  <x:String x:Key="DevTools.Sources.Execute">Ausführen</x:String>
 
   <!-- HTML-Editor -->
   <x:String x:Key="HtmlEditor.New">Neu</x:String>
@@ -299,26 +218,6 @@
   <x:String x:Key="HtmlEditor.Validate">HTML validieren</x:String>
 
   <!-- WebView Worker -->
-  <x:String x:Key="DevTools.WebViewWorker.Title">WebView Worker</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Description">Separate WebView-Instanz zum Testen und Debuggen von Webseiten</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.CurrentTab">Aktueller aktiver Tab:</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.NoActiveTab">Kein aktiver Tab</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.LoadCurrentTab">Vom aktuellen Tab laden</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.EnterUrl">URL oder Suchanfrage eingeben...</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Go">Los</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Back">Zurück</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Forward">Vor</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Refresh">Aktualisieren</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Placeholder">WebView Worker ist bereit. Geben Sie eine URL ein oder laden Sie vom aktuellen Tab.</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Ready">Bereit</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.WebViewReady">WebView initialisiert und bereit</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Loading">Wird geladen...</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Loaded">Seite geladen</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Refreshing">Seite wird aktualisiert...</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Navigating">Navigation...</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.NoUrlToLoad">Keine URL vom aktuellen Tab zum Laden</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.LoadingFromTab">URL vom aktuellen Tab wird geladen...</x:String>
-
   <!-- VetaleAI Chat -->
   <x:String x:Key="VetaleAI.Header">Vetale AI Chat</x:String>
   <x:String x:Key="VetaleAI.InputPlaceholder">Geben Sie Ihre Nachricht ein...</x:String>
@@ -700,20 +599,24 @@
   <x:String x:Key="UserAgreement.TitleView">Benutzervereinbarung - Vetale Browser (Ansicht)</x:String>
   <x:String x:Key="UserAgreement.Header">Benutzervereinbarung</x:String>
   <x:String x:Key="UserAgreement.Welcome">Willkommen bei Vetale Browser</x:String>
-  <x:String x:Key="UserAgreement.Introduction">Bevor Sie Vetale Browser verwenden, lesen und akzeptieren Sie bitte diese Benutzervereinbarung. Diese Vereinbarung erklärt, welche Daten wir sammeln und wie wir Internetdienste nutzen, um Ihnen das beste Surferlebnis zu bieten.</x:String>
+  <x:String x:Key="UserAgreement.Introduction">Diese Benutzervereinbarung erklärt, welche Daten Vetale Browser sammelt und wie Internetdienste für das beste Surferlebnis genutzt werden. Sie können sie jederzeit unter Tools – Nutzungsvereinbarung einsehen.</x:String>
   <x:String x:Key="UserAgreement.GDPR.Title">DSGVO-Konformitätshinweis</x:String>
   <x:String x:Key="UserAgreement.GDPR.Description">In Übereinstimmung mit der Datenschutz-Grundverordnung (DSGVO) der Europäischen Union sind wir verpflichtet, Sie über die Datenerhebung zu informieren und Ihre Einwilligung einzuholen, bevor wir personenbezogene Daten verarbeiten.</x:String>
   <x:String x:Key="UserAgreement.Components.Title">📊 Komponenten, die Daten sammeln können</x:String>
-  <x:String x:Key="UserAgreement.Search.Title">Suchmaschinenintegration (MetaSearx)</x:String>
-  <x:String x:Key="UserAgreement.Search.Description">Für die Websuche wird MetaSearx API verwendet - eine offene Metasuchmaschine, die Ergebnisse von Google, Bing, DuckDuckGo und anderen Suchmaschinen aggregiert. Ihre Anfragen werden über metasearx.com verarbeitet.</x:String>
-  <x:String x:Key="UserAgreement.AI.Title">KI-Chat-Dienste (Vetale AI)</x:String>
-  <x:String x:Key="UserAgreement.AI.Description">Für KI-Funktionen werden Perplexity AI und Webversionen anderer KI-Dienste verwendet. KEINE API-Schlüssel erforderlich - der Browser arbeitet mit öffentlichen Web-Interfaces von KI-Anbietern.</x:String>
+  <x:String x:Key="UserAgreement.Search.Title">Websuche (MetaSearx, Wikipedia, Web Archive, Curlie, Google-Vorschläge)</x:String>
+  <x:String x:Key="UserAgreement.Search.Description">Die Websuche nutzt: MetaSearx API (metasearx.com) als offene Metasuchmaschine (Google, Bing, DuckDuckGo u.a.), Wikipedia API, Internet Archive (Web Archive), Curlie-Verzeichnis und Google Suggestions. Ihre Suchanfragen werden an diese Dienste übertragen.</x:String>
+  <x:String x:Key="UserAgreement.AI.Title">KI-Dienste (Google Gemini, Vetale AI, Web-Chats)</x:String>
+  <x:String x:Key="UserAgreement.AI.Description">KI-Funktionen: Suchzusammenfassungen über Google Gemini API (eigener API-Schlüssel, lokal verschlüsselt gespeichert), integrierter Vetale AI Chat mit Verlauf auf Ihrem Gerät sowie Webversionen von DuckDuckGo AI Chat, Microsoft Copilot, Google Gemini und Replika (es gelten deren Bedingungen). Ihre Anfragen werden an die jeweiligen Anbieter übertragen.</x:String>
   <x:String x:Key="UserAgreement.Voice.Title">Sprachsuche (Whisper - Lokal)</x:String>
   <x:String x:Key="UserAgreement.Voice.Description">Die Spracheingabe wird LOKAL auf Ihrem Computer mit Whisper verarbeitet. Audio wird NICHT an externe Server gesendet - alle Erkennung erfolgt offline. Sprechen Sie mindestens 2 Sekunden für eine gute Erkennung. ⚠️ WARNUNG: Die Sprachsuche kann beliebige Mengen an Arbeitsspeicher verwenden. Verwenden Sie diese Funktion mit Vorsicht auf Geräten mit begrenztem Speicher.</x:String>
   <x:String x:Key="UserAgreement.Web.Title">Web-Browsing</x:String>
   <x:String x:Key="UserAgreement.Web.Description">Websites, die Sie besuchen, können Cookies setzen und Daten gemäß ihren Richtlinien sammeln. Wir verwenden CefSharp (Chromium) für das Web-Rendering.</x:String>
   <x:String x:Key="UserAgreement.Favicon.Title">Favicon-Dienst</x:String>
   <x:String x:Key="UserAgreement.Favicon.Description">Website-Symbole werden über externe APIs abgerufen: favicon.im (primär), Google S2 Favicons API, DuckDuckGo Icons API oder direkt von der Website (/favicon.ico). Diese Dienste werden verwendet, um Symbole in Tabs und Lesezeichen anzuzeigen.</x:String>
+  <x:String x:Key="UserAgreement.MediaSearch.Title">Video- und Kartensuche (YouTube, OpenStreetMap)</x:String>
+  <x:String x:Key="UserAgreement.MediaSearch.Description">Videosuche über YouTube Data API v3 (eigener Schlüssel), Karten über OpenStreetMap. Ihre Anfragen werden an diese Dienste übertragen.</x:String>
+  <x:String x:Key="UserAgreement.Security.Title">Sicherheitsprüfung (PhishTank)</x:String>
+  <x:String x:Key="UserAgreement.Security.Description">Besuchte Adressen können mit der PhishTank-Datenbank auf Phishing geprüft werden.</x:String>
   <x:String x:Key="UserAgreement.Download.Title">Download-Manager</x:String>
   <x:String x:Key="UserAgreement.Download.Description">Dateien werden direkt von den Quellwebsites heruntergeladen. Der Download-Verlauf wird lokal auf Ihrem Gerät gespeichert.</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Title">💾 Lokal gespeicherte Daten</x:String>
@@ -721,7 +624,7 @@
   <x:String x:Key="UserAgreement.LocalStorage.Item1">• Browserverlauf und Lesezeichen</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item2">• Browsereinstellungen und Präferenzen</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item3">• Tab-Sitzungen zur Wiederherstellung</x:String>
-  <x:String x:Key="UserAgreement.LocalStorage.Item4">• Konsolen-/DevTools-Protokolle</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item4">• Konsolen-Protokolle</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item5">• Metadaten heruntergeladener Dateien</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item6">• Whisper-Modelle für lokale Spracherkennung</x:String>
   <x:String x:Key="UserAgreement.Rights.Title">⚖️ Ihre Rechte nach der DSGVO</x:String>
@@ -736,7 +639,7 @@
   <x:String x:Key="UserAgreement.Disclaimer.NoResponsibility">Der Entwickler ist NICHT verantwortlich für Schäden an Ihrem System, Gerät oder andere Schäden, die durch Ihre Suchen oder Downloads verursacht werden. Sie nutzen diese Funktionen auf eigenes Risiko.</x:String>
   <x:String x:Key="UserAgreement.Contact.Title">📧 Kontakt</x:String>
   <x:String x:Key="UserAgreement.Contact.Description">Wenn Sie Fragen zu dieser Vereinbarung oder Ihren Daten haben, können Sie alle lokalen Daten über die Browsereinstellungen löschen oder uns über das Projekt-Repository kontaktieren.</x:String>
-  <x:String x:Key="UserAgreement.Version">Vereinbarungsversion 2.0 | Letzte Aktualisierung: Dezember 2025</x:String>
+  <x:String x:Key="UserAgreement.Version">Vereinbarungsversion 3.0 | Letzte Aktualisierung: September 2026</x:String>
   <x:String x:Key="UserAgreement.Checkbox">Ich habe die obigen Bedingungen gelesen und stimme ihnen zu</x:String>
   <x:String x:Key="UserAgreement.Decline">Ablehnen</x:String>
   <x:String x:Key="UserAgreement.Accept">Akzeptieren &amp; Fortfahren</x:String>

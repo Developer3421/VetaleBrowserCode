@@ -161,12 +161,6 @@
                                     Orientation="Horizontal"
                                     Spacing="4"
                                     Margin="0,0,8,0">
-                            <Button x:Name="VoiceButton" Classes="icon-button" ToolTip.Tip="{DynamicResource VetaleSearch.VoiceSearch}" Click="VoiceButton_Click">
-                                <TextBlock Text="🎤" FontSize="20"/>
-                            </Button>
-                            <Button x:Name="ImageSearchButton" Classes="icon-button" ToolTip.Tip="{DynamicResource VetaleSearch.ImageSearch}" Click="ImageSearch_Click">
-                                <TextBlock Text="📷" FontSize="20"/>
-                            </Button>
                             <Button x:Name="GeoSearchButton" Classes="icon-button" ToolTip.Tip="{DynamicResource VetaleSearch.GeoSearch}" Click="GeoSearch_Click">
                                 <TextBlock Text="📍" FontSize="20"/>
                             </Button>

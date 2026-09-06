@@ -17,7 +17,6 @@ public class PhishTankSecurityService : ISecurityCheckService
     private readonly Dictionary<string, SecurityCheckResult> _cache;
     private readonly HashSet<string> _knownPhishingDomains;
     private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(30);
-    private readonly VirusTotalSecurityService _virusTotal;
 
     public PhishTankSecurityService()
     {
@@ -35,7 +34,6 @@ public class PhishTankSecurityService : ISecurityCheckService
             "bank-secure-login.com",
             "amazon-account-verify.com"
         };
-        _virusTotal = new VirusTotalSecurityService();
     }
     
     /// <summary>
@@ -163,36 +161,6 @@ public class PhishTankSecurityService : ISecurityCheckService
                     Source = SecuritySource.LocalList,
                     Description = "⚠️ Domain found in PhishTank database (public API)",
                     IsPhishing = true
-                };
-            }
-
-            // Level 5: VirusTotal (if key is available)
-            var vtDetails = await _virusTotal.CheckUrlAsync(url);
-            if (vtDetails != null)
-            {
-                // If VT detects a threat
-                if (vtDetails.Malicious > 0 || vtDetails.Suspicious > 0)
-                {
-                    return new SecurityCheckResult
-                    {
-                        Url = url,
-                        Status = SecurityStatus.Dangerous,
-                        Source = SecuritySource.VirusTotal,
-                        Description = vtDetails.RawLabel ?? "⚠️ Malicious activity detected according to VirusTotal",
-                        IsPhishing = true,
-                        VirusTotalDetails = vtDetails
-                    };
-                }
-
-                // VT says everything is ok or unknown
-                return new SecurityCheckResult
-                {
-                    Url = url,
-                    Status = SecurityStatus.Safe,
-                    Source = SecuritySource.VirusTotal,
-                    Description = vtDetails.RawLabel ?? "Safe according to VirusTotal",
-                    IsPhishing = false,
-                    VirusTotalDetails = vtDetails
                 };
             }
 
@@ -438,6 +406,8 @@ public class PhishTankSecurityService : ISecurityCheckService
     {
         return url.StartsWith("file://", StringComparison.OrdinalIgnoreCase) ||
                url.StartsWith("about:", StringComparison.OrdinalIgnoreCase) ||
+               url.StartsWith("chrome://", StringComparison.OrdinalIgnoreCase) ||
+               url.StartsWith("edge://", StringComparison.OrdinalIgnoreCase) ||
                url.StartsWith("vetale://", StringComparison.OrdinalIgnoreCase) ||
                url.Contains("localhost") ||
                url.Contains("127.0.0.1") ||

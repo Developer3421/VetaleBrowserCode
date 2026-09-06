@@ -2,21 +2,19 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:pages="clr-namespace:VetaleBrowser.VetaleBrowser.UI.Pages"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="675"
+        xmlns:pages="using:VetaleBrowser.VetaleBrowser.UI.Pages"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="700"
         x:Class="VetaleBrowser.VetaleBrowser.UI.Windows.ToolsWindow"
         Title="{DynamicResource Tools.Title}"
         WindowStartupLocation="CenterScreen"
         SystemDecorations="None"
-        Background="#FF8B4513"
-        BorderThickness="1"
-        BorderBrush="#22000000"
+        Background="Transparent"
+        BorderThickness="0"
         CanResize="True"
-        MinWidth="640"
+        MinWidth="600"
         MinHeight="480"
-        Width="800"
-        Height="675"
-        Padding="8"
+        Width="800" Height="675"
+        Padding="0"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaTitleBarHeightHint="42"
         UseLayoutRounding="True"
@@ -29,74 +27,78 @@
             <GradientStop Color="#FFC5C5C5" Offset="0.7"/>
             <GradientStop Color="#FFC0C0C0" Offset="1"/>
         </LinearGradientBrush>
+        <LinearGradientBrush x:Key="PurpleGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#FFA020F0" Offset="0"/>
+            <GradientStop Color="#FF9A1CE8" Offset="0.3"/>
+            <GradientStop Color="#FF8E15DC" Offset="0.7"/>
+            <GradientStop Color="#FF8612D0" Offset="1"/>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="TitleOrangeBrush" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#FFFF9500" Offset="0"/>
+            <GradientStop Color="#FFFF5E00" Offset="1"/>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="TitlePurpleBrush" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#FFB14BF4" Offset="0"/>
+            <GradientStop Color="#FF7C1FD6" Offset="1"/>
+        </LinearGradientBrush>
     </Window.Resources>
 
     <Window.Styles>
-        <Style Selector="Button.window-control">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#303030"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Width" Value="40"/>
-            <Setter Property="Height" Value="28"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.window-control:pointerover">
-            <Setter Property="Background" Value="#40FFFFFF"/>
-        </Style>
-        <Style Selector="Button.window-control.close">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#FF000000"/>
-            <Setter Property="BorderThickness" Value="0"/>
-        </Style>
-        <Style Selector="Button.window-control.close:pointerover">
-            <Setter Property="Background" Value="#40FF5C5C"/>
-            <Setter Property="Foreground" Value="#FF000000"/>
-        </Style>
-        
-        <!-- Зелені відтінки для всіх кнопок -->
+        <StyleInclude Source="avares://VetaleBrowser/VetaleBrowser.UI/Theme/SuperLiteWindow.axaml"/>
+        <!-- Lite dialog buttons: white with purple accent -->
         <Style Selector="Button:not(.window-control)">
-            <Setter Property="Background" Value="#4CAF50"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#FF7C3AED"/>
+            <Setter Property="BorderBrush" Value="#FFA78BFA"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
         </Style>
         <Style Selector="Button:not(.window-control):pointerover">
-            <Setter Property="Background" Value="#66BB6A"/>
+            <Setter Property="Background" Value="#FFF5F3FF"/>
         </Style>
         <Style Selector="Button:not(.window-control):pressed">
-            <Setter Property="Background" Value="#43A047"/>
+            <Setter Property="Background" Value="#FFEBE4FF"/>
+        </Style>
+        <!-- Title button stays transparent -->
+        <Style Selector="Button#PART_OpenMainButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
         </Style>
     </Window.Styles>
 
-    <Grid RowDefinitions="Auto,*">
-        <!-- Top bar: 42px height, gray gradient; left icon + Vetale Browser button; right window controls -->
-        <Grid x:Name="TopBarGrid" Grid.Row="0" Height="42" Background="{StaticResource GrayGradient}" PointerPressed="TopBar_PointerPressed" DoubleTapped="TopBar_DoubleTapped">
-            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" VerticalAlignment="Center">
-                <!-- Left: tools icon that matches the invoking button -->
-                <Image Grid.Column="0" Source="{DynamicResource InstrumensButtonImage}" Width="24" Height="24" Margin="8,0,6,0"/>
+    <!-- Lite outer frame: rounded gray, like Vetale Browser Lite dialogs -->
+    <Border BorderBrush="#30000000" BorderThickness="1" CornerRadius="10" Background="{StaticResource GrayGradient}">
+        <Grid RowDefinitions="40,8,*,Auto">
+            <!-- Title bar (like Lite MainWindow) -->
+            <Border Grid.Row="0" x:Name="TopBarGrid" Background="Transparent" CornerRadius="10,10,0,0"
+                    PointerPressed="TopBar_PointerPressed" DoubleTapped="TopBar_DoubleTapped">
+                <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" VerticalAlignment="Center">
+                    <Image Grid.Column="0" Source="{DynamicResource InstrumensButtonImage}" Width="18" Height="18" Margin="14,0,8,0"/>
+                    <Button Grid.Column="1" x:Name="PART_OpenMainButton" Click="OpenMainWindow" Background="Transparent" BorderThickness="0" Padding="6,4" Cursor="Hand">
+                        <TextBlock FontSize="14" FontWeight="Bold" VerticalAlignment="Center">
+                            <Run Text="Vetale " Foreground="{StaticResource TitleOrangeBrush}"/>
+                            <Run Text="{DynamicResource Tools.Title}" Foreground="{StaticResource TitlePurpleBrush}"/>
+                        </TextBlock>
+                    </Button>
+                    <Border Grid.Column="2"/>
+                    <Button Grid.Column="3" Classes="window-control" Click="MinimizeWindow" ToolTip.Tip="{DynamicResource Window.Minimize}" Padding="8">
+                        <Image Source="{DynamicResource MinButtonImage}" Stretch="Uniform" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Button>
+                    <Button Grid.Column="4" Classes="window-control close" Click="CloseWindow" ToolTip.Tip="{DynamicResource Window.Close}" Padding="8" BorderThickness="0" Margin="0,0,8,0">
+                        <Image Source="{DynamicResource CloseButtonImage}" Stretch="Uniform" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Button>
+                </Grid>
+            </Border>
 
-                <!-- Vetale Browser button -->
-                <Button Grid.Column="1" x:Name="PART_OpenMainButton" Click="OpenMainWindow" Background="Transparent" BorderThickness="0" Padding="6,4" Cursor="Hand">
-                    <TextBlock Text="{DynamicResource App.Title}" FontWeight="SemiBold" Foreground="#202020"/>
-                </Button>
-
-                <!-- Spacer -->
-                <Border Grid.Column="2"/>
-
-                <!-- Window control buttons -->
-                <Button Grid.Column="3" Classes="window-control" Click="MinimizeWindow" ToolTip.Tip="{DynamicResource Window.Minimize}" Padding="0">
-                    <Image Source="{DynamicResource MinButtonImage}" Stretch="Uniform"/>
-                </Button>
-                <Button Grid.Column="4" Classes="window-control close" Click="CloseWindow" ToolTip.Tip="{DynamicResource Window.Close}" Padding="0" BorderThickness="0">
-                    <Image Source="{DynamicResource CloseButtonImage}" Stretch="UniformToFill"/>
-                </Button>
-            </Grid>
+            <!-- Purple band + white content (like Lite nav bar + browser area) -->
+            <Border Grid.Row="2" Background="{StaticResource PurpleGradient}" BorderBrush="#30000000"
+                    BorderThickness="0,1,0,1" Margin="8,0" CornerRadius="6">
+                <Border Background="White" CornerRadius="6" Margin="8,6" ClipToBounds="True">
+                    <Grid x:Name="ContentArea" Background="White" Margin="4"/>
+                </Border>
+            </Border>
         </Grid>
-
-        <!-- Content area -->
-        <Grid Grid.Row="1" x:Name="ContentArea" Background="#FFFFFF">
-            <pages:ToolsMainPage/>
-        </Grid>
-    </Grid>
+    </Border>
 </Window>
+
 

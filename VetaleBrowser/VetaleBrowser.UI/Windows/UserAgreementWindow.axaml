@@ -2,9 +2,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="550" d:DesignHeight="600"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="650"
         x:Class="VetaleBrowser.VetaleBrowser.UI.Windows.UserAgreementWindow"
-        Title="User Agreement"
+        Title="{DynamicResource UserAgreement.TitleView}"
         WindowStartupLocation="CenterScreen"
         SystemDecorations="None"
         Background="#FF8B4513"
@@ -13,8 +13,8 @@
         CanResize="True"
         MinWidth="450"
         MinHeight="400"
-        Width="550"
-        Height="600"
+        Width="600"
+        Height="650"
         Padding="8"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaTitleBarHeightHint="42"
@@ -41,65 +41,82 @@
     </Window.Resources>
 
     <Window.Styles>
-        <Style Selector="Button.window-control">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#303030"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Width" Value="40"/>
-            <Setter Property="Height" Value="28"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.window-control:pointerover">
-            <Setter Property="Background" Value="#40FFFFFF"/>
-        </Style>
-        <Style Selector="Button.window-control.close">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#FF000000"/>
-            <Setter Property="BorderThickness" Value="0"/>
-        </Style>
-        <Style Selector="Button.window-control.close:pointerover">
-            <Setter Property="Background" Value="#40FF5C5C"/>
-            <Setter Property="Foreground" Value="#FF000000"/>
-        </Style>
+        <StyleInclude Source="avares://VetaleBrowser/VetaleBrowser.UI/Theme/SuperLiteWindow.axaml"/>
     </Window.Styles>
 
     <Grid RowDefinitions="Auto,*,Auto">
         <!-- Top bar -->
-        <Grid x:Name="TopBarGrid" Grid.Row="0" Height="42" Background="{StaticResource GrayGradient}" PointerPressed="TopBar_PointerPressed">
+        <Grid x:Name="TopBarGrid" Grid.Row="0" Height="40" Background="{StaticResource GrayGradient}" PointerPressed="TopBar_PointerPressed">
             <Grid ColumnDefinitions="Auto,Auto,*,Auto">
                 <TextBlock Grid.Column="0" Text="📄" FontSize="20" VerticalAlignment="Center" Margin="12,0,8,0"/>
-                <TextBlock Grid.Column="1" Text="User Agreement" FontWeight="SemiBold" Foreground="#202020" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{DynamicResource UserAgreement.Header}" FontWeight="SemiBold" Foreground="#202020" VerticalAlignment="Center"/>
                 <Border Grid.Column="2"/>
-                <Button Grid.Column="3" Classes="window-control close" Click="CloseWindow" Padding="0" BorderThickness="0">
-                    <Image Source="{DynamicResource CloseButtonImage}" Stretch="UniformToFill"/>
+                <Button Grid.Column="3" Classes="window-control close" Click="CloseWindow" Padding="8" BorderThickness="0">
+                    <Image Source="{DynamicResource CloseButtonImage}" Stretch="Uniform" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Button>
             </Grid>
         </Grid>
 
-        <!-- Content area -->
+        <!-- Content area: full agreement, view only -->
         <Border Grid.Row="1" Background="#FFFFFF" ClipToBounds="True">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <StackPanel Spacing="12" Margin="30,25,30,25">
+                <StackPanel Spacing="10" Margin="30,25,30,25">
                     <TextBlock Text="Vetale Browser" FontSize="24" FontWeight="Bold" Foreground="#333333" HorizontalAlignment="Center"/>
-                    <TextBlock Text="User Agreement" FontSize="16" FontWeight="SemiBold" Foreground="#7C1FD6" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Header}" FontSize="16" FontWeight="SemiBold" Foreground="#7C1FD6" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Welcome}" FontSize="14" FontWeight="SemiBold" Foreground="#333333" TextWrapping="Wrap"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Introduction}" TextWrapping="Wrap" FontSize="13" Foreground="#555555" LineHeight="20"/>
                     <Border Height="1" Background="#E0E0E0" Margin="0,5"/>
-                    <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="#555555" LineHeight="22" Text="By using Vetale Browser you agree to use the application for lawful purposes only. The browser is provided &quot;as is&quot;, without warranties of any kind. Browsing history, bookmarks and settings are stored locally on your device. AI features may send your queries to third-party services (Google Gemini, search providers) to generate responses. You are responsible for complying with the terms of the websites and services you visit. The developers are not liable for any damages arising from the use of this software."/>
-                    <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="#555555" LineHeight="22" Text="You can review this agreement at any time from Tools. If you do not agree with these terms, please decline and close the application."/>
+                    <TextBlock Text="{DynamicResource UserAgreement.GDPR.Title}" FontSize="14" FontWeight="SemiBold" Foreground="#333333" TextWrapping="Wrap"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.GDPR.Description}" TextWrapping="Wrap" FontSize="13" Foreground="#555555" LineHeight="20"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Components.Title}" FontSize="14" FontWeight="SemiBold" Foreground="#333333" TextWrapping="Wrap"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Search.Title}" FontSize="13" FontWeight="SemiBold" Foreground="#333333" TextWrapping="Wrap"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Search.Description}" TextWrapping="Wrap" FontSize="13" Foreground="#555555" LineHeight="20"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.MediaSearch.Title}" FontSize="13" FontWeight="SemiBold" Foreground="#333333" TextWrapping="Wrap"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.MediaSearch.Description}" TextWrapping="Wrap" FontSize="13" Foreground="#555555" LineHeight="20"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.AI.Title}" FontSize="13" FontWeight="SemiBold" Foreground="#333333" TextWrapping="Wrap"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.AI.Description}" TextWrapping="Wrap" FontSize="13" Foreground="#555555" LineHeight="20"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Voice.Title}" FontSize="13" FontWeight="SemiBold" Foreground="#333333" TextWrapping="Wrap"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Voice.Description}" TextWrapping="Wrap" FontSize="13" Foreground="#555555" LineHeight="20"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Web.Title}" FontSize="13" FontWeight="SemiBold" Foreground="#333333" TextWrapping="Wrap"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Web.Description}" TextWrapping="Wrap" FontSize="13" Foreground="#555555" LineHeight="20"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Favicon.Title}" FontSize="13" FontWeight="SemiBold" Foreground="#333333" TextWrapping="Wrap"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Favicon.Description}" TextWrapping="Wrap" FontSize="13" Foreground="#555555" LineHeight="20"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Security.Title}" FontSize="13" FontWeight="SemiBold" Foreground="#333333" TextWrapping="Wrap"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Security.Description}" TextWrapping="Wrap" FontSize="13" Foreground="#555555" LineHeight="20"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Download.Title}" FontSize="13" FontWeight="SemiBold" Foreground="#333333" TextWrapping="Wrap"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Download.Description}" TextWrapping="Wrap" FontSize="13" Foreground="#555555" LineHeight="20"/>
+                    <Border Height="1" Background="#E0E0E0" Margin="0,5"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.LocalStorage.Title}" FontSize="14" FontWeight="SemiBold" Foreground="#333333" TextWrapping="Wrap"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.LocalStorage.Description}" TextWrapping="Wrap" FontSize="13" Foreground="#555555" LineHeight="20"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.LocalStorage.Item1}" TextWrapping="Wrap" FontSize="13" Foreground="#555555"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.LocalStorage.Item2}" TextWrapping="Wrap" FontSize="13" Foreground="#555555"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.LocalStorage.Item3}" TextWrapping="Wrap" FontSize="13" Foreground="#555555"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.LocalStorage.Item4}" TextWrapping="Wrap" FontSize="13" Foreground="#555555"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.LocalStorage.Item5}" TextWrapping="Wrap" FontSize="13" Foreground="#555555"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.LocalStorage.Item6}" TextWrapping="Wrap" FontSize="13" Foreground="#555555"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Rights.Title}" FontSize="14" FontWeight="SemiBold" Foreground="#333333" TextWrapping="Wrap"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Rights.Description}" TextWrapping="Wrap" FontSize="13" Foreground="#555555" LineHeight="20"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Rights.Item1}" TextWrapping="Wrap" FontSize="13" Foreground="#555555"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Rights.Item2}" TextWrapping="Wrap" FontSize="13" Foreground="#555555"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Rights.Item3}" TextWrapping="Wrap" FontSize="13" Foreground="#555555"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Rights.Item4}" TextWrapping="Wrap" FontSize="13" Foreground="#555555"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Rights.Item5}" TextWrapping="Wrap" FontSize="13" Foreground="#555555"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Disclaimer.Title}" FontSize="14" FontWeight="SemiBold" Foreground="#333333" TextWrapping="Wrap"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Disclaimer.VetaleSearch}" TextWrapping="Wrap" FontSize="13" Foreground="#555555" LineHeight="20"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Disclaimer.NoResponsibility}" TextWrapping="Wrap" FontSize="13" Foreground="#555555" LineHeight="20"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Contact.Title}" FontSize="14" FontWeight="SemiBold" Foreground="#333333" TextWrapping="Wrap"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Contact.Description}" TextWrapping="Wrap" FontSize="13" Foreground="#555555" LineHeight="20"/>
+                    <TextBlock Text="{DynamicResource UserAgreement.Version}" FontSize="12" Foreground="#999999" HorizontalAlignment="Center" TextWrapping="Wrap"/>
                 </StackPanel>
             </ScrollViewer>
         </Border>
 
-        <!-- Buttons -->
-        <Border Grid.Row="2" Background="#FFFFFF" CornerRadius="0,0,4,4" Padding="20,10,20,16">
+        <!-- Buttons: view only -->
+        <Border Grid.Row="2" Background="#FFFFFF" CornerRadius="0,0,10,10" Padding="20,10,20,16">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-                <Button x:Name="DeclineButton" Content="Decline" Width="120" Height="36" CornerRadius="6"
-                        Background="#E0E0E0" Foreground="#333333" Click="OnDeclineClick"/>
-                <Button x:Name="AcceptButton" Content="Accept" Width="120" Height="36" CornerRadius="6"
-                        Background="{StaticResource AccentBrush}" Foreground="White" FontWeight="SemiBold" Click="OnAcceptClick"/>
+                <Button x:Name="CloseButton" Content="{DynamicResource Window.Close}" Width="120" Height="36" CornerRadius="6"
+                        Background="{StaticResource AccentBrush}" Foreground="White" FontWeight="SemiBold" Click="OnCloseClick"/>
             </StackPanel>
         </Border>
     </Grid>
 </Window>
-

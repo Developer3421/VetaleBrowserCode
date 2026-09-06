@@ -29,21 +29,10 @@
     </Window.Resources>
 
     <Window.Styles>
-        <Style Selector="Button.window-control">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#303030"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Width" Value="40"/>
-            <Setter Property="Height" Value="28"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.window-control:pointerover">
-            <Setter Property="Background" Value="#40FFFFFF"/>
-        </Style>
-        <Style Selector="Button.window-control.close:pointerover">
-            <Setter Property="Background" Value="#40FF5C5C"/>
-        </Style>
+        <StyleInclude Source="avares://VetaleBrowser/VetaleBrowser.UI/Theme/SuperLiteWindow.axaml"/>
+        
+        
+        
         
         <!-- Primary Button Style -->
         <Style Selector="Button.primary-btn">
@@ -94,7 +83,7 @@
 
     <Grid RowDefinitions="Auto,*">
         <!-- Top bar -->
-        <Grid x:Name="TopBarGrid" Grid.Row="0" Height="42" Background="{StaticResource GrayGradient}" PointerPressed="TopBar_PointerPressed">
+        <Grid x:Name="TopBarGrid" Grid.Row="0" Height="40" Background="{StaticResource GrayGradient}" PointerPressed="TopBar_PointerPressed">
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <!-- Left: Icon and title -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
@@ -110,7 +99,7 @@
         </Grid>
 
         <!-- Content area -->
-        <Border Grid.Row="1" Background="Beige" CornerRadius="0,0,8,8" Margin="0,2,0,0">
+        <Border Grid.Row="1" Background="Beige" CornerRadius="0,0,10,10" Margin="0,2,0,0">
             <ScrollViewer>
                 <StackPanel Margin="32,24,32,32" Spacing="20">
                     
@@ -196,5 +185,7 @@
         </Border>
     </Grid>
 </Window>
+
+
 
 

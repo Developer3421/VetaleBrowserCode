@@ -3,8 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
-             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.OtherWindowsAppearanceSettingsPage"
-             Background="#FF9800">
+              x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.OtherWindowsAppearanceSettingsPage"
+              Background="#F3E8FF">
 
     <UserControl.Styles>
         <Style Selector="Button.back-button">
@@ -31,22 +31,22 @@
             <Setter Property="BorderThickness" Value="2"/>
         </Style>
         <Style Selector="Button.save-button">
-            <Setter Property="Background" Value="#2E7D32"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#1B5E20"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#FF7C3AED"/>
+            <Setter Property="BorderBrush" Value="#FFA78BFA"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="20,10"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="CornerRadius" Value="6"/>
         </Style>
         <Style Selector="Button.save-button:pointerover">
-            <Setter Property="Background" Value="#388E3C"/>
-            <Setter Property="BorderBrush" Value="#2E7D32"/>
+            <Setter Property="Background" Value="#FFF5F3FF"/>
+            <Setter Property="BorderBrush" Value="#FF7C3AED"/>
         </Style>
         <Style Selector="Button.save-button:pressed">
-            <Setter Property="Background" Value="#1B5E20"/>
+            <Setter Property="Background" Value="#FFEBE4FF"/>
         </Style>
         <Style Selector="TextBlock.setting-label">
             <Setter Property="FontSize" Value="14"/>
@@ -54,10 +54,10 @@
             <Setter Property="Margin" Value="0,0,10,0"/>
         </Style>
         
-        <!-- Оранжевий фон для панелі кнопок -->
+        <!-- Lite panel for buttons -->
         <Style Selector="Border.button-panel">
-            <Setter Property="Background" Value="#FF9800"/>
-            <Setter Property="BorderBrush" Value="#F57C00"/>
+            <Setter Property="Background" Value="#F3E8FF"/>
+            <Setter Property="BorderBrush" Value="#A78BFA"/>
             <Setter Property="BorderThickness" Value="0,1,0,0"/>
         </Style>
     </UserControl.Styles>

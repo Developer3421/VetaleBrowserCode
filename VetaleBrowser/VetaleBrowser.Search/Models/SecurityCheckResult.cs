@@ -27,9 +27,6 @@ public class SecurityCheckResult
     
     /// <summary>Details from PhishTank (if available)</summary>
     public PhishTankDetails? Details { get; set; }
-    
-    /// <summary>Details from VirusTotal (if available)</summary>
-    public VirusTotalDetails? VirusTotalDetails { get; set; }
 }
 
 /// <summary>
@@ -48,19 +45,4 @@ public class PhishTankDetails
     
     /// <summary>Additional information</summary>
     public string? AdditionalInfo { get; set; }
-}
-
-/// <summary>
-/// Details from VirusTotal API
-/// </summary>
-public class VirusTotalDetails
-{
-    public string? Id { get; set; }
-    public int Harmless { get; set; }
-    public int Malicious { get; set; }
-    public int Suspicious { get; set; }
-    public int Undetected { get; set; }
-    public int Timeout { get; set; }
-    public DateTime? LastAnalysisDate { get; set; }
-    public string? RawLabel { get; set; }
 }

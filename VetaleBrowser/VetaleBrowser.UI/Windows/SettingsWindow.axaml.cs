@@ -18,7 +18,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Windows;
 public partial class SettingsWindow : Window
 {
     private ContentControl? _contentHost;
-    private Grid? _topBarGrid;
+    private Border? _topBarGrid;
     private Grid? _contentGrid;
     private SettingsMainPage? _mainPage;
     private ISettingsService? _settingsService;
@@ -61,7 +61,7 @@ public partial class SettingsWindow : Window
     private async void OnLoaded(object? sender, RoutedEventArgs e)
     {
         _contentHost = this.FindControl<ContentControl>("PART_ContentHost");
-        _topBarGrid = this.FindControl<Grid>("TopBarGrid");
+        _topBarGrid = this.FindControl<Border>("TopBarGrid");
         _contentGrid = this.FindControl<Grid>("ContentGrid");
         LoadMainPage();
 

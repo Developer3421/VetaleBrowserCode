@@ -16,11 +16,6 @@ public partial class VetaleSearchSettingsPage : UserControl
     public event EventHandler? BackRequested;
     public event EventHandler? SettingsSaved;
 
-    // API Key inputs
-    private TextBox? _pexelsApiKeyInput;
-    private TextBox? _unsplashApiKeyInput;
-    private TextBox? _youTubeApiKeyInput;
-
     // Color inputs
     private TextBox? _gradientStartColorInput;
     private TextBox? _gradientEndColorInput;
@@ -55,11 +50,6 @@ public partial class VetaleSearchSettingsPage : UserControl
 
     private async void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        // API Key inputs
-        _pexelsApiKeyInput = this.FindControl<TextBox>("PexelsApiKeyInput");
-        _unsplashApiKeyInput = this.FindControl<TextBox>("UnsplashApiKeyInput");
-        _youTubeApiKeyInput = this.FindControl<TextBox>("YouTubeApiKeyInput");
-
         // Color inputs
         _gradientStartColorInput = this.FindControl<TextBox>("GradientStartColorInput");
         _gradientEndColorInput = this.FindControl<TextBox>("GradientEndColorInput");
@@ -120,28 +110,9 @@ public partial class VetaleSearchSettingsPage : UserControl
     {
         try
         {
-            // API Keys
+            // Appearance (colors stored via API keys service for simplicity)
             if (_apiKeysService != null)
             {
-                if (_pexelsApiKeyInput != null)
-                {
-                    var pexelsKey = await _apiKeysService.GetPexelsApiKeyAsync();
-                    _pexelsApiKeyInput.Text = pexelsKey ?? "";
-                }
-
-                if (_unsplashApiKeyInput != null)
-                {
-                    var unsplashKey = await _apiKeysService.GetUnsplashApiKeyAsync();
-                    _unsplashApiKeyInput.Text = unsplashKey ?? "";
-                }
-
-                if (_youTubeApiKeyInput != null)
-                {
-                    var youtubeKey = await _apiKeysService.GetYouTubeApiKeyAsync();
-                    _youTubeApiKeyInput.Text = youtubeKey ?? "";
-                }
-
-                // Load color settings (stored as api keys for simplicity)
                 if (_gradientStartColorInput != null)
                 {
                     var raw = await _apiKeysService.GetApiKeyAsync(SettingGradientStart);
@@ -207,72 +178,9 @@ public partial class VetaleSearchSettingsPage : UserControl
     {
         try
         {
-            // Save API Keys
+            // Save appearance (colors)
             if (_apiKeysService != null)
             {
-                // Pexels
-                if (_pexelsApiKeyInput != null)
-                {
-                    var pexelsKey = _pexelsApiKeyInput.Text?.Trim();
-                    Debug.WriteLine($"[VetaleSearchSettingsPage] Pexels key from input: {(string.IsNullOrWhiteSpace(pexelsKey) ? "EMPTY" : pexelsKey.Substring(0, Math.Min(10, pexelsKey.Length)) + "...")}");
-
-                    if (!string.IsNullOrWhiteSpace(pexelsKey))
-                    {
-                        Debug.WriteLine("[VetaleSearchSettingsPage] Saving Pexels key to database...");
-                        await _apiKeysService.SetPexelsApiKeyAsync(pexelsKey);
-                        Debug.WriteLine("[VetaleSearchSettingsPage] Pexels key saved to DB");
-
-                        // Update static key in ImageSearchServiceFactory for immediate effect
-                        Debug.WriteLine("[VetaleSearchSettingsPage] Setting Pexels key in factory...");
-                        VetaleBrowser.Search.Services.ImageSearchServiceFactory.SetPexelsApiKey(pexelsKey);
-                        Debug.WriteLine("[VetaleSearchSettingsPage] ✓ Pexels API key saved and applied");
-                    }
-                    else
-                    {
-                        await _apiKeysService.RemoveApiKeyAsync(ApiServiceIds.Pexels);
-                        VetaleBrowser.Search.Services.ImageSearchServiceFactory.SetPexelsApiKey(null);
-                        Debug.WriteLine("[VetaleSearchSettingsPage] Pexels API key cleared");
-                    }
-                }
-
-                // Unsplash
-                if (_unsplashApiKeyInput != null)
-                {
-                    var unsplashKey = _unsplashApiKeyInput.Text?.Trim();
-                    if (!string.IsNullOrWhiteSpace(unsplashKey))
-                    {
-                        await _apiKeysService.SetUnsplashApiKeyAsync(unsplashKey);
-                        // Update static key in ImageSearchServiceFactory for immediate effect
-                        VetaleBrowser.Search.Services.ImageSearchServiceFactory.SetUnsplashApiKey(unsplashKey);
-                        Debug.WriteLine("[VetaleSearchSettingsPage] Unsplash API key saved and applied");
-                    }
-                    else
-                    {
-                        await _apiKeysService.RemoveApiKeyAsync(ApiServiceIds.Unsplash);
-                        VetaleBrowser.Search.Services.ImageSearchServiceFactory.SetUnsplashApiKey(null);
-                        Debug.WriteLine("[VetaleSearchSettingsPage] Unsplash API key cleared");
-                    }
-                }
-
-                // YouTube
-                if (_youTubeApiKeyInput != null)
-                {
-                    var youtubeKey = _youTubeApiKeyInput.Text?.Trim();
-                    if (!string.IsNullOrWhiteSpace(youtubeKey))
-                    {
-                        await _apiKeysService.SetYouTubeApiKeyAsync(youtubeKey);
-                        // Update static key in ImageSearchServiceFactory for immediate effect
-                        VetaleBrowser.Search.Services.ImageSearchServiceFactory.SetYouTubeApiKey(youtubeKey);
-                        Debug.WriteLine("[VetaleSearchSettingsPage] YouTube API key saved and applied");
-                    }
-                    else
-                    {
-                        await _apiKeysService.RemoveApiKeyAsync(ApiServiceIds.YouTube);
-                        VetaleBrowser.Search.Services.ImageSearchServiceFactory.SetYouTubeApiKey(null);
-                        Debug.WriteLine("[VetaleSearchSettingsPage] YouTube API key cleared");
-                    }
-                }
-
                 // Save color settings (stored as api keys)
                 await SaveColorSettingAsync(SettingGradientStart, _gradientStartColorInput?.Text, "Gradient start");
                 await SaveColorSettingAsync(SettingGradientEnd, _gradientEndColorInput?.Text, "Gradient end");
@@ -313,34 +221,18 @@ public partial class VetaleSearchSettingsPage : UserControl
         if (_cardBackgroundInput != null) _cardBackgroundInput.Text = "#FFFFFF";
         if (_linkColorInput != null) _linkColorInput.Text = "#1565C0";
 
-        // Clear API keys from UI
-        if (_pexelsApiKeyInput != null) _pexelsApiKeyInput.Text = "";
-        if (_unsplashApiKeyInput != null) _unsplashApiKeyInput.Text = "";
-        if (_youTubeApiKeyInput != null) _youTubeApiKeyInput.Text = "";
-
-        // Remove ALL values from database
+        // Remove appearance values from database
         if (_apiKeysService != null)
         {
             try
             {
-                // Remove API keys from database
-                await _apiKeysService.RemoveApiKeyAsync(ApiServiceIds.Pexels);
-                await _apiKeysService.RemoveApiKeyAsync(ApiServiceIds.Unsplash);
-                await _apiKeysService.RemoveApiKeyAsync(ApiServiceIds.YouTube);
-
                 // Remove color settings from database
                 await _apiKeysService.RemoveApiKeyAsync(SettingGradientStart);
                 await _apiKeysService.RemoveApiKeyAsync(SettingGradientEnd);
                 await _apiKeysService.RemoveApiKeyAsync(SettingCardBackground);
                 await _apiKeysService.RemoveApiKeyAsync(SettingLinkColor);
 
-                // Clear static caches in services
-                VetaleBrowser.Search.Services.ImageSearchServiceFactory.SetPexelsApiKey(null);
-                VetaleBrowser.Search.Services.ImageSearchServiceFactory.SetUnsplashApiKey(null);
-                VetaleBrowser.Search.Services.ImageSearchServiceFactory.SetYouTubeApiKey(null);
-                VetaleBrowser.Search.Services.ImageSearchServiceFactory.InvalidateCache();
-
-                Debug.WriteLine("[VetaleSearchSettingsPage] All API keys and settings removed from database");
+                Debug.WriteLine("[VetaleSearchSettingsPage] Appearance settings removed from database");
             }
             catch (Exception ex)
             {
@@ -354,37 +246,6 @@ public partial class VetaleSearchSettingsPage : UserControl
     private void OnBackClick(object? sender, RoutedEventArgs e)
     {
         BackRequested?.Invoke(this, EventArgs.Empty);
-    }
-
-    private void OnOpenPexelsPortal(object? sender, RoutedEventArgs e)
-    {
-        OpenUrl("https://www.pexels.com/api/");
-    }
-
-    private void OnOpenUnsplashPortal(object? sender, RoutedEventArgs e)
-    {
-        OpenUrl("https://unsplash.com/developers");
-    }
-
-    private void OnOpenYouTubePortal(object? sender, RoutedEventArgs e)
-    {
-        OpenUrl("https://console.cloud.google.com/apis/library/youtube.googleapis.com");
-    }
-
-    private void OpenUrl(string url)
-    {
-        try
-        {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = url,
-                UseShellExecute = true
-            });
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[VetaleSearchSettingsPage] Error opening URL: {ex.Message}");
-        }
     }
 
     private async Task SaveColorSettingAsync(string key, string? value, string debugName)

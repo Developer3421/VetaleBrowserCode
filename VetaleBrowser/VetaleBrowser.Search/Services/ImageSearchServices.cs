@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
-using VetaleBrowser.VetaleBrowser.Search.Models;
 using VetaleBrowser.VetaleBrowser.Database.Services;
 
 namespace VetaleBrowser.VetaleBrowser.Search.Services
@@ -12,245 +9,31 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
     /// </summary>
     public static class DefaultApiKeys
     {
-        public const string PexelsApiKey = "";
-        public const string UnsplashAccessKey = "";
         public const string YouTubeApiKey = "";
     }
 
     /// <summary>
-    /// Interface for image search providers
+    /// Holds the YouTube API key for video search (cached + DB + environment lookup).
+    /// Image search (Pexels/Unsplash) has been removed.
     /// </summary>
-    public interface IImageSearchProvider
-    {
-        Task<ImageSearchPage> SearchAsync(ImageSearchQuery query, CancellationToken ct);
-    }
-
-    /// <summary>
-    /// High-level image search service (paged string-query API used by the UI).
-    /// </summary>
-    public interface IImageSearchService
-    {
-        Task<ImageSearchPage> SearchAsync(
-            string query,
-            int page = 1,
-            int perPage = 30,
-            ImageSearchFilter? filter = null,
-            CancellationToken cancellationToken = default);
-
-        Task<ImageSearchPage> GetCuratedAsync(
-            int page = 1,
-            int perPage = 30,
-            CancellationToken cancellationToken = default);
-    }
-
-    /// <summary>
-    /// Aggregates Pexels/Unsplash providers behind <see cref="IImageSearchService"/>.
-    /// Falls back to <see cref="MockImageSearchService"/> when no provider works.
-    /// </summary>
-    public sealed class UnifiedImageSearchService : IImageSearchService
-    {
-        private readonly string? _pexelsKey;
-        private readonly string? _unsplashKey;
-        private readonly MockImageSearchService _mock = new();
-
-        public UnifiedImageSearchService(string? pexelsKey, string? unsplashKey)
-        {
-            _pexelsKey = pexelsKey;
-            _unsplashKey = unsplashKey;
-        }
-
-        public async Task<ImageSearchPage> SearchAsync(
-            string query,
-            int page = 1,
-            int perPage = 30,
-            ImageSearchFilter? filter = null,
-            CancellationToken cancellationToken = default)
-        {
-            var errors = new List<string>();
-
-            if (!string.IsNullOrWhiteSpace(_pexelsKey))
-            {
-                try
-                {
-                    var pexels = new PexelsImageSearchProvider(_pexelsKey);
-                    return await pexels.SearchAsync(new ImageSearchQuery
-                    {
-                        Query = query,
-                        PageNumber = page,
-                        PageSize = perPage,
-                        Provider = "Pexels"
-                    }, cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    errors.Add($"Pexels: {ex.Message}");
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(_unsplashKey))
-            {
-                try
-                {
-                    var unsplash = new UnsplashImageSearchProvider(_unsplashKey);
-                    return await unsplash.SearchAsync(new ImageSearchQuery
-                    {
-                        Query = query,
-                        PageNumber = page,
-                        PageSize = perPage,
-                        Provider = "Unsplash"
-                    }, cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    errors.Add($"Unsplash: {ex.Message}");
-                }
-            }
-
-            System.Diagnostics.Debug.WriteLine($"[UnifiedImageSearch] Providers failed ({string.Join("; ", errors)}), using mock");
-            return await _mock.SearchAsync(query, page, perPage, filter, cancellationToken).ConfigureAwait(false);
-        }
-
-        public Task<ImageSearchPage> GetCuratedAsync(
-            int page = 1,
-            int perPage = 30,
-            CancellationToken cancellationToken = default)
-        {
-            return SearchAsync("curated", page, perPage, null, cancellationToken);
-        }
-    }
-
     public static class ImageSearchServiceFactory
     {
         public const int MaxResultsPerPage = 50;
-        
-        private static string? _cachedPexelsKey;
-        private static string? _cachedUnsplashKey;
+
         private static string? _cachedYouTubeKey;
-        private static string? _serviceCreatedWithPexelsKey;
-        private static string? _serviceCreatedWithUnsplashKey;
-        private static IImageSearchService? _cachedService;
-        
-        public static void SetPexelsApiKey(string? apiKey)
-        {
-            var cleanKey = apiKey?.Trim();
-            System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] SetPexelsApiKey called");
-            System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Key length: {cleanKey?.Length ?? 0}");
-            System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Key preview: {(string.IsNullOrWhiteSpace(cleanKey) ? "EMPTY" : cleanKey.Substring(0, Math.Min(15, cleanKey.Length)) + "...")}");
-            _cachedPexelsKey = cleanKey;
-            _cachedService = null;
-            _serviceCreatedWithPexelsKey = null;
-        }
-        
-        public static void SetUnsplashApiKey(string? apiKey)
-        {
-            System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] SetUnsplashApiKey: {(string.IsNullOrWhiteSpace(apiKey) ? "null/empty" : "***")}");
-            _cachedUnsplashKey = apiKey;
-            _cachedService = null;
-            _serviceCreatedWithUnsplashKey = null;
-        }
-        
+
         public static void SetYouTubeApiKey(string? apiKey)
         {
             System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] SetYouTubeApiKey: {(string.IsNullOrWhiteSpace(apiKey) ? "null/empty" : "***")}");
             _cachedYouTubeKey = apiKey;
         }
-        
+
         public static void InvalidateCache()
         {
-            _cachedService = null;
-            _serviceCreatedWithPexelsKey = null;
-            _serviceCreatedWithUnsplashKey = null;
+            _cachedYouTubeKey = null;
             System.Diagnostics.Debug.WriteLine("[ImageSearchServiceFactory] Cache invalidated");
         }
-        
-        private static string? GetEffectivePexelsKey()
-        {
-            System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] GetEffectivePexelsKey called");
-            System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] _cachedPexelsKey: {(_cachedPexelsKey == null ? "null" : _cachedPexelsKey.Length + " chars")}");
-            
-            // 1. Cached key
-            if (!string.IsNullOrWhiteSpace(_cachedPexelsKey))
-            {
-                System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Returning cached Pexels key: {_cachedPexelsKey.Substring(0, Math.Min(15, _cachedPexelsKey.Length))}...");
-                return _cachedPexelsKey;
-            }
-            
-            // 2. Default
-            if (!string.IsNullOrWhiteSpace(DefaultApiKeys.PexelsApiKey))
-            {
-                System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Returning default Pexels key");
-                return DefaultApiKeys.PexelsApiKey;
-            }
-            
-            // 3. DB
-            System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Trying to load Pexels key from DB...");
-            var dbKey = LoadApiKeyFromDatabase(ApiServiceIds.Pexels);
-            if (!string.IsNullOrWhiteSpace(dbKey))
-            {
-                System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Got Pexels key from DB: {dbKey.Substring(0, Math.Min(15, dbKey.Length))}...");
-                _cachedPexelsKey = dbKey;
-                return dbKey;
-            }
-            
-            // 4. ENV
-            var envKey = Environment.GetEnvironmentVariable("VETALE_PEXELS_API_KEY");
-            if (!string.IsNullOrWhiteSpace(envKey))
-            {
-                System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Got Pexels key from ENV");
-                return envKey;
-            }
-            
-            System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] No Pexels key found!");
-            return null;
-        }
-        
-        private static string? GetEffectiveUnsplashKey()
-        {
-            if (!string.IsNullOrWhiteSpace(_cachedUnsplashKey))
-                return _cachedUnsplashKey;
-            
-            if (!string.IsNullOrWhiteSpace(DefaultApiKeys.UnsplashAccessKey))
-                return DefaultApiKeys.UnsplashAccessKey;
-            
-            var dbKey = LoadApiKeyFromDatabase(ApiServiceIds.Unsplash);
-            if (!string.IsNullOrWhiteSpace(dbKey))
-            {
-                _cachedUnsplashKey = dbKey;
-                return dbKey;
-            }
-            
-            return Environment.GetEnvironmentVariable("VETALE_UNSPLASH_ACCESS_KEY");
-        }
-        
-        public static IImageSearchService Create()
-        {
-            var pexelsKey = GetEffectivePexelsKey();
-            var unsplashKey = GetEffectiveUnsplashKey();
-            
-            if (_cachedService != null && 
-                _serviceCreatedWithPexelsKey == pexelsKey && 
-                _serviceCreatedWithUnsplashKey == unsplashKey)
-            {
-                return _cachedService;
-            }
-            
-            System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Creating service: Pexels={!string.IsNullOrWhiteSpace(pexelsKey)}, Unsplash={!string.IsNullOrWhiteSpace(unsplashKey)}");
 
-            if (!string.IsNullOrWhiteSpace(pexelsKey) || !string.IsNullOrWhiteSpace(unsplashKey))
-            {
-                _cachedService = new UnifiedImageSearchService(pexelsKey, unsplashKey);
-                _serviceCreatedWithPexelsKey = pexelsKey;
-                _serviceCreatedWithUnsplashKey = unsplashKey;
-                return _cachedService;
-            }
-
-            System.Diagnostics.Debug.WriteLine("[ImageSearchServiceFactory] No API keys, returning MockImageSearchService");
-            _cachedService = new MockImageSearchService();
-            _serviceCreatedWithPexelsKey = null;
-            _serviceCreatedWithUnsplashKey = null;
-            return _cachedService;
-        }
-        
         private static string? LoadApiKeyFromDatabase(string serviceId)
         {
             try
@@ -258,8 +41,8 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
                 var apiKeysService = DatabaseServicesFactory.TryGetApiKeysService();
                 if (apiKeysService == null)
                     return null;
-                
-                var key = Task.Run(async () => 
+
+                var key = Task.Run(async () =>
                 {
                     try
                     {
@@ -270,7 +53,7 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
                         return null;
                     }
                 }).GetAwaiter().GetResult();
-                
+
                 if (!string.IsNullOrWhiteSpace(key))
                 {
                     System.Diagnostics.Debug.WriteLine($"[ImageSearchServiceFactory] Loaded {serviceId} from DB");
@@ -283,131 +66,37 @@ namespace VetaleBrowser.VetaleBrowser.Search.Services
             }
             return null;
         }
-        
+
         public static bool HasApiKey(string serviceId)
         {
-            var hasDefaultKey = serviceId switch
+            if (serviceId == ApiServiceIds.YouTube)
             {
-                ApiServiceIds.Pexels => !string.IsNullOrWhiteSpace(DefaultApiKeys.PexelsApiKey),
-                ApiServiceIds.Unsplash => !string.IsNullOrWhiteSpace(DefaultApiKeys.UnsplashAccessKey),
-                ApiServiceIds.YouTube => !string.IsNullOrWhiteSpace(DefaultApiKeys.YouTubeApiKey),
-                _ => false
-            };
-            if (hasDefaultKey) return true;
-            
-            var hasEnvKey = serviceId switch
-            {
-                ApiServiceIds.Pexels => !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("VETALE_PEXELS_API_KEY")),
-                ApiServiceIds.Unsplash => !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("VETALE_UNSPLASH_ACCESS_KEY")),
-                ApiServiceIds.YouTube => !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("YOUTUBE_API_KEY")),
-                _ => false
-            };
-            if (hasEnvKey) return true;
-            
+                if (!string.IsNullOrWhiteSpace(DefaultApiKeys.YouTubeApiKey))
+                    return true;
+                if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("YOUTUBE_API_KEY")))
+                    return true;
+            }
+
             var key = LoadApiKeyFromDatabase(serviceId);
             return !string.IsNullOrWhiteSpace(key);
         }
-        
-        public static bool HasAnyImageSearchApiKey()
-        {
-            if (!string.IsNullOrWhiteSpace(DefaultApiKeys.PexelsApiKey) ||
-                !string.IsNullOrWhiteSpace(DefaultApiKeys.UnsplashAccessKey))
-                return true;
-            
-            if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("VETALE_PEXELS_API_KEY")) ||
-                !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("VETALE_UNSPLASH_ACCESS_KEY")))
-                return true;
-            
-            return HasApiKey(ApiServiceIds.Pexels) || HasApiKey(ApiServiceIds.Unsplash);
-        }
-        
+
         public static string? GetYouTubeApiKey()
         {
             if (!string.IsNullOrWhiteSpace(_cachedYouTubeKey))
                 return _cachedYouTubeKey;
-            
+
             if (!string.IsNullOrWhiteSpace(DefaultApiKeys.YouTubeApiKey))
                 return DefaultApiKeys.YouTubeApiKey;
-            
+
             var dbKey = LoadApiKeyFromDatabase(ApiServiceIds.YouTube);
             if (!string.IsNullOrWhiteSpace(dbKey))
             {
                 _cachedYouTubeKey = dbKey;
                 return dbKey;
             }
-            
+
             return Environment.GetEnvironmentVariable("YOUTUBE_API_KEY");
-        }
-    }
-
-    /// <summary>
-    /// Mock implementation for testing without API keys
-    /// </summary>
-    public class MockImageSearchService : IImageSearchService
-    {
-        public Task<ImageSearchPage> SearchAsync(
-            string query,
-            int page = 1,
-            int perPage = 30,
-            ImageSearchFilter? filter = null,
-            CancellationToken cancellationToken = default)
-        {
-            var results = new List<ImageSearchResult>();
-            
-            for (int i = 0; i < perPage; i++)
-            {
-                var index = (page - 1) * perPage + i + 1;
-                results.Add(new ImageSearchResult
-                {
-                    Id = index.ToString(),
-                    Provider = "Mock",
-                    Source = ImageSource.Mock,
-                    Title = $"{query} - demo image {index}",
-                    Description = $"Demo image for '{query}'",
-                    ThumbnailUrl = "https://via.placeholder.com/150",
-                    MediumUrl = "https://via.placeholder.com/600",
-                    LargeUrl = "https://via.placeholder.com/1200",
-                    OriginalUrl = "https://via.placeholder.com/1920",
-                    ImageUrl = "https://via.placeholder.com/600",
-                    PhotographerName = "Demo",
-                    Photographer = "Demo",
-                    PhotographerUrl = "https://example.com",
-                    SourcePageUrl = "https://example.com",
-                    Urls = new ImageUrlSet
-                    {
-                        ThumbUrl = "https://via.placeholder.com/150",
-                        SmallUrl = "https://via.placeholder.com/300",
-                        RegularUrl = "https://via.placeholder.com/600",
-                        FullUrl = "https://via.placeholder.com/1200"
-                    },
-                    Width = 1200,
-                    Height = 800,
-                    Color = "#CCCCCC",
-                    AverageColor = "#CCCCCC"
-                });
-            }
-
-            return Task.FromResult(new ImageSearchPage
-            {
-                Query = query,
-                Page = page,
-                PerPage = perPage,
-                PageNumber = page,
-                PageSize = perPage,
-                TotalResults = 1000,
-                HasNextPage = page * perPage < 1000,
-                SearchTime = 0.1,
-                Provider = "Mock",
-                Results = results
-            });
-        }
-
-        public Task<ImageSearchPage> GetCuratedAsync(
-            int page = 1,
-            int perPage = 30,
-            CancellationToken cancellationToken = default)
-        {
-            return SearchAsync("curated", page, perPage, null, cancellationToken);
         }
     }
 }

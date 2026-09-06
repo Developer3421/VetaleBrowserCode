@@ -1,0 +1,26 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+        x:Class="VetaleBrowser.VetaleBrowser.UI.Windows.VideoFullscreenWindow"
+        Title="Video Fullscreen"
+        WindowStartupLocation="CenterScreen"
+        SystemDecorations="None"
+        Background="#FF000000"
+        WindowState="Maximized"
+        ExtendClientAreaToDecorationsHint="True"
+        ShowInTaskbar="False">
+
+    <Grid Name="VideoHost" Background="#FF000000">
+        <!-- Active tab WebView is placed here -->
+
+        <!-- Mini overlay: maximize main window (styled like other windows) -->
+        <CheckBox Name="MaximizeMainCheckBox"
+                  Content="Максимізувати головне вікно"
+                  HorizontalAlignment="Right" VerticalAlignment="Top"
+                  Margin="0,12,16,0" Opacity="0.75"
+                  Foreground="White" Background="#40000000"
+                  IsChecked="True"/>
+    </Grid>
+</Window>

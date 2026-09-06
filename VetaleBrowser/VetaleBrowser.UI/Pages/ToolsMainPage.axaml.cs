@@ -18,7 +18,6 @@ public partial class ToolsMainPage : UserControl
     // Static window references to prevent memory leaks
     private static Windows.HistoryWindow? _historyWindowInstance;
 
-    private static Windows.DevToolsWindow? _devToolsWindowInstance;
     private static Windows.VetaleAIWindow? _vetaleAiWindowInstance;
     private static Windows.DownloadsWindow? _downloadsWindowInstance;
     private static Windows.UserAgreementWindow? _userAgreementWindowInstance;
@@ -100,14 +99,6 @@ public partial class ToolsMainPage : UserControl
             },
             new ToolItem
             {
-                NameKey = "Tools.DevTools.Name",
-                DescriptionKey = "Tools.DevTools.Description",
-                IconUrl = null,
-                IconEmoji = "🔧",
-                Action = () => OpenVetaleDevTools()
-            },
-            new ToolItem
-            {
                 NameKey = "Tools.Downloads.Name",
                 DescriptionKey = "Tools.Downloads.Description",
                 IconUrl = null,
@@ -160,8 +151,11 @@ public partial class ToolsMainPage : UserControl
     {
         var border = new Border
         {
-            Classes = { "tool-item" }
+            Classes = { "tool-item" },
+            Cursor = new Cursor(StandardCursorType.Hand)
         };
+
+        Button? navButton = null;
 
         var grid = new Grid
         {
@@ -183,6 +177,7 @@ public partial class ToolsMainPage : UserControl
             var emojiText = new TextBlock
             {
                 Text = tool.IconEmoji,
+                FontFamily = new FontFamily("Segoe UI Emoji, Noto Color Emoji, Apple Color Emoji"),
                 FontSize = 24,
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center
@@ -232,22 +227,13 @@ public partial class ToolsMainPage : UserControl
         textPanel.Children.Add(nameText);
         textPanel.Children.Add(descText);
 
-        // Click handler for text area (opens in WebView)
-        textPanel.PointerPressed += (s, e) =>
-        {
-            if (e.GetCurrentPoint(textPanel).Properties.IsLeftButtonPressed)
-            {
-                tool.Action?.Invoke();
-            }
-        };
-
         Grid.SetColumn(textPanel, 1);
         grid.Children.Add(textPanel);
 
         // Navigation button (opens in main tab) - only for external tools
         if (!string.IsNullOrEmpty(tool.NavigateUrl))
         {
-            var navButton = new Button
+            navButton = new Button
             {
                 Classes = { "nav-button" },
                 Content = GetLocalizedString("Tools.NavigateButton"),
@@ -267,6 +253,16 @@ public partial class ToolsMainPage : UserControl
 
         border.Child = grid;
 
+        // Whole tile is clickable (not just the title text)
+        border.PointerPressed += (s, e) =>
+        {
+            if (!e.GetCurrentPoint(border).Properties.IsLeftButtonPressed)
+                return;
+            // Ignore presses on the navigation button (it has its own action)
+            if (navButton != null && Equals(e.Source, navButton))
+                return;
+            tool.Action?.Invoke();
+        };
 
         return border;
     }
@@ -332,52 +328,6 @@ public partial class ToolsMainPage : UserControl
             System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] ERROR opening VetaleAI: {ex.Message}");
             System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Stack trace: {ex.StackTrace}");
         }
-    }
-
-    private void OpenVetaleDevTools()
-    {
-        
-        try
-        {
-            // Check if a window is already open
-            if (_devToolsWindowInstance != null)
-            {
-                try
-                {
-                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Reusing existing DevToolsWindow");
-                    _devToolsWindowInstance.Activate();
-                    _devToolsWindowInstance.WindowState = WindowState.Normal;
-                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] DevTools window activated");
-                    return;
-                }
-                catch
-                {
-                    // Window is closed, clear the reference
-                    System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Previous DevTools window was closed, creating new one");
-                    _devToolsWindowInstance = null;
-                }
-            }
-
-            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Creating new DevToolsWindow instance...");
-            _devToolsWindowInstance = new Windows.DevToolsWindow();
-            
-            // Subscribe to window close event to clear the reference
-            _devToolsWindowInstance.Closed += (s, e) =>
-            {
-                System.Diagnostics.Debug.WriteLine("[ToolsMainPage] DevToolsWindow closed, clearing reference");
-                _devToolsWindowInstance = null;
-            };
-            
-            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Showing DevTools window...");
-            _devToolsWindowInstance.Show();
-            System.Diagnostics.Debug.WriteLine("[ToolsMainPage] DevTools window opened successfully");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] ERROR opening DevTools: {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Stack trace: {ex.StackTrace}");
-        }
-        // TODO: Implement DevTools opening
     }
 
     private void OpenHistory()
