@@ -6,29 +6,19 @@ using Avalonia.Markup.Xaml;
 namespace VetaleBrowser.VetaleBrowser.UI.Windows;
 
 /// <summary>
-/// User agreement window - shown on first startup, read-only from Tools.
+/// User agreement window - read-only view, opened from Tools.
+/// No blocking prompt is shown on startup.
 /// </summary>
 public partial class UserAgreementWindow : Window
 {
-    /// <summary>True if the user accepted the agreement.</summary>
-    public bool IsAccepted { get; private set; }
-
     public UserAgreementWindow()
-        : this(readOnly: false)
+        : this(readOnly: true)
     {
     }
 
     public UserAgreementWindow(bool readOnly)
     {
         InitializeComponent();
-
-        if (readOnly)
-        {
-            var acceptButton = this.FindControl<Button>("AcceptButton");
-            var declineButton = this.FindControl<Button>("DeclineButton");
-            if (acceptButton != null) acceptButton.IsVisible = false;
-            if (declineButton != null) declineButton.IsVisible = false;
-        }
     }
 
     private void InitializeComponent()
@@ -49,15 +39,8 @@ public partial class UserAgreementWindow : Window
         Close();
     }
 
-    private void OnAcceptClick(object? sender, RoutedEventArgs e)
+    private void OnCloseClick(object? sender, RoutedEventArgs e)
     {
-        IsAccepted = true;
-        Close();
-    }
-
-    private void OnDeclineClick(object? sender, RoutedEventArgs e)
-    {
-        IsAccepted = false;
         Close();
     }
 }

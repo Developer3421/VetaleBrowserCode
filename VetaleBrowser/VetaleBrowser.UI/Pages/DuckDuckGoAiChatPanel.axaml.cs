@@ -24,6 +24,8 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
     private bool _isLoaded;
     private bool _isWebViewReady;
     private string? _pendingMessage; // Message to send after loading
+    private string? _lastQuery; // Last sent query (restored after WebView recreation)
+    private int _addressSeq; // Guards against overlapping delayed handlers on rapid navigations
     
     // Perplexity AI URL - query can be passed via the q parameter
     private const string PerplexityAiUrl = "https://www.perplexity.ai";
@@ -62,13 +64,19 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
 
     private void OnUnloaded(object? sender, RoutedEventArgs e)
     {
-        // Do not destroy WebView on unload to preserve the session
-        Debug.WriteLine("[DuckDuckGoAiChat] Panel unloaded (WebView preserved)");
+        // Dispose the WebView on unload: hidden results pages stay in tab history,
+        // and each preserved WebView is a live Chromium copy leaking memory.
+        // The view is recreated on next load (last query is restored).
+        DisposeWebView();
+        _isLoaded = false;
+        _isWebViewReady = false;
+        Debug.WriteLine("[DuckDuckGoAiChat] Panel unloaded (WebView disposed)");
     }
 
     private void InitializeWebView()
     {
         if (_webViewContainer == null) return;
+        if (_webView != null) return; // Already initialized
 
         try
         {
@@ -89,16 +97,23 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
             // Add to container
             _webViewContainer.Children.Add(_webView.View);
 
-            // Navigate to Perplexity AI
-            _webView.Address = PerplexityAiUrl;
+            // Navigate to Perplexity AI (restore last query after recreation)
+            _webView.Address = BuildSearchUrl(_lastQuery);
 
-            Debug.WriteLine($"[PerplexityAiChat] WebView created, navigating to: {PerplexityAiUrl}");
+            Debug.WriteLine($"[PerplexityAiChat] WebView created, navigating to: {_webView.Address}");
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[PerplexityAiChat] Error initializing WebView: {ex.Message}");
             ShowError($"Loading error: {ex.Message}");
         }
+    }
+
+    private static string BuildSearchUrl(string? query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return PerplexityAiUrl;
+        return $"{PerplexityAiUrl}/search?q={Uri.EscapeDataString(query)}";
     }
 
     private void OnWebViewPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
@@ -108,10 +123,14 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
         var address = _webView.Address;
         Debug.WriteLine($"[DuckDuckGoAiChat] Address changed: {address}");
 
+        // Guard: only the latest navigation runs the delayed ready/pending logic.
+        var seq = ++_addressSeq;
+
         // Inject scripts to improve UX
         Dispatcher.UIThread.Post(async () =>
         {
             await Task.Delay(2000); // Wait for the page to load (DuckDuckGo requires more time)
+            if (seq != _addressSeq || _isDisposed || _webView == null) return;
             
             // First try to accept consent
             await AcceptTermsIfNeededAsync();
@@ -128,8 +147,10 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
             {
                 Debug.WriteLine($"[DuckDuckGoAiChat] Sending pending message: {_pendingMessage}");
                 await Task.Delay(1000); // Longer delay for stability after accepting consent
-                await SendMessageInternalAsync(_pendingMessage);
+                if (seq != _addressSeq || _isDisposed || _webView == null) return;
+                var pending = _pendingMessage;
                 _pendingMessage = null;
+                await SendMessageInternalAsync(pending);
             }
         });
     }
@@ -309,13 +330,13 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
         if (string.IsNullOrWhiteSpace(message)) return;
         
         Debug.WriteLine($"[PerplexityAiChat] SendMessageAsync called: {message}");
-        
+        _lastQuery = message;
+
         // For Perplexity it is best to use URL with the q parameter
         // This will automatically perform the search
         if (_webView != null)
         {
-            var encodedQuery = Uri.EscapeDataString(message);
-            var searchUrl = $"{PerplexityAiUrl}/search?q={encodedQuery}";
+            var searchUrl = BuildSearchUrl(message);
             
             Debug.WriteLine($"[PerplexityAiChat] Navigating to search URL: {searchUrl}");
             _webView.Address = searchUrl;
@@ -344,8 +365,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
         try
         {
             // For Perplexity it is better to use the URL directly
-            var encodedQuery = Uri.EscapeDataString(message);
-            var searchUrl = $"{PerplexityAiUrl}/search?q={encodedQuery}";
+            var searchUrl = BuildSearchUrl(message);
             
             Debug.WriteLine($"[PerplexityAiChat] Navigating to: {searchUrl}");
             _webView.Address = searchUrl;
@@ -465,21 +485,31 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
         if (_isDisposed) return;
         _isDisposed = true;
 
+        try { Loaded -= OnLoaded; } catch { }
+        try { Unloaded -= OnUnloaded; } catch { }
+
+        DisposeWebView();
+
+        Debug.WriteLine("[DuckDuckGoAiChat] Disposed");
+    }
+
+    private void DisposeWebView()
+    {
         try
         {
             if (_webView != null)
             {
                 _webView.PropertyChanged -= OnWebViewPropertyChanged;
+                if (_webViewContainer != null)
+                    _webViewContainer.Children.Remove(_webView.View);
                 _webView.Dispose();
                 _webView = null;
             }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[DuckDuckGoAiChat] Error disposing: {ex.Message}");
+            Debug.WriteLine($"[DuckDuckGoAiChat] Error disposing WebView: {ex.Message}");
         }
-
-        Debug.WriteLine("[DuckDuckGoAiChat] Disposed");
     }
 
     /// <summary>

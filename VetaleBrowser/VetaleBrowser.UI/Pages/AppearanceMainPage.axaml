@@ -3,14 +3,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="450"
-             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.AppearanceMainPage"
-             Background="#FF9800">
+              x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.AppearanceMainPage"
+              Background="#F3E8FF">
 
     <UserControl.Styles>
         <Style Selector="Button.section-button">
-            <Setter Property="Background" Value="#66BB6A"/>
-            <Setter Property="BorderBrush" Value="#4CAF50"/>
-            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#FF7C3AED"/>
+            <Setter Property="BorderBrush" Value="#FFA78BFA"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="20,15"/>
             <Setter Property="Margin" Value="0,0,0,15"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
@@ -21,12 +22,12 @@
             <Setter Property="CornerRadius" Value="6"/>
         </Style>
         <Style Selector="Button.section-button:pointerover">
-            <Setter Property="Background" Value="#81C784"/>
-            <Setter Property="BorderBrush" Value="#66BB6A"/>
+            <Setter Property="Background" Value="#FFF5F3FF"/>
+            <Setter Property="BorderBrush" Value="#FF7C3AED"/>
         </Style>
         <Style Selector="Button.section-button:pressed">
-            <Setter Property="Background" Value="#4CAF50"/>
-            <Setter Property="BorderBrush" Value="#388E3C"/>
+            <Setter Property="Background" Value="#FFEBE4FF"/>
+            <Setter Property="BorderBrush" Value="#FF7C3AED"/>
         </Style>
     </UserControl.Styles>
 

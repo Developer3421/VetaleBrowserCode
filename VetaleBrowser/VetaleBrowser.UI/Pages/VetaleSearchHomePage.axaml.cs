@@ -6,7 +6,6 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Controls.Primitives;
 using VetaleBrowser.VetaleBrowser.Search.Models;
 using VetaleBrowser.VetaleBrowser.Search.Services;
-using VetaleBrowser.VetaleBrowser.VoiceRecognition.Services;
 using Avalonia;
 using Avalonia.Threading;
 using VetaleBrowser.VetaleBrowser.UI.Theme;
@@ -21,31 +20,20 @@ public partial class VetaleSearchHomePage : UserControl
     private TextBox? _searchInput;
     private ComboBox? _searchEngineSelector;
     private Button? _searchButton;
-    private Button? _voiceButton;
-    private Button? _imageSearchButton;
     private Popup? _suggestionsPopup;
     private ItemsControl? _suggestionsList;
     private readonly System.Collections.ObjectModel.ObservableCollection<SearchSuggestion> _suggestions = new();
     private ISuggestionsService? _suggestionsService;
-    private IVoiceRecognitionService? _voiceRecognitionService;
     private System.Threading.CancellationTokenSource? _suggestionsCts;
 
     public VetaleSearchHomePage()
     {
-        var msg = "[VOICE][HOME] VetaleSearchHomePage constructor called";
-        System.Diagnostics.Debug.WriteLine(msg);
-        Console.WriteLine(msg);
-        
         InitializeComponent();
         InitializeControls();
 
         ApplyTheme();
         VetaleSearchThemeManager.ThemeChanged += OnThemeChanged;
         Unloaded += OnUnloaded;
-
-        var msg2 = "[VOICE][HOME] VetaleSearchHomePage constructor completed";
-        System.Diagnostics.Debug.WriteLine(msg2);
-        Console.WriteLine(msg2);
     }
 
     private void InitializeComponent()
@@ -58,44 +46,11 @@ public partial class VetaleSearchHomePage : UserControl
         _suggestionsService = service;
     }
 
-    public void SetVoiceRecognitionService(IVoiceRecognitionService service)
-    {
-        var msg = "═══════════════════════════════════════════════════════\n" +
-                  "[VOICE][HOME] ✓✓✓ SetVoiceRecognitionService CALLED ✓✓✓\n" +
-                  "═══════════════════════════════════════════════════════";
-        System.Diagnostics.Debug.WriteLine(msg);
-        Console.WriteLine(msg);
-        Console.WriteLine($"[VOICE][HOME] Service parameter null? {service == null}");
-        
-        _voiceRecognitionService = service;
-        
-        if (_voiceRecognitionService != null)
-        {
-            System.Diagnostics.Debug.WriteLine("[VOICE][HOME] Subscribing to voice events...");
-            Console.WriteLine("[VOICE][HOME] Subscribing to voice events...");
-            
-            _voiceRecognitionService.TextRecognized += OnVoiceTextRecognized;
-            _voiceRecognitionService.StateChanged += OnVoiceStateChanged;
-            _voiceRecognitionService.ErrorOccurred += OnVoiceError;
-            
-            System.Diagnostics.Debug.WriteLine("[VOICE][HOME] ✓ Successfully subscribed to all voice events");
-            Console.WriteLine("[VOICE][HOME] ✓ Successfully subscribed to all voice events");
-        }
-        else
-        {
-            var errMsg = "[VOICE][HOME] ✗ WARNING: Service is NULL, cannot subscribe to events!";
-            System.Diagnostics.Debug.WriteLine(errMsg);
-            Console.WriteLine(errMsg);
-        }
-    }
-
     private void InitializeControls()
     {
         _searchInput = this.FindControl<TextBox>("SearchInput");
         _searchEngineSelector = this.FindControl<ComboBox>("SearchEngineSelector");
         _searchButton = this.FindControl<Button>("SearchButton");
-        _voiceButton = this.FindControl<Button>("VoiceButton");
-        _imageSearchButton = this.FindControl<Button>("ImageSearchButton");
         _suggestionsPopup = this.FindControl<Popup>("SuggestionsPopup");
         _suggestionsList = this.FindControl<ItemsControl>("SuggestionsList");
         if (_suggestionsList != null)
@@ -311,23 +266,6 @@ public partial class VetaleSearchHomePage : UserControl
         }
     }
 
-    private void ImageSearch_Click(object? sender, RoutedEventArgs e)
-    {
-        if (_searchInput == null)
-            return;
-
-        var query = _searchInput.Text?.Trim() ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(query))
-        {
-            _searchInput.Focus();
-            return;
-        }
-
-        // Open results page in image search mode
-        var resultsUrl = $"vetale://search/results?mode=images&q={Uri.EscapeDataString(query)}";
-        NavigateRequested?.Invoke(this, resultsUrl);
-    }
-
     private void PerformSearch(bool isLucky = false)
     {
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] PerformSearch called (isLucky={isLucky})");
@@ -406,167 +344,6 @@ public partial class VetaleSearchHomePage : UserControl
                 _searchButton.IsEnabled = !string.IsNullOrWhiteSpace(_searchInput.Text);
             }
         }
-    }
-
-    // Voice recognition event handlers
-    private async void VoiceButton_Click(object? sender, RoutedEventArgs e)
-    {
-        var msg = "🎤🎤🎤 VOICE BUTTON CLICKED 🎤🎤🎤";
-        System.Diagnostics.Debug.WriteLine(msg);
-        Console.WriteLine(msg);
-        System.Diagnostics.Debug.WriteLine("🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤");
-        System.Diagnostics.Debug.WriteLine("🎤 [VOICE][HOME] VOICE BUTTON CLICKED!!! 🎤");
-        System.Diagnostics.Debug.WriteLine($"🎤 [VOICE][HOME] Service null? {_voiceRecognitionService == null}");
-        System.Diagnostics.Debug.WriteLine($"🎤 [VOICE][HOME] State: {_voiceRecognitionService?.CurrentState}");
-        System.Diagnostics.Debug.WriteLine("🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤🎤");
-        
-        Console.WriteLine($"[VOICE][HOME] Service null? {_voiceRecognitionService == null}");
-        
-        if (_voiceRecognitionService == null)
-        {
-            var errMsg = "[VOICE][HOME] ✗✗✗ Voice recognition service NOT INITIALIZED ✗✗✗";
-            System.Diagnostics.Debug.WriteLine(errMsg);
-            Console.WriteLine(errMsg);
-            return;
-        }
-
-        try
-        {
-            if (_voiceRecognitionService.CurrentState == VoiceRecognitionState.Listening)
-            {
-                System.Diagnostics.Debug.WriteLine("[VOICE][HOME] Currently listening, will stop");
-                Console.WriteLine("[VOICE][HOME] Currently listening, will stop");
-                _voiceRecognitionService.StopListening();
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("[VOICE][HOME] Checking IsAvailable...");
-                Console.WriteLine("[VOICE][HOME] Checking IsAvailable...");
-                
-                var available = _voiceRecognitionService.IsAvailable();
-                
-                System.Diagnostics.Debug.WriteLine($"[VOICE][HOME] IsAvailable = {available}");
-                Console.WriteLine($"[VOICE][HOME] IsAvailable = {available}");
-                
-                if (!available)
-                {
-                    System.Diagnostics.Debug.WriteLine("[VOICE][HOME] ✗ Voice recognition not available");
-                    Console.WriteLine("[VOICE][HOME] ✗ Voice recognition not available");
-
-                    // Try to provide a more actionable reason. The service logs the exact init error.
-                    // Keep the message user-friendly.
-                    OnVoiceError(this, "Розпізнавання голосу недоступне. Перевір: чи є мікрофон, чи він дозволений в системі, і чи не зайнятий іншою програмою. (Деталі дивись в логах) ");
-                    return;
-                }
-
-                System.Diagnostics.Debug.WriteLine("[VOICE][HOME] ✓ Starting voice recognition...");
-                Console.WriteLine("[VOICE][HOME] ✓ Starting voice recognition...");
-                
-                await _voiceRecognitionService.StartListeningAsync();
-                
-                System.Diagnostics.Debug.WriteLine("[VOICE][HOME] ✓ StartListeningAsync completed");
-                Console.WriteLine("[VOICE][HOME] ✓ StartListeningAsync completed");
-            }
-        }
-        catch (Exception ex)
-        {
-            var errMsg = $"[VOICE][HOME] ✗✗✗ VoiceButton_Click EXCEPTION: {ex.Message}";
-            System.Diagnostics.Debug.WriteLine(errMsg);
-            System.Diagnostics.Debug.WriteLine($"[VOICE][HOME] Stack: {ex.StackTrace}");
-            Console.WriteLine(errMsg);
-            Console.WriteLine($"Stack: {ex.StackTrace}");
-            OnVoiceError(this, $"Помилка: {ex.Message}");
-        }
-    }
-
-    private async void OnVoiceTextRecognized(object? sender, string text)
-    {
-        System.Diagnostics.Debug.WriteLine($"[VOICE][HOME] ✓ Voice text recognized: '{text}'");
-        
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            System.Diagnostics.Debug.WriteLine("[VOICE][HOME] ⚠️ Recognized text is empty!");
-            return;
-        }
-        
-        // Update UI on the UI thread
-        await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
-        {
-            try
-            {
-                System.Diagnostics.Debug.WriteLine("[VOICE][HOME] Setting search input text...");
-                
-                if (_searchInput != null)
-                {
-                    _searchInput.Text = text;
-                    System.Diagnostics.Debug.WriteLine($"[VOICE][HOME] ✓ Search input text set to: '{_searchInput.Text}'");
-                    
-                    if (_searchButton != null)
-                    {
-                        _searchButton.IsEnabled = !string.IsNullOrWhiteSpace(text);
-                        System.Diagnostics.Debug.WriteLine($"[VOICE][HOME] Search button enabled: {_searchButton.IsEnabled}");
-                    }
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("[VOICE][HOME] ⚠️ Search input is null!");
-                }
-                
-                // Automatically stop after recognition
-                System.Diagnostics.Debug.WriteLine("[VOICE][HOME] Stopping voice recognition...");
-                _voiceRecognitionService?.StopListening();
-                
-                // Small async delay before search to update UI
-                await System.Threading.Tasks.Task.Delay(150);
-                
-                // Automatically perform search
-                System.Diagnostics.Debug.WriteLine("[VOICE][HOME] Performing search...");
-                PerformSearch();
-                System.Diagnostics.Debug.WriteLine("[VOICE][HOME] ✓ Search performed!");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[VOICE][HOME] ✗ Error in OnVoiceTextRecognized: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[VOICE][HOME] Stack trace: {ex.StackTrace}");
-            }
-        });
-    }
-
-    private void OnVoiceStateChanged(object? sender, VoiceRecognitionState state)
-    {
-        System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] Voice state changed: {state}");
-        
-        // Update UI on the UI thread
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-        {
-            if (_voiceButton != null)
-            {
-                // Change button appearance based on state
-                var iconText = state switch
-                {
-                    VoiceRecognitionState.Listening => "⏹️", // Stop
-                    VoiceRecognitionState.Processing => "⏳", // Processing
-                    _ => "🎤" // Microphone
-                };
-                
-                // Create a new TextBlock
-                _voiceButton.Content = new TextBlock 
-                { 
-                    Text = iconText,
-                    FontSize = 20
-                };
-                
-                _voiceButton.IsEnabled = state != VoiceRecognitionState.Processing;
-            }
-        });
-    }
-
-    private void OnVoiceError(object? sender, string error)
-    {
-        System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] Voice error: {error}");
-        
-        // TODO: Show error message to the user
-        // For example, via MessageBox or Toast notification
     }
 
     private void OnThemeChanged(object? sender, EventArgs e)

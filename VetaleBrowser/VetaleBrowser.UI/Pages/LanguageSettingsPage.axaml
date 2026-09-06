@@ -1,26 +1,26 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.LanguageSettingsPage"
-             Background="#FF9800">
+              x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.LanguageSettingsPage"
+              Background="#F3E8FF">
   <UserControl.Styles>
     <Style Selector="Button">
-      <Setter Property="Background" Value="#2E7D32"/>
-      <Setter Property="Foreground" Value="White"/>
-      <Setter Property="BorderBrush" Value="#1B5E20"/>
+      <Setter Property="Background" Value="White"/>
+      <Setter Property="Foreground" Value="#FF7C3AED"/>
+      <Setter Property="BorderBrush" Value="#FFA78BFA"/>
       <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="CornerRadius" Value="6"/>
       <Setter Property="Cursor" Value="Hand"/>
     </Style>
     <Style Selector="Button:pointerover">
-      <Setter Property="Background" Value="#388E3C"/>
-      <Setter Property="BorderBrush" Value="#2E7D32"/>
+      <Setter Property="Background" Value="#FFF5F3FF"/>
+      <Setter Property="BorderBrush" Value="#FF7C3AED"/>
     </Style>
     <Style Selector="Button:pressed">
-      <Setter Property="Background" Value="#1B5E20"/>
+      <Setter Property="Background" Value="#FFEBE4FF"/>
     </Style>
     <Style Selector="Border.button-panel">
-      <Setter Property="Background" Value="#FF9800"/>
-      <Setter Property="BorderBrush" Value="#F57C00"/>
+      <Setter Property="Background" Value="#F3E8FF"/>
+      <Setter Property="BorderBrush" Value="#A78BFA"/>
       <Setter Property="BorderThickness" Value="0,1,0,0"/>
     </Style>
   </UserControl.Styles>

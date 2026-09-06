@@ -4,8 +4,24 @@
     <option name="projectPerEditor">
       <map>
         <entry key="VetaleBrowser/VetaleBrowser.DevTools/Pages/HtmlEditorPage.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Elements/NavigationBar.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Pages/AddBookmarkPage.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Pages/AppearanceMainPage.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Pages/LanguageSettingsPage.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Pages/MainWindowAppearanceSettingsPage.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Pages/NormalModePage.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Pages/SearchEngineSettingsPage.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Pages/TabAppearanceSettingsPage.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Pages/ToolsMainPage.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Pages/VideoFullscreenPage.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Sources/Icons/IconResources.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Theme/SuperLiteWindow.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/TranslationsDictionaries/Strings.ru.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Windows/BookmarksWindow.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
         <entry key="VetaleBrowser/VetaleBrowser.UI/Windows/HistoryWindow.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Windows/SettingsWindow.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
         <entry key="VetaleBrowser/VetaleBrowser.UI/Windows/TabOverflowWindow.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Windows/ToolsWindow.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
         <entry key="VetaleBrowser/VetaleBrowser.UI/Windows/UserAgreementWindow.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
         <entry key="VetaleBrowser/VetaleBrowser.UI/Windows/VetaleAIWindow.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
       </map>

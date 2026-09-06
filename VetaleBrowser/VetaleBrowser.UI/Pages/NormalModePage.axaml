@@ -34,7 +34,7 @@
             <Setter Property="Foreground" Value="#303030"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Width" Value="40"/>
-            <Setter Property="Height" Value="28"/>
+            <Setter Property="Height" Value="40"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -106,14 +106,15 @@
                 
                 <!-- window controls on the right -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Name="MinimizeButton" Classes="window-control" ToolTip.Tip="{DynamicResource Window.Minimize}" Padding="0">
-                        <Image Source="{DynamicResource MinButtonImage}" Stretch="Uniform"/>
+                    <Button Name="VideoFullscreenButton" Classes="window-control" ToolTip.Tip="Відео на весь екран" Padding="8" FontFamily="Segoe UI Symbol" FontSize="16" Content="⛶"/>
+                    <Button Name="MinimizeButton" Classes="window-control" ToolTip.Tip="{DynamicResource Window.Minimize}" Padding="8">
+                        <Image Source="{DynamicResource MinButtonImage}" Stretch="Uniform" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
-                    <Button Name="MaximizeButton" Classes="window-control" ToolTip.Tip="{DynamicResource Window.Maximize}" Padding="0">
-                        <Image Source="{DynamicResource MaxButtonImage}" Stretch="Uniform"/>
+                    <Button Name="MaximizeButton" Classes="window-control" ToolTip.Tip="{DynamicResource Window.Maximize}" Padding="8">
+                        <Image Source="{DynamicResource MaxButtonImage}" Stretch="Uniform" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
-                    <Button Name="CloseButton" Classes="window-control close" ToolTip.Tip="{DynamicResource Window.Close}" Padding="0" BorderThickness="0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
-                        <Image Source="{DynamicResource CloseButtonImage}" Stretch="UniformToFill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0"/>
+                    <Button Name="CloseButton" Classes="window-control close" ToolTip.Tip="{DynamicResource Window.Close}" Padding="8" BorderThickness="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                        <Image Source="{DynamicResource CloseButtonImage}" Stretch="Uniform" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
                 </StackPanel>
             </Grid>

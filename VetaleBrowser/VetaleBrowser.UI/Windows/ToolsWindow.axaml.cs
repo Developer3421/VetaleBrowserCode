@@ -16,7 +16,7 @@ namespace VetaleBrowser.VetaleBrowser.UI.Windows;
 public partial class ToolsWindow : Window
 {
     private Grid? _contentArea;
-    private Grid? _topBarGrid;
+    private Border? _topBarGrid;
     private ToolsMainPage? _mainPage;
     private ToolsWebViewPage? _webViewPage;
     private IAppearanceSettingsService? _appearanceSettingsService;
@@ -25,7 +25,7 @@ public partial class ToolsWindow : Window
     {
         InitializeComponent();
         _contentArea = this.FindControl<Grid>("ContentArea");
-        _topBarGrid = this.FindControl<Grid>("TopBarGrid");
+        _topBarGrid = this.FindControl<Border>("TopBarGrid");
         InitializeAppearanceService();
         Loaded += OnLoaded;
         InitializePages();

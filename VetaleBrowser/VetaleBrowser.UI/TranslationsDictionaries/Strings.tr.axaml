@@ -7,7 +7,6 @@
   <x:String x:Key="Console.Title">Konsol — Vetale Tarayıcı</x:String>
   <x:String x:Key="History.Title">Geçmiş — Vetale Tarayıcı</x:String>
   <x:String x:Key="Bookmarks.Title">Yer İmleri — Vetale Tarayıcı</x:String>
-  <x:String x:Key="DevTools.Title">Geliştirici Araçları — Vetale Tarayıcı</x:String>
   <x:String x:Key="VetaleAI.Title">Vetale AI Sohbet — Vetale Tarayıcı</x:String>
   <x:String x:Key="About.Title">Hakkında — Vetale Tarayıcı</x:String>
 
@@ -202,9 +201,6 @@
   <x:String x:Key="Tools.Replika.Name">Replika AI</x:String>
   <x:String x:Key="Tools.Replika.Description">Sohbet için AI arkadaşı</x:String>
   
-  <x:String x:Key="Tools.DevTools.Name">Vetale DevTools</x:String>
-  <x:String x:Key="Tools.DevTools.Description">Geliştirici araçları</x:String>
-  
   <x:String x:Key="Tools.History.Name">Geçmiş</x:String>
   <x:String x:Key="Tools.History.Description">Gözatma geçmişi</x:String>
   
@@ -212,83 +208,6 @@
   <x:String x:Key="Tools.UserAgreement.Description">GDPR gizlilik politikasını ve kullanıcı sözleşmesini görüntüle</x:String>
   
   <x:String x:Key="Tools.NavigateButton">→ Tarayıcıda aç</x:String>
-
-  <!-- DevTools -->
-  <x:String x:Key="DevTools.Header">Geliştirici Araçları</x:String>
-  <x:String x:Key="DevTools.Tab.Main">Ana Sayfa</x:String>
-  <x:String x:Key="DevTools.Tab.Elements">Öğeler</x:String>
-  <x:String x:Key="DevTools.Tab.Network">Ağ</x:String>
-  <x:String x:Key="DevTools.Tab.Sources">Kaynaklar</x:String>
-  <x:String x:Key="DevTools.Tab.HtmlEditor">HTML Editörü</x:String>
-  <x:String x:Key="DevTools.Tab.Application">Uygulama</x:String>
-  <x:String x:Key="DevTools.Tab.Performance">Performans</x:String>
-  <x:String x:Key="DevTools.Tab.WebViewWorker">WebView Worker</x:String>
-
-  <!-- DevTools Araç Listesi -->
-  <x:String x:Key="DevTools.Tool.Elements.Title">Öğe Denetleyicisi</x:String>
-  <x:String x:Key="DevTools.Tool.Elements.Description">Mevcut sayfanın DOM yapısını görüntüle ve düzenle</x:String>
-  
-  <x:String x:Key="DevTools.Tool.Network.Title">Ağ Monitörü</x:String>
-  <x:String x:Key="DevTools.Tool.Network.Description">Tüm HTTP/HTTPS isteklerini ve yanıtlarını izle</x:String>
-  
-  <x:String x:Key="DevTools.Tool.Sources.Title">Kaynak Görüntüleyici</x:String>
-  <x:String x:Key="DevTools.Tool.Sources.Description">JavaScript, CSS ve HTML dosyalarını görüntüle ve hata ayıkla</x:String>
-  
-  <x:String x:Key="DevTools.Tool.HtmlEditor.Title">HTML Editörü</x:String>
-  <x:String x:Key="DevTools.Tool.HtmlEditor.Description">Canlı önizleme ve sözdizimi vurgulamalı profesyonel HTML editörü</x:String>
-  
-  <x:String x:Key="DevTools.Tool.Application.Title">Uygulama Depolama</x:String>
-  <x:String x:Key="DevTools.Tool.Application.Description">Cookies, Local Storage, Session Storage ve Önbelleği yönet</x:String>
-  
-  <x:String x:Key="DevTools.Tool.Performance.Title">Performans Analizörü</x:String>
-  <x:String x:Key="DevTools.Tool.Performance.Description">CPU, Bellek profilini çıkar ve sayfa performansını analiz et</x:String>
-
-  <!-- DevTools - Performans Sayfası -->
-  <x:String x:Key="DevTools.Performance.CapturePerformance">Performansı yakala</x:String>
-  <x:String x:Key="DevTools.Performance.GetWebVitals">Web Vitals al</x:String>
-  <x:String x:Key="DevTools.Performance.LoadTime">Yükleme süresi</x:String>
-  <x:String x:Key="DevTools.Performance.DomContentLoaded">DOM yüklendi</x:String>
-  <x:String x:Key="DevTools.Performance.FirstPaint">İlk boyama</x:String>
-  <x:String x:Key="DevTools.Performance.MemoryUsage">Bellek kullanımı</x:String>
-  <x:String x:Key="DevTools.Performance.CoreWebVitals">Core Web Vitals</x:String>
-  <x:String x:Key="DevTools.Performance.ResourceTimings">Kaynak zamanlamaları</x:String>
-
-  <!-- DevTools - Öğeler Sayfası -->
-  <x:String x:Key="DevTools.Elements.Query">Sorgu</x:String>
-  <x:String x:Key="DevTools.Elements.CaptureDom">DOM yakala</x:String>
-  <x:String x:Key="DevTools.Elements.DomTree">DOM ağacı</x:String>
-  <x:String x:Key="DevTools.Elements.SelectElement">Öğe seç</x:String>
-  <x:String x:Key="DevTools.Elements.Attributes">Öznitelikler</x:String>
-  <x:String x:Key="DevTools.Elements.ComputedStyles">Hesaplanan stiller</x:String>
-
-  <!-- DevTools - Uygulama Sayfası -->
-  <x:String x:Key="DevTools.Application.CaptureStorage">Depolamayı yakala</x:String>
-  <x:String x:Key="DevTools.Application.ClearCookies">Cookies temizle</x:String>
-  <x:String x:Key="DevTools.Application.StorageTypes">Depolama türleri</x:String>
-  <x:String x:Key="DevTools.Application.LocalStorage">Yerel Depolama</x:String>
-  <x:String x:Key="DevTools.Application.SessionStorage">Oturum Depolama</x:String>
-  <x:String x:Key="DevTools.Application.Cookies">Cookies</x:String>
-  <x:String x:Key="DevTools.Application.IndexedDB">IndexedDB</x:String>
-  <x:String x:Key="DevTools.Application.SelectStorageType">Depolama türü seç</x:String>
-  <x:String x:Key="DevTools.Application.Key">Anahtar:</x:String>
-  <x:String x:Key="DevTools.Application.Value">Değer:</x:String>
-
-  <!-- DevTools - Kaynaklar Sayfası -->
-  <x:String x:Key="DevTools.Sources.CaptureSources">Kaynakları yakala</x:String>
-  <x:String x:Key="DevTools.Sources.GetHtml">HTML al</x:String>
-  <x:String x:Key="DevTools.Sources.FileTree">Dosya ağacı</x:String>
-  <x:String x:Key="DevTools.Sources.FilterByType">Türe göre filtrele:</x:String>
-  <x:String x:Key="DevTools.Sources.All">Hepsi</x:String>
-  <x:String x:Key="DevTools.Sources.Scripts">Betikler</x:String>
-  <x:String x:Key="DevTools.Sources.Stylesheets">Stil sayfaları</x:String>
-  <x:String x:Key="DevTools.Sources.Images">Görseller</x:String>
-  <x:String x:Key="DevTools.Sources.Inline">Satır içi</x:String>
-  <x:String x:Key="DevTools.Sources.SelectFile">Dosya seç</x:String>
-  <x:String x:Key="DevTools.Sources.Type">Tür:</x:String>
-  <x:String x:Key="DevTools.Sources.Size">Boyut:</x:String>
-  <x:String x:Key="DevTools.Sources.ExecuteJavaScript">JavaScript çalıştır:</x:String>
-  <x:String x:Key="DevTools.Sources.EnterJavaScriptCode">JavaScript kodu girin...</x:String>
-  <x:String x:Key="DevTools.Sources.Execute">Çalıştır</x:String>
 
   <!-- HTML Editörü -->
   <x:String x:Key="HtmlEditor.New">Yeni</x:String>
@@ -299,26 +218,6 @@
   <x:String x:Key="HtmlEditor.Validate">HTML doğrula</x:String>
 
   <!-- WebView Worker -->
-  <x:String x:Key="DevTools.WebViewWorker.Title">WebView Worker</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Description">Web sayfalarını test etmek ve hata ayıklamak için ayrı WebView örneği</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.CurrentTab">Mevcut aktif sekme:</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.NoActiveTab">Aktif sekme yok</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.LoadCurrentTab">Mevcut sekmeden yükle</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.EnterUrl">URL veya arama sorgusu girin...</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Go">Git</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Back">Geri</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Forward">İleri</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Refresh">Yenile</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Placeholder">WebView Worker hazır. URL girin veya mevcut sekmeden yükleyin.</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Ready">Hazır</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.WebViewReady">WebView başlatıldı ve hazır</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Loading">Yükleniyor...</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Loaded">Sayfa yüklendi</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Refreshing">Sayfa yenileniyor...</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.Navigating">Geziniyor...</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.NoUrlToLoad">Mevcut sekmeden yüklenecek URL yok</x:String>
-  <x:String x:Key="DevTools.WebViewWorker.LoadingFromTab">Mevcut sekmeden URL yükleniyor...</x:String>
-
   <!-- VetaleAI Sohbet -->
   <x:String x:Key="VetaleAI.Header">Vetale AI Sohbet</x:String>
   <x:String x:Key="VetaleAI.InputPlaceholder">Mesajınızı yazın...</x:String>
@@ -694,20 +593,24 @@
   <x:String x:Key="UserAgreement.TitleView">Kullanıcı Sözleşmesi - Vetale Browser (Görüntüle)</x:String>
   <x:String x:Key="UserAgreement.Header">Kullanıcı Sözleşmesi</x:String>
   <x:String x:Key="UserAgreement.Welcome">Vetale Browser'a Hoş Geldiniz</x:String>
-  <x:String x:Key="UserAgreement.Introduction">Vetale Browser'ı kullanmadan önce lütfen bu Kullanıcı Sözleşmesini okuyun ve kabul edin. Bu sözleşme, hangi verileri topladığımızı ve size en iyi tarama deneyimini sunmak için internet hizmetlerini nasıl kullandığımızı açıklar.</x:String>
+  <x:String x:Key="UserAgreement.Introduction">Bu sözleşme, Vetale Browser tarafından hangi verilerin toplandığını ve internet hizmetlerinin nasıl kullanıldığını açıklar.</x:String>
   <x:String x:Key="UserAgreement.GDPR.Title">GDPR Uyumluluk Bildirimi</x:String>
   <x:String x:Key="UserAgreement.GDPR.Description">Avrupa Birliği'nin Genel Veri Koruma Yönetmeliği (GDPR) uyarınca, veri toplama hakkında sizi bilgilendirmek ve kişisel verileri işlemeden önce onayınızı almak zorundayız.</x:String>
   <x:String x:Key="UserAgreement.Components.Title">📊 Veri Toplayabilecek Bileşenler</x:String>
-  <x:String x:Key="UserAgreement.Search.Title">Arama Motoru Entegrasyonu (MetaSearx)</x:String>
-  <x:String x:Key="UserAgreement.Search.Description">Web araması için MetaSearx API kullanılmaktadır - Google, Bing, DuckDuckGo ve diğer arama motorlarından sonuçları toplayan açık bir meta arama motorudur. Sorgularınız metasearx.com üzerinden işlenir.</x:String>
-  <x:String x:Key="UserAgreement.AI.Title">AI Sohbet Hizmetleri (Vetale AI)</x:String>
-  <x:String x:Key="UserAgreement.AI.Description">AI özellikleri için Perplexity AI ve diğer AI hizmetlerinin web sürümleri kullanılmaktadır. API anahtarları GEREKMİYOR - tarayıcı AI sağlayıcılarının herkese açık web arayüzleriyle çalışır.</x:String>
+  <x:String x:Key="UserAgreement.Search.Title">Web Arama (MetaSearx, Wikipedia, Web Archive, Curlie, Google Önerileri)</x:String>
+  <x:String x:Key="UserAgreement.Search.Description">Web arama şunları kullanır: MetaSearx API (metasearx.com), Wikipedia API, Internet Archive (Web Archive), Curlie dizini ve Google Suggestions. Sorgularınız bu hizmetlere gönderilir.</x:String>
+  <x:String x:Key="UserAgreement.AI.Title">AI Hizmetleri (Google Gemini, Vetale AI, Web Sohbetleri)</x:String>
+  <x:String x:Key="UserAgreement.AI.Description">AI özellikleri: Google Gemini API ile arama özetleri (anahtarınız gerekir, yerel saklanır), Vetale AI sohbeti ve DuckDuckGo AI Chat, Microsoft Copilot, Google Gemini, Replika web sürümleri.</x:String>
   <x:String x:Key="UserAgreement.Voice.Title">Sesli Arama (Whisper - Yerel)</x:String>
   <x:String x:Key="UserAgreement.Voice.Description">Sesli giriş Whisper kullanılarak bilgisayarınızda YEREL olarak işlenir. Ses harici sunuculara GÖNDERİLMEZ - tüm tanıma çevrimdışı gerçekleşir. Kaliteli tanıma için en az 2 saniye konuşun. ⚠️ UYARI: Sesli arama herhangi bir miktarda RAM kullanabilir. Sınırlı RAM'e sahip cihazlarda dikkatli kullanın.</x:String>
   <x:String x:Key="UserAgreement.Web.Title">Web Gezintisi</x:String>
   <x:String x:Key="UserAgreement.Web.Description">Ziyaret ettiğiniz web siteleri çerezler ayarlayabilir ve politikalarına göre veri toplayabilir. Web oluşturma için CefSharp (Chromium) kullanıyoruz.</x:String>
   <x:String x:Key="UserAgreement.Favicon.Title">Favicon Hizmeti</x:String>
   <x:String x:Key="UserAgreement.Favicon.Description">Web sitesi simgeleri harici API'ler aracılığıyla alınır: favicon.im (birincil), Google S2 Favicons API, DuckDuckGo Icons API veya doğrudan web sitesinden (/favicon.ico). Bu hizmetler sekmelerde ve yer imlerinde simgeleri görüntülemek için kullanılır.</x:String>
+  <x:String x:Key="UserAgreement.MediaSearch.Title">Video ve Harita Arama (YouTube, OpenStreetMap)</x:String>
+  <x:String x:Key="UserAgreement.MediaSearch.Description">Video arama YouTube Data API v3 ile; haritalar OpenStreetMap ile.</x:String>
+  <x:String x:Key="UserAgreement.Security.Title">Güvenlik Denetimi (PhishTank)</x:String>
+  <x:String x:Key="UserAgreement.Security.Description">Site adresleri kimlik avı için PhishTank veritabanında denetlenebilir.</x:String>
   <x:String x:Key="UserAgreement.Download.Title">İndirme Yöneticisi</x:String>
   <x:String x:Key="UserAgreement.Download.Description">Dosyalar doğrudan kaynak web sitelerinden indirilir. İndirme geçmişi cihazınızda yerel olarak saklanır.</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Title">💾 Yerel Olarak Saklanan Veriler</x:String>
@@ -715,7 +618,7 @@
   <x:String x:Key="UserAgreement.LocalStorage.Item1">• Tarama geçmişi ve yer imleri</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item2">• Tarayıcı ayarları ve tercihleri</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item3">• Geri yükleme için sekme oturumları</x:String>
-  <x:String x:Key="UserAgreement.LocalStorage.Item4">• Konsol/DevTools günlükleri</x:String>
+  <x:String x:Key="UserAgreement.LocalStorage.Item4">• Konsol günlükleri</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item5">• İndirilen dosya meta verileri</x:String>
   <x:String x:Key="UserAgreement.LocalStorage.Item6">• Yerel konuşma tanıma için Whisper modelleri</x:String>
   <x:String x:Key="UserAgreement.Rights.Title">⚖️ GDPR Kapsamındaki Haklarınız</x:String>
@@ -730,7 +633,7 @@
   <x:String x:Key="UserAgreement.Disclaimer.NoResponsibility">Geliştirici, aramalarınız veya indirmelerinizden kaynaklanan sisteminize, cihazınıza veya başka herhangi bir zarara ilişkin sorumlu DEĞİLDİR. Bu özellikleri kendi riskinizle kullanırsınız.</x:String>
   <x:String x:Key="UserAgreement.Contact.Title">📧 İletişim</x:String>
   <x:String x:Key="UserAgreement.Contact.Description">Bu sözleşme veya verileriniz hakkında sorularınız varsa, tarayıcı ayarları aracılığıyla tüm yerel verileri temizleyebilir veya proje deposu aracılığıyla bizimle iletişime geçebilirsiniz.</x:String>
-  <x:String x:Key="UserAgreement.Version">Sözleşme Sürümü 2.0 | Son Güncelleme: Aralık 2025</x:String>
+  <x:String x:Key="UserAgreement.Version">Sözleşme Sürümü 3.0 | Son Güncelleme: Eylül 2026</x:String>
   <x:String x:Key="UserAgreement.Checkbox">Yukarıdaki şartları okudum ve kabul ediyorum</x:String>
   <x:String x:Key="UserAgreement.Decline">Reddet</x:String>
   <x:String x:Key="UserAgreement.Accept">Kabul Et ve Devam Et</x:String>

@@ -7,8 +7,6 @@ public enum SecuritySource
 {
     Unknown,
     LocalList,
-    Heuristic,
-    VirusTotal,
-    LocalAndVirusTotal
+    Heuristic
 }
 

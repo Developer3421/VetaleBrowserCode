@@ -59,6 +59,9 @@ class Program
             // CefSharp.Avalonia uses typed CefSettings per view (see CefBrowserConfig).
             // Here we only ensure the persistent data directories exist early.
             CefBrowserConfig.EnsureDirectories();
+            // Drop stale hardcoded language prefs from the profile BEFORE any
+            // WebView/CEF instance locks it (else they override everything).
+            VetaleBrowser.Database.Services.LiteSettingsMigrator.ResetPersistedChromiumLanguage();
             Debug.WriteLine($"[Program] CEF dirs ready: {CefBrowserConfig.UserDataDir}");
         }
         catch

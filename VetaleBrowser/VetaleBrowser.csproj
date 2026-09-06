@@ -67,10 +67,9 @@
         <PackageReference Include="LLamaSharp.Backend.Vulkan" Version="0.25.0" Condition="'$(LlamaBackendChoice)' == 'vulkan'" />
 
         <!-- Audio/recording (Windows) -->
-        <PackageReference Include="NAudio" Version="2.2.1" />
-        <PackageReference Include="NAudio.Core" Version="2.2.1" />
-        <PackageReference Include="NAudio.WinMM" Version="2.2.1" />
-        <PackageReference Include="Microsoft.Playwright" Version="1.62.0" />
+        <PackageReference Include="NAudio" Version="2.4.0" />
+        <PackageReference Include="NAudio.Core" Version="2.4.0" />
+        <PackageReference Include="NAudio.WinMM" Version="2.4.0" />
 
         <!-- Removed Windows-only / non-cross-platform packages -->
         <!-- <PackageReference Include="System.Drawing.Common" Version="10.0.0" /> -->
@@ -89,7 +88,6 @@
     <ItemGroup>
       <None Include="Package.appxmanifest" />
       <Folder Include="VetaleBrowser.AI\Model\" />
-      <Folder Include="VetaleBrowser.DevTools\" />
       <Folder Include="VetaleBrowser.UI\Helpers\ArchitectureTools\" />
       <Folder Include="VetaleBrowser.VoiceRecognition\Models\" />
       <Folder Include="VetaleBrowserOfflineGame\" />

@@ -19,6 +19,7 @@ public partial class NormalModePage : UserControl
     private Button? _minimizeButton;
     private Button? _maximizeButton;
     private Button? _closeButton;
+    private Button? _videoFullscreenButton;
     private Grid? _tabBarRow;
 
     public StackPanel? TabsHostPanel => _tabsHost;
@@ -30,6 +31,7 @@ public partial class NormalModePage : UserControl
     public Button? MinBtn => _minimizeButton;
     public Button? MaxBtn => _maximizeButton;
     public Button? ClsBtn => _closeButton;
+    public Button? VideoFsBtn => _videoFullscreenButton;
     public Grid? TabBar => _tabBarRow;
 
     /// <summary>
@@ -105,6 +107,8 @@ public partial class NormalModePage : UserControl
             
             _closeButton = this.FindControl<Button>("CloseButton");
             System.Diagnostics.Debug.WriteLine($"[NormalModePage] CloseButton: {(_closeButton != null ? "Found" : "NULL")}");
+
+            _videoFullscreenButton = this.FindControl<Button>("VideoFullscreenButton");
             
             _tabBarRow = this.FindControl<Grid>("TabBarRow");
             System.Diagnostics.Debug.WriteLine($"[NormalModePage] TabBarRow: {(_tabBarRow != null ? "Found" : "NULL")}");

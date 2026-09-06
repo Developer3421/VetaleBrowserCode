@@ -2,7 +2,6 @@ using System;
 using Avalonia.Controls;
 using VetaleBrowser.VetaleBrowser.UI.Pages;
 using VetaleBrowser.VetaleBrowser.Search.Services;
-using VetaleBrowser.VetaleBrowser.VoiceRecognition.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Services;
 
@@ -17,22 +16,14 @@ public static class InternalUrlHandler
     // MEMORY OPTIMIZATION: Lazy service providers instead of direct instances
     // Services will be created only when actually needed
     public static Func<ISuggestionsService>? SuggestionsServiceProvider { get; set; }
-    public static Func<IVoiceRecognitionService>? VoiceRecognitionServiceProvider { get; set; }
     
     // Legacy direct properties (for backward compatibility, marked as obsolete)
     private static ISuggestionsService? _cachedSuggestionsService;
-    private static IVoiceRecognitionService? _cachedVoiceService;
     
     public static ISuggestionsService? GlobalSuggestionsService 
     { 
         get => _cachedSuggestionsService ?? SuggestionsServiceProvider?.Invoke();
         set => _cachedSuggestionsService = value;
-    }
-    
-    public static IVoiceRecognitionService? GlobalVoiceRecognitionService 
-    { 
-        get => _cachedVoiceService ?? VoiceRecognitionServiceProvider?.Invoke();
-        set => _cachedVoiceService = value;
     }
     
     /// <summary>
@@ -109,18 +100,6 @@ public static class InternalUrlHandler
         if (GlobalSuggestionsService != null)
             page.SetSuggestionsService(GlobalSuggestionsService);
         
-        System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] GlobalVoiceRecognitionService null? {GlobalVoiceRecognitionService == null}");
-        if (GlobalVoiceRecognitionService != null)
-        {
-            System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] Calling SetVoiceRecognitionService...");
-            page.SetVoiceRecognitionService(GlobalVoiceRecognitionService);
-            System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] SetVoiceRecognitionService called");
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] WARNING: GlobalVoiceRecognitionService is NULL!");
-        }
-        
         var q = GetQueryParameter(url, "q");
         if (!string.IsNullOrWhiteSpace(q))
         {
@@ -165,10 +144,6 @@ public static class InternalUrlHandler
             }
         };
 
-        // Configure services if they are available
-        if (GlobalVoiceRecognitionService != null)
-            page.SetVoiceRecognitionService(GlobalVoiceRecognitionService);
-        
         // Extract the query parameter from the URL
         var query = GetQueryParameter(url, "q");
         System.Diagnostics.Debug.WriteLine($"[InternalUrlHandler] Extracted query: '{query}'");

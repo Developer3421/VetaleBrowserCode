@@ -25,14 +25,6 @@
                         CornerRadius="6,6,0,0"
                         Padding="12,0,8,0"
                         ClipToBounds="False">
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#FFE0E0E0" Offset="0" />
-                            <GradientStop Color="#FFD0D0D0" Offset="0.3" />
-                            <GradientStop Color="#FFC5C5C5" Offset="0.7" />
-                            <GradientStop Color="#FFC0C0C0" Offset="1" />
-                        </LinearGradientBrush>
-                    </Border.Background>
 
                     <Grid ColumnDefinitions="Auto,Auto,*,Auto">
                         <!-- Mute Button (left of favicon) -->
@@ -121,6 +113,20 @@
         </Setter>
     </Style>
 
+    <!-- Base Tab background (SuperLite gray chrome) - overridden by state styles below -->
+    <Style Selector="controls|Tab /template/ Border#PART_Border">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#FFE0E0E0" Offset="0" />
+                <GradientStop Color="#FFD0D0D0" Offset="0.3" />
+                <GradientStop Color="#FFC5C5C5" Offset="0.7" />
+                <GradientStop Color="#FFC0C0C0" Offset="1" />
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="BorderThickness" Value="1,1,1,0" />
+        <Setter Property="BorderBrush" Value="#30000000" />
+    </Style>
+
     <!-- Inactive Tab State (Default, SuperLite gray chrome) -->
     <Style Selector="controls|Tab:not(:active)">
         <Setter Property="Opacity" Value="0.7" />
@@ -147,14 +153,16 @@
     <Style Selector="controls|Tab:active /template/ Border#PART_Border">
         <Setter Property="Background">
             <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="#FFA020F0" Offset="0" />
-                <GradientStop Color="#FF9A1CE8" Offset="0.3" />
-                <GradientStop Color="#FF8E15DC" Offset="0.7" />
-                <GradientStop Color="#FF8612D0" Offset="1" />
+                <GradientStop Color="#FFFF9500" Offset="0" />
+                <GradientStop Color="#FFFF7A00" Offset="0.3" />
+                <GradientStop Color="#FFFF8C00" Offset="0.45" />
+                <GradientStop Color="#FFB14BF4" Offset="0.65" />
+                <GradientStop Color="#FF9A1CE8" Offset="0.85" />
+                <GradientStop Color="#FF7C1FD6" Offset="1" />
             </LinearGradientBrush>
         </Setter>
         <Setter Property="BorderThickness" Value="1,1,1,0" />
-        <Setter Property="BorderBrush" Value="#A78BFA" />
+        <Setter Property="BorderBrush" Value="#FFFF8C00" />
     </Style>
 
     <Style Selector="controls|Tab:active /template/ TextBlock#PART_Title">

@@ -17,7 +17,6 @@ using VetaleBrowser.VetaleBrowser.Search.Services;
 using VetaleBrowser.VetaleBrowser.UI.Services;
 using VetaleBrowser.VetaleBrowser.UI.Windows;
 using VetaleBrowser.VetaleBrowser.Database.Services;
-using VetaleBrowser.VetaleBrowser.VoiceRecognition.Services;
 using VetaleBrowser.VetaleBrowser.UI.Theme;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
@@ -25,7 +24,6 @@ namespace VetaleBrowser.VetaleBrowser.UI.Pages;
 public enum SearchMode
 {
     Sites,
-    Images,
     Videos
 }
 
@@ -43,15 +41,12 @@ public partial class VetaleSearchResultsPage : UserControl
     
     private TextBlock? _searchStats;
     private StackPanel? _resultsPanel;
-    private StackPanel? _imageResultsHost;
     private StackPanel? _videoResultsHost;
-    private Controls.ImageSearchResultsView? _imageResultsView;
     private Controls.VideoSearchResultsView? _videoResultsView;
     private TextBlock? _queryHeading;
     private TextBox? _searchInput;
     private ComboBox? _searchEngineSelector;
     private Button? _searchButton;
-    private Button? _voiceButton;
     private Popup? _suggestionsPopup;
     private ItemsControl? _suggestionsListBox;
     
@@ -65,7 +60,6 @@ public partial class VetaleSearchResultsPage : UserControl
     private readonly ISuggestionsService _suggestionsService;
     private readonly IUnifiedSearchService _unifiedSearchService;
     private readonly IFaviconService _faviconService = new FaviconService();
-    private IVoiceRecognitionService? _voiceRecognitionService;
     private CancellationTokenSource? _suggestionsCts;
     private CancellationTokenSource? _searchCts;
 
@@ -127,15 +121,12 @@ public partial class VetaleSearchResultsPage : UserControl
     {
         _searchStats = this.FindControl<TextBlock>("SearchStats");
         _resultsPanel = this.FindControl<StackPanel>("ResultsPanel");
-        _imageResultsHost = this.FindControl<StackPanel>("ImageResultsHost");
         _videoResultsHost = this.FindControl<StackPanel>("VideoResultsHost");
-        _imageResultsView = this.FindControl<Controls.ImageSearchResultsView>("ImageResultsView");
         _videoResultsView = this.FindControl<Controls.VideoSearchResultsView>("VideoResultsView");
         _queryHeading = this.FindControl<TextBlock>("QueryHeading");
         _searchInput = this.FindControl<TextBox>("SearchInput");
         _searchEngineSelector = this.FindControl<ComboBox>("SearchEngineSelector");
         _searchButton = this.FindControl<Button>("SearchButton");
-        _voiceButton = this.FindControl<Button>("VoiceButton");
         _suggestionsPopup = this.FindControl<Popup>("SuggestionsPopup");
         _suggestionsListBox = this.FindControl<ItemsControl>("SuggestionsListBox");
         
@@ -163,16 +154,6 @@ public partial class VetaleSearchResultsPage : UserControl
             _searchButton.IsEnabled = !string.IsNullOrWhiteSpace(_searchInput?.Text);
         }
 
-        // Connect navigation from ImageResultsView
-        if (_imageResultsView != null)
-        {
-            _imageResultsView.SourcePageOpenRequested += (s, url) =>
-            {
-                if (!string.IsNullOrWhiteSpace(url))
-                    NavigateRequested?.Invoke(this, url);
-            };
-        }
-        
         // Connect navigation from VideoResultsView
         if (_videoResultsView != null)
         {
@@ -192,14 +173,7 @@ public partial class VetaleSearchResultsPage : UserControl
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] SetSearchQuery called with: '{query}', mode='{mode}'");
         _currentQuery = query;
 
-        if (!string.IsNullOrWhiteSpace(mode) && mode.Equals("images", StringComparison.OrdinalIgnoreCase))
-        {
-            _currentMode = SearchMode.Images;
-        }
-        else
-        {
-            _currentMode = SearchMode.Sites;
-        }
+        _currentMode = SearchMode.Sites;
 
         UpdateModeVisuals();
 
@@ -1140,144 +1114,12 @@ public partial class VetaleSearchResultsPage : UserControl
         System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] ===== ResultBorder_Click END =====");
     }
 
-    public void SetVoiceRecognitionService(IVoiceRecognitionService service)
-    {
-        _voiceRecognitionService = service;
-        
-        // Subscribe to events
-        if (_voiceRecognitionService != null)
-        {
-            _voiceRecognitionService.TextRecognized += OnVoiceTextRecognized;
-            _voiceRecognitionService.StateChanged += OnVoiceStateChanged;
-            _voiceRecognitionService.ErrorOccurred += OnVoiceError;
-        }
-    }
-
-    // Voice recognition event handlers
-    private async void VoiceButton_Click(object? sender, RoutedEventArgs e)
-    {
-        if (_voiceRecognitionService == null)
-        {
-            System.Diagnostics.Debug.WriteLine("[VetaleSearchResultsPage] Voice recognition service not initialized");
-            return;
-        }
-
-        try
-        {
-            if (_voiceRecognitionService.CurrentState == VoiceRecognitionState.Listening)
-            {
-                // If already listening, stop
-                _voiceRecognitionService.StopListening();
-            }
-            else
-            {
-                // Check availability
-                if (!_voiceRecognitionService.IsAvailable())
-                {
-                    System.Diagnostics.Debug.WriteLine("[VetaleSearchResultsPage] Voice recognition not available");
-                    OnVoiceError(this, "Розпізнавання голосу недоступне на цьому пристрої");
-                    return;
-                }
-
-                // Start listening
-                await _voiceRecognitionService.StartListeningAsync();
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] VoiceButton_Click error: {ex.Message}");
-            OnVoiceError(this, $"Помилка: {ex.Message}");
-        }
-    }
-
-    private void OnVoiceTextRecognized(object? sender, string text)
-    {
-        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Voice text recognized: {text}");
-        
-        // Update UI on the UI thread
-        Dispatcher.UIThread.Post(() =>
-        {
-            if (_searchInput != null)
-            {
-                _searchInput.Text = text;
-                if (_searchButton != null)
-                {
-                    _searchButton.IsEnabled = !string.IsNullOrWhiteSpace(text);
-                }
-            }
-            
-            // Automatically stop after recognition
-            _voiceRecognitionService?.StopListening();
-            
-            // Automatically perform search
-            PerformSearch();
-        });
-    }
-
-    private void OnVoiceStateChanged(object? sender, VoiceRecognitionState state)
-    {
-        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Voice state changed: {state}");
-        
-        // Update UI on the UI thread
-        Dispatcher.UIThread.Post(() =>
-        {
-            if (_voiceButton != null)
-            {
-                // Change button appearance based on state
-                var iconText = state switch
-                {
-                    VoiceRecognitionState.Listening => "⏹️", // Stop
-                    VoiceRecognitionState.Processing => "⏳", // Processing
-                    _ => "🎤" // Microphone
-                };
-                
-                // Create a new TextBlock
-                _voiceButton.Content = new TextBlock 
-                { 
-                    Text = iconText,
-                    FontSize = 18
-                };
-                
-                _voiceButton.IsEnabled = state != VoiceRecognitionState.Processing;
-            }
-        });
-    }
-
-    private void OnVoiceError(object? sender, string error)
-    {
-        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Voice error: {error}");
-        
-        // TODO: Show error message to the user
-    }
-
     public void GeoSearch_Click(object? sender, RoutedEventArgs e)
     {
         if (_searchInput == null || string.IsNullOrWhiteSpace(_searchInput.Text)) return;
         var query = _searchInput.Text.Trim();
         var mapsUrl = $"https://www.openstreetmap.org/search?query={Uri.EscapeDataString(query)}";
         NavigateRequested?.Invoke(this, mapsUrl);
-    }
-
-    /// <summary>
-    /// Handler for image search button (📷) near the search bar
-    /// </summary>
-    public void ImageSearchButton_Click(object? sender, RoutedEventArgs e)
-    {
-        // Switch to image search mode
-        SetMode(SearchMode.Images);
-        
-        // Start search if there is a query
-        if (!string.IsNullOrWhiteSpace(_currentQuery) && _imageResultsView != null)
-        {
-            _imageResultsView.SetQuery(_currentQuery);
-        }
-        else if (!string.IsNullOrWhiteSpace(_searchInput?.Text) && _imageResultsView != null)
-        {
-            _currentQuery = _searchInput.Text.Trim();
-            _imageResultsView.SetQuery(_currentQuery);
-        }
-        
-        System.Diagnostics.Debug.WriteLine($"[VetaleSearchResultsPage] Image search button clicked, query: {_currentQuery}");
     }
 
     /// <summary>
@@ -1311,20 +1153,15 @@ public partial class VetaleSearchResultsPage : UserControl
     private void UpdateModeVisuals()
     {
         var sitesButton = this.FindControl<Button>("ModeSitesButton");
-        var imagesButton = this.FindControl<Button>("ModeImagesButton");
         var videosButton = this.FindControl<Button>("ModeVideosButton");
         
         sitesButton?.Classes.Remove("active");
-        imagesButton?.Classes.Remove("active");
         videosButton?.Classes.Remove("active");
         
         switch (_currentMode)
         {
             case SearchMode.Sites:
                 sitesButton?.Classes.Add("active");
-                break;
-            case SearchMode.Images:
-                imagesButton?.Classes.Add("active");
                 break;
             case SearchMode.Videos:
                 videosButton?.Classes.Add("active");
@@ -1333,8 +1170,6 @@ public partial class VetaleSearchResultsPage : UserControl
 
         if (_resultsPanel != null)
             _resultsPanel.IsVisible = _currentMode == SearchMode.Sites;
-        if (_imageResultsHost != null)
-            _imageResultsHost.IsVisible = _currentMode == SearchMode.Images;
         if (_videoResultsHost != null)
             _videoResultsHost.IsVisible = _currentMode == SearchMode.Videos;
     }
@@ -1348,54 +1183,6 @@ public partial class VetaleSearchResultsPage : UserControl
         }
     }
 
-    private void ModeImages_Click(object? sender, RoutedEventArgs e)
-    {
-        SetMode(SearchMode.Images);
-        if (_currentQuery != null && _imageResultsView != null)
-        {
-            _imageResultsView.SetQuery(_currentQuery);
-        }
-    }
-    
-
-    /// <summary>
-    /// Shows windows for configuring image search API keys (Pexels, Unsplash)
-    /// </summary>
-    private async Task ShowImageSearchApiKeyPromptAsync()
-    {
-        try
-        {
-            var parentWindow = TopLevel.GetTopLevel(this) as Window;
-            
-            // Callback for navigation in the Vetale browser
-            Action<string> navigateCallback = url => NavigateRequested?.Invoke(this, url);
-            
-            // Show window for Pexels
-            var pexelsResult = await ApiKeyConfigWindow.ShowPexelsConfigAsync(parentWindow, navigateCallback);
-            if (pexelsResult.Saved)
-            {
-                System.Diagnostics.Debug.WriteLine("[VetaleSearch] Pexels API key configured");
-            }
-            
-            // Show window for Unsplash
-            var unsplashResult = await ApiKeyConfigWindow.ShowUnsplashConfigAsync(parentWindow, navigateCallback);
-            if (unsplashResult.Saved)
-            {
-                System.Diagnostics.Debug.WriteLine("[VetaleSearch] Unsplash API key configured");
-            }
-            
-            // Re-initialize the image search service
-            if (_imageResultsView != null)
-            {
-                _imageResultsView.ImageSearchService = ImageSearchServiceFactory.Create();
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[VetaleSearch] Error showing image search API key prompt: {ex.Message}");
-        }
-    }
-    
     private void ModeVideos_Click(object? sender, RoutedEventArgs e)
     {
 

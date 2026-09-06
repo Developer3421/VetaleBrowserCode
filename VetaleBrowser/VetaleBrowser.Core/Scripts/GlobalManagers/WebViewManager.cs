@@ -63,6 +63,37 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.GlobalManagers
         }
 
         /// <summary>
+        /// Navigate without recording engine-side history.
+        /// Used for Back/Forward steps owned by TabWorker.History.
+        /// </summary>
+        public async Task NavigateWithoutHistoryAsync(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url)) throw new ArgumentNullException(nameof(url));
+            if (!_isInitialized || _webView == null)
+            {
+                Debug.WriteLine("WebViewManager: Not initialized, cannot navigate");
+                return;
+            }
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                try
+                {
+                    Debug.WriteLine($"WebViewManager: History navigate to {url}");
+                    // Use the same Address-setter path as NavigateAsync: the
+                    // adapter's NavigateAsync-based LoadUrl proved unreliable
+                    // for Back/Forward steps (old content stayed on screen).
+                    _webView.Address = url;
+                    Navigated?.Invoke(this, url);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"WebViewManager.NavigateWithoutHistoryAsync failed: {ex}");
+                }
+            });
+        }
+
+        /// <summary>
         /// Get current URL.
         /// </summary>
         public string? GetCurrentUrl()
