@@ -8,17 +8,20 @@
   <x:String x:Key="History.Title">Verlauf — Vetale Browser</x:String>
   <x:String x:Key="Bookmarks.Title">Lesezeichen — Vetale Browser</x:String>
   <x:String x:Key="VetaleAI.Title">Vetale AI Chat — Vetale Browser</x:String>
+  <x:String x:Key="About.TitleShort">Browser</x:String>
   <x:String x:Key="About.Title">Über — Vetale Browser</x:String>
 
   <!-- Über-Fenster -->
-  <x:String x:Key="About.Version">Version 1.0</x:String>
+  <x:String x:Key="About.Version">Version 1.0.1</x:String>
   <x:String x:Key="About.Creator.Label">Ersteller</x:String>
-  <x:String x:Key="About.Creator.Name">Oleg Kurylo</x:String>
+  <x:String x:Key="About.Creator.Name">Oleh Kurylo</x:String>
   <x:String x:Key="About.CreationDate.Label">Erstellungsdatum</x:String>
   <x:String x:Key="About.CreationDate.Value">15. Dezember 2025</x:String>
   <x:String x:Key="About.Description">Vetale Browser ist ein moderner Webbrowser, der von Grund auf neu entwickelt wurde. Der Ersteller hat einen langen Weg von der allerersten WPF-Version bis zu dieser aktuellen Avalonia UI-Version zurückgelegt. Der Browser verfügt über einen integrierten KI-Assistenten, Entwicklertools, Download-Manager und viele andere Funktionen für komfortables Surfen im Web.</x:String>
+  <x:String x:Key="About.Technologies.Value">Avalonia UI, C# / .NET 10, CefGlue, LlamaSharp, LiteDB</x:String>
   <x:String x:Key="About.Technologies.Label">Technologien</x:String>
-  <x:String x:Key="About.Copyright">© 2025 Oleg Kurylo. Alle Rechte vorbehalten.</x:String>
+  <x:String x:Key="About.Close">Schließen</x:String>
+  <x:String x:Key="About.Copyright">© 2026 Vetale Browser</x:String>
   
   <!-- Werkzeuge - Über -->
   <x:String x:Key="Tools.About.Name">Über</x:String>

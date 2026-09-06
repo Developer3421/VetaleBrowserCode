@@ -12,3 +12,4 @@ packages/
 # OS
 .DS_Store
 Thumbs.db
+/VetaleBrowser/VetaleBrowser.AI/Model/gemma-3-1b-it-UD-Q2_K_XL.gguf

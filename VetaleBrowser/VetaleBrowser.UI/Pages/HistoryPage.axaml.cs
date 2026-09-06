@@ -10,10 +10,24 @@ using VetaleBrowser.VetaleBrowser.UI.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
 
-public class HistoryItemViewModel
+public class HistoryItemViewModel : System.ComponentModel.INotifyPropertyChanged
 {
     public HistoryItem Item { get; set; }
-    public Avalonia.Media.IImage? FaviconImage { get; set; }
+    private Avalonia.Media.IImage? _faviconImage;
+    public Avalonia.Media.IImage? FaviconImage
+    {
+        get => _faviconImage;
+        set
+        {
+            if (!ReferenceEquals(_faviconImage, value))
+            {
+                _faviconImage = value;
+                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(FaviconImage)));
+            }
+        }
+    }
+
+    public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
     
     public int Id => Item.Id;
     public string Url => Item.Url;
@@ -103,34 +117,47 @@ public partial class HistoryPage : UserControl
             // Hide empty state when data is present
             if (_emptyState != null) _emptyState.IsVisible = false;
 
-            // Create ViewModels with favicon loading
+            // Show items immediately, load favicons progressively in background
             var viewModels = new List<HistoryItemViewModel>();
             foreach (var item in historyItems)
             {
-                var vm = new HistoryItemViewModel(item);
-                
-                // Load favicon asynchronously
-                try
-                {
-                    if (!string.IsNullOrWhiteSpace(item.Url) && Uri.TryCreate(item.Url, UriKind.Absolute, out var uri))
-                    {
-                        vm.FaviconImage = await _faviconService.GetFaviconAsync(uri, 20);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[HistoryPage] Error loading favicon for {item.Url}: {ex.Message}");
-                }
-                
-                viewModels.Add(vm);
+                viewModels.Add(new HistoryItemViewModel(item));
             }
-            
+
             _historyItemsControl.ItemsSource = viewModels;
+            _ = LoadFaviconsAsync(viewModels);
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[HistoryPage] Error loading history: {ex.Message}");
             Console.WriteLine($"Error loading history: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Loads favicons in background without blocking the list display
+    /// </summary>
+    private async System.Threading.Tasks.Task LoadFaviconsAsync(List<HistoryItemViewModel> viewModels)
+    {
+        foreach (var vm in viewModels)
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(vm.Url) && Uri.TryCreate(vm.Url, UriKind.Absolute, out var uri))
+                {
+                    var favicon = await _faviconService.GetFaviconAsync(uri, 20);
+                    if (favicon != null)
+                    {
+                        var captured = vm;
+                        var capturedIcon = favicon;
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() => captured.FaviconImage = capturedIcon);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[HistoryPage] Error loading favicon for {vm.Url}: {ex.Message}");
+            }
         }
     }
 

@@ -7,13 +7,12 @@
         Title="{DynamicResource VetaleAI.Complaint.WindowTitle}"
         WindowStartupLocation="CenterOwner"
         SystemDecorations="None"
-        Background="#FF8B4513"
-        BorderThickness="1"
-        BorderBrush="#22000000"
+        Background="Transparent"
+        BorderThickness="0"
         CanResize="False"
         Width="650"
         Height="520"
-        Padding="8"
+        Padding="0"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaTitleBarHeightHint="42"
         UseLayoutRounding="True"
@@ -26,43 +25,58 @@
             <GradientStop Color="#FFC5C5C5" Offset="0.7"/>
             <GradientStop Color="#FFC0C0C0" Offset="1"/>
         </LinearGradientBrush>
+        <LinearGradientBrush x:Key="PurpleGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#FFA020F0" Offset="0"/>
+            <GradientStop Color="#FF9A1CE8" Offset="0.3"/>
+            <GradientStop Color="#FF8E15DC" Offset="0.7"/>
+            <GradientStop Color="#FF8612D0" Offset="1"/>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="TitleOrangeBrush" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#FFFF9500" Offset="0"/>
+            <GradientStop Color="#FFFF5E00" Offset="1"/>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="TitlePurpleBrush" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#FFB14BF4" Offset="0"/>
+            <GradientStop Color="#FF7C1FD6" Offset="1"/>
+        </LinearGradientBrush>
     </Window.Resources>
 
     <Window.Styles>
         <StyleInclude Source="avares://VetaleBrowser/VetaleBrowser.UI/Theme/SuperLiteWindow.axaml"/>
-        
-        
-        
-
-        <Style Selector="Button.primary-btn">
-            <Setter Property="Background" Value="#4CAF50"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
+        <!-- Lite dialog buttons: white with purple accent -->
+        <Style Selector="Button:not(.window-control)">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#FF7C3AED"/>
+            <Setter Property="BorderBrush" Value="#FFA78BFA"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="20,10"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button:not(.window-control):pointerover">
+            <Setter Property="Background" Value="#FFF5F3FF"/>
+        </Style>
+        <Style Selector="Button:not(.window-control):pressed">
+            <Setter Property="Background" Value="#FFEBE4FF"/>
+        </Style>
+        <!-- Primary action: solid purple -->
+        <Style Selector="Button.primary-btn">
+            <Setter Property="Background" Value="#9A1CE8"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
         </Style>
         <Style Selector="Button.primary-btn:pointerover">
-            <Setter Property="Background" Value="#66BB6A"/>
+            <Setter Property="Background" Value="#8612D0"/>
         </Style>
         <Style Selector="Button.primary-btn:pressed">
-            <Setter Property="Background" Value="#43A047"/>
+            <Setter Property="Background" Value="#7C1FD6"/>
         </Style>
-
-        <Style Selector="Button.secondary-btn">
-            <Setter Property="Background" Value="#757575"/>
-            <Setter Property="Foreground" Value="White"/>
+        <!-- Title button stays transparent -->
+        <Style Selector="Button#PART_OpenMainButton">
+            <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="20,10"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.secondary-btn:pointerover">
-            <Setter Property="Background" Value="#9E9E9E"/>
         </Style>
 
         <Style Selector="TextBox.complaint-input">
@@ -78,63 +92,66 @@
         </Style>
 
         <Style Selector="TextBox.complaint-input:focus">
-            <Setter Property="BorderBrush" Value="#4CAF50"/>
+            <Setter Property="BorderBrush" Value="#9A1CE8"/>
             <Setter Property="BorderThickness" Value="2"/>
         </Style>
     </Window.Styles>
 
-    <Grid RowDefinitions="Auto,*">
-        <!-- Top bar -->
-        <Grid x:Name="TopBarGrid" Grid.Row="0" Height="40" Background="{StaticResource GrayGradient}" PointerPressed="TopBar_PointerPressed">
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto" VerticalAlignment="Center">
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0" Spacing="8">
-                    <TextBlock Text="⚠️" FontSize="18" VerticalAlignment="Center"/>
-                    <TextBlock Text="{DynamicResource VetaleAI.Complaint.WindowTitle}" FontWeight="SemiBold" Foreground="#202020" VerticalAlignment="Center"/>
-                </StackPanel>
+    <!-- Lite outer frame: rounded gray, like other dialogs -->
+    <Border BorderBrush="#30000000" BorderThickness="1" CornerRadius="10" Background="{StaticResource GrayGradient}">
+        <Grid RowDefinitions="40,8,*,Auto">
+            <!-- Title bar (like other windows) -->
+            <Border Grid.Row="0" Background="Transparent" CornerRadius="10,10,0,0"
+                    PointerPressed="TopBar_PointerPressed" DoubleTapped="TopBar_DoubleTapped">
+                <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" VerticalAlignment="Center">
+                    <TextBlock Grid.Column="0" Text="⚠️" FontSize="18" Margin="14,0,8,0" VerticalAlignment="Center"/>
+                    <Button Grid.Column="1" x:Name="PART_OpenMainButton" Click="OpenMainWindow" Background="Transparent" BorderThickness="0" Padding="6,4" Cursor="Hand">
+                        <TextBlock FontSize="14" FontWeight="Bold" VerticalAlignment="Center">
+                            <Run Text="Vetale " Foreground="{StaticResource TitleOrangeBrush}"/>
+                            <Run Text="{DynamicResource VetaleAI.Complaint.WindowTitle}" Foreground="{StaticResource TitlePurpleBrush}"/>
+                        </TextBlock>
+                    </Button>
+                    <Border Grid.Column="2"/>
+                    <Button Grid.Column="3" Classes="window-control" Click="MinimizeWindow" ToolTip.Tip="{DynamicResource Window.Minimize}" Padding="8">
+                        <Image Source="{DynamicResource MinButtonImage}" Stretch="Uniform" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Button>
+                    <Button Grid.Column="4" Classes="window-control close" Click="CloseWindow" ToolTip.Tip="{DynamicResource Window.Close}" Padding="8" BorderThickness="0" Margin="0,0,8,0">
+                        <Image Source="{DynamicResource CloseButtonImage}" Stretch="Uniform" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Button>
+                </Grid>
+            </Border>
 
-                <!-- Spacer -->
-                <Border Grid.Column="1"/>
+            <!-- Purple band + white content (like other windows) -->
+            <Border Grid.Row="2" Background="{StaticResource PurpleGradient}" BorderBrush="#30000000"
+                    BorderThickness="0,1,0,1" Margin="8,0" CornerRadius="6">
+                <Border Background="White" CornerRadius="6" Margin="8,6" ClipToBounds="True">
+                    <ScrollViewer>
+                        <StackPanel Margin="24" Spacing="16">
+                            <TextBlock Text="{DynamicResource VetaleAI.Complaint.Description}"
+                                       FontSize="14" Foreground="#333333" TextWrapping="Wrap"/>
 
-                <!-- Window control buttons (like other windows) -->
-                <Button Grid.Column="2" Classes="window-control" Click="MinimizeWindow" ToolTip.Tip="{DynamicResource Window.Minimize}" Padding="8">
-                    <Image Source="{DynamicResource MinButtonImage}" Stretch="Uniform" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Button>
-                <Button Grid.Column="3" Classes="window-control close" Click="CloseWindow" ToolTip.Tip="{DynamicResource Window.Close}" Padding="8" BorderThickness="0">
-                    <Image Source="{DynamicResource CloseButtonImage}" Stretch="Uniform" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Button>
-            </Grid>
-        </Grid>
+                            <TextBox x:Name="ComplaintTextBox"
+                                     Classes="complaint-input"
+                                     Watermark="{DynamicResource VetaleAI.Complaint.Watermark}"/>
 
-        <!-- Content -->
-        <Border Grid.Row="1" Background="Beige" CornerRadius="0,0,10,10" Margin="0,2,0,0">
-            <ScrollViewer>
-                <StackPanel Margin="24" Spacing="16">
-                    <TextBlock Text="{DynamicResource VetaleAI.Complaint.Description}" 
-                               FontSize="14" Foreground="#333333" TextWrapping="Wrap"/>
+                            <Border Background="#F3E8FF" CornerRadius="8" Padding="12">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="{DynamicResource VetaleAI.Complaint.AfterSave}" FontWeight="SemiBold" Foreground="#7C1FD6"/>
+                                    <TextBlock Text="{DynamicResource VetaleAI.Complaint.SendEmail}"
+                                               Foreground="#7C1FD6" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
 
-                    <TextBox x:Name="ComplaintTextBox"
-                             Classes="complaint-input"
-                             Watermark="{DynamicResource VetaleAI.Complaint.Watermark}"/>
+                            <TextBlock x:Name="StatusTextBlock" IsVisible="False" FontSize="12" Foreground="#2E7D32" TextWrapping="Wrap"/>
 
-                    <Border Background="#F0F4FF" CornerRadius="8" Padding="12">
-                        <StackPanel Spacing="6">
-                            <TextBlock Text="{DynamicResource VetaleAI.Complaint.AfterSave}" FontWeight="SemiBold" Foreground="#2A4B8D"/>
-                            <TextBlock Text="{DynamicResource VetaleAI.Complaint.SendEmail}" 
-                                       Foreground="#2A4B8D" TextWrapping="Wrap"/>
+                            <Grid ColumnDefinitions="*,Auto,12,Auto,*" Margin="0,8,0,0">
+                                <Button Grid.Column="1" Classes="primary-btn" Click="SaveToFile_Click" Content="{DynamicResource VetaleAI.Complaint.SaveFile}"/>
+                                <Button Grid.Column="3" Click="Cancel_Click" Content="{DynamicResource VetaleAI.Complaint.Cancel}"/>
+                            </Grid>
                         </StackPanel>
-                    </Border>
-
-                    <TextBlock x:Name="StatusTextBlock" IsVisible="False" FontSize="12" Foreground="#2E7D32" TextWrapping="Wrap"/>
-
-                    <Grid ColumnDefinitions="*,Auto,12,Auto,*" Margin="0,8,0,0">
-                        <Button Grid.Column="1" Classes="primary-btn" Click="SaveToFile_Click" Content="{DynamicResource VetaleAI.Complaint.SaveFile}"/>
-                        <Button Grid.Column="3" Classes="secondary-btn" Click="Cancel_Click" Content="{DynamicResource VetaleAI.Complaint.Cancel}"/>
-                    </Grid>
-                </StackPanel>
-            </ScrollViewer>
-        </Border>
-    </Grid>
+                    </ScrollViewer>
+                </Border>
+            </Border>
+        </Grid>
+    </Border>
 </Window>
-
-
-

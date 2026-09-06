@@ -8,17 +8,20 @@
   <x:String x:Key="History.Title">Geçmiş — Vetale Tarayıcı</x:String>
   <x:String x:Key="Bookmarks.Title">Yer İmleri — Vetale Tarayıcı</x:String>
   <x:String x:Key="VetaleAI.Title">Vetale AI Sohbet — Vetale Tarayıcı</x:String>
+  <x:String x:Key="About.TitleShort">Tarayıcı</x:String>
   <x:String x:Key="About.Title">Hakkında — Vetale Tarayıcı</x:String>
 
   <!-- Hakkında Penceresi -->
-  <x:String x:Key="About.Version">Sürüm 1.0</x:String>
+  <x:String x:Key="About.Version">Sürüm 1.0.1</x:String>
   <x:String x:Key="About.Creator.Label">Yaratıcı</x:String>
-  <x:String x:Key="About.Creator.Name">Oleg Kurylo</x:String>
+  <x:String x:Key="About.Creator.Name">Oleh Kurylo</x:String>
   <x:String x:Key="About.CreationDate.Label">Oluşturma Tarihi</x:String>
   <x:String x:Key="About.CreationDate.Value">15 Aralık 2025</x:String>
   <x:String x:Key="About.Description">Vetale Browser, sıfırdan oluşturulmuş modern bir web tarayıcısıdır. Yaratıcı, ilk WPF sürümünden bu güncel Avalonia UI sürümüne kadar uzun bir yol kat etti. Tarayıcı, yerleşik AI asistanı, geliştirici araçları, indirme yöneticisi ve rahat web taraması için tasarlanmış birçok başka özelliğe sahiptir.</x:String>
+  <x:String x:Key="About.Technologies.Value">Avalonia UI, C# / .NET 10, CefGlue, LlamaSharp, LiteDB</x:String>
   <x:String x:Key="About.Technologies.Label">Teknolojiler</x:String>
-  <x:String x:Key="About.Copyright">© 2025 Oleg Kurylo. Tüm hakları saklıdır.</x:String>
+  <x:String x:Key="About.Close">Kapat</x:String>
+  <x:String x:Key="About.Copyright">© 2026 Vetale Browser</x:String>
   
   <!-- Araçlar - Hakkında -->
   <x:String x:Key="Tools.About.Name">Hakkında</x:String>

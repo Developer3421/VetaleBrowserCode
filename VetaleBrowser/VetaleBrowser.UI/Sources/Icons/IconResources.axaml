@@ -27,6 +27,12 @@
     <Bitmap x:Key="SettingsButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/SettingsButton.png</Bitmap>
     <Bitmap x:Key="AddBookmarkButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/AddBookmarkButton.png</Bitmap>
     
+    <!-- App Icon (same artwork as DefaultTabItem.ico, PNG for Avalonia Bitmap) -->
+    <Bitmap x:Key="AppIconImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/AppIcon.png</Bitmap>
     <!-- Vetale Search Icon -->
     <Bitmap x:Key="VetaleSearchIconImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/VetaleSearchIcon.png</Bitmap>
+    <!-- Vetale AI Icon -->
+    <Bitmap x:Key="VetaleAiIconImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/VetaleAiIcon.png</Bitmap>
+    <!-- Microsoft Copilot Icon (local, no network fetch) -->
+    <Bitmap x:Key="CopilotIconImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/icons8-microsoft-copilot-48.png</Bitmap>
 </ResourceDictionary>

@@ -17,6 +17,7 @@
         <entry key="VetaleBrowser/VetaleBrowser.UI/Sources/Icons/IconResources.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
         <entry key="VetaleBrowser/VetaleBrowser.UI/Theme/SuperLiteWindow.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
         <entry key="VetaleBrowser/VetaleBrowser.UI/TranslationsDictionaries/Strings.ru.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
+        <entry key="VetaleBrowser/VetaleBrowser.UI/Windows/AboutWindow.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
         <entry key="VetaleBrowser/VetaleBrowser.UI/Windows/BookmarksWindow.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
         <entry key="VetaleBrowser/VetaleBrowser.UI/Windows/HistoryWindow.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
         <entry key="VetaleBrowser/VetaleBrowser.UI/Windows/SettingsWindow.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />

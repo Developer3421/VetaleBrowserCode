@@ -55,6 +55,30 @@ public partial class VetaleSearchSettingsWindow : Window
         }
     }
 
+    private void TopBar_DoubleTapped(object? sender, Avalonia.Input.TappedEventArgs e)
+    {
+        // Maximize disabled for secondary windows
+    }
+
+    private void MinimizeWindow(object? sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
+
+    private void OpenMainWindow(object? sender, RoutedEventArgs e)
+    {
+        // Find the main window
+        foreach (var window in ((Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)
+            Avalonia.Application.Current!.ApplicationLifetime!).Windows)
+        {
+            if (window is MainWindow mainWindow)
+            {
+                mainWindow.Activate();
+                return;
+            }
+        }
+    }
+
     private void CloseWindow(object? sender, RoutedEventArgs e)
     {
         Close();

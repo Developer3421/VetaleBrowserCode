@@ -61,7 +61,8 @@ public partial class ToolsMainPage : UserControl
                 NameKey = "Tools.VetaleAI.Name",
                 DescriptionKey = "Tools.VetaleAI.Description",
                 IconUrl = null,
-                IconEmoji = "🤖",
+                IconEmoji = null,
+                IconResourceKey = "VetaleAiIconImage",
                 Action = () => OpenVetaleAIChat()
             },
             new ToolItem
@@ -76,7 +77,8 @@ public partial class ToolsMainPage : UserControl
             {
                 NameKey = "Tools.Copilot.Name",
                 DescriptionKey = "Tools.Copilot.Description",
-                IconUrl = "https://copilot.microsoft.com",
+                IconUrl = null,
+                IconResourceKey = "CopilotIconImage",
                 NavigateUrl = "https://copilot.microsoft.com",
                 Action = () => OpenInWebView(GetLocalizedString("Tools.Copilot.Name"), "https://copilot.microsoft.com")
             },
@@ -183,6 +185,24 @@ public partial class ToolsMainPage : UserControl
                 HorizontalAlignment = HorizontalAlignment.Center
             };
             iconPanel.Children.Add(emojiText);
+        }
+        else if (!string.IsNullOrEmpty(tool.IconResourceKey))
+        {
+            // Use bundled local icon (no network request)
+            var iconImage = new Image
+            {
+                Width = 32,
+                Height = 32,
+                Stretch = Stretch.Uniform
+            };
+
+            if (Application.Current?.TryFindResource(tool.IconResourceKey, out var resource) == true
+                && resource is Avalonia.Media.Imaging.Bitmap bitmap)
+            {
+                iconImage.Source = bitmap;
+            }
+
+            iconPanel.Children.Add(iconImage);
         }
         else if (!string.IsNullOrEmpty(tool.IconUrl))
         {
@@ -710,6 +730,7 @@ public partial class ToolsMainPage : UserControl
         public string DescriptionKey { get; set; } = string.Empty;
         public string? IconUrl { get; set; }
         public string? IconEmoji { get; set; }
+        public string? IconResourceKey { get; set; }
         public string? NavigateUrl { get; set; }
         public Action? Action { get; set; }
     }

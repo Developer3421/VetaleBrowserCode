@@ -750,6 +750,12 @@ public partial class MainWindow : Window
             }
         }
         
+        // Іконка Vetale Search ставиться одразу при створенні вкладки
+        if (IsVetaleSearchPageUrl(initialUrl))
+        {
+            ApplyVetaleSearchIconToTab(worker);
+        }
+
         ActivateWorker(worker);
         return worker;
     }
@@ -1300,6 +1306,13 @@ public partial class MainWindow : Window
         {
             _ = UpdateFaviconForTab(worker, tab);
         }
+
+        // Іконка Vetale Search ставиться одразу, щоб була завжди
+        if (IsVetaleSearchPageUrl(worker.Address))
+        {
+            var icon = GetVetaleSearchIcon();
+            if (icon != null) tab.FaviconSource = icon;
+        }
     }
     
     /// <summary>
@@ -1311,6 +1324,14 @@ public partial class MainWindow : Window
         {
             var url = worker.Address;
             if (string.IsNullOrEmpty(url)) return;
+
+            // Сторінки Vetale Search завжди мають свою іконку
+            if (IsVetaleSearchPageUrl(url))
+            {
+                var icon = GetVetaleSearchIcon();
+                if (icon != null) tab.FaviconSource = icon;
+                return;
+            }
             
             if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
             {
@@ -2271,95 +2292,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            System.Diagnostics.Debug.WriteLine("[MainWindow] LoadVetaleSearchIconAsync called");
-            
-            IImage? image = null;
-            
-            // Спосіб 1: Завантажуємо з Application ресурсів
-            try
-            {
-                System.Diagnostics.Debug.WriteLine("[MainWindow] Trying to load from Application resources...");
-                if (Application.Current != null)
-                {
-                    if (Application.Current.TryFindResource("VetaleSearchIconImage", out var resource))
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[MainWindow] Resource found, type: {resource?.GetType().Name ?? "null"}");
-                        if (resource is IImage img)
-                        {
-                            image = img;
-                            System.Diagnostics.Debug.WriteLine("[MainWindow] Vetale Search icon loaded from Application resources");
-                        }
-                        else if (resource is Avalonia.Media.Imaging.Bitmap bmp)
-                        {
-                            image = bmp;
-                            System.Diagnostics.Debug.WriteLine("[MainWindow] Vetale Search icon loaded as Bitmap from resources");
-                        }
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine("[MainWindow] VetaleSearchIconImage resource NOT found");
-                    }
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("[MainWindow] Application.Current is null");
-                }
-            }
-            catch (Exception resEx)
-            {
-                System.Diagnostics.Debug.WriteLine($"[MainWindow] Failed to load from resources: {resEx.Message}");
-            }
-            
-            // Спосіб 2: Завантажуємо через Uri напряму
-            if (image == null)
-            {
-                try
-                {
-                    System.Diagnostics.Debug.WriteLine("[MainWindow] Trying to load via direct Uri...");
-                    var uri = new Uri("avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/VetaleSearchIcon.png");
-                    image = new Avalonia.Media.Imaging.Bitmap(Avalonia.Platform.AssetLoader.Open(uri));
-                    System.Diagnostics.Debug.WriteLine("[MainWindow] Vetale Search icon loaded via direct Uri");
-                }
-                catch (Exception uriEx)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Failed to load via Uri: {uriEx.Message}");
-                }
-            }
-            
-            // Спосіб 3: файлова система
-            if (image == null)
-            {
-                try
-                {
-                    var basePath = AppDomain.CurrentDomain.BaseDirectory;
-                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Base path: {basePath}");
-                    
-                    // Список можливих шляхів до іконки
-                    var possiblePaths = new[]
-                    {
-                        Path.Combine(basePath, "VetaleBrowser.UI", "Sources", "Icons", "VetaleSearchIcon.png"),
-                        Path.Combine(basePath, "Sources", "Icons", "VetaleSearchIcon.png"),
-                        Path.Combine(basePath, "Icons", "VetaleSearchIcon.png"),
-                        Path.Combine(basePath, "VetaleSearchIcon.png")
-                    };
-                    
-                    foreach (var path in possiblePaths)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[MainWindow] Checking path: {path}, exists: {File.Exists(path)}");
-                        if (File.Exists(path))
-                        {
-                            image = new Avalonia.Media.Imaging.Bitmap(path);
-                            System.Diagnostics.Debug.WriteLine($"[MainWindow] Vetale Search icon loaded from file: {path}");
-                            break;
-                        }
-                    }
-                }
-                catch (Exception fileEx)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Failed to load from file: {fileEx.Message}");
-                }
-            }
-            
+            var image = GetVetaleSearchIcon();
             System.Diagnostics.Debug.WriteLine($"[MainWindow] Final image state: {(image != null ? "LOADED" : "NULL")}");
             
             // Застосовуємо іконку до вкладки
@@ -2407,6 +2340,7 @@ public partial class MainWindow : Window
                 System.Diagnostics.Debug.WriteLine("[MainWindow] Skipping title update for Vetale Search internal page");
                 return Task.CompletedTask;
             }
+
             
             var friendly = ComputeTitle(pageTitle, url);
             Dispatcher.UIThread.Post(() =>
@@ -2460,6 +2394,93 @@ public partial class MainWindow : Window
         }
 
         return "New Tab";
+    }
+
+    // Кешована іконка Vetale Search (завантажується один раз)
+    private static Avalonia.Media.IImage? _vetaleSearchIconCache;
+    private static bool _vetaleSearchIconLoadAttempted;
+
+    /// <summary>
+    /// Чи є URL сторінкою Vetale Search (головна або результати)
+    /// </summary>
+    private static bool IsVetaleSearchPageUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return false;
+        var pageType = InternalUrlHandler.GetPageType(url);
+        return pageType == InternalPageType.VetaleSearch
+            || pageType == InternalPageType.VetaleSearchResults;
+    }
+
+    /// <summary>
+    /// Повертає кешовану іконку Vetale Search (VetaleSearchIcon.png з папки іконок)
+    /// </summary>
+    private static Avalonia.Media.IImage? GetVetaleSearchIcon()
+    {
+        if (_vetaleSearchIconLoadAttempted) return _vetaleSearchIconCache;
+        _vetaleSearchIconLoadAttempted = true;
+
+        try
+        {
+            // Спосіб 1: з ресурсів додатку
+            if (Application.Current != null
+                && Application.Current.TryFindResource("VetaleSearchIconImage", out var resource)
+                && resource is Avalonia.Media.IImage img)
+            {
+                _vetaleSearchIconCache = img;
+                return _vetaleSearchIconCache;
+            }
+
+            // Спосіб 2: напряму через avares
+            try
+            {
+                var uri = new Uri("avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/VetaleSearchIcon.png");
+                _vetaleSearchIconCache = new Avalonia.Media.Imaging.Bitmap(Avalonia.Platform.AssetLoader.Open(uri));
+                return _vetaleSearchIconCache;
+            }
+            catch (Exception uriEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Vetale Search icon avares load failed: {uriEx.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Vetale Search icon load error: {ex.Message}");
+        }
+
+        return _vetaleSearchIconCache;
+    }
+
+    /// <summary>
+    /// Синхронно ставить іконку Vetale Search на вкладку worker'а (головна панель або overflow).
+    /// Викликається при створенні вкладки та при кожній навігації, щоб іконка була завжди.
+    /// </summary>
+    private void ApplyVetaleSearchIconToTab(TabWorker worker)
+    {
+        try
+        {
+            var image = GetVetaleSearchIcon();
+            if (image == null) return;
+
+            var mainPanelTab = FindTabByWorker(worker);
+            if (mainPanelTab != null)
+            {
+                mainPanelTab.FaviconSource = image;
+                return;
+            }
+
+            foreach (var overflowWindow in _tabOverflowWindows)
+            {
+                if (overflowWindow.GetTabByWorker(worker) != null)
+                {
+                    overflowWindow.UpdateTabFavicon(worker, image);
+                    break;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] ApplyVetaleSearchIconToTab error: {ex.Message}");
+        }
     }
 
     private void OnWindowClosed(object? sender, EventArgs e)
@@ -3113,6 +3134,12 @@ public partial class MainWindow : Window
 
                     // Оновлюємо іконку для внутрішньої сторінки (Vetale Search)
                     _ = UpdateFaviconAsync(entry.Url);
+
+                    // Іконка Vetale Search ставиться синхронно, щоб була завжди
+                    if (IsVetaleSearchPageUrl(entry.Url))
+                    {
+                        ApplyVetaleSearchIconToTab(worker);
+                    }
                 }
                 else
                 {

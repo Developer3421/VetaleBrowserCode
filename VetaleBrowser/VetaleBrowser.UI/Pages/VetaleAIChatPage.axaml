@@ -161,7 +161,7 @@
                     <!-- Welcome message -->
                     <Border Classes="message-container assistant-message" Padding="40,32">
                         <StackPanel Classes="message-content" HorizontalAlignment="Center">
-                            <TextBlock Text="🤖" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+                            <Image Source="{DynamicResource VetaleAiIconImage}" Width="72" Height="72" Stretch="Uniform" HorizontalAlignment="Center" Margin="0,0,0,16"/>
                             <TextBlock Text="{DynamicResource VetaleAI.WelcomeMessage}" 
                                        FontSize="16" 
                                        TextAlignment="Center"
@@ -267,15 +267,21 @@
                 </Grid>
 
                 <!-- Input box with send/stop buttons -->
-                <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto">
+                <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto,Auto">
+                    <Image Grid.Column="0"
+                           Source="{DynamicResource VetaleAiIconImage}"
+                           Width="40" Height="40"
+                           Stretch="Uniform"
+                           VerticalAlignment="Center"
+                           Margin="0,0,10,0"/>
                     <TextBox x:Name="MessageInput" 
-                             Grid.Column="0"
+                             Grid.Column="1"
                              Classes="chat-input"
                              Watermark="{DynamicResource VetaleAI.InputPlaceholder}"/>
 
                     <!-- Stop button placed to the left of Send -->
                     <Button x:Name="StopButton"
-                            Grid.Column="1"
+                            Grid.Column="2"
                             Classes="stop-button"
                             Margin="10,0,0,0"
                             Click="Stop_Click"
@@ -289,7 +295,7 @@
                     </Button>
                     
                     <Button x:Name="SendButton" 
-                            Grid.Column="2"
+                            Grid.Column="3"
                             Classes="send-button"
                             Margin="10,0,0,0"
                             Click="Send_Click"

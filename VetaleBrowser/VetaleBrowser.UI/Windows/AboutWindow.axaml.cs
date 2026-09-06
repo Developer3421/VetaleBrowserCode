@@ -28,9 +28,24 @@ public partial class AboutWindow : Window
         }
     }
 
+    private void TopBar_DoubleTapped(object? sender, RoutedEventArgs e)
+    {
+        // Maximize disabled for secondary windows
+    }
+
+    private void MinimizeWindow(object? sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
+
     private void CloseWindow(object? sender, RoutedEventArgs e)
     {
         Close();
     }
-}
 
+    private void OpenMainWindow(object? sender, RoutedEventArgs e)
+    {
+        var wnd = new MainWindow();
+        wnd.Show();
+    }
+}

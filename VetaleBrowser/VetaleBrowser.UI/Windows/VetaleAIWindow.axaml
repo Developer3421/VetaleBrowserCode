@@ -74,7 +74,7 @@
             <Border Grid.Row="0" Background="Transparent" CornerRadius="10,10,0,0"
                     PointerPressed="TopBar_PointerPressed" DoubleTapped="TopBar_DoubleTapped">
                 <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" VerticalAlignment="Center">
-                    <TextBlock Grid.Column="0" Text="🤖" FontSize="18" Margin="14,0,8,0" VerticalAlignment="Center"/>
+                    <Image Grid.Column="0" Source="{DynamicResource VetaleAiIconImage}" Width="26" Height="26" Stretch="Uniform" Margin="12,0,8,0" VerticalAlignment="Center"/>
                     <Button Grid.Column="1" x:Name="PART_OpenMainButton" Click="OpenMainWindow" Background="Transparent" BorderThickness="0" Padding="6,4" Cursor="Hand">
                         <TextBlock FontSize="14" FontWeight="Bold" VerticalAlignment="Center">
                             <Run Text="Vetale " Foreground="{StaticResource TitleOrangeBrush}"/>

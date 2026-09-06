@@ -390,7 +390,7 @@
                         </Button.Background>
                         <Button.Foreground>White</Button.Foreground>
                         <Button.CornerRadius>24</Button.CornerRadius>
-                        <TextBlock Text="🔍" FontSize="18"/>
+                        <Image Source="{DynamicResource VetaleSearchIconImage}" Width="22" Height="22" Stretch="Uniform"/>
                     </Button>
                 </Grid>
             </Grid>

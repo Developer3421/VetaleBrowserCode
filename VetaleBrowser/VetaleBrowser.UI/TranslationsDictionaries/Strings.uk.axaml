@@ -8,17 +8,20 @@
   <x:String x:Key="History.Title">Історія переглядів — Vetale Browser</x:String>
   <x:String x:Key="Bookmarks.Title">Закладки — Vetale Browser</x:String>
   <x:String x:Key="VetaleAI.Title">Vetale AI Chat — Vetale Browser</x:String>
+  <x:String x:Key="About.TitleShort">Браузер</x:String>
   <x:String x:Key="About.Title">Про програму — Vetale Browser</x:String>
 
   <!-- Вікно "Про програму" -->
-  <x:String x:Key="About.Version">Версія 1.0</x:String>
+  <x:String x:Key="About.Version">Версія 1.0.1</x:String>
   <x:String x:Key="About.Creator.Label">Творець</x:String>
-  <x:String x:Key="About.Creator.Name">Олег Курило</x:String>
+  <x:String x:Key="About.Creator.Name">Oleh Kurylo</x:String>
   <x:String x:Key="About.CreationDate.Label">Дата створення</x:String>
   <x:String x:Key="About.CreationDate.Value">15 грудня 2025 року</x:String>
   <x:String x:Key="About.Description">Vetale Browser — це сучасний веб-браузер, створений з нуля. Творець пройшов довгий шлях від найпершої WPF версії до цієї поточної версії на Avalonia UI. Браузер має вбудований AI-асистент, інструменти розробника, менеджер завантажень та багато інших функцій, розроблених для комфортного перегляду веб-сторінок.</x:String>
+  <x:String x:Key="About.Technologies.Value">Avalonia UI, C# / .NET 10, CefGlue, LlamaSharp, LiteDB</x:String>
   <x:String x:Key="About.Technologies.Label">Технології</x:String>
-  <x:String x:Key="About.Copyright">© 2025 Олег Курило. Всі права захищено.</x:String>
+  <x:String x:Key="About.Close">Закрити</x:String>
+  <x:String x:Key="About.Copyright">© 2026 Vetale Browser</x:String>
   
   <!-- Інструменти - Про програму -->
   <x:String x:Key="Tools.About.Name">Про програму</x:String>

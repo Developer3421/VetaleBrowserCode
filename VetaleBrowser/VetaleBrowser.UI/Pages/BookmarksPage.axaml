@@ -5,7 +5,7 @@
              xmlns:models="clr-namespace:VetaleBrowser.VetaleBrowser.Database.Models;assembly=VetaleBrowser"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
              x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.BookmarksPage"
-             Background="#FF9800">
+             Background="#FAFAFA">
 
     <UserControl.Styles>
         <Style Selector="Border.bookmark-item">
@@ -17,8 +17,8 @@
             <Setter Property="Margin" Value="0,0,0,10"/>
         </Style>
         <Style Selector="Border.bookmark-item:pointerover">
-            <Setter Property="Background" Value="#F0F0F0"/>
-            <Setter Property="BorderBrush" Value="#4CAF50"/>
+            <Setter Property="Background" Value="#F5F5F5"/>
+            <Setter Property="BorderBrush" Value="#DADCE0"/>
         </Style>
         <Style Selector="Button.action-button">
             <Setter Property="Background" Value="Transparent"/>
@@ -27,32 +27,31 @@
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
         <Style Selector="Button.action-button:pointerover">
-            <Setter Property="Background" Value="#E8F5E9"/>
+            <Setter Property="Background" Value="#E8E8E8"/>
         </Style>
         
-        <!-- Головна кнопка додавання - темно-зелена -->
+        <!-- Головна кнопка додавання - фіолетовий акцент -->
         <Style Selector="Button#PART_AddBookmarkButton">
-            <Setter Property="Background" Value="#2E7D32"/>
+            <Setter Property="Background" Value="#9A1CE8"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#1B5E20"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderThickness" Value="0"/>
         </Style>
         <Style Selector="Button#PART_AddBookmarkButton:pointerover">
-            <Setter Property="Background" Value="#388E3C"/>
+            <Setter Property="Background" Value="#8612D0"/>
         </Style>
         
-        <!-- Кнопки фільтрів - світло-зелені -->
+        <!-- Кнопки фільтрів - нейтральні pills як в історії -->
         <Style Selector="Button:not(.action-button):not(#PART_AddBookmarkButton)">
-            <Setter Property="Background" Value="#66BB6A"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#4CAF50"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="16"/>
         </Style>
         <Style Selector="Button:not(.action-button):not(#PART_AddBookmarkButton):pointerover">
-            <Setter Property="Background" Value="#81C784"/>
+            <Setter Property="Background" Value="#E0E0E0"/>
         </Style>
         <Style Selector="Button:not(.action-button):not(#PART_AddBookmarkButton):pressed">
-            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Background" Value="#D0D0D0"/>
         </Style>
     </UserControl.Styles>
 
