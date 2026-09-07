@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -20,6 +21,7 @@ public sealed class GpuInfoPage : UserControl
         var scroll = new ScrollViewer
         {
             HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled,
+            Background = Brush("#F7F3FF"),
             Content = BuildContent()
         };
         Content = scroll;
@@ -30,41 +32,113 @@ public sealed class GpuInfoPage : UserControl
         var panel = new StackPanel
         {
             Orientation = Orientation.Vertical,
-            Spacing = 8,
-            Margin = new Avalonia.Thickness(24)
+            Spacing = 16,
+            Margin = new Avalonia.Thickness(28)
         };
 
-        panel.Children.Add(Header("Graphics Feature Status"));
-        panel.Children.Add(Sub("chrome://gpu - Vetale Browser (built-in)"));
-        panel.Children.Add(Section("Graphics adapters (OS data)", GetAdaptersText()));
-        panel.Children.Add(Section("Compositing / rendering", GetFeatureText()));
-        panel.Children.Add(Section("CEF switches in effect", GetSwitchesText()));
-        panel.Children.Add(Section("System", GetSystemText()));
+        panel.Children.Add(new Border
+        {
+            Background = new LinearGradientBrush
+            {
+                StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+                EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
+                GradientStops =
+                {
+                    new GradientStop(Color.Parse("#FF7C3AED"), 0),
+                    new GradientStop(Color.Parse("#FFB026FF"), 1)
+                }
+            },
+            CornerRadius = new Avalonia.CornerRadius(18),
+            Padding = new Avalonia.Thickness(24),
+            Child = new StackPanel
+            {
+                Spacing = 6,
+                Children =
+                {
+                    new TextBlock { Text = "GPU CENTER", FontSize = 12, FontWeight = FontWeight.Bold, Foreground = Brushes.White, Opacity = 0.8 },
+                    new TextBlock { Text = "Graphics Feature Status", FontSize = 28, FontWeight = FontWeight.Bold, Foreground = Brushes.White },
+                    new TextBlock { Text = "chrome://gpu  •  Vetale Browser diagnostics", FontSize = 13, Foreground = Brushes.White, Opacity = 0.85 }
+                }
+            }
+        });
+
+        var summary = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*,*"), ColumnSpacing = 12 };
+        summary.Children.Add(StatCard("GPU", "READY", "#FF16A34A", 0));
+        summary.Children.Add(StatCard("WEBGL", "ENABLED", "#FF2563EB", 1));
+        summary.Children.Add(StatCard("ANGLE", "D3D11", "#FFD97706", 2));
+        panel.Children.Add(summary);
+
+        panel.Children.Add(Section("Graphics adapters", "Display hardware detected by Windows", GetAdaptersText(), "#FF7C3AED"));
+        panel.Children.Add(Section("Rendering pipeline", "Acceleration capabilities used by Chromium", GetFeatureText(), "#FF2563EB"));
+        panel.Children.Add(Section("CEF configuration", "Active runtime paths and command-line switches", GetSwitchesText(), "#FFD97706"));
+        panel.Children.Add(Section("System profile", "Environment used by the current browser process", GetSystemText(), "#FF16A34A"));
 
         return panel;
     }
 
-    private static Control Header(string text) => new TextBlock
+    private static Control StatCard(string label, string value, string color, int column)
     {
-        Text = text, FontSize = 22, FontWeight = FontWeight.Bold
-    };
+        var card = new Border
+        {
+            Background = Brushes.White,
+            CornerRadius = new Avalonia.CornerRadius(12),
+            Padding = new Avalonia.Thickness(16),
+            Child = new StackPanel
+            {
+                Spacing = 4,
+                Children =
+                {
+                    new TextBlock { Text = label, FontSize = 11, FontWeight = FontWeight.Bold, Foreground = Brush(color), Opacity = 0.8 },
+                    new TextBlock { Text = value, FontSize = 17, FontWeight = FontWeight.Bold, Foreground = Brush("#FF24163D") }
+                }
+            }
+        };
+        Grid.SetColumn(card, column);
+        return card;
+    }
 
-    private static Control Sub(string text) => new TextBlock
+    private static Control Section(string title, string subtitle, string body, string accent)
     {
-        Text = text, FontSize = 13, Opacity = 0.7
-    };
-
-    private static Control Section(string title, string body)
-    {
-        var p = new StackPanel { Orientation = Orientation.Vertical, Spacing = 4 };
-        p.Children.Add(new TextBlock { Text = title, FontSize = 16, FontWeight = FontWeight.SemiBold });
-        p.Children.Add(new TextBlock { Text = body, FontSize = 13, TextWrapping = TextWrapping.Wrap, FontFamily = new FontFamily("Consolas,Menlo,monospace") });
+        var p = new StackPanel { Orientation = Orientation.Vertical, Spacing = 8 };
+        p.Children.Add(new TextBlock { Text = title, FontSize = 17, FontWeight = FontWeight.Bold, Foreground = Brush("#FF24163D") });
+        p.Children.Add(new TextBlock { Text = subtitle, FontSize = 12, Foreground = Brush("#FF766A88") });
+        p.Children.Add(new Border
+        {
+            Background = Brush("#FFF9F7FF"),
+            CornerRadius = new Avalonia.CornerRadius(8),
+            Padding = new Avalonia.Thickness(12),
+            Child = new TextBlock
+            {
+                Text = body,
+                FontSize = 13,
+                TextWrapping = TextWrapping.Wrap,
+                FontFamily = new FontFamily("Cascadia Mono,Consolas,Menlo,monospace"),
+                Foreground = Brush("#FF403552")
+            }
+        });
+        var contentGrid = new Grid
+        {
+            ColumnDefinitions = new ColumnDefinitions("6,*"),
+            ColumnSpacing = 14,
+            Children =
+            {
+                new Border { Background = Brush(accent), CornerRadius = new Avalonia.CornerRadius(3), Width = 6 },
+                new Border { Child = p }
+            }
+        };
+        Grid.SetColumn(contentGrid.Children[1], 1);
         return new Border
         {
-            BorderBrush = Brushes.Gray, BorderThickness = new Avalonia.Thickness(1),
-            CornerRadius = new Avalonia.CornerRadius(6), Padding = new Avalonia.Thickness(12), Child = p
+            Background = Brushes.White,
+            BorderBrush = Brush("#FFE8E0F5"),
+            BorderThickness = new Avalonia.Thickness(1),
+            CornerRadius = new Avalonia.CornerRadius(14),
+            Padding = new Avalonia.Thickness(16),
+            Child = contentGrid
         };
     }
+
+    private static SolidColorBrush Brush(string color) => new(Color.Parse(color));
 
     private static string GetAdaptersText()
     {
@@ -123,9 +197,9 @@ public sealed class GpuInfoPage : UserControl
             var sb = new StringBuilder();
             sb.AppendLine($"UserDataDir: {CefBrowserConfig.UserDataDir}");
             sb.AppendLine($"CacheDir: {CefBrowserConfig.DiskCacheDir}");
-            sb.AppendLine($"ChromeRuntime: {s.ChromeRuntime}");
+            sb.AppendLine($"CEF runtime: {typeof(CefBrowserConfig).Assembly.GetName().Version}");
             sb.AppendLine($"PersistSessionCookies: {s.PersistSessionCookies}");
-            foreach (var sw in s.CommandLineSwitches)
+            foreach (var sw in CefBrowserConfig.CommandLineSwitches)
                 sb.AppendLine($"--{sw}");
             return sb.ToString().TrimEnd();
         }

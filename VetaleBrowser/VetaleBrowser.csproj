@@ -67,9 +67,6 @@
         <PackageReference Include="LLamaSharp.Backend.Vulkan" Version="0.25.0" Condition="'$(LlamaBackendChoice)' == 'vulkan'" />
 
         <!-- Audio/recording (Windows) -->
-        <PackageReference Include="NAudio" Version="2.4.0" />
-        <PackageReference Include="NAudio.Core" Version="2.4.0" />
-        <PackageReference Include="NAudio.WinMM" Version="2.4.0" />
 
         <!-- Removed Windows-only / non-cross-platform packages -->
         <!-- <PackageReference Include="System.Drawing.Common" Version="10.0.0" /> -->
@@ -80,17 +77,13 @@
         <!-- Removed commercial audio backend -->
         <!-- <PackageReference Include="ManagedBass" Version="4.0.2" /> -->
 
-        <PackageReference Include="Whisper.net" Version="1.9.0" />
-        <PackageReference Include="Whisper.net.Runtime" Version="1.9.0" />
-
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="VetaleBrowserOfflineGame\microstudio\" />
       <None Include="Package.appxmanifest" />
       <Folder Include="VetaleBrowser.AI\Model\" />
       <Folder Include="VetaleBrowser.UI\Helpers\ArchitectureTools\" />
-      <Folder Include="VetaleBrowser.VoiceRecognition\Models\" />
-      <Folder Include="VetaleBrowserOfflineGame\" />
     </ItemGroup>
 
     <ItemGroup>
@@ -113,6 +106,20 @@
       <None Remove="**\*.pdb" />
     </ItemGroup>
 
+    <!-- Remove stale CefGlueBrowserProcess folder (old subprocess artifact).
+         Only CefBrowser.Native.exe (BrowserSubprocessPath) must remain in output.
+         A stale second subprocess exe causes "Request for unsupported CEF API version 0"
+         and a blank WebView in the main window. -->
+    <Target Name="CleanupStaleCefSubprocess" AfterTargets="Build;Publish">
+      <ItemGroup>
+        <StaleCefGlueFolder Include="$(OutputPath)CefGlueBrowserProcess\" />
+        <StaleCefGluePublishFolder Include="$(PublishDir)CefGlueBrowserProcess\" />
+      </ItemGroup>
+      <RemoveDir Directories="@(StaleCefGlueFolder)" Condition="Exists('$(OutputPath)CefGlueBrowserProcess\')" />
+      <RemoveDir Directories="@(StaleCefGluePublishFolder)" Condition="Exists('$(PublishDir)CefGlueBrowserProcess\')" />
+      <Message Text="Removed stale CefGlueBrowserProcess folder (kept CefBrowser.Native.exe)" Importance="high" />
+    </Target>
+
     <!-- Remove CefGlueBrowserProcess folder and PDB files after publish -->
     <Target Name="CleanupAfterPublish" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">
       <ItemGroup>
@@ -125,6 +132,7 @@
     </Target>
 
     <PropertyGroup>
+      <IsEditbinEnabled>false</IsEditbinEnabled>
       <!-- Вибір бекенду LLama: cpu-avx2 або vulkan (за замовчуванням cpu-avx2) -->
       <LlamaBackendChoice Condition="'$(LlamaBackendChoice)' == ''">cpu-avx2</LlamaBackendChoice>
       <LlamaPreferredCpuVariant Condition="'$(LlamaBackendChoice)' == 'cpu-avx2'">avx2</LlamaPreferredCpuVariant>
@@ -195,11 +203,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <!-- Папка для локальних моделей Whisper у проекті -->
-      <Folder Include="VetaleBrowser.VoiceRecognition\Models\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <!-- Копіювати всі моделі Whisper (.bin) до вихідної директорії -->
       <Content Include="VetaleBrowser.VoiceRecognition\Models\*.bin">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -207,9 +210,23 @@
       </Content>
     </ItemGroup>
 
-    <!-- Copy HexGL offline game files to output directory -->
+    <!-- Copy microStudio offline game engine to output directory (FULL folder, without .git;
+         Content items are published next to the self-contained single-file exe) -->
     <ItemGroup>
-      <Content Include="VetaleBrowserOfflineGame\HexGL-master\**\*.*">
+      <Content Include="MicroStudio\**\*" Exclude="MicroStudio\.git\**">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <Link>MicroStudio\%(RecursiveDir)%(FileName)%(Extension)</Link>
+      </Content>
+      <!-- Never publish the cloned git history -->
+      <Content Remove="MicroStudio\.git\**" />
+      <None Remove="MicroStudio\.git\**" />
+    </ItemGroup>
+
+    <!-- Copy HexGL offline game files to output directory (FULL folder: **\* includes
+         extensionless files like LICENSE and audio data; Content items are published
+         next to the self-contained single-file exe, FindGamePath resolves them via BaseDirectory) -->
+    <ItemGroup>
+      <Content Include="VetaleBrowserOfflineGame\HexGL-master\**\*">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <Link>VetaleBrowserOfflineGame\HexGL-master\%(RecursiveDir)%(FileName)%(Extension)</Link>
       </Content>

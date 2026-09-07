@@ -3,6 +3,7 @@
   <component name="AvaloniaProject">
     <option name="projectPerEditor">
       <map>
+        <entry key="VetaleBrowser/MainWindow.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
         <entry key="VetaleBrowser/VetaleBrowser.DevTools/Pages/HtmlEditorPage.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
         <entry key="VetaleBrowser/VetaleBrowser.UI/Elements/NavigationBar.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />
         <entry key="VetaleBrowser/VetaleBrowser.UI/Pages/AddBookmarkPage.axaml" value="VetaleBrowser/VetaleBrowser.csproj" />

@@ -27,6 +27,8 @@
     <Bitmap x:Key="SettingsButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/SettingsButton.png</Bitmap>
     <Bitmap x:Key="AddBookmarkButtonImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/AddBookmarkButton.png</Bitmap>
     
+    <!-- HexGL game icon -->
+    <Bitmap x:Key="HexGLIconImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/HexGL.png</Bitmap>
     <!-- App Icon (same artwork as DefaultTabItem.ico, PNG for Avalonia Bitmap) -->
     <Bitmap x:Key="AppIconImage">avares://VetaleBrowser/VetaleBrowser.UI/Sources/Icons/AppIcon.png</Bitmap>
     <!-- Vetale Search Icon -->

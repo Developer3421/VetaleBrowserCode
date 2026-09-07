@@ -49,7 +49,7 @@ public partial class ToolsWebViewPage : UserControl
             _webViewContainer.Children.Clear();
 
             // Create new WebView
-            _webView = new CefSharpAdapter();
+            _webView = new CefGlueAdapter();
             _webViewContainer.Children.Add(_webView.View);
 
             // Navigate to URL

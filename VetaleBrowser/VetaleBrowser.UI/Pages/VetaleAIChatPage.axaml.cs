@@ -10,6 +10,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
 using VetaleBrowser.VetaleBrowser.AI;
+using VetaleBrowser.VetaleBrowser.UI.Services;
 using System.Text.RegularExpressions;
 using VetaleBrowser.VetaleBrowser.UI.Windows;
 
@@ -59,6 +60,11 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
         _languageSelector = this.FindControl<ComboBox>("LanguageSelector");
         _scrollToBottomButton = this.FindControl<Button>("ScrollToBottomButton");
         _stopButton = this.FindControl<Button>("StopButton");
+        if (_languageSelector != null)
+        {
+            _languageSelector.SelectedIndex = GetLanguageSelectorIndex(
+                LocalizationService.CurrentLanguageCode);
+        }
 
         if (_messageInput != null)
         {
@@ -360,18 +366,7 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
                 return;
             }
 
-            var languageIndex = _languageSelector?.SelectedIndex ?? 0;
-            string? language = languageIndex switch
-            {
-                1 => "Ukrainian",
-                2 => "English",
-                3 => "Russian",
-                4 => "German",
-                5 => "French",
-                6 => "Spanish",
-                7 => "Turkish",
-                _ => null // Auto-detect
-            };
+            string language = GetSelectedResponseLanguage();
 
             // Streaming setup
             TextBlock? streamingTextBlock = null;
@@ -500,18 +495,7 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
         {
             try
             {
-                var languageIndex = _languageSelector?.SelectedIndex ?? 0;
-
-                string? language = languageIndex switch
-                {
-                    1 => "Ukrainian",
-                    2 => "English",
-                    3 => "Russian",
-                    4 => "German",
-                    5 => "French",
-                    6 => "Spanish",
-                    _ => null // Auto-detect
-                };
+                string language = GetSelectedResponseLanguage();
 
                 System.Diagnostics.Trace.WriteLine($"VetaleAIChatPage: Calling AI service (attempt {attempt + 1}) with language={language}");
 
@@ -579,6 +563,38 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
         }
         
         return "Error: Maximum retries exceeded.";
+    }
+
+    private string GetSelectedResponseLanguage()
+    {
+        var languageIndex = _languageSelector?.SelectedIndex ?? 0;
+        if (languageIndex == 0)
+        {
+            languageIndex = GetLanguageSelectorIndex(LocalizationService.CurrentLanguageCode);
+        }
+
+        return languageIndex switch
+        {
+            1 => "Ukrainian",
+            2 => "English",
+            3 => "Russian",
+            4 => "German",
+            5 => "Turkish",
+            _ => "English"
+        };
+    }
+
+    private static int GetLanguageSelectorIndex(string? languageCode)
+    {
+        return languageCode?.ToLowerInvariant() switch
+        {
+            "uk" => 1,
+            "en" => 2,
+            "ru" => 3,
+            "de" => 4,
+            "tr" => 5,
+            _ => 2
+        };
     }
 
     private async void InitializeAIModel()
@@ -790,17 +806,7 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
 
             AddThinkingMessage();
 
-            var languageIndex = _languageSelector?.SelectedIndex ?? 0;
-            string? language = languageIndex switch
-            {
-                1 => "Ukrainian",
-                2 => "English",
-                3 => "Russian",
-                4 => "German",
-                5 => "French",
-                6 => "Spanish",
-                _ => null
-            };
+            var language = GetSelectedResponseLanguage();
 
             _cancellationTokenSource = new CancellationTokenSource();
             var ct = _cancellationTokenSource.Token;
@@ -874,4 +880,3 @@ public partial class VetaleAIChatPage : UserControl, IDisposable
         }
     }
 }
-

@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="using:VetaleBrowser.VetaleBrowser.UI.Elements"
+             xmlns:browser="using:VetaleBrowser.VetaleBrowser.UI.Controls"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="VetaleBrowser.VetaleBrowser.UI.Pages.NormalModePage"
              Background="#FF9800">
@@ -106,7 +107,6 @@
                 
                 <!-- window controls on the right -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Name="VideoFullscreenButton" Classes="window-control" ToolTip.Tip="Відео на весь екран" Padding="8" FontFamily="Segoe UI Symbol" FontSize="16" Content="⛶"/>
                     <Button Name="MinimizeButton" Classes="window-control" ToolTip.Tip="{DynamicResource Window.Minimize}" Padding="8">
                         <Image Source="{DynamicResource MinButtonImage}" Stretch="Uniform" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
@@ -126,7 +126,6 @@
         </Grid>
 
         <!-- Bottom row: WebView container (browser view is placed here directly, like SuperLite) -->
-        <Grid Grid.Row="2" Background="#FFFFFF" Name="WebViewContainer">
-        </Grid>
+        <browser:CefBrowserHost Grid.Row="2" Background="#FFFFFF" Name="WebViewHost"/>
     </Grid>
 </UserControl>

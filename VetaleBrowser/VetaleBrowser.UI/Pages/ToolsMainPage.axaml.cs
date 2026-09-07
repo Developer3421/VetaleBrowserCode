@@ -7,6 +7,7 @@ using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using VetaleBrowser.VetaleBrowser.UI.Services;
+using VetaleBrowser.VetaleBrowser.Core.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Pages;
 
@@ -26,6 +27,7 @@ public partial class ToolsMainPage : UserControl
 
     public event EventHandler<ToolNavigationEventArgs>? NavigateInWebView;
     public event EventHandler<string>? NavigateInMainTab;
+    public event EventHandler<string>? OpenInNewMainTab;
 
     public ToolsMainPage()
     {
@@ -130,6 +132,23 @@ public partial class ToolsMainPage : UserControl
                 IconUrl = null,
                 IconEmoji = "🔍",
                 Action = () => OpenVetaleSearchSettings()
+            },
+            new ToolItem
+            {
+                NameKey = "Tools.MicroStudio.Name",
+                DescriptionKey = "Tools.MicroStudio.Description",
+                IconUrl = null,
+                IconEmoji = "🎮",
+                Action = () => OpenMicroStudio()
+            },
+            new ToolItem
+            {
+                NameKey = "Tools.HexGL.Name",
+                DescriptionKey = "Tools.HexGL.Description",
+                IconUrl = null,
+                IconEmoji = null,
+                IconResourceKey = "HexGLIconImage",
+                Action = () => OpenHexGLGame()
             },
             new ToolItem
             {
@@ -576,6 +595,89 @@ public partial class ToolsMainPage : UserControl
             System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] ERROR opening UserAgreement: {ex.Message}");
             System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] Stack trace: {ex.StackTrace}");
             _userAgreementWindowInstance = null;
+        }
+    }
+
+    private void OpenMicroStudio()
+    {
+        System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Opening microStudio engine...");
+
+        try
+        {
+            // Start local server for the microStudio engine (no npm/node)
+            var engineServer = MicroStudioServer.Instance;
+            if (!engineServer.IsRunning)
+            {
+                engineServer.Start();
+            }
+
+            if (engineServer.IsRunning)
+            {
+                var url = engineServer.ServerUrl;
+                System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] microStudio at: {url}");
+                // Відкриваємо двигун у НОВІЙ вкладці браузера
+                OpenInNewMainTab?.Invoke(this, url);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] microStudio failed: server not running, folder: {engineServer.RootPath}");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] ERROR opening microStudio: {ex.Message}");
+        }
+    }
+
+    private void OpenHexGLGame()
+    {
+        System.Diagnostics.Debug.WriteLine("[ToolsMainPage] Opening HexGL game...");
+
+        try
+        {
+            // Start local HTTP server for the offline game
+            var gameServer = LocalGameServer.Instance;
+            if (!gameServer.IsRunning)
+            {
+                gameServer.Start();
+            }
+
+            string gameUrl;
+            if (gameServer.IsRunning)
+            {
+                gameUrl = gameServer.GameUrl;
+                System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] HexGL via HTTP: {gameUrl}");
+            }
+            else if (gameServer.GameExists)
+            {
+                // Fallback: open game directly from VetaleBrowserOfflineGame folder
+                gameUrl = gameServer.GameFileUrl;
+                System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] HexGL fallback to offline folder: {gameUrl}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] HexGL failed: server not running and folder missing: {gameServer.GameRootPath}");
+                return;
+            }
+
+            // Open game in main browser tab
+            NavigateInMainTab?.Invoke(this, gameUrl);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] ERROR opening HexGL: {ex.Message}");
+            try
+            {
+                var fallbackServer = LocalGameServer.Instance;
+                if (fallbackServer.GameExists)
+                {
+                    NavigateInMainTab?.Invoke(this, fallbackServer.GameFileUrl);
+                }
+            }
+            catch (Exception fallbackEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ToolsMainPage] HexGL fallback failed: {fallbackEx.Message}");
+            }
         }
     }
 

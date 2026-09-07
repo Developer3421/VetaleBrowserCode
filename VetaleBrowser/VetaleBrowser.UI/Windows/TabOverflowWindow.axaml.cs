@@ -374,7 +374,7 @@ public partial class TabOverflowWindow : Window
         int insertIndex = _dropTargetIndex;
         HideDropIndicator();
         
-        if (DataTransferExtensions.TryGetValue(e.DataTransfer, TabDragHelper.Format) is TabDragData dragData)
+        if (TabDragHelper.TryGetData(e.DataTransfer) is TabDragData dragData)
         {
             // Check if this is not the same window
             if (dragData.SourceWindow == this)
@@ -804,4 +804,3 @@ public partial class TabOverflowWindow : Window
         base.OnClosed(e);
     }
 }
-

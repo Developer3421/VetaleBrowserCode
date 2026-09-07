@@ -12,7 +12,7 @@
         MinHeight="54"
         MaxHeight="54"
         WindowStartupLocation="Manual"
-        SystemDecorations="None"
+        WindowDecorations="None"
         Background="Transparent"
         BorderThickness="0"
         CanResize="False"

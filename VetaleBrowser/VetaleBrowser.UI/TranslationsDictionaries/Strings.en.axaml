@@ -24,6 +24,10 @@
   <x:String x:Key="About.Copyright">© 2026 Vetale Browser</x:String>
   
   <!-- Tools - About -->
+  <x:String x:Key="Tools.MicroStudio.Name">MicroStudio, game engine</x:String>
+  <x:String x:Key="Tools.MicroStudio.Description">Offline game engine, runs locally without npm (opens in main tab)</x:String>
+  <x:String x:Key="Tools.HexGL.Name">HexGL, racing game by Thibaut Despoulain</x:String>
+  <x:String x:Key="Tools.HexGL.Description">Offline futuristic racing game (opens in main tab)</x:String>
   <x:String x:Key="Tools.About.Name">About</x:String>
   <x:String x:Key="Tools.About.Description">Information about the browser and its creator</x:String>
 

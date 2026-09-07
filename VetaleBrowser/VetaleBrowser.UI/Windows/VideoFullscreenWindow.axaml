@@ -6,7 +6,7 @@
         x:Class="VetaleBrowser.VetaleBrowser.UI.Windows.VideoFullscreenWindow"
         Title="Video Fullscreen"
         WindowStartupLocation="CenterScreen"
-        SystemDecorations="None"
+        WindowDecorations="None"
         Background="#FF000000"
         WindowState="Maximized"
         ExtendClientAreaToDecorationsHint="True"

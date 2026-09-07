@@ -19,7 +19,6 @@ public partial class NormalModePage : UserControl
     private Button? _minimizeButton;
     private Button? _maximizeButton;
     private Button? _closeButton;
-    private Button? _videoFullscreenButton;
     private Grid? _tabBarRow;
 
     public StackPanel? TabsHostPanel => _tabsHost;
@@ -31,8 +30,36 @@ public partial class NormalModePage : UserControl
     public Button? MinBtn => _minimizeButton;
     public Button? MaxBtn => _maximizeButton;
     public Button? ClsBtn => _closeButton;
-    public Button? VideoFsBtn => _videoFullscreenButton;
     public Grid? TabBar => _tabBarRow;
+
+    /// <summary>
+    /// Правильно монтує контент (WebView або внутрішню сторінку) як елемент
+    /// контейнера: розтягнення, видимість, фокус. Єдина точка монтування.
+    /// </summary>
+    public void MountContent(Control content)
+    {
+        if (_webViewContainer == null || content == null)
+            return;
+
+        if (content.Parent is Panel prev && !ReferenceEquals(prev, _webViewContainer))
+            prev.Children.Remove(content);
+
+        content.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
+        content.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch;
+        content.IsVisible = true;
+
+        if (!_webViewContainer.Children.Contains(content))
+            _webViewContainer.Children.Add(content);
+
+        for (int i = _webViewContainer.Children.Count - 1; i >= 0; i--)
+        {
+            var c = _webViewContainer.Children[i];
+            if (!ReferenceEquals(c, content))
+                _webViewContainer.Children.RemoveAt(i);
+        }
+
+        try { content.Focus(); } catch { }
+    }
 
     /// <summary>
     /// Returns the active tab content (if it is an internal page)
@@ -72,6 +99,7 @@ public partial class NormalModePage : UserControl
             System.Diagnostics.Debug.WriteLine("[NormalModePage] InitializeComponent: Loading XAML...");
             AvaloniaXamlLoader.Load(this);
             System.Diagnostics.Debug.WriteLine("[NormalModePage] InitializeComponent: XAML loaded");
+            _webViewContainer = this.FindControl<Grid>("WebViewHost");
         }
         catch (Exception ex)
         {
@@ -90,8 +118,9 @@ public partial class NormalModePage : UserControl
             _newWindowButton = this.FindControl<Button>("PART_NewWindowButton");
             System.Diagnostics.Debug.WriteLine($"[NormalModePage] NewWindowButton: {(_newWindowButton != null ? "Found" : "NULL")}");
             
-            _webViewContainer = this.FindControl<Grid>("WebViewContainer");
-            System.Diagnostics.Debug.WriteLine($"[NormalModePage] WebViewContainer: {(_webViewContainer != null ? "Found" : "NULL")}");
+            // WebViewHost is the AXAML browser container. Do not overwrite it
+            // with the removed legacy WebViewContainer lookup.
+            System.Diagnostics.Debug.WriteLine($"[NormalModePage] WebViewHost: {(_webViewContainer != null ? "Found" : "NULL")}");
             
             _navigationBar = this.FindControl<NavigationBar>("NavigationBar");
             System.Diagnostics.Debug.WriteLine($"[NormalModePage] NavigationBar: {(_navigationBar != null ? "Found" : "NULL")}");
@@ -108,8 +137,6 @@ public partial class NormalModePage : UserControl
             _closeButton = this.FindControl<Button>("CloseButton");
             System.Diagnostics.Debug.WriteLine($"[NormalModePage] CloseButton: {(_closeButton != null ? "Found" : "NULL")}");
 
-            _videoFullscreenButton = this.FindControl<Button>("VideoFullscreenButton");
-            
             _tabBarRow = this.FindControl<Grid>("TabBarRow");
             System.Diagnostics.Debug.WriteLine($"[NormalModePage] TabBarRow: {(_tabBarRow != null ? "Found" : "NULL")}");
             

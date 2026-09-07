@@ -13,6 +13,7 @@ using VetaleBrowser.VetaleBrowser.UI.Services;
 using Avalonia.Controls;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
@@ -65,6 +66,18 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         /// <summary>Adds a new entry to history (removes all "forward" entries)</summary>
         public void AddEntry(NavigationEntry entry)
         {
+            // DEDUP: typing the same URL twice or re-firing AddressChanged
+            // must not create phantom entries that break Back/Forward.
+            if (CurrentEntry != null &&
+                string.Equals(CurrentEntry.Url, entry.Url, StringComparison.OrdinalIgnoreCase))
+            {
+                // Refresh content holder if a newer one arrived.
+                if (entry.InternalPageContent != null)
+                    CurrentEntry.InternalPageContent = entry.InternalPageContent;
+                CurrentEntry.Title = entry.Title ?? CurrentEntry.Title;
+                return;
+            }
+
             // Remove all entries after the current one (on new navigation)
             if (_currentIndex < _entries.Count - 1)
             {
@@ -137,6 +150,12 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         public IBrowserView WebView { get; }
         public GlobalManagers.WebViewManager Manager { get; }
         public NavigationHistory History { get; } = new NavigationHistory();
+        // TabWorker owns the browser history. Chromium's history is deliberately
+        // not exposed here because it also contains redirects and programmatic
+        // loads which do not belong to the tab's navigation stack.
+        // PRO-style: unified state = own history OR engine history (in-page navigations).
+        public bool CanGoBack => History.CanGoBack || (WebView?.CanGoBack == true);
+        public bool CanGoForward => History.CanGoForward || (WebView?.CanGoForward == true);
         
         /// <summary>
         /// WebView error handler for localization of CefGlue errors
@@ -155,6 +174,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         // Timer for delayed mute reapplication after navigation
         private readonly DispatcherTimer _muteReapplyTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
         private int _muteReapplyCount;
+        private readonly SemaphoreSlim _muteApplyLock = new(1, 1);
 
         // Fullscreen poller to catch content-initiated fullscreen when events aren't exposed
         // (DevTools evaluate per poll - 750ms щоб не душити localhost сокетами)
@@ -166,12 +186,16 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         
         // Flag to prevent recursive calls during navigation
         private bool _isNavigating;
+        private string? _pendingNavigationUrl;
 
         // Monotonic navigation generation: stale async pre-checks must not
         // override a newer navigation or a Back/Forward step.
         private int _navSeq;
 
         private string? _prevAddress;
+        private bool _historyNavigationInProgress;
+        private string? _historyNavigationTarget;
+        private bool _ignoreNextProgrammaticAddressChange;
         private bool _blockingDownloadNav;
         private static readonly HttpClient _httpHead = new HttpClient() { Timeout = TimeSpan.FromSeconds(10) };
 
@@ -215,6 +239,8 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
         public event EventHandler<string?>? TitleChanged;
         public event EventHandler<string?>? AddressChanged;
+        public event EventHandler<string?>? FaviconChanged;
+        public string? FaviconUrl { get; private set; }
         public event EventHandler<bool>? FullscreenChanged;
         public event EventHandler<NavigationEntry>? NavigationChanged;
         
@@ -243,7 +269,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 }
 
                 System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Creating WebView...");
-                WebView = new CefSharpAdapter();
+                WebView = new CefGlueAdapter();
                 WebView.View.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
                 WebView.View.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch;
                 
@@ -316,7 +342,9 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
         private void WebViewOnPropertyChanged(object? sender, Avalonia.AvaloniaPropertyChangedEventArgs e)
         {
-            if (e.Property?.Name == "Address")
+            // CefSharp.Avalonia reports URL changes as "Url" while the
+            // browser abstraction exposes them as Address.
+            if (e.Property?.Name is "Address" or "Url")
             {
                 var newAddr = WebView.Address;
                 var prev = _prevAddress;
@@ -336,6 +364,63 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 
                 // Re-inject JavaScript guards after each navigation
                 InjectNavigationGuards();
+
+                // SYNC in-page navigations (link clicks, form submits, JS navigations)
+                // into tab history. Without this, Back/Forward buttons never activate
+                // because History stays at 1 entry. Dedup in AddEntry protects against
+                // double-recording of programmatic Navigate()/GoBack()/GoForward().
+                if (!string.IsNullOrEmpty(newAddr))
+                {
+                    if (_historyNavigationInProgress)
+                    {
+                        Address = newAddr;
+                        // Engine-driven Back/Forward (target==null): sync tab history
+                        // so Back/Forward buttons, address bar and favicon stay correct.
+                        if (string.IsNullOrWhiteSpace(_historyNavigationTarget))
+                        {
+                            var cur2 = History.CurrentEntry;
+                            if (cur2 == null || !string.Equals(cur2.Url, newAddr, StringComparison.OrdinalIgnoreCase))
+                            {
+                                History.AddEntry(new NavigationEntry { Url = newAddr, IsInternal = false, Timestamp = DateTime.UtcNow });
+                                NavigationChanged?.Invoke(this, History.CurrentEntry!);
+                            }
+                            _historyNavigationInProgress = false;
+                            _ = RefreshFaviconAsync();
+                        }
+                        else if (string.Equals(_historyNavigationTarget, newAddr, StringComparison.OrdinalIgnoreCase))
+                        {
+                            _historyNavigationInProgress = false;
+                            _historyNavigationTarget = null;
+                        }
+                        return;
+                    }
+
+                    if (_ignoreNextProgrammaticAddressChange)
+                    {
+                        _ignoreNextProgrammaticAddressChange = false;
+                        Address = newAddr;
+                        return;
+                    }
+
+                    var cur = History.CurrentEntry;
+                    if (cur == null || !string.Equals(cur.Url, newAddr, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var inPageEntry = new NavigationEntry
+                        {
+                            Url = newAddr,
+                            IsInternal = false,
+                            Timestamp = DateTime.UtcNow
+                        };
+                        History.AddEntry(inPageEntry);
+                        Address = newAddr;
+                        NavigationChanged?.Invoke(this, inPageEntry);
+                        System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] In-page nav recorded: {newAddr}");
+                    }
+                    else if (!string.Equals(Address, newAddr, StringComparison.OrdinalIgnoreCase))
+                    {
+                        Address = newAddr;
+                    }
+                }
                 
                 // Re-apply mute state after each navigation
                 // This ensures that mute works for new content (games, WebGL, new tabs)
@@ -350,13 +435,21 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 var t = WebView.Title;
                 if (!string.IsNullOrWhiteSpace(t))
                 {
-                    Title = $"Tab: {t}";
+                    Title = t.Trim();
                     TryUpdateSubprocessTitle();
+                    _ = RefreshFaviconAsync();
                 }
             }
             else if (e.Property?.Name == "CanGoBack" || e.Property?.Name == "CanGoForward")
             {
-                // no-op
+                OnPropertyChanged(nameof(History));
+                if (History.CurrentEntry != null)
+                    NavigationChanged?.Invoke(this, History.CurrentEntry);
+                else
+                {
+                    OnPropertyChanged(nameof(CanGoBack));
+                    OnPropertyChanged(nameof(CanGoForward));
+                }
             }
         }
         
@@ -562,6 +655,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         public async void Navigate(string url, UserControl? internalPageContent = null)
         {
             if (_isNavigating) return; // Prevent recursion
+            _ignoreNextProgrammaticAddressChange = false;
             
             try
             {
@@ -573,6 +667,25 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     return;
                 }
 
+                // Skip no-op re-navigation to the same URL (prevents history spam
+                // from address-bar sync loops and double Enter presses).
+                if (string.Equals(Address, url, StringComparison.OrdinalIgnoreCase) &&
+                    History.CurrentEntry != null &&
+                    string.Equals(History.CurrentEntry.Url, url, StringComparison.OrdinalIgnoreCase))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Navigate: same URL, skipped: {url}");
+                    return;
+                }
+
+                // A single address submission can be observed more than once
+                // while the previous pre-check is still running. Do not queue
+                // the same browser load repeatedly; CefSharp can fail when
+                // several loads are started for one request.
+                if (string.Equals(_pendingNavigationUrl, url, StringComparison.OrdinalIgnoreCase))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Navigate: duplicate pending URL, skipped: {url}");
+                    return;
+                }
                 System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] Navigate: {url}");
 
                 // MEMORY OPTIMIZATION: Forced memory cleanup before navigation
@@ -624,6 +737,8 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] External navigation to: {url}");
                     
                     // Pre-check for fast error detection (does not block navigation)
+                    _ignoreNextProgrammaticAddressChange = true;
+                    _pendingNavigationUrl = url;
                     _navSeq++;
                     _ = PreCheckAndNavigateAsync(url, _navSeq);
                 }
@@ -673,6 +788,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
                     if (!isSuccess)
                     {
+                        _ignoreNextProgrammaticAddressChange = false;
                         System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] PreCheck failed: {errorCode} - {errorMessage}");
 
                         // Report the error via ErrorHandler
@@ -696,12 +812,21 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             }
             catch (Exception ex)
             {
+                _ignoreNextProgrammaticAddressChange = false;
                 System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] PreCheckAndNavigateAsync error: {ex.Message}");
                 // Fallback - navigate in WebView directly (only if not an external protocol
                 // and still the latest navigation)
                 if (seq == _navSeq && !IsExternalProtocol(url))
                 {
                     await Manager.NavigateAsync(url);
+                }
+            }
+            finally
+            {
+                if (seq == _navSeq &&
+                    string.Equals(_pendingNavigationUrl, url, StringComparison.OrdinalIgnoreCase))
+                {
+                    _pendingNavigationUrl = null;
                 }
             }
         }
@@ -765,41 +890,93 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         }
 
         /// <summary>
-        /// Goes back one page in history
+        /// Goes back one page in history (PRO behaviour: internal history first,
+        /// then engine history for in-page steps like SPA/redirects).
         /// </summary>
         public void GoBack()
         {
-            if (!History.CanGoBack)
+            // Internal page target -> always via tab history (engine knows nothing about vetale://).
+            var prev = History.CanGoBack ? PeekBack() : null;
+            if (prev != null && prev.IsInternal)
             {
-                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] GoBack: no history");
+                var entry = History.GoBack();
+                if (entry != null) NavigateToHistoryEntry(entry);
                 return;
             }
-
-            var entry = History.GoBack();
-            if (entry != null)
+            // External: prefer tab history so address bar + tab title stay in sync,
+            // fall back to engine history when tab history is empty (e.g. iframe/SPA steps).
+            if (History.CanGoBack)
             {
-                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] GoBack to: {entry.Url}");
-                NavigateToHistoryEntry(entry);
+                var entry = History.GoBack();
+                if (entry != null) NavigateToHistoryEntry(entry);
+                return;
             }
+            try
+            {
+                if (WebView?.CanGoBack == true)
+                {
+                    _historyNavigationInProgress = true;
+                    _historyNavigationTarget = null; // accept whatever engine lands on
+                    WebView.GoBack();
+                }
+            }
+            catch { }
+        }
+
+        private NavigationEntry? PeekBack()
+        {
+            try
+            {
+                var f = typeof(NavigationHistory).GetField("_entries", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                var idxF = typeof(NavigationHistory).GetField("_currentIndex", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (f?.GetValue(History) is System.Collections.IList list && idxF?.GetValue(History) is int idx && idx > 0)
+                    return list[idx - 1] as NavigationEntry;
+            }
+            catch { }
+            return null;
+        }
+
+        private NavigationEntry? PeekForward()
+        {
+            try
+            {
+                var f = typeof(NavigationHistory).GetField("_entries", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                var idxF = typeof(NavigationHistory).GetField("_currentIndex", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (f?.GetValue(History) is System.Collections.IList list && idxF?.GetValue(History) is int idx && idx + 1 < list.Count)
+                    return list[idx + 1] as NavigationEntry;
+            }
+            catch { }
+            return null;
         }
 
         /// <summary>
-        /// Goes forward one page in history
+        /// Goes forward one page in history (PRO behaviour, mirror of GoBack).
         /// </summary>
         public void GoForward()
         {
-            if (!History.CanGoForward)
+            var next = History.CanGoForward ? PeekForward() : null;
+            if (next != null && next.IsInternal)
             {
-                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] GoForward: no history");
+                var entry = History.GoForward();
+                if (entry != null) NavigateToHistoryEntry(entry);
                 return;
             }
-
-            var entry = History.GoForward();
-            if (entry != null)
+            if (History.CanGoForward)
             {
-                System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] GoForward to: {entry.Url}");
-                NavigateToHistoryEntry(entry);
+                var entry = History.GoForward();
+                if (entry != null) NavigateToHistoryEntry(entry);
+                return;
             }
+            try
+            {
+                if (WebView?.CanGoForward == true)
+                {
+                    _historyNavigationInProgress = true;
+                    _historyNavigationTarget = null;
+                    WebView.GoForward();
+                }
+            }
+            catch { }
         }
 
         /// <summary>
@@ -840,7 +1017,9 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     // underlying adapter proved unreliable for history steps,
                     // leaving the old WebView content on screen.
                     _navSeq++;
-                    await Manager.NavigateAsync(entry.Url);
+                    _historyNavigationTarget = entry.Url;
+                    _historyNavigationInProgress = true;
+                    await Manager.NavigateWithoutHistoryAsync(entry.Url);
                 }
 
                 NavigationChanged?.Invoke(this, entry);
@@ -851,6 +1030,11 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             }
             finally
             {
+                if (entry.IsInternal)
+                {
+                    _historyNavigationInProgress = false;
+                    _historyNavigationTarget = null;
+                }
                 _isNavigating = false;
             }
         }
@@ -884,6 +1068,35 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             {
                 System.Diagnostics.Debug.WriteLine($"[TabWorker] RefreshInternalPageQuery error: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// PRO-style live favicon: reads &lt;link rel="icon"&gt; from the page via DevTools,
+        /// falls back to /favicon.ico convention. Fires FaviconChanged for the UI.
+        /// </summary>
+        public async Task RefreshFaviconAsync()
+        {
+            try
+            {
+                var addr = Address ?? WebView?.Address;
+                if (string.IsNullOrWhiteSpace(addr)) return;
+                if (addr.StartsWith("vetale://", StringComparison.OrdinalIgnoreCase) ||
+                    addr.StartsWith("chrome://", StringComparison.OrdinalIgnoreCase) ||
+                    addr.StartsWith("about:", StringComparison.OrdinalIgnoreCase))
+                    return; // internal pages use bundled icons (handled by MainWindow)
+                string? icon = null;
+                try
+                {
+                    icon = await CefDevToolsClient.EvaluateStringAsync(
+                        addr, "(function(){try{var l=document.querySelector('link[rel~=\"icon\"]');if(l&&l.href)return l.href;return location.origin+'/favicon.ico';}catch(e){return null;}})()");
+                }
+                catch { }
+                if (string.IsNullOrWhiteSpace(icon)) return;
+                if (string.Equals(FaviconUrl, icon, StringComparison.OrdinalIgnoreCase)) return;
+                FaviconUrl = icon;
+                FaviconChanged?.Invoke(this, icon);
+            }
+            catch { }
         }
 
         /// <summary>
@@ -1330,6 +1543,40 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             {
                 var webViewType = WebView.InnerView.GetType();
                 object? browser = null;
+
+                // CefSharp.Avalonia keeps the host directly on WebView in
+                // some versions. Prefer it before walking through CefBrowser.
+                string[] directHostNames = { "BrowserHost", "_browserHost", "Host", "_host" };
+                foreach (var name in directHostNames)
+                {
+                    var hostProperty = webViewType.GetProperty(name,
+                        System.Reflection.BindingFlags.Instance |
+                        System.Reflection.BindingFlags.Public |
+                        System.Reflection.BindingFlags.NonPublic);
+                    var directHost = hostProperty?.GetValue(WebView.InnerView);
+                    if (directHost != null &&
+                        directHost.GetType().GetMethod("SetAudioMuted",
+                            System.Reflection.BindingFlags.Public |
+                            System.Reflection.BindingFlags.Instance) != null)
+                    {
+                        Debug.WriteLine($"[TabWorker] Found CefBrowserHost directly via '{name}' property");
+                        return directHost;
+                    }
+
+                    var hostField = webViewType.GetField(name,
+                        System.Reflection.BindingFlags.Instance |
+                        System.Reflection.BindingFlags.Public |
+                        System.Reflection.BindingFlags.NonPublic);
+                    directHost = hostField?.GetValue(WebView.InnerView);
+                    if (directHost != null &&
+                        directHost.GetType().GetMethod("SetAudioMuted",
+                            System.Reflection.BindingFlags.Public |
+                            System.Reflection.BindingFlags.Instance) != null)
+                    {
+                        Debug.WriteLine($"[TabWorker] Found CefBrowserHost directly via '{name}' field");
+                        return directHost;
+                    }
+                }
                 
                 // Search for browser using various property/field names
                 string[] browserNames = { "Browser", "_browser", "browser", "chromiumBrowser", "_chromiumBrowser", 
@@ -1441,14 +1688,23 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
         private async void ApplyMuteState()
         {
+            await _muteApplyLock.WaitAsync();
             try
             {
                 Debug.WriteLine($"[TabWorker] ApplyMuteState called, _isMuted={_isMuted}, _relatedPids.Count={_relatedPids.Count}");
                 
                 bool applied = false;
+
+                // Use the browser-level CEF API first. This mutes the whole
+                // WebView and does not depend on page lifecycle events.
+                applied = WebView.SetAudioMuted(_isMuted);
+                if (applied)
+                {
+                    Debug.WriteLine($"[TabWorker] Audio {(_isMuted ? "muted" : "unmuted")} via WebView browser API");
+                }
                 
                 // Priority 1: CEF native API via reflection (most reliable method)
-                try
+                if (!applied) try
                 {
                     var cefBrowserHost = TryGetCefBrowserHost();
                     if (cefBrowserHost != null)
@@ -1608,6 +1864,10 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             {
                 Debug.WriteLine($"[TabWorker] Failed to apply mute state: {ex.Message}");
             }
+            finally
+            {
+                _muteApplyLock.Release();
+            }
         }
         
         /// <summary>
@@ -1707,12 +1967,14 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     try
                     {
                         _blockingDownloadNav = true;
-                        if (WebView.CanGoBack)
+                        if (CanGoBack)
                         {
-                            WebView.GoBack();
+                            GoBack();
                         }
                         else if (!string.IsNullOrWhiteSpace(previous))
                         {
+                            _historyNavigationInProgress = true;
+                            _historyNavigationTarget = previous;
                             WebView.Address = previous!;
                         }
                     }
@@ -1787,4 +2049,3 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }
-

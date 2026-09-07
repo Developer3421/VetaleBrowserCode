@@ -4,174 +4,154 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Threading;
 using CefSharp.Avalonia;
 
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Browser;
 
-/// <summary>
-/// <see cref="IBrowserView"/> implementation backed by CefSharp.Avalonia 1.0.6.
-/// Notes vs WebViewControl:
-/// - Back/forward history is emulated in-process (upstream exposes no history API).
-/// - JavaScript evaluation is NOT supported upstream (no IPC message) — calls
-///   return default and log; JS-dependent extras (mute-via-JS, prompt injection,
-///   DOM capture) degrade gracefully.
-/// </summary>
-public sealed class CefSharpAdapter : IBrowserView
+public class CefSharpAdapter : IBrowserView
 {
     private readonly WebView _inner;
     private readonly List<string> _history = new();
     private int _historyIndex = -1;
-    private bool _suppressHistory;
     private bool _disposed;
+    private bool _suppressHistoryUpdate;
 
     public event EventHandler<AvaloniaPropertyChangedEventArgs>? PropertyChanged;
     public event EventHandler<KeyEventArgs>? KeyDown;
 
     public CefSharpAdapter(string? initialUrl = null)
     {
-        _inner = new WebView();
-        try
+        CefBrowserConfig.EnsureInitialized();
+        _inner = new WebView
         {
-            _inner.CefSettings = CefBrowserConfig.CreateSettings();
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[CefSharpAdapter] CefSettings failed: {ex.Message}");
-        }
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
+            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch,
+            CefSettings = CefBrowserConfig.CreateSettings()
+        };
         _inner.PropertyChanged += OnInnerPropertyChanged;
         _inner.KeyDown += OnInnerKeyDown;
 
         if (!string.IsNullOrWhiteSpace(initialUrl))
-            Address = initialUrl;
+            LoadUrl(initialUrl);
     }
 
     public Control View => _inner;
-
     public object InnerView => _inner;
-
     public string? Address
     {
-        get => !string.IsNullOrEmpty(_inner.Url) ? _inner.Url : _inner.Address;
+        get => _inner.Address;
         set
         {
             if (string.IsNullOrWhiteSpace(value))
                 return;
-            PushHistory(value);
-            _inner.Address = value;
+
+            var normalized = value.Trim();
+            if (_suppressHistoryUpdate)
+            {
+                _inner.Address = normalized;
+                return;
+            }
+
+            if (_history.Count == 0 || !string.Equals(_history[_historyIndex], normalized, StringComparison.OrdinalIgnoreCase))
+            {
+                if (_historyIndex >= 0 && _historyIndex < _history.Count - 1)
+                    _history.RemoveRange(_historyIndex + 1, _history.Count - _historyIndex - 1);
+
+                if (_history.Count == 0 || !string.Equals(_history[^1], normalized, StringComparison.OrdinalIgnoreCase))
+                {
+                    _history.Add(normalized);
+                    _historyIndex = _history.Count - 1;
+                }
+                else
+                {
+                    _historyIndex = _history.Count - 1;
+                }
+            }
+
+            if (!string.Equals(_inner.Address, normalized, StringComparison.OrdinalIgnoreCase))
+                _inner.Address = normalized;
         }
     }
 
     public string? Title => _inner.Title;
-
     public bool CanGoBack => _historyIndex > 0;
-
     public bool CanGoForward => _historyIndex >= 0 && _historyIndex < _history.Count - 1;
 
     public void GoBack()
     {
         if (!CanGoBack)
             return;
+
         _historyIndex--;
-        NavigateHistoryEntry(_history[_historyIndex]);
+        var target = _history[_historyIndex];
+
+        _suppressHistoryUpdate = true;
+        try
+        {
+            if (!string.Equals(_inner.Address, target, StringComparison.OrdinalIgnoreCase))
+                _inner.Address = target;
+        }
+        finally
+        {
+            _suppressHistoryUpdate = false;
+        }
     }
 
     public void GoForward()
     {
         if (!CanGoForward)
             return;
+
         _historyIndex++;
-        NavigateHistoryEntry(_history[_historyIndex]);
-    }
+        var target = _history[_historyIndex];
 
-    public void Reload()
-    {
+        _suppressHistoryUpdate = true;
         try
         {
-            _ = _inner.ReloadAsync();
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[CefSharpAdapter] Reload failed: {ex.Message}");
-        }
-    }
-
-    public Task<T> EvaluateScriptAsync<T>(string script)
-    {
-        // CefSharp.Avalonia 1.0.6 has no JS bridge (upstream gap).
-        System.Diagnostics.Debug.WriteLine("[CefSharpAdapter] EvaluateScriptAsync not supported (no JS IPC in 1.0.6), returning default");
-        return Task.FromResult<T>(default!);
-    }
-
-    private void PushHistory(string url)
-    {
-        if (_historyIndex >= 0 && _historyIndex < _history.Count &&
-            string.Equals(_history[_historyIndex], url, StringComparison.Ordinal))
-            return;
-
-        if (_historyIndex < _history.Count - 1)
-            _history.RemoveRange(_historyIndex + 1, _history.Count - _historyIndex - 1);
-
-        _history.Add(url);
-        _historyIndex = _history.Count - 1;
-    }
-
-    private void NavigateHistoryEntry(string url)
-    {
-        LoadUrl(url);
-    }
-
-    public void LoadUrl(string url)
-    {
-        if (string.IsNullOrWhiteSpace(url))
-            return;
-        _suppressHistory = true;
-        try
-        {
-            if (Dispatcher.UIThread.CheckAccess())
-                _ = _inner.NavigateAsync(url);
-            else
-                Dispatcher.UIThread.Post(() => _ = _inner.NavigateAsync(url));
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[CefSharpAdapter] History navigate failed: {ex.Message}");
+            if (!string.Equals(_inner.Address, target, StringComparison.OrdinalIgnoreCase))
+                _inner.Address = target;
         }
         finally
         {
-            _suppressHistory = false;
+            _suppressHistoryUpdate = false;
         }
     }
 
-    private void OnInnerPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    public void Reload() => _ = _inner.ReloadAsync();
+    public void LoadUrl(string url)
     {
-        try
-        {
-            // In-page navigations (link clicks) also extend our emulated history.
-            if (!_suppressHistory && e.Property.Name == "Address")
-                PushHistory(_inner.Address ?? string.Empty);
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[CefSharpAdapter] History push failed: {ex.Message}");
-        }
+        if (!string.IsNullOrWhiteSpace(url))
+            Address = url;
+    }
 
+    public Task<T> EvaluateScriptAsync<T>(string script) =>
+        Task.FromResult(default(T)!);
+
+    public bool SetAudioMuted(bool muted) => false;
+
+    private void OnInnerPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e) =>
         PropertyChanged?.Invoke(this, e);
-    }
 
-    private void OnInnerKeyDown(object? sender, KeyEventArgs e)
-    {
-        KeyDown?.Invoke(sender, e);
-    }
+    private void OnInnerKeyDown(object? sender, KeyEventArgs e) =>
+        KeyDown?.Invoke(this, e);
 
     public void Dispose()
     {
         if (_disposed)
             return;
         _disposed = true;
+        _inner.PropertyChanged -= OnInnerPropertyChanged;
+        _inner.KeyDown -= OnInnerKeyDown;
+        _inner.Cleanup();
+    }
+}
 
-        try { _inner.PropertyChanged -= OnInnerPropertyChanged; } catch { }
-        try { _inner.KeyDown -= OnInnerKeyDown; } catch { }
-        try { _inner.Cleanup(); } catch { }
+/// <summary>
+/// Compatibility alias for existing callers.
+/// </summary>
+public sealed class CefGlueAdapter : CefSharpAdapter
+{
+    public CefGlueAdapter(string? initialUrl = null) : base(initialUrl)
+    {
     }
 }

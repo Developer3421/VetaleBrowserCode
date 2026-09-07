@@ -9,7 +9,11 @@ obj/
 *.nupkg
 packages/
 
+# microStudio engine (built via npm, published as Content)
+VetaleBrowser/MicroStudio/server/node_modules/
+
 # OS
 .DS_Store
 Thumbs.db
 /VetaleBrowser/VetaleBrowser.AI/Model/gemma-3-1b-it-UD-Q2_K_XL.gguf
+/VetaleBrowser/VetaleBrowserOfflineGame/

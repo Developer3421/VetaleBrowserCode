@@ -87,7 +87,7 @@ public partial class DuckDuckGoAiChatPanel : UserControl, IDisposable
             _webViewContainer.Children.Clear();
 
             // Create WebView with proper stretch properties
-            _webView = new CefSharpAdapter();
+            _webView = new CefGlueAdapter();
             _webView.View.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
             _webView.View.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch;
             

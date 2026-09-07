@@ -61,7 +61,7 @@ public class Tab : TemplatedControl
         }
         if (_muteButton != null)
         {
-            _muteButton.Click -= OnMuteButtonClick;
+            _muteButton.PointerPressed -= OnMuteButtonPointerPressed;
         }
 
         _border = e.NameScope.Find<Border>("PART_Border");
@@ -78,7 +78,7 @@ public class Tab : TemplatedControl
         }
         if (_muteButton != null)
         {
-            _muteButton.Click += OnMuteButtonClick;
+            _muteButton.PointerPressed += OnMuteButtonPointerPressed;
         }
     }
 
@@ -93,6 +93,18 @@ public class Tab : TemplatedControl
             e.Handled = true;
             return;
         }
+
+        // The native WebView can prevent the templated Button from becoming
+        // the pointer source. Keep the mute hit area functional at the tab
+        // level as a fallback.
+        if (props.IsLeftButtonPressed && e.GetPosition(this).X <= 42)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Tab] Mute hit area pressed: title={Title}, muted={IsMuted}");
+            MuteToggled?.Invoke(this, System.EventArgs.Empty);
+            e.Handled = true;
+            return;
+        }
+
         Clicked?.Invoke(this, System.EventArgs.Empty);
     }
 
@@ -110,9 +122,14 @@ public class Tab : TemplatedControl
         e.Handled = true;
     }
 
-    private void OnMuteButtonClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void OnMuteButtonPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
-        MuteToggled?.Invoke(this, System.EventArgs.Empty);
+        if (!e.Handled && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Tab] Mute button pressed: title={Title}, muted={IsMuted}");
+            MuteToggled?.Invoke(this, System.EventArgs.Empty);
+        }
+
         e.Handled = true;
     }
 
@@ -166,4 +183,3 @@ public sealed class TabDragStartedEventArgs : System.EventArgs
 
     public Avalonia.Input.PointerPressedEventArgs PointerEvent { get; }
 }
-

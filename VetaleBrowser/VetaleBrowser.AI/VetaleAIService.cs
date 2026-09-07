@@ -13,6 +13,7 @@ public class VetaleAIService : IDisposable
     private VetaleAIAgent? _agent;
     private readonly string _modelPath;
     private bool _isDisposed;
+    private string? _lastLanguageHint;
     private static readonly SemaphoreSlim _instanceLock = new(1, 1);
 
     public VetaleAIService()
@@ -110,6 +111,7 @@ public class VetaleAIService : IDisposable
         {
             var languageHint = GetLanguageHint(language);
             System.Diagnostics.Trace.WriteLine($"VetaleAIService: Language: {languageHint ?? "Auto"}");
+            await ResetContextForLanguageChangeAsync(languageHint);
             
             var response = await _agent.GenerateResponseAsync(userMessage, languageHint, cancellationToken);
             
@@ -151,6 +153,7 @@ public class VetaleAIService : IDisposable
         try
         {
             var languageHint = GetLanguageHint(language);
+            await ResetContextForLanguageChangeAsync(languageHint);
             return await _agent.GenerateResponseStreamAsync(userMessage, languageHint, progress, cancellationToken);
         }
         catch (Exception ex)
@@ -189,6 +192,20 @@ public class VetaleAIService : IDisposable
         };
     }
 
+    private async Task ResetContextForLanguageChangeAsync(string? languageHint)
+    {
+        if (_agent == null)
+            return;
+
+        if (_lastLanguageHint != null &&
+            !string.Equals(_lastLanguageHint, languageHint, StringComparison.Ordinal))
+        {
+            await _agent.ResetContextAsync();
+        }
+
+        _lastLanguageHint = languageHint;
+    }
+
     public void Dispose()
     {
         if (_isDisposed)
@@ -196,6 +213,7 @@ public class VetaleAIService : IDisposable
 
         _agent?.Dispose();
         _agent = null;
+        _lastLanguageHint = null;
         _isDisposed = true;
         
         System.Diagnostics.Trace.WriteLine("VetaleAIService: Disposed");

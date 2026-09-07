@@ -52,6 +52,59 @@ public static class CefDevToolsClient
         }
     }
 
+    /// <summary>
+    /// Runs an arbitrary JS string expression in the page, returns string value or null.
+    /// </summary>
+    public static async Task<string?> EvaluateStringAsync(string? urlHint, string expression, int port = 9223)
+    {
+        try
+        {
+            string listJson;
+            try { listJson = await _http.GetStringAsync($"http://127.0.0.1:{port}/json/list"); }
+            catch { return null; }
+            string? wsUrl = PickTarget(listJson, urlHint);
+            if (wsUrl == null) return null;
+            return await EvaluateStringRawAsync(wsUrl, expression);
+        }
+        catch { return null; }
+    }
+
+    private static async Task<string?> EvaluateStringRawAsync(string wsUrl, string expression)
+    {
+        using var ws = new ClientWebSocket();
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        try
+        {
+            await ws.ConnectAsync(new Uri(wsUrl), cts.Token);
+            int id = new Random().Next(1, 1000000);
+            var msg = JsonSerializer.Serialize(new { id, method = "Runtime.evaluate", @params = new { expression, returnByValue = true } });
+            var bytes = Encoding.UTF8.GetBytes(msg);
+            await ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, cts.Token);
+            var buffer = new byte[65536];
+            var sb = new StringBuilder();
+            while (true)
+            {
+                var res = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), cts.Token);
+                if (res.MessageType == WebSocketMessageType.Close) return null;
+                sb.Append(Encoding.UTF8.GetString(buffer, 0, res.Count));
+                if (!res.EndOfMessage) continue;
+                try
+                {
+                    using var doc = JsonDocument.Parse(sb.ToString());
+                    if (doc.RootElement.TryGetProperty("id", out var rid) && rid.GetInt32() == id &&
+                        doc.RootElement.TryGetProperty("result", out var result) &&
+                        result.TryGetProperty("result", out var inner) &&
+                        inner.TryGetProperty("value", out var val) &&
+                        val.ValueKind == JsonValueKind.String)
+                        return val.GetString();
+                    return null;
+                }
+                catch { return null; }
+            }
+        }
+        catch { return null; }
+    }
+
     private static string? PickTarget(string listJson, string? urlHint)
     {
         try

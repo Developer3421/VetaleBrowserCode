@@ -216,8 +216,6 @@
                             <ComboBoxItem Content="{DynamicResource VetaleAI.Language.English}"/>
                             <ComboBoxItem Content="{DynamicResource VetaleAI.Language.Russian}"/>
                             <ComboBoxItem Content="{DynamicResource VetaleAI.Language.German}"/>
-                            <ComboBoxItem Content="{DynamicResource VetaleAI.Language.French}"/>
-                            <ComboBoxItem Content="{DynamicResource VetaleAI.Language.Spanish}"/>
                             <ComboBoxItem Content="{DynamicResource VetaleAI.Language.Turkish}"/>
                         </ComboBox>
                     </StackPanel>

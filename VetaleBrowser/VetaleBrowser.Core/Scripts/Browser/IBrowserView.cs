@@ -35,6 +35,7 @@ public interface IBrowserView : IDisposable
     void LoadUrl(string url);
 
     Task<T> EvaluateScriptAsync<T>(string script);
+    bool SetAudioMuted(bool muted);
 
     event EventHandler<AvaloniaPropertyChangedEventArgs> PropertyChanged;
     event EventHandler<KeyEventArgs> KeyDown;

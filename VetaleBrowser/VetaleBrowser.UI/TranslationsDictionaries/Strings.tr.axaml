@@ -24,6 +24,10 @@
   <x:String x:Key="About.Copyright">© 2026 Vetale Browser</x:String>
   
   <!-- Araçlar - Hakkında -->
+  <x:String x:Key="Tools.MicroStudio.Name">MicroStudio, game engine</x:String>
+  <x:String x:Key="Tools.MicroStudio.Description">Çevrimdışı oyun motoru, npm olmadan yerel çalışır (ana sekmede açılır)</x:String>
+  <x:String x:Key="Tools.HexGL.Name">HexGL, racing game by Thibaut Despoulain</x:String>
+  <x:String x:Key="Tools.HexGL.Description">Fütüristik çevrimdışı yarış oyunu (ana sekmede açılır)</x:String>
   <x:String x:Key="Tools.About.Name">Hakkında</x:String>
   <x:String x:Key="Tools.About.Description">Tarayıcı ve yaratıcısı hakkında bilgi</x:String>
 

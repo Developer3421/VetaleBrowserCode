@@ -23,11 +23,13 @@
                                 CornerRadius="6"
                                 Padding="0"
                                 ToolTip.Tip="{DynamicResource Nav.Back}">
-                            <Image
-                                Source="/VetaleBrowser.UI/Sources/Icons/Backbutton.png"
-                                Stretch="UniformToFill"
-                                HorizontalAlignment="Stretch"
-                                VerticalAlignment="Stretch" />
+                            <Image Source="{DynamicResource BackButtonImage}"
+                                   Width="18"
+                                   Height="18"
+                                   Stretch="Uniform"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   IsHitTestVisible="False" />
                         </Button>
 
                         <!-- Forward Button -->
@@ -40,11 +42,13 @@
                                 CornerRadius="6"
                                 Padding="0"
                                 ToolTip.Tip="{DynamicResource Nav.Forward}">
-                            <Image
-                                Source="/VetaleBrowser.UI/Sources/Icons/ForwardButton.png"
-                                Stretch="UniformToFill"
-                                HorizontalAlignment="Stretch"
-                                VerticalAlignment="Stretch" />
+                            <Image Source="{DynamicResource ForwardButtonImage}"
+                                   Width="18"
+                                   Height="18"
+                                   Stretch="Uniform"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   IsHitTestVisible="False" />
                         </Button>
 
                         <Button Grid.Column="2"
@@ -203,13 +207,21 @@
         </Setter>
     </Style>
 
-    <!-- Button hover effects -->
+    <!-- Button hover / pressed / disabled effects (Chrome-like, clearly visible) -->
     <Style Selector="controls|NavigationBar /template/ Button:pointerover">
-        <Setter Property="Background" Value="#50FFFFFF" />
+        <Setter Property="Background" Value="#22000000" />
     </Style>
 
     <Style Selector="controls|NavigationBar /template/ Button:pressed">
-        <Setter Property="Background" Value="#30FFFFFF" />
+        <Setter Property="Background" Value="#44000000" />
+    </Style>
+
+    <Style Selector="controls|NavigationBar /template/ Button:disabled">
+        <Setter Property="Opacity" Value="0.35" />
+    </Style>
+
+    <Style Selector="controls|NavigationBar /template/ Button:disabled /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
     </Style>
 
     <!-- Address bar focus effect -->

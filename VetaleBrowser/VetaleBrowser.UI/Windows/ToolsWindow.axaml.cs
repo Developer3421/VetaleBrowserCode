@@ -100,6 +100,7 @@ public partial class ToolsWindow : Window
         _mainPage = new ToolsMainPage();
         _mainPage.NavigateInWebView += OnNavigateInWebView;
         _mainPage.NavigateInMainTab += OnNavigateInMainTab;
+        _mainPage.OpenInNewMainTab += OnOpenInNewMainTab;
 
         // Show main page initially
         ShowMainPage();
@@ -136,6 +137,42 @@ public partial class ToolsWindow : Window
     private void OnNavigateInWebView(object? sender, ToolNavigationEventArgs e)
     {
         ShowWebViewPage(e.ToolName, e.Url);
+    }
+
+    private void OnOpenInNewMainTab(object? sender, string url)
+    {
+        // Open URL in a NEW tab of the main browser window
+        System.Diagnostics.Trace.WriteLine($"[ToolsWindow] Open in new main tab: {url}");
+
+        MainWindow? mainWindow = null;
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            mainWindow = desktop.Windows?.OfType<MainWindow>().FirstOrDefault();
+        }
+
+        if (mainWindow == null)
+        {
+            mainWindow = new MainWindow();
+            mainWindow.Show();
+        }
+
+        if (mainWindow.WindowState == WindowState.Minimized)
+        {
+            mainWindow.WindowState = WindowState.Normal;
+        }
+
+        try
+        {
+            mainWindow.OpenUrlInNewTab(url);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[ToolsWindow] Failed to open new tab: {ex}");
+        }
+
+        mainWindow.Activate();
+        mainWindow.Topmost = true;
+        mainWindow.Topmost = false;
     }
 
     private void OnNavigateInMainTab(object? sender, string url)

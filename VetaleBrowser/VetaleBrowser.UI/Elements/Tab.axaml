@@ -26,41 +26,9 @@
                         Padding="12,0,8,0"
                         ClipToBounds="False">
 
-                    <Grid ColumnDefinitions="Auto,Auto,*,Auto">
-                        <!-- Mute Button (left of favicon) -->
-                        <Button Grid.Column="0"
-                                x:Name="PART_MuteButton"
-                                Width="20"
-                                Height="20"
-                                Margin="0,0,6,0"
-                                Padding="0"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                CornerRadius="4"
-                                ToolTip.Tip="{DynamicResource Tab.Mute.Toggle}">
-                            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                                <!-- Speaker icon - gray when unmuted, white when muted -->
-                                <Path Data="M2,6 L6,6 L10,2 L10,18 L6,14 L2,14 Z M12,6 C13,7 13,11 12,12"
-                                      Stretch="Uniform"
-                                      HorizontalAlignment="Center"
-                                      VerticalAlignment="Center"
-                                      Margin="2"
-                                      x:Name="PART_SpeakerIcon"/>
-
-                                <!-- Slash when muted -->
-                                <Path Data="M3,3 L13,15"
-                                      Stroke="#FFFFFF"
-                                      StrokeThickness="1.8"
-                                      StrokeLineCap="Round"
-                                      IsVisible="{TemplateBinding IsMuted}"
-                                      x:Name="PART_MuteSlash"
-                                      HorizontalAlignment="Center"
-                                      VerticalAlignment="Center"/>
-                            </Grid>
-                        </Button>
-
+                    <Grid ColumnDefinitions="Auto,*,Auto">
                         <!-- Favicon/Icon -->
-                        <Border Grid.Column="1"
+                        <Border Grid.Column="0"
                                 Width="24"
                                 Height="24"
                                 Margin="0,0,8,0"
@@ -79,7 +47,7 @@
                         </Border>
 
                         <!-- Title -->
-                        <TextBlock Grid.Column="2"
+                        <TextBlock Grid.Column="1"
                                    x:Name="PART_Title"
                                    Text="{TemplateBinding Title}"
                                    FontSize="12"
@@ -90,7 +58,7 @@
                                    Margin="0,0,8,0" />
 
                         <!-- Close Button -->
-                        <Button Grid.Column="3"
+                        <Button Grid.Column="2"
                                 x:Name="PART_CloseButton"
                                 Width="20"
                                 Height="20"

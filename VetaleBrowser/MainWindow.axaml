@@ -2,12 +2,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:controls="using:VetaleBrowser.VetaleBrowser.UI.Elements"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="VetaleBrowser.MainWindow"
         Title="{DynamicResource App.Title}"
         WindowStartupLocation="CenterScreen"
-        SystemDecorations="BorderOnly"
+        WindowDecorations="BorderOnly"
         Background="#FF8B4513"
         BorderThickness="0.5"
         BorderBrush="#22000000"
@@ -84,4 +83,3 @@
     <!-- Content area: will switch between NormalModePage and FullscreenModePage -->
     <ContentControl x:Name="PageContainer" />
  </Window>
-

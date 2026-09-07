@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.ObjectModel;
+using System.Threading;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -13,6 +16,12 @@ using VetaleBrowser.VetaleBrowser.Search.Services;
 
 namespace VetaleBrowser.VetaleBrowser.UI.Elements;
 
+/// <summary>
+/// Ideal navigation bar:
+/// - Single responsibility: renders state + raises intents (no direct engine calls for Back/Forward).
+/// - Navigation happens ONLY on Enter or suggestion click. No auto-navigate on typing.
+/// - Button state driven by SetState() from MainWindow (single source of truth: TabWorker.History).
+/// </summary>
 public class NavigationBar : TemplatedControl
 {
     public static readonly StyledProperty<string> UrlProperty =
@@ -26,7 +35,7 @@ public class NavigationBar : TemplatedControl
 
     public static readonly StyledProperty<bool> IsSecureProperty =
         AvaloniaProperty.Register<NavigationBar, bool>(nameof(IsSecure));
-    
+
     public static readonly StyledProperty<SecurityStatus> SecurityStatusProperty =
         AvaloniaProperty.Register<NavigationBar, SecurityStatus>(nameof(SecurityStatus), SecurityStatus.Unknown);
 
@@ -38,25 +47,32 @@ public class NavigationBar : TemplatedControl
     private Button? _toolsButton;
     private Button? _settingsButton;
     private TextBox? _addressBar;
-    private WebViewManager? _webViewManager;
-    private TabWorker? _tabWorker;
-    private ISettingsService? _settingsService;
     private Popup? _suggestionsPopup;
     private ItemsControl? _suggestionsList;
-    private readonly System.Collections.ObjectModel.ObservableCollection<SearchSuggestion> _suggestions = new();
-    private ISuggestionsService? _suggestionsService;
-    private System.Threading.CancellationTokenSource? _suggestionsCts;
-    private ISecurityCheckService? _securityCheckService;
-    private System.Threading.CancellationTokenSource? _securityCheckCts;
     private Border? _securityIcon;
     private Avalonia.Controls.Shapes.Path? _securityPath;
     private TextBlock? _securityText;
-    private System.Threading.CancellationTokenSource? _autoNavigateCts; // ��+�� debounce ������������������
-    private string? _lastAutoNavigatedUrl; // ����������� URL ���� ��� ������������� �+���������
-    private bool _suppressTextChanged; // ��+��������� �+����������+����� ������������������ �+��� �+��������+���� ���+�����
 
+    private readonly ObservableCollection<SearchSuggestion> _suggestions = new();
+    private ISettingsService? _settingsService;
+    private ISuggestionsService? _suggestionsService;
+    private ISecurityCheckService? _securityCheckService;
+    private CancellationTokenSource? _suggestionsCts;
+    private CancellationTokenSource? _securityCheckCts;
 
+    // While we programmatically set address text, ignore TextChanged.
+    private bool _syncingAddressText;
+
+    /// <summary>Address submitted via Enter or suggestion.</summary>
     public event EventHandler<string>? NavigateRequested;
+    /// <summary>Back / Forward intents — handled by MainWindow via TabWorker.</summary>
+    public event EventHandler? BackRequested;
+    public event EventHandler? ForwardRequested;
+    public event EventHandler? ReloadRequested;
+    public event EventHandler? HomeRequested;
+    public event EventHandler? BookmarkRequested;
+    public event EventHandler? ToolsRequested;
+    public event EventHandler? SettingsRequested;
 
     public string Url
     {
@@ -81,81 +97,89 @@ public class NavigationBar : TemplatedControl
         get => GetValue(IsSecureProperty);
         set => SetValue(IsSecureProperty, value);
     }
-    
+
     public SecurityStatus SecurityStatus
     {
         get => GetValue(SecurityStatusProperty);
         set => SetValue(SecurityStatusProperty, value);
     }
 
-    // Events for functionality that should be handled externally (like bookmarks, settings)
-    public event EventHandler? BookmarkRequested;
-    public event EventHandler? ToolsRequested;
-    public event EventHandler? SettingsRequested;
-
     /// <summary>
-    /// Initialize navigation bar with WebViewManager
+    /// Single entry point for state updates. Call from MainWindow whenever
+    /// TabWorker.History or Address changes. Guaranteed UI-thread safe.
     /// </summary>
-    public void Initialize(WebViewManager webViewManager)
+    public void SetState(string? url, bool canGoBack, bool canGoForward)
     {
-        _webViewManager = webViewManager ?? throw new ArgumentNullException(nameof(webViewManager));
-        System.Diagnostics.Trace.WriteLine("NavigationBar: Initialized with WebViewManager");
-    }
-    
-    /// <summary>
-    /// Set TabWorker for navigation history support
-    /// </summary>
-    public void SetTabWorker(TabWorker? tabWorker)
-    {
-        _tabWorker = tabWorker;
-        System.Diagnostics.Trace.WriteLine("NavigationBar: TabWorker set");
+        if (!Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => SetState(url, canGoBack, canGoForward));
+            return;
+        }
+        if (url != null && !IsAddressFocused())
+            Url = url; // triggers address sync via OnPropertyChanged
+        CanGoBack = canGoBack;
+        CanGoForward = canGoForward;
     }
 
+    private bool IsAddressFocused() => _addressBar?.IsFocused == true;
+
+    public void SetSettingsService(ISettingsService s) => _settingsService = s;
+    public void SetSuggestionsService(ISuggestionsService s) => _suggestionsService = s;
+    public void SetSecurityCheckService(ISecurityCheckService s) => _securityCheckService = s;
+
+    [Obsolete("Use BindWorker instead.")]
+    public void Initialize(WebViewManager webViewManager) { }
+
     /// <summary>
-    /// Set settings service for search engine configuration
+    /// Binds the bar to the active worker. The bar subscribes to
+    /// HistoryChanged + NavigationChanged itself, so Back/Forward buttons
+    /// always reflect the real history — no manual pushing needed.
+    /// Call on every tab switch / new tab.
     /// </summary>
-    public void SetSettingsService(ISettingsService settingsService)
+    public void BindWorker(TabWorker? worker)
     {
-        _settingsService = settingsService;
-        System.Diagnostics.Trace.WriteLine("NavigationBar: Settings service set");
+        if (_boundWorker != null)
+        {
+            _boundWorker.History.HistoryChanged -= OnBoundHistoryChanged;
+            _boundWorker.NavigationChanged -= OnBoundNavigationChanged;
+        }
+        _boundWorker = worker;
+        if (_boundWorker != null)
+        {
+            _boundWorker.History.HistoryChanged += OnBoundHistoryChanged;
+            _boundWorker.NavigationChanged += OnBoundNavigationChanged;
+        }
+        RefreshFromBoundWorker();
     }
 
-    public void SetSuggestionsService(ISuggestionsService service)
+    [Obsolete("Use BindWorker instead.")]
+    public void SetTabWorker(TabWorker? tabWorker) => BindWorker(tabWorker);
+
+    private TabWorker? _boundWorker;
+
+    private void OnBoundHistoryChanged(object? s, EventArgs e) => RefreshFromBoundWorker();
+
+    private void OnBoundNavigationChanged(object? s, VetaleBrowser.Core.Scripts.Models.NavigationEntry e)
+        => RefreshFromBoundWorker();
+
+    private void RefreshFromBoundWorker()
     {
-        _suggestionsService = service;
-    }
-    
-    public void SetSecurityCheckService(ISecurityCheckService service)
-    {
-        _securityCheckService = service;
+        if (_boundWorker == null) return;
+        if (!Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(RefreshFromBoundWorker);
+            return;
+        }
+        CanGoBack = _boundWorker.CanGoBack;
+        CanGoForward = _boundWorker.CanGoForward;
+        if (!IsAddressFocused() && _boundWorker.Address != null)
+            Url = _boundWorker.Address;
     }
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
-
-        // Unsubscribe from old buttons
-        if (_backButton != null)
-            _backButton.Click -= OnBackButtonClick;
-        if (_forwardButton != null)
-            _forwardButton.Click -= OnForwardButtonClick;
-        if (_reloadButton != null)
-            _reloadButton.Click -= OnReloadButtonClick;
-        if (_homeButton != null)
-            _homeButton.Click -= OnHomeButtonClick;
-        if (_bookmarkButton != null)
-            _bookmarkButton.Click -= OnBookmarkButtonClick;
-        if (_toolsButton != null)
-            _toolsButton.Click -= OnToolsButtonClick;
-        if (_settingsButton != null)
-            _settingsButton.Click -= OnSettingsButtonClick;
-        if (_addressBar != null)
-        {
-            _addressBar.KeyDown -= OnAddressBarKeyDown;
-            _addressBar.TextChanged -= OnAddressBarTextChanged;
-        }
-
-        // Get new buttons/controls
+        Unsubscribe();
         _backButton = e.NameScope.Find<Button>("PART_BackButton");
         _forwardButton = e.NameScope.Find<Button>("PART_ForwardButton");
         _reloadButton = e.NameScope.Find<Button>("PART_ReloadButton");
@@ -169,281 +193,164 @@ public class NavigationBar : TemplatedControl
         _securityIcon = e.NameScope.Find<Border>("PART_SecurityIcon");
         _securityPath = e.NameScope.Find<Avalonia.Controls.Shapes.Path>("PART_SecurityPath");
         _securityText = e.NameScope.Find<TextBlock>("PART_SecurityText");
-        
+
         if (_suggestionsList != null)
         {
             _suggestionsList.ItemsSource = _suggestions;
             _suggestionsList.AddHandler(InputElement.PointerPressedEvent, OnSuggestionsPointerPressed, handledEventsToo: false);
         }
-
-        // Subscribe to new buttons
-        if (_backButton != null)
-            _backButton.Click += OnBackButtonClick;
-        if (_forwardButton != null)
-            _forwardButton.Click += OnForwardButtonClick;
-        if (_reloadButton != null)
-            _reloadButton.Click += OnReloadButtonClick;
-        if (_homeButton != null)
-            _homeButton.Click += OnHomeButtonClick;
-        if (_bookmarkButton != null)
-            _bookmarkButton.Click += OnBookmarkButtonClick;
-        if (_toolsButton != null)
-            _toolsButton.Click += OnToolsButtonClick;
-        if (_settingsButton != null)
-            _settingsButton.Click += OnSettingsButtonClick;
+        if (_backButton != null) { _backButton.Click += OnBackClick; }
+        if (_forwardButton != null) { _forwardButton.Click += OnForwardClick; }
+        if (_reloadButton != null) _reloadButton.Click += OnReloadClick;
+        if (_homeButton != null) _homeButton.Click += OnHomeClick;
+        if (_bookmarkButton != null) _bookmarkButton.Click += OnBookmarkClick;
+        if (_toolsButton != null) _toolsButton.Click += OnToolsClick;
+        if (_settingsButton != null) _settingsButton.Click += OnSettingsClick;
         if (_addressBar != null)
         {
             _addressBar.KeyDown += OnAddressBarKeyDown;
             _addressBar.TextChanged += OnAddressBarTextChanged;
         }
-
         UpdateButtonStates();
+        SyncAddressText();
+        RefreshFromBoundWorker();
     }
 
-    private void OnBackButtonClick(object? sender, RoutedEventArgs e)
+    private void Unsubscribe()
     {
-        if (_tabWorker != null)
+        if (_backButton != null) { _backButton.Click -= OnBackClick; }
+        if (_forwardButton != null) { _forwardButton.Click -= OnForwardClick; }
+        if (_reloadButton != null) _reloadButton.Click -= OnReloadClick;
+        if (_homeButton != null) _homeButton.Click -= OnHomeClick;
+        if (_bookmarkButton != null) _bookmarkButton.Click -= OnBookmarkClick;
+        if (_toolsButton != null) _toolsButton.Click -= OnToolsClick;
+        if (_settingsButton != null) _settingsButton.Click -= OnSettingsClick;
+        if (_addressBar != null)
         {
-            _tabWorker.GoBack();
-            System.Diagnostics.Trace.WriteLine("NavigationBar: Back button clicked (TabWorker)");
+            _addressBar.KeyDown -= OnAddressBarKeyDown;
+            _addressBar.TextChanged -= OnAddressBarTextChanged;
         }
-        else
+        if (_suggestionsList != null)
+            _suggestionsList.RemoveHandler(InputElement.PointerPressedEvent, OnSuggestionsPointerPressed);
+    }
+
+    private void OnReloadClick(object? s, RoutedEventArgs e) => ReloadRequested?.Invoke(this, EventArgs.Empty);
+    private void OnHomeClick(object? s, RoutedEventArgs e) => HomeRequested?.Invoke(this, EventArgs.Empty);
+    private void OnBookmarkClick(object? s, RoutedEventArgs e) => BookmarkRequested?.Invoke(this, EventArgs.Empty);
+    private void OnToolsClick(object? s, RoutedEventArgs e) => ToolsRequested?.Invoke(this, EventArgs.Empty);
+    private void OnSettingsClick(object? s, RoutedEventArgs e) => SettingsRequested?.Invoke(this, EventArgs.Empty);
+
+    private void OnBackClick(object? s, RoutedEventArgs e)
+    {
+        if (!CanGoBack) return;
+        BackRequested?.Invoke(this, EventArgs.Empty);
+        e.Handled = true;
+    }
+
+    private void OnForwardClick(object? s, RoutedEventArgs e)
+    {
+        if (!CanGoForward) return;
+        ForwardRequested?.Invoke(this, EventArgs.Empty);
+        e.Handled = true;
+    }
+
+    private async void OnAddressBarKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter || _addressBar == null) return;
+        var raw = (_addressBar.Text ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(raw)) return;
+        if (_suggestionsPopup != null) _suggestionsPopup.IsOpen = false;
+        var url = await ResolveUserInputAsync(raw);
+        if (url == null) return;
+        NavigateRequested?.Invoke(this, url);
+    }
+
+    private void OnAddressBarTextChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (_syncingAddressText) return;
+        _ = LoadSuggestionsDebouncedAsync();
+        // NOTE: no auto-navigation here by design.
+    }
+
+    private async Task<string?> ResolveUserInputAsync(string raw)
+    {
+        if (InternalUrlHandler.IsInternalUrl(raw) || ChromiumInternalHandler.IsChromiumInternalUrl(raw))
+            return raw;
+        if (!raw.Contains("://"))
         {
-            _webViewManager?.GoBack();
-            System.Diagnostics.Trace.WriteLine("NavigationBar: Back button clicked (WebViewManager fallback)");
-        }
-    }
-
-    private void OnForwardButtonClick(object? sender, RoutedEventArgs e)
-    {
-        if (_tabWorker != null)
-        {
-            _tabWorker.GoForward();
-            System.Diagnostics.Trace.WriteLine("NavigationBar: Forward button clicked (TabWorker)");
-        }
-        else
-        {
-            _webViewManager?.GoForward();
-            System.Diagnostics.Trace.WriteLine("NavigationBar: Forward button clicked (WebViewManager fallback)");
-        }
-    }
-
-    private void OnReloadButtonClick(object? sender, RoutedEventArgs e)
-    {
-        _webViewManager?.Reload();
-        System.Diagnostics.Trace.WriteLine("NavigationBar: Reload button clicked");
-    }
-
-    private async void OnHomeButtonClick(object? sender, RoutedEventArgs e)
-    {
-        if (_webViewManager != null)
-        {
-            var home = await GetSearchHomePageAsync();
-            if (InternalUrlHandler.IsInternalUrl(home))
-            {
-                NavigateRequested?.Invoke(this, home);
-                return;
-            }
-            await _webViewManager.NavigateAsync(home);
-            System.Diagnostics.Trace.WriteLine("NavigationBar: Home button clicked");
-        }
-    }
-
-    private void OnBookmarkButtonClick(object? sender, RoutedEventArgs e)
-    {
-        BookmarkRequested?.Invoke(this, EventArgs.Empty);
-        System.Diagnostics.Trace.WriteLine("NavigationBar: Bookmark button clicked");
-    }
-
-    private void OnToolsButtonClick(object? sender, RoutedEventArgs e)
-    {
-        ToolsRequested?.Invoke(this, EventArgs.Empty);
-        System.Diagnostics.Trace.WriteLine("NavigationBar: Tools button clicked");
-    }
-
-    private void OnSettingsButtonClick(object? sender, RoutedEventArgs e)
-    {
-        SettingsRequested?.Invoke(this, EventArgs.Empty);
-        System.Diagnostics.Trace.WriteLine("NavigationBar: Settings button clicked");
-    }
-
-    private async void OnAddressBarKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
-    {
-        if (e.Key == Avalonia.Input.Key.Enter && _addressBar != null && (_webViewManager != null || _tabWorker != null))
-        {
-            var url = _addressBar.Text ?? "";
-            if (string.IsNullOrWhiteSpace(url))
-                return;
-
-            if (!url.Contains("://"))
-            {
-                if (url.Contains(".") && !url.Contains(" "))
-                {
-                    url = "https://" + url;
-                }
-                else
-                {
-                    var searchUrl = await GetSearchEngineUrlAsync();
-                    url = string.Format(searchUrl, Uri.EscapeDataString(url));
-                }
-            }
-
-            if (InternalUrlHandler.IsInternalUrl(url) || ChromiumInternalHandler.IsChromiumInternalUrl(url))
-            {
-                NavigateRequested?.Invoke(this, url);
-                System.Diagnostics.Trace.WriteLine($"NavigationBar: Internal navigate to {url}");
-                return;
-            }
-
-            // �������������� ������+���� �+������� ���������������
-            await CheckUrlSecurityAsync(url);
-
-            // ����� �� TabWorker, ������������������+� ���� Navigate (��� ���+������� PreCheck)
-            if (_tabWorker != null)
-            {
-                _tabWorker.Navigate(url);
-                System.Diagnostics.Trace.WriteLine($"NavigationBar: Navigate via TabWorker to {url}");
-            }
-            else if (InternalUrlHandler.IsInternalUrl(url) || ChromiumInternalHandler.IsChromiumInternalUrl(url))
-            {
-                // Без воркера внутрішні сторінки ведемо через подію, а не напряму в рушій
-                NavigateRequested?.Invoke(this, url);
-                System.Diagnostics.Trace.WriteLine($"NavigationBar: Internal navigate (no worker) to {url}");
-            }
+            if (raw.Contains('.') && !raw.Contains(' '))
+                raw = "https://" + raw;
             else
             {
-                // Fallback �� �+�����+��� �������������
-                if (_webViewManager != null)
-                    await _webViewManager.NavigateAsync(url);
-                System.Diagnostics.Trace.WriteLine($"NavigationBar: Navigate to {url}");
+                var tpl = await GetSearchEngineUrlAsync();
+                return string.Format(tpl, Uri.EscapeDataString(raw));
             }
         }
+        if (TryNormalizeUserUrl(raw, out var n)) return n;
+        var tpl2 = await GetSearchEngineUrlAsync();
+        return string.Format(tpl2, Uri.EscapeDataString(raw));
     }
 
-    private void OnAddressBarTextChanged(object? sender, Avalonia.Controls.TextChangedEventArgs e)
+    private async Task LoadSuggestionsDebouncedAsync()
     {
-        if (_suppressTextChanged) return; 
-        _ = LoadAddressSuggestionsAsync();
-        _ = AutoNavigateDebouncedAsync();
-    }
-
-    private async System.Threading.Tasks.Task LoadAddressSuggestionsAsync()
-    {
-        if (_suggestionsService == null || _addressBar == null)
-        {
-            if (_suggestionsPopup != null) _suggestionsPopup.IsOpen = false;
-            return;
-        }
-
+        if (_suggestionsService == null || _addressBar == null) return;
         _suggestionsCts?.Cancel();
-        _suggestionsCts = new System.Threading.CancellationTokenSource();
+        _suggestionsCts = new CancellationTokenSource();
         var token = _suggestionsCts.Token;
         try
         {
-            await System.Threading.Tasks.Task.Delay(250, token); // debounce
-            var query = _addressBar.Text ?? string.Empty;
+            await Task.Delay(250, token);
+            var q = _addressBar.Text ?? "";
             if (token.IsCancellationRequested) return;
-
-            if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
+            if (string.IsNullOrWhiteSpace(q) || q.Length < 2 || q.Contains("://") ||
+                q.StartsWith("vetale://", StringComparison.OrdinalIgnoreCase))
             {
                 _suggestions.Clear();
                 if (_suggestionsPopup != null) _suggestionsPopup.IsOpen = false;
                 return;
             }
-            // ����� ��������� �� �+����� URL ��� ���������������� vetale:// - ��� �+����������+� �+���������
-            if (query.Contains("://") || query.StartsWith("vetale://", StringComparison.OrdinalIgnoreCase))
-            {
-                _suggestions.Clear();
-                if (_suggestionsPopup != null) _suggestionsPopup.IsOpen = false;
-                return;
-            }
-
-            var results = await _suggestionsService.GetSuggestionsAsync(query, 8);
+            var results = await _suggestionsService.GetSuggestionsAsync(q, 8);
             if (token.IsCancellationRequested) return;
-
             _suggestions.Clear();
             foreach (var s in results) _suggestions.Add(s);
-
-            if (_suggestionsPopup != null)
-                _suggestionsPopup.IsOpen = _suggestions.Count > 0;
+            if (_suggestionsPopup != null) _suggestionsPopup.IsOpen = _suggestions.Count > 0;
         }
-        catch (System.OperationCanceledException) { }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[NavigationBar] Suggestions error: {ex.Message}");
-            _suggestions.Clear();
-            if (_suggestionsPopup != null) _suggestionsPopup.IsOpen = false;
-        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[NavigationBar] suggestions: {ex.Message}"); }
     }
 
-    private async void OnSuggestionsPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    private async void OnSuggestionsPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         try
         {
-            // ��������+� Border ���� DataContext SearchSuggestion
             if (e.Source is Border b && b.DataContext is SearchSuggestion sug && _addressBar != null)
             {
-                _addressBar.Text = sug.Text;
                 if (_suggestionsPopup != null) _suggestionsPopup.IsOpen = false;
-                if (_webViewManager != null)
-                {
-                    var url = sug.Text;
-                    if (!url.Contains("://"))
-                    {
-                        var searchTemplate = await GetSearchEngineUrlAsync();
-                        url = string.Format(searchTemplate, Uri.EscapeDataString(url));
-                    }
-                    if (InternalUrlHandler.IsInternalUrl(url) || ChromiumInternalHandler.IsChromiumInternalUrl(url))
-                        NavigateRequested?.Invoke(this, url);
-                    else if (_tabWorker != null)
-                        _tabWorker.Navigate(url);
-                    else
-                        await _webViewManager.NavigateAsync(url);
-                }
+                var url = await ResolveUserInputAsync(sug.Text);
+                if (url != null) NavigateRequested?.Invoke(this, url);
             }
         }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[NavigationBar] Suggestions click error: {ex.Message}");
-        }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[NavigationBar] suggestion click: {ex.Message}"); }
     }
 
-    /// <summary>
-    /// Get the search engine URL from settings or use default
-    /// </summary>
-    private async System.Threading.Tasks.Task<string> GetSearchEngineUrlAsync()
+    private async Task<string> GetSearchEngineUrlAsync()
     {
         if (_settingsService != null)
         {
-            try
-            {
-                var searchUrl = await _settingsService.GetSearchEngineUrlAsync();
-                System.Diagnostics.Trace.WriteLine($"NavigationBar: Using search engine: {searchUrl}");
-                return searchUrl;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"NavigationBar: Error getting search engine: {ex}");
-            }
+            try { return await _settingsService.GetSearchEngineUrlAsync(); } catch { }
         }
-        
-        // Fallback to Google
         return "https://www.google.com/search?q={0}";
     }
 
-    private async System.Threading.Tasks.Task<string> GetSearchHomePageAsync()
+    public async Task<string> GetSearchHomePageAsync()
     {
         try
         {
-            var template = await GetSearchEngineUrlAsync();
-            string basePart = template;
-            var qIdx = template.IndexOf('?');
-            if (qIdx >= 0)
-                basePart = template.Substring(0, qIdx);
+            var tpl = await GetSearchEngineUrlAsync();
+            var qi = tpl.IndexOf('?');
+            var basePart = qi >= 0 ? tpl.Substring(0, qi) : tpl;
             if (Uri.TryCreate(basePart, UriKind.Absolute, out var uri))
-            {
                 return $"{uri.Scheme}://{uri.Host}/";
-            }
         }
         catch { }
         return "https://www.google.com/";
@@ -451,206 +358,61 @@ public class NavigationBar : TemplatedControl
 
     private void UpdateButtonStates()
     {
+        // PRO behaviour (Chrome/Edge): Back/Forward are truly disabled when
+        // there is nowhere to go — dimmed + no hover/click. Reload/Home stay live.
         if (_backButton != null)
-            _backButton.IsEnabled = CanGoBack;
-        if (_forwardButton != null)
-            _forwardButton.IsEnabled = CanGoForward;
-    }
-    
-    /// <summary>
-    /// ���������������� ������+����� URL
-    /// </summary>
-    private async System.Threading.Tasks.Task CheckUrlSecurityAsync(string url)
-    {
-        if (_securityCheckService == null)
         {
-            SecurityStatus = SecurityStatus.Unknown;
-            return;
+            _backButton.IsEnabled = CanGoBack;
+            _backButton.Opacity = CanGoBack ? 1.0 : 0.35;
         }
-        
-        // ������������� �+��+���������� �+��������������
+        if (_forwardButton != null)
+        {
+            _forwardButton.IsEnabled = CanGoForward;
+            _forwardButton.Opacity = CanGoForward ? 1.0 : 0.35;
+        }
+    }
+
+    private void SyncAddressText()
+    {
+        if (_addressBar == null || IsAddressFocused()) return;
+        _syncingAddressText = true;
+        try { _addressBar.Text = Url; } finally { _syncingAddressText = false; }
+    }
+
+    private async Task CheckUrlSecurityAsync(string url)
+    {
+        if (_securityCheckService == null) { SecurityStatus = SecurityStatus.Unknown; return; }
         _securityCheckCts?.Cancel();
-        _securityCheckCts = new System.Threading.CancellationTokenSource();
-        
+        _securityCheckCts = new CancellationTokenSource();
         try
         {
-            // �������������� ����������� "��������������"
             SecurityStatus = SecurityStatus.Checking;
-            
-            // ���������� �+��������������
-            var result = await _securityCheckService.CheckUrlAsync(url);
-            
-            // ��������� �����������
-            SecurityStatus = result.Status;
-            
-            // ����� ������ ���������+������� - �+��������� �+��+���������������
-            if (result.Status == SecurityStatus.Dangerous)
-            {
-                System.Diagnostics.Debug.WriteLine($"[Security] ��ᴩ� ����������! ������������� ������: {url}");
-                System.Diagnostics.Debug.WriteLine($"[Security] {result.Description}");
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"[Security] ԣ� �������+�������: {url} - {result.Description}");
-            }
+            var r = await _securityCheckService.CheckUrlAsync(url);
+            SecurityStatus = r.Status;
         }
-        catch (System.OperationCanceledException)
-        {
-            // ��������������� �����������
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[Security] ���+��+�� �+�������������: {ex.Message}");
-            SecurityStatus = SecurityStatus.Error;
-        }
+        catch (OperationCanceledException) { }
+        catch { SecurityStatus = SecurityStatus.Error; }
     }
-    
-    /// <summary>
-    /// �����+������� �+������ ��+�� �+������������� �+���������� URL (����+������������� ���������)
-    /// </summary>
-    public async System.Threading.Tasks.Task CheckCurrentUrlSecurityAsync()
-    {
-        if (!string.IsNullOrEmpty(Url))
-        {
-            await CheckUrlSecurityAsync(Url);
-        }
-    }
-    
-    /// <summary>
-    /// ��������� �������� ������+����
-    /// </summary>
+
+    public Task CheckCurrentUrlSecurityAsync()
+        => string.IsNullOrEmpty(Url) ? Task.CompletedTask : CheckUrlSecurityAsync(Url);
+
     private void UpdateSecurityIcon()
     {
         if (_securityPath == null) return;
-
-        switch (SecurityStatus)
+        var (color, tip, text) = SecurityStatus switch
         {
-            case SecurityStatus.Safe:
-                // �����+����� ����� - ������+������
-                _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#4CAF50"));
-                _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z");
-                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Safe.Tooltip", "✓ Безпечний сайт"));
-                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Safe.Text", "Перевірено: безпечно");
-                break;
-
-            case SecurityStatus.Dangerous:
-                // ���������� ����� �� ���+���� - ���������+������
-                _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#F44336"));
-                _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z M11 7h2v6h-2V7z M11 15h2v2h-2v-2z");
-                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Dangerous.Tooltip", "⚠️ НЕБЕЗПЕЧНИЙ САЙТ (фішинг)!"));
-                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Dangerous.Text", "НЕБЕЗПЕЧНО!");
-                break;
-
-            case SecurityStatus.Checking:
-                // �������� ����� - �+�������������
-                _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#FFC107"));
-                _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z");
-                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Checking.Tooltip", "⏳ Перевірка безпеки..."));
-                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Checking.Text", "Перевірка…");
-                break;
-
-            case SecurityStatus.Error:
-                // ���+������������ ����� - �+��+��+��
-                _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#FF9800"));
-                _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z");
-                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Error.Tooltip", "⚠ Помилка перевірки"));
-                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Error.Text", "Помилка перевірки");
-                break;
-
-            case SecurityStatus.Unknown:
-            default:
-                // �������� ����� - ���������+�
-                _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#9E9E9E"));
-                _securityPath.Data = Avalonia.Media.Geometry.Parse("M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z");
-                if (_securityIcon != null) ToolTip.SetTip(_securityIcon, GetLocalizedString("Security.Unknown.Tooltip", "? Статус невідомий"));
-                if (_securityText != null) _securityText.Text = GetLocalizedString("Security.Unknown.Text", "Статус невідомий");
-                break;
-        }
-    }
-    
-    /// <summary>
-    /// ��������+���� �+����+���������� �������
-    /// </summary>
-    private static string GetLocalizedString(string key, string defaultValue)
-    {
-        try
-        {
-            if (Application.Current?.TryFindResource(key, out var resource) == true && resource is string str)
-                return str;
-        }
-        catch { }
-        return defaultValue;
+            SecurityStatus.Safe => ("#4CAF50", "✓ Безпечний сайт", "Безпечно"),
+            SecurityStatus.Dangerous => ("#F44336", "⚠️ НЕБЕЗПЕЧНИЙ САЙТ!", "НЕБЕЗПЕЧНО!"),
+            SecurityStatus.Checking => ("#FFC107", "⏳ Перевірка...", "Перевірка…"),
+            SecurityStatus.Error => ("#FF9800", "⚠ Помилка перевірки", "Помилка"),
+            _ => ("#9E9E9E", "? Статус невідомий", "—"),
+        };
+        _securityPath.Fill = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse(color));
+        if (_securityIcon != null) ToolTip.SetTip(_securityIcon, tip);
+        if (_securityText != null) _securityText.Text = text;
     }
 
-    private async System.Threading.Tasks.Task AutoNavigateDebouncedAsync()
-    {
-        if (_addressBar == null || (_webViewManager == null && _tabWorker == null)) return;
-        _autoNavigateCts?.Cancel();
-        _autoNavigateCts = new System.Threading.CancellationTokenSource();
-        var token = _autoNavigateCts.Token;
-        try
-        {
-            await System.Threading.Tasks.Task.Delay(500, token); // debounce
-            if (token.IsCancellationRequested) return;
-            var raw = _addressBar.Text?.Trim() ?? string.Empty;
-            if (string.IsNullOrEmpty(raw)) return;
-
-           
-            if (InternalUrlHandler.IsInternalUrl(raw) || ChromiumInternalHandler.IsChromiumInternalUrl(raw))
-            {
-                if (!string.Equals(_lastAutoNavigatedUrl, raw, StringComparison.Ordinal))
-                {
-                    _lastAutoNavigatedUrl = raw;
-                    System.Diagnostics.Debug.WriteLine($"[NavigationBar] Auto internal navigate: {raw}");
-                    NavigateRequested?.Invoke(this, raw);
-                }
-                return;
-            }
-
-            var normalized = ValidateAndNormalizeUrl(raw);
-            if (normalized == null) return;
-            if (string.Equals(_lastAutoNavigatedUrl, normalized, StringComparison.Ordinal)) return;
-            _lastAutoNavigatedUrl = normalized;
-
-            // Напряму в рушій — тільки http(s). Все інше (chrome:// тощо)
-            // веде TabWorker через подію, інакше нативний процес ламає схему (file://).
-            if (!normalized.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
-                !normalized.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-            {
-                System.Diagnostics.Debug.WriteLine($"[NavigationBar] Auto non-http navigate via event: {normalized}");
-                NavigateRequested?.Invoke(this, normalized);
-                return;
-            }
-
-            System.Diagnostics.Debug.WriteLine($"[NavigationBar] Auto navigating to: {normalized}");
-            await CheckUrlSecurityAsync(normalized);
-            if (_tabWorker != null)
-                _tabWorker.Navigate(normalized);
-            else
-                await _webViewManager.NavigateAsync(normalized);
-
-            // ��������� Url ��+��������������� ����� �+����������� ����� ����+�������
-            _suppressTextChanged = true;
-            try
-            {
-                Url = normalized;
-            }
-            finally
-            {
-                _suppressTextChanged = false;
-            }
-        }
-        catch (System.OperationCanceledException) { }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[NavigationBar] AutoNavigate error: {ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// �����+������� �����+�+����: ���+����������� �����+��+����������� �������������������� ����� �� ���+������� http(s) URL.
-    /// ������������ true, ������ ���� ��������� �� �+�����+�� URL (���+��� ����� �+�������+���), �� �+����������� �����+��+���������� URL.
-    /// </summary>
     public static bool TryNormalizeUserUrl(string? input, out string normalized)
     {
         normalized = string.Empty;
@@ -663,39 +425,20 @@ public class NavigationBar : TemplatedControl
 
     private static string? ValidateAndNormalizeUrl(string input)
     {
-        // Chromium internal pages (chrome://gpu, chrome://version, ...) — pass through as-is
         if (input.StartsWith("chrome://", StringComparison.OrdinalIgnoreCase) ||
-            input.StartsWith("edge://", StringComparison.OrdinalIgnoreCase) ||
-            input.StartsWith("brave://", StringComparison.OrdinalIgnoreCase) ||
-            input.StartsWith("opera://", StringComparison.OrdinalIgnoreCase) ||
             input.StartsWith("about:", StringComparison.OrdinalIgnoreCase) ||
             input.StartsWith("view-source:", StringComparison.OrdinalIgnoreCase))
             return input.Trim();
-
-        // ������������ ���������� ����+����� �+������������
-        if (input.Equals("http://", StringComparison.OrdinalIgnoreCase) || input.Equals("https://", StringComparison.OrdinalIgnoreCase))
-            return null;
-
+        if (input.Equals("http://", StringComparison.OrdinalIgnoreCase) ||
+            input.Equals("https://", StringComparison.OrdinalIgnoreCase)) return null;
         string work = input;
-        // �������� https ������ ����+��� �������+� ��+�� ����+������ ��� ���+���
         if (!work.Contains("://"))
         {
-            // ����� �+����������� �+�������+� ��� ���� ��� �+�����+�� URL
-            if (work.Contains(' ')) return null;
-            // �������� �+���������� ������ � ����� �����+��� (domain.tld)
-            if (work.Contains('.'))
-            {
-                work = "https://" + work;
-            }
-            else
-            {
-                return null; // ���� �+���������� ����+���, ��� URL
-            }
+            if (work.Contains(' ') || !work.Contains('.')) return null;
+            work = "https://" + work;
         }
-        // �������������� ���+�����������
         if (!Uri.TryCreate(work, UriKind.Absolute, out var uri)) return null;
         if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) return null;
-        // ������� ������ ����� ��������� ���+'�� ��������
         if (string.IsNullOrWhiteSpace(uri.Host)) return null;
         return uri.ToString();
     }
@@ -704,20 +447,13 @@ public class NavigationBar : TemplatedControl
     {
         base.OnPropertyChanged(change);
         if (change.Property == CanGoBackProperty || change.Property == CanGoForwardProperty)
-        {
             UpdateButtonStates();
-        }
-        else if (change.Property == UrlProperty && _addressBar != null)
+        else if (change.Property == UrlProperty)
         {
-            // �+��� ���+����� Url �����+�����+� ��������� ����� ��+�� ��� ������������+� ������������������
-            _suppressTextChanged = true;
-            try { _addressBar.Text = Url; } finally { _suppressTextChanged = false; }
+            SyncAddressText();
             _ = CheckUrlSecurityAsync(Url);
         }
         else if (change.Property == SecurityStatusProperty)
-        {
             UpdateSecurityIcon();
-        }
     }
 }
-

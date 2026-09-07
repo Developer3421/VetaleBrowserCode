@@ -4,7 +4,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
-using CefSharp.Avalonia;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers;
 using VetaleBrowser.VetaleBrowser.UI.Pages;
 using VetaleBrowser.VetaleBrowser.Core.Scripts.Browser;

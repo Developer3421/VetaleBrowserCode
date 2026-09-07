@@ -65,6 +65,37 @@ public partial class MainWindow : Window
             System.Diagnostics.Debug.WriteLine($"[MainWindow] NavigateToUrl error: {ex}");
         }
     }
+
+    private int NextFaviconRequestVersion(TabWorker worker)
+    {
+        if (!_faviconRequestVersions.TryGetValue(worker.Id, out var version))
+            version = 0;
+        version++;
+        _faviconRequestVersions[worker.Id] = version;
+        return version;
+    }
+
+    private bool IsCurrentFaviconRequest(TabWorker worker, int version)
+        => _faviconRequestVersions.TryGetValue(worker.Id, out var current) && current == version;
+
+    private void ApplyFaviconToTab(TabWorker worker, Avalonia.Media.IImage? image)
+    {
+        var mainPanelTab = FindTabByWorker(worker);
+        if (mainPanelTab != null)
+        {
+            mainPanelTab.FaviconSource = image;
+            return;
+        }
+
+        foreach (var overflowWindow in _tabOverflowWindows)
+        {
+            if (overflowWindow.GetTabByWorker(worker) != null)
+            {
+                overflowWindow.UpdateTabFavicon(worker, image);
+                return;
+            }
+        }
+    }
     
     /// <summary>
     /// Публічний метод для навігації поточної вкладки на URL (підтримує vetale:// протокол)
@@ -122,22 +153,25 @@ public partial class MainWindow : Window
 
     // Keep track of which worker's WebView we're listening to
     private TabWorker? _subscribedWorker;
+    private readonly HashSet<TabWorker> _propertySubscribedWorkers = new();
 
     // Fullscreen state
     private bool _isFullscreen;
     private WindowState _preFullscreenWindowState;
+    private Avalonia.Controls.WindowDecorations _preFullscreenDecorations;
 
     // HTML5 video fullscreen (YouTube "F") без JS-моста: детект через процеси.
     // WebView НЕ пересаджуємо (від цього відео і відривається), тільки ховаємо хром.
     private VideoFullscreenWatcher? _videoFullscreenWatcher;
     private bool _videoFullscreen;
     private WindowState _preVideoFullscreenWindowState;
-    private WindowDecorations _preVideoFullscreenDecorations;
+    private Avalonia.Controls.WindowDecorations _preVideoFullscreenDecorations;
 
     // Polling support for robust favicon and title updates - MEMORY OPTIMIZATION: longer interval
     private readonly DispatcherTimer _faviconPollTimer = new() { Interval = TimeSpan.FromMilliseconds(1000) };
     private string? _lastFaviconUrl;
     private string? _lastPageTitle;
+    private readonly Dictionary<Guid, int> _faviconRequestVersions = new();
 
     // Cached appearance values
     private double _tabWidth = 200.0;
@@ -232,7 +266,9 @@ public partial class MainWindow : Window
         // Initialize after the window is loaded
         this.Loaded += OnWindowLoaded;
         this.Closed += OnWindowClosed;
-        this.KeyDown += OnWindowKeyDown;
+        // Handle F11 before the native WebView sees it. Otherwise Chromium
+        // enters its own fullscreen mode and leaves the host window unchanged.
+        this.AddHandler(InputElement.KeyDownEvent, OnWindowKeyDown, RoutingStrategies.Tunnel);
         
         // Handle window state changes (maximized/restored) to reorganize tabs
         this.PropertyChanged += OnMainWindowPropertyChanged;
@@ -242,11 +278,16 @@ public partial class MainWindow : Window
         // Removed TabCreated subscription to avoid duplicate Tab controls
         // _tabs.TabCreated += OnTabCreated;
 
-        // Timer to check for URL/title/title changes periodically (covers redirects and edge cases)
+        // PRO-style poll: covers redirects/SPA for ACTIVE tab (address+title),
+        // plus live favicon refresh for ALL tabs (background tabs too).
         _faviconPollTimer.Tick += async (_, _) =>
         {
             try
             {
+                foreach (var w in _tabs.Workers.ToArray())
+                {
+                    try { _ = w.RefreshFaviconAsync(); } catch { }
+                }
                 var active = _tabs.Active;
                 if (active != null)
                 {
@@ -254,15 +295,15 @@ public partial class MainWindow : Window
                     if (!string.IsNullOrWhiteSpace(url) && !string.Equals(url, _lastFaviconUrl, StringComparison.Ordinal))
                     {
                         _lastFaviconUrl = url;
-                        await UpdateFaviconAsync(url);
-                        await UpdateTabTitleAsync(null, url);
+                        await UpdateFaviconAsync(url, active);
+                        await UpdateTabTitleAsync(null, url, active);
                     }
 
                     var currentTitle = TryGetWebViewTitle(active.WebView);
                     if (!string.IsNullOrWhiteSpace(currentTitle) && !string.Equals(currentTitle, _lastPageTitle, StringComparison.Ordinal))
                     {
                         _lastPageTitle = currentTitle;
-                        await UpdateTabTitleAsync(currentTitle, url);
+                        await UpdateTabTitleAsync(currentTitle, url, active);
                     }
                 }
             }
@@ -395,12 +436,6 @@ public partial class MainWindow : Window
                 System.Diagnostics.Debug.WriteLine("[MainWindow] WARNING: ClsBtn is null");
             }
 
-            // 4-та кнопка зліва від мінімізувати: відео-механізм для будь-якого сайту
-            if (_normalModePage.VideoFsBtn != null)
-            {
-                _normalModePage.VideoFsBtn.Click += ToggleVideoFullscreenWindow;
-            }
-            
             // Setup drag for TabBarRow
             if (_normalModePage.TabBar != null)
             {
@@ -477,6 +512,34 @@ public partial class MainWindow : Window
         }
     }
 
+    private void EnsureActiveWebViewMounted()
+    {
+        var active = _tabs.Active;
+        var container = _normalModePage?.WebViewGrid;
+        if (active == null || container == null)
+            return;
+
+        var current = active.History.CurrentEntry;
+        if (current?.IsInternal == true && current.InternalPageContent != null)
+            return;
+
+        var view = active.WebView.View;
+        if (view.Parent is Panel parent && !ReferenceEquals(parent, container))
+            parent.Children.Remove(view);
+
+        if (!container.Children.Contains(view))
+        {
+            container.Children.Clear();
+            view.IsVisible = true;
+            view.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
+            view.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch;
+            container.Children.Add(view);
+        }
+
+        if (!string.IsNullOrWhiteSpace(active.Address))
+            active.WebView.LoadUrl(active.Address);
+    }
+
     private async void OnWindowLoaded(object? sender, RoutedEventArgs e)
     {
         System.Diagnostics.Debug.WriteLine("MainWindow: OnWindowLoaded called");
@@ -508,18 +571,28 @@ public partial class MainWindow : Window
                 }
             }
 
+            EnsureActiveWebViewMounted();
+
             // Initialize NavigationBar with the active tab's manager
             try
             {
                 var navigationBar = _normalModePage?.NavBar;
                 if (navigationBar != null && _tabs.Active != null)
                 {
-                    navigationBar.Initialize(_tabs.Active.Manager);
                     navigationBar.SetSuggestionsService(GlobalSuggestions);
                     navigationBar.SetSecurityCheckService(SecurityCheckService);
                     // Підписка на внутрішню навігацію (vetale://) з адресного рядка/Додому
                     navigationBar.NavigateRequested -= OnNavigationBarNavigateRequested;
                     navigationBar.NavigateRequested += OnNavigationBarNavigateRequested;
+                    navigationBar.BackRequested -= OnNavBarBackRequested;
+                    navigationBar.BackRequested += OnNavBarBackRequested;
+                    navigationBar.ForwardRequested -= OnNavBarForwardRequested;
+                    navigationBar.ForwardRequested += OnNavBarForwardRequested;
+                    navigationBar.ReloadRequested -= OnNavBarReloadRequested;
+                    navigationBar.ReloadRequested += OnNavBarReloadRequested;
+                    navigationBar.HomeRequested -= OnNavBarHomeRequested;
+                    navigationBar.HomeRequested += OnNavBarHomeRequested;
+                    navigationBar.BindWorker(_tabs.Active);
                     
                     // Set settings service for search engine configuration
                     if (_settingsService != null)
@@ -718,6 +791,8 @@ public partial class MainWindow : Window
         
         // Підписуємося на події навігації
         worker.NavigationChanged += OnWorkerNavigationChanged;
+        worker.FaviconChanged += OnWorkerFaviconChanged;
+        worker.TitleChanged += OnWorkerTitleChangedForFavicon;
         SubscribeWorkerHistoryUpdates(worker);
         
         // Підписуємося на події помилок для локалізованих сторінок помилок
@@ -764,6 +839,57 @@ public partial class MainWindow : Window
     /// Підписується на зміни історії вкладки, щоб кнопки Назад/Вперед
     /// у 2-й лінії (NavigationBar) завжди відображали актуальний стан.
     /// </summary>
+    private void OnWorkerFaviconChanged(object? sender, string? iconUrl)
+    {
+        try
+        {
+            if (sender is not TabWorker worker || string.IsNullOrWhiteSpace(iconUrl)) return;
+            _ = ApplyPageIconAsync(worker, iconUrl);
+        }
+        catch { }
+    }
+
+    private void OnWorkerTitleChangedForFavicon(object? sender, string? title)
+    {
+        try
+        {
+            if (sender is not TabWorker worker) return;
+            // Title приїхав = сторінка реально завантажилась -> оновлюємо іконку (як Chrome)
+            var addr = worker.Address;
+            _ = UpdateFaviconAsync(addr, worker);
+        }
+        catch { }
+    }
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Avalonia.Media.IImage> _iconUrlCache = new();
+
+    private async Task ApplyPageIconAsync(TabWorker worker, string iconUrl)
+    {
+        try
+        {
+            var addressAtStart = worker.Address;
+            if (_iconUrlCache.TryGetValue(iconUrl, out var cached))
+            {
+                if (string.Equals(worker.Address, addressAtStart, StringComparison.OrdinalIgnoreCase))
+                    ApplyFaviconToTab(worker, cached);
+                return;
+            }
+            using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+            var bytes = await http.GetByteArrayAsync(iconUrl);
+            if (bytes == null || bytes.Length == 0) return;
+            Avalonia.Media.IImage? image;
+            using (var ms = new MemoryStream(bytes)) image = new Avalonia.Media.Imaging.Bitmap(ms);
+            _iconUrlCache[iconUrl] = image;
+            if (!string.Equals(worker.Address, addressAtStart, StringComparison.OrdinalIgnoreCase)) return;
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                if (!string.Equals(worker.Address, addressAtStart, StringComparison.OrdinalIgnoreCase)) return;
+                ApplyFaviconToTab(worker, image);
+            });
+        }
+        catch { }
+    }
+
     private void SubscribeWorkerHistoryUpdates(TabWorker worker)
     {
         if (!_historySubscribedWorkers.Add(worker.Id)) return;
@@ -774,8 +900,7 @@ public partial class MainWindow : Window
                 if (_tabs.Active != worker) return;
                 var navBar = _normalModePage?.NavBar;
                 if (navBar == null) return;
-                navBar.CanGoBack = worker.History.CanGoBack;
-                navBar.CanGoForward = worker.History.CanGoForward;
+                navBar.SetState(worker.Address, worker.CanGoBack, worker.CanGoForward);
             });
         };
     }
@@ -844,8 +969,8 @@ public partial class MainWindow : Window
         if (navBar != null)
         {
             navBar.Url = finalUrl;
-            navBar.CanGoBack = worker.History.CanGoBack;
-            navBar.CanGoForward = worker.History.CanGoForward;
+            navBar.CanGoBack = worker.CanGoBack;
+            navBar.CanGoForward = worker.CanGoForward;
             System.Diagnostics.Debug.WriteLine($"[MainWindow] NavBar updated: Url={navBar.Url}, CanGoBack={navBar.CanGoBack}, CanGoForward={navBar.CanGoForward}");
         }
     }
@@ -1111,7 +1236,7 @@ public partial class MainWindow : Window
         int insertIndex = _mainTabsDropTargetIndex;
         HideMainTabsDropIndicator(tabsHost);
         
-        if (DataTransferExtensions.TryGetValue(e.DataTransfer, TabDragHelper.Format) is TabDragData dragData)
+        if (TabDragHelper.TryGetData(e.DataTransfer) is TabDragData dragData)
         {
             System.Diagnostics.Debug.WriteLine($"[MainWindow] Tab dropped from {(dragData.SourceWindow != null ? "overflow" : "main")} at index {insertIndex}");
             
@@ -1336,7 +1461,7 @@ public partial class MainWindow : Window
             if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
             {
                 var favicon = await _faviconService.GetFaviconAsync(uri);
-                if (favicon != null)
+                if (favicon != null && string.Equals(worker.Address, url, StringComparison.OrdinalIgnoreCase))
                 {
                     tab.FaviconSource = favicon;
                 }
@@ -1389,68 +1514,16 @@ public partial class MainWindow : Window
     /// <summary>
     /// Обробляє toggle mute для вкладки
     /// </summary>
-    private async Task HandleMuteToggle(TabWorker worker, Tab tab, StackPanel tabsHost)
+    private Task HandleMuteToggle(TabWorker worker, Tab tab, StackPanel tabsHost)
     {
         try
         {
-            // Desired mute state (toggle)
-            var desired = !worker.IsMuted;
+            // TabWorker is the single source of truth. It applies the state
+            // through the browser audio API and its page-level fallback.
+            worker.ToggleMute();
 
-            // JS to apply mute/unmute directly in the page (media elements fallback)
-            var js = desired
-                ? "(function(){try{document.querySelectorAll('video,audio').forEach(m=>{m.muted=true; m.volume=0;});return true;}catch(e){return false;}})();"
-                : "(function(){try{document.querySelectorAll('video,audio').forEach(m=>{m.muted=false; if(m.volume===0) m.volume=1.0;});return true;}catch(e){return false;}})();";
-
-            object? res = null;
-            try
-            {
-                // Ensure script evaluation runs on UI thread - WebView may require being called from UI dispatcher
-                res = await Dispatcher.UIThread.InvokeAsync(async () => await worker.WebView.EvaluateScriptAsync<object>(js));
-            }
-            catch (Exception jsEx)
-            {
-                System.Diagnostics.Debug.WriteLine($"[MainWindow] Direct WebView mute JS failed: {jsEx.Message}");
-            }
-
-            static bool EvalResultAsBool(object? r)
-            {
-                try
-                {
-                    if (r is bool bb) return bb;
-                    if (r is string s)
-                    {
-                        var t = s.Trim();
-                        if (bool.TryParse(t, out var pb)) return pb;
-                        if (t == "1") return true;
-                        if (t == "0") return false;
-                        if (string.Equals(t, "true", StringComparison.OrdinalIgnoreCase)) return true;
-                        if (string.Equals(t, "false", StringComparison.OrdinalIgnoreCase)) return false;
-                    }
-                    if (r is int i) return i != 0;
-                    if (r is long l) return l != 0;
-                }
-                catch { }
-                return false;
-            }
-
-            var applied = EvalResultAsBool(res);
-
-            if (!applied)
-            {
-                // JS didn't confirm application; fall back to TabWorker's ToggleMute which applies system-level or JS fallback
-                System.Diagnostics.Debug.WriteLine("[MainWindow] JS mute did not report success, falling back to TabWorker.ToggleMute()");
-                worker.ToggleMute();
-            }
-            else
-            {
-                // JS confirmed; update worker state to keep it consistent
-                worker.IsMuted = desired;
-            }
-
-            // Update this tab header immediately from the worker state
             tab.IsMuted = worker.IsMuted;
 
-            // Sync all tab headers to reflect current worker mute states
             for (int widx = 0; widx < _tabs.Workers.Count; widx++)
             {
                 var childIdx2 = widx + 1;
@@ -1462,8 +1535,10 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[MainWindow] Direct mute toggle failed: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Mute toggle failed: {ex.Message}");
         }
+
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -1819,10 +1894,21 @@ public partial class MainWindow : Window
         var navigationBar = _normalModePage?.NavBar;
         if (navigationBar != null)
         {
-            navigationBar.Initialize(worker.Manager);
-            navigationBar.SetTabWorker(worker); // Додаємо підтримку TabWorker
             navigationBar.SetSuggestionsService(GlobalSuggestions);
             navigationBar.SetSecurityCheckService(SecurityCheckService);
+
+            // Single-shot subscriptions (avoid duplicates on tab switch).
+            navigationBar.NavigateRequested -= OnNavigationBarNavigateRequested;
+            navigationBar.NavigateRequested += OnNavigationBarNavigateRequested;
+            navigationBar.BackRequested -= OnNavBarBackRequested;
+            navigationBar.BackRequested += OnNavBarBackRequested;
+            navigationBar.ForwardRequested -= OnNavBarForwardRequested;
+            navigationBar.ForwardRequested += OnNavBarForwardRequested;
+            navigationBar.ReloadRequested -= OnNavBarReloadRequested;
+            navigationBar.ReloadRequested += OnNavBarReloadRequested;
+            navigationBar.HomeRequested -= OnNavBarHomeRequested;
+            navigationBar.HomeRequested += OnNavBarHomeRequested;
+            navigationBar.BindWorker(worker);
             
             // Set settings service for search engine configuration
             if (_settingsService != null)
@@ -1830,22 +1916,22 @@ public partial class MainWindow : Window
                 navigationBar.SetSettingsService(_settingsService);
             }
             
-            navigationBar.Url = worker.Address ?? string.Empty;
-            navigationBar.CanGoBack = worker.History.CanGoBack;
-            navigationBar.CanGoForward = worker.History.CanGoForward;
+            navigationBar.SetState(worker.Address ?? string.Empty, worker.CanGoBack, worker.CanGoForward);
         }
 
         WireActiveWebViewPropertyChanged(worker);
 
         _lastFaviconUrl = worker.Address;
         _lastPageTitle = worker.Title;
+        _ = UpdateFaviconAsync(worker.Address, worker);
+        _ = UpdateTabTitleAsync(worker.Title, worker.Address, worker);
     }
 
     /// <summary>
-    /// Показує контрол у контейнері без порожнього кадру:
-    /// спочатку додаємо новий, потім прибираємо зайве (інакше білий флікер).
-    /// Прибрані в'ю примусово ховаємо (IsVisible=false), інакше нативне
-    /// HWND-вікно WebView лишається висіти поверх (чуже відео на вкладці).
+    /// Монтує WebView/сторінку в контейнер як повноцінний елемент:
+    /// Stretch-розтягнення, видимість, фокус. Від'єднані нативні в'ю просто
+    /// прибираємо з контейнера без IsVisible=false — для windowed CEF
+    /// ховання руйнує HWND і наступний показ дає білий екран.
     /// </summary>
     private static void ShowControlInContainer(Grid target, Control content)
     {
@@ -1854,6 +1940,8 @@ public partial class MainWindow : Window
             prev.Children.Remove(content);
         }
 
+        content.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
+        content.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch;
         content.IsVisible = true;
         if (!target.Children.Contains(content))
         {
@@ -1866,9 +1954,10 @@ public partial class MainWindow : Window
             if (!ReferenceEquals(c, content))
             {
                 target.Children.RemoveAt(i);
-                try { c.IsVisible = false; } catch { }
             }
         }
+
+        try { content.Focus(); } catch { }
     }
 
     private void MoveActiveWebViewTo(Grid target)
@@ -1901,18 +1990,24 @@ public partial class MainWindow : Window
 
     private void WireActiveWebViewPropertyChanged(TabWorker worker)
     {
+        foreach (var candidate in _tabs.Workers)
+        {
+            if (_propertySubscribedWorkers.Add(candidate))
+            { 
+                candidate.WebView.PropertyChanged += WebView_OnPropertyChanged;
+            }
+        }
+
         if (_subscribedWorker != null)
         {
-            try 
-            { 
-                _subscribedWorker.WebView.PropertyChanged -= WebView_OnPropertyChanged;
+            try
+            {
                 _subscribedWorker.FullscreenChanged -= OnWorkerFullscreenChanged;
                 _subscribedWorker.WebView.KeyDown -= OnWebViewKeyDown;
-            } 
+            }
             catch { }
         }
         _subscribedWorker = worker;
-        _subscribedWorker.WebView.PropertyChanged += WebView_OnPropertyChanged;
         _subscribedWorker.FullscreenChanged += OnWorkerFullscreenChanged;
         _subscribedWorker.WebView.KeyDown += OnWebViewKeyDown;
     }
@@ -1948,6 +2043,14 @@ public partial class MainWindow : Window
             return;
         }
 
+        if ((e.Key == Key.F || e.Key == Key.F12) && _isFullscreen && !_videoFullscreen)
+        {
+            ExitFullscreen();
+            TryExitDocumentFullscreen();
+            e.Handled = true;
+            return;
+        }
+
         if (e.Key == Key.F && isAlt)
         {
             // Force single-WebView fullscreen
@@ -1958,17 +2061,8 @@ public partial class MainWindow : Window
 
         if (e.Key == Key.F)
         {
-            // F належить сторінці (YouTube-фулскрін). Тогл двох станів живе
-            // на воркері (DevTools детект + актуатор), вікно тільки хостить
-            // контейнери. Втручання вікна (максимайз) рвало синхронізацію.
-            // Назад: якщо вже у відео-режимі — явно повертаємо нормальний стан.
-            if (_videoFullscreen)
-            {
-                ExitVideoFullscreen();
-                var w = _tabs.Active;
-                if (w != null) _ = w.RequestVideoFullscreenExitAsync();
-                e.Handled = true;
-            }
+            // F belongs to the video page (for example YouTube). Let the page
+            // toggle document fullscreen and react to its state change below.
             return;
         }
 
@@ -2020,11 +2114,11 @@ public partial class MainWindow : Window
         return false;
     }
 
-    private bool IsCurrentVetaleSearchInternalPage()
+    private bool IsCurrentVetaleSearchInternalPage(TabWorker? worker = null)
     {
         try
         {
-            var entry = _tabs.Active?.History.CurrentEntry;
+            var entry = (worker ?? _tabs.Active)?.History.CurrentEntry;
             if (entry == null) return false;
             if (entry.IsInternal)
             {
@@ -2044,36 +2138,38 @@ public partial class MainWindow : Window
     {
         try
         {
-            if (_tabs.Active == null) return;
-            var vw = _tabs.Active.WebView;
-            if (!ReferenceEquals(sender, vw)) return; // only react to active
+            var worker = _tabs.Workers.FirstOrDefault(w => ReferenceEquals(sender, w.WebView));
+            if (worker == null) return;
+            var vw = worker.WebView;
 
             var prop = e.Property?.Name;
-            if (prop == "Address")
+            if (prop is "Address" or "Url")
             {
-                var url = _tabs.Active.Manager.GetCurrentUrl();
-                _lastFaviconUrl = url; // keep poll baseline in sync
-                Dispatcher.UIThread.Post(() =>
+                var url = worker.Manager.GetCurrentUrl();
+                if (ReferenceEquals(_tabs.Active, worker))
                 {
-                    var nav = _normalModePage?.NavBar;
-                    if (nav != null)
+                    _lastFaviconUrl = url;
+                    Dispatcher.UIThread.Post(() =>
                     {
-                        nav.Url = url ?? string.Empty;
-                        // ВАЖЛИВО: стан кнопок з History, а не з WebView
-                        nav.CanGoBack = _tabs.Active.History.CanGoBack;
-                        nav.CanGoForward = _tabs.Active.History.CanGoForward;
-                    }
-                });
+                        var nav = _normalModePage?.NavBar;
+                        if (nav != null)
+                        {
+                            nav.Url = url ?? string.Empty;
+                            nav.CanGoBack = worker.CanGoBack;
+                            nav.CanGoForward = worker.CanGoForward;
+                        }
+                    });
+                }
 
-                await UpdateFaviconAsync(url);
-                await UpdateTabTitleAsync(null, url);
+                await UpdateFaviconAsync(url, worker);
+                await UpdateTabTitleAsync(null, url, worker);
 
                 // Збереження в історію БД
                 try
                 {
                     if (!string.IsNullOrWhiteSpace(url))
                     {
-                        var title = vw.Title ?? url;
+                        var title = vw.Title ?? worker.Title ?? url;
                         DatabaseManager.HistoryInstance.AddOrUpdateHistoryItem(
                             url: url,
                             title: title,
@@ -2094,8 +2190,8 @@ public partial class MainWindow : Window
                     var nav = _normalModePage?.NavBar;
                     if (nav != null && _tabs.Active != null)
                     {
-                        nav.CanGoBack = _tabs.Active.History.CanGoBack;
-                        nav.CanGoForward = _tabs.Active.History.CanGoForward;
+                        nav.CanGoBack = _tabs.Active.CanGoBack;
+                        nav.CanGoForward = _tabs.Active.CanGoForward;
                     }
                 });
             }
@@ -2103,8 +2199,9 @@ public partial class MainWindow : Window
             {
                 // Direct access to Title property
                 var pageTitle = vw.Title;
-                _lastPageTitle = pageTitle ?? _lastPageTitle;
-                await UpdateTabTitleAsync(pageTitle, vw.Address);
+                if (ReferenceEquals(_tabs.Active, worker))
+                    _lastPageTitle = pageTitle ?? _lastPageTitle;
+                await UpdateTabTitleAsync(pageTitle, vw.Address, worker);
             }
         }
         catch (Exception ex)
@@ -2181,18 +2278,26 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task UpdateFaviconAsync(string? address)
+    private async Task UpdateFaviconAsync(string? address, TabWorker? targetWorker = null)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(address)) return;
+            var worker = targetWorker ?? _tabs.Active;
+            if (worker == null) return;
+            if (string.IsNullOrWhiteSpace(address))
+            {
+                ApplyFaviconToTab(worker, null);
+                return;
+            }
+
+            var requestVersion = NextFaviconRequestVersion(worker);
             
             // Перевіряємо чи це Vetale Search (vetale:// або vetale:)
             var isVetaleSearch = address.StartsWith("vetale://", StringComparison.OrdinalIgnoreCase) ||
                                  address.StartsWith("vetale:", StringComparison.OrdinalIgnoreCase);
             
             // Також перевіряємо чи поточна вкладка показує внутрішню Vetale Search сторінку
-            if (!isVetaleSearch && IsCurrentVetaleSearchInternalPage())
+            if (!isVetaleSearch && IsCurrentVetaleSearchInternalPage(worker))
             {
                 isVetaleSearch = true;
                 System.Diagnostics.Debug.WriteLine($"[MainWindow] Current tab shows internal Vetale Search page");
@@ -2202,11 +2307,20 @@ public partial class MainWindow : Window
             {
                 // Завантажуємо іконку Vetale Search
                 System.Diagnostics.Debug.WriteLine($"[MainWindow] Detected Vetale URL: {address}, loading Vetale Search icon");
-                await LoadVetaleSearchIconAsync();
+                await LoadVetaleSearchIconAsync(worker);
                 return;
             }
-            
-            if (!Uri.TryCreate(address, UriKind.Absolute, out var uri)) return;
+
+            if (!Uri.TryCreate(address, UriKind.Absolute, out var uri) ||
+                (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+            {
+                ApplyFaviconToTab(worker, null);
+                return;
+            }
+
+            // Clear the previous site's icon immediately. This prevents a
+            // favicon from the old page being shown while the new one loads.
+            ApplyFaviconToTab(worker, null);
 
             // Determine scale for better icon size
             var visualRoot = TopLevel.GetTopLevel(this);
@@ -2249,33 +2363,25 @@ public partial class MainWindow : Window
             }
             else
             {
+                // PRO: сначала пробуем живую иконку страницы (<link rel=icon>), потом провайдеры
+                if (!string.IsNullOrWhiteSpace(worker.FaviconUrl))
+                {
+                    await ApplyPageIconAsync(worker, worker.FaviconUrl);
+                    // Если страница отдала иконку — дотягиваем фоном через сервис только если таб пуст
+                    var tabNow = FindTabByWorker(worker);
+                    if (tabNow?.FaviconSource != null) return;
+                }
                 // Стандартний favicon
                 image = await _faviconService.GetFaviconAsync(uri, size);
             }
             
             Dispatcher.UIThread.Post(() =>
             {
-                if (_tabs.Active == null) return;
-                
-                // Шукаємо вкладку в основній панелі по worker
-                var mainPanelTab = FindTabByWorker(_tabs.Active);
-                if (mainPanelTab != null)
-                {
-                    mainPanelTab.FaviconSource = image;
-                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Favicon applied to main panel: hasImage={(image != null)}");
+                if (worker == null ||
+                    !IsCurrentFaviconRequest(worker, requestVersion) ||
+                    !string.Equals(worker.Address, address, StringComparison.OrdinalIgnoreCase))
                     return;
-                }
-                
-                // Якщо не знайшли в основній панелі - перевіряємо overflow вікна
-                foreach (var overflowWindow in _tabOverflowWindows)
-                {
-                    if (overflowWindow.GetTabByWorker(_tabs.Active) != null)
-                    {
-                        overflowWindow.UpdateTabFavicon(_tabs.Active, image);
-                        System.Diagnostics.Debug.WriteLine($"[MainWindow] Favicon applied to overflow: hasImage={(image != null)}");
-                        break;
-                    }
-                }
+                ApplyFaviconToTab(worker, image);
             });
         }
         catch (Exception ex)
@@ -2288,20 +2394,20 @@ public partial class MainWindow : Window
     /// <summary>
     /// Завантажує іконку Vetale Search для вкладки
     /// </summary>
-    private Task LoadVetaleSearchIconAsync()
+    private Task LoadVetaleSearchIconAsync(TabWorker? targetWorker = null)
     {
         try
         {
             var image = GetVetaleSearchIcon();
+            var worker = targetWorker ?? _tabs.Active;
+            if (worker == null) return Task.CompletedTask;
             System.Diagnostics.Debug.WriteLine($"[MainWindow] Final image state: {(image != null ? "LOADED" : "NULL")}");
             
             // Застосовуємо іконку до вкладки
             Dispatcher.UIThread.Post(() =>
             {
-                if (_tabs.Active == null) return;
-                
                 // Шукаємо вкладку в основній панелі по worker
-                var mainPanelTab = FindTabByWorker(_tabs.Active);
+                var mainPanelTab = FindTabByWorker(worker);
                 if (mainPanelTab != null)
                 {
                     mainPanelTab.FaviconSource = image;
@@ -2312,9 +2418,9 @@ public partial class MainWindow : Window
                 // Якщо не знайшли в основній панелі - перевіряємо overflow вікна
                 foreach (var overflowWindow in _tabOverflowWindows)
                 {
-                    if (overflowWindow.GetTabByWorker(_tabs.Active) != null)
+                    if (overflowWindow.GetTabByWorker(worker) != null)
                     {
-                        overflowWindow.UpdateTabFavicon(_tabs.Active, image);
+                        overflowWindow.UpdateTabFavicon(worker, image);
                         System.Diagnostics.Debug.WriteLine($"[MainWindow] Vetale Search icon APPLIED to overflow: hasImage={(image != null)}");
                         break;
                     }
@@ -2330,12 +2436,14 @@ public partial class MainWindow : Window
     }
 
     // Compute and apply a friendly tab title from the page title or URL
-    private Task UpdateTabTitleAsync(string? pageTitle, string? url)
+    private Task UpdateTabTitleAsync(string? pageTitle, string? url, TabWorker? targetWorker = null)
     {
         try
         {
+            var worker = targetWorker ?? _tabs.Active;
+            if (worker == null) return Task.CompletedTask;
             // Пропускаємо оновлення title для Vetale Search сторінок (у них свій title)
-            if (IsCurrentVetaleSearchInternalPage())
+            if (IsCurrentVetaleSearchInternalPage(worker))
             {
                 System.Diagnostics.Debug.WriteLine("[MainWindow] Skipping title update for Vetale Search internal page");
                 return Task.CompletedTask;
@@ -2345,10 +2453,12 @@ public partial class MainWindow : Window
             var friendly = ComputeTitle(pageTitle, url);
             Dispatcher.UIThread.Post(() =>
             {
-                if (_tabs.Active == null) return;
-                
+                if (!string.IsNullOrWhiteSpace(url) &&
+                    !string.Equals(worker.Address, url, StringComparison.OrdinalIgnoreCase))
+                    return;
+
                 // Шукаємо вкладку в основній панелі по worker
-                var mainPanelTab = FindTabByWorker(_tabs.Active);
+                var mainPanelTab = FindTabByWorker(worker);
                 if (mainPanelTab != null)
                 {
                     mainPanelTab.Title = friendly;
@@ -2359,9 +2469,9 @@ public partial class MainWindow : Window
                 // Якщо не знайшли в основній панелі - перевіряємо overflow вікна
                 foreach (var overflowWindow in _tabOverflowWindows)
                 {
-                    if (overflowWindow.GetTabByWorker(_tabs.Active) != null)
+                    if (overflowWindow.GetTabByWorker(worker) != null)
                     {
-                        overflowWindow.UpdateTabTitle(_tabs.Active, friendly);
+                        overflowWindow.UpdateTabTitle(worker, friendly);
                         System.Diagnostics.Debug.WriteLine($"[MainWindow] Title applied to overflow: {friendly}");
                         break;
                     }
@@ -2488,11 +2598,12 @@ public partial class MainWindow : Window
         // Видаляємо це вікно зі статичного списку
         _allMainWindows.Remove(this);
         
-        if (_subscribedWorker != null)
+        foreach (var worker in _propertySubscribedWorkers)
         {
-            try { _subscribedWorker.WebView.PropertyChanged -= WebView_OnPropertyChanged; } catch { }
-            _subscribedWorker = null;
+            try { worker.WebView.PropertyChanged -= WebView_OnPropertyChanged; } catch { }
         }
+        _propertySubscribedWorkers.Clear();
+        _subscribedWorker = null;
 
         // Закриваємо всі overflow вікна та dispose workers
         try 
@@ -2526,8 +2637,9 @@ public partial class MainWindow : Window
         _videoFullscreenWatcher = null;
         _videoFullscreen = false;
         
-        // Зупиняємо локальний сервер гри
+        // Зупиняємо локальні сервери (гра + ігровий двигун)
         try { LocalGameServer.Instance.Dispose(); } catch { }
+        try { MicroStudioServer.Instance.Dispose(); } catch { }
     }
 
 
@@ -2544,18 +2656,6 @@ public partial class MainWindow : Window
     private void CloseWindow(object? sender, RoutedEventArgs e)
     {
         _windowManager?.Close();
-    }
-
-    /// <summary>
-    /// 4-та кнопка керування: той самий механізм що для відео в YouTube,
-    /// але для будь-якого сайту (без детекта document fullscreen).
-    /// </summary>
-    private void ToggleVideoFullscreenWindow(object? sender, RoutedEventArgs e)
-    {
-        if (_videoFullscreen)
-            ExitVideoFullscreen();
-        else
-            EnterVideoFullscreen();
     }
 
     // Подвійний клік по верхній панелі -> максимізувати/відновити
@@ -2642,7 +2742,16 @@ public partial class MainWindow : Window
         // F11 toggles fullscreen
         if (e.Key == Key.F11)
         {
-            ToggleFullscreen();
+            if (_isFullscreen)
+                ExitFullscreen();
+            else
+                _windowManager?.ToggleMaximize();
+            e.Handled = true;
+        }
+        else if ((e.Key == Key.F || e.Key == Key.F12) && _isFullscreen && !_videoFullscreen)
+        {
+            ExitFullscreen();
+            TryExitDocumentFullscreen();
             e.Handled = true;
         }
         // Alt+F forces single-WebView fullscreen (global shortcut)
@@ -2654,18 +2763,8 @@ public partial class MainWindow : Window
         // F also toggles fullscreen (for video playback)
         else if (e.Key == Key.F)
         {
-            // Назад з відео-режиму — явно в нормальний стан
-            if (_videoFullscreen)
-            {
-                ExitVideoFullscreen();
-                var w = _tabs.Active;
-                if (w != null) _ = w.RequestVideoFullscreenExitAsync();
-            }
-            else
-            {
-                ToggleFullscreen();
-            }
-            e.Handled = true;
+            // F is owned by the active page, not by the browser window.
+            return;
         }
         // ESC exits fullscreen
         else if (e.Key == Key.Escape && _isFullscreen)
@@ -2685,34 +2784,17 @@ public partial class MainWindow : Window
 
         _isFullscreen = true;
         _preFullscreenWindowState = WindowState;
-
-        // Switch to fullscreen page
-        if (_pageContainer != null && _fullscreenModePage != null)
-        {
-            _pageContainer.Content = _fullscreenModePage;
-        }
-
-        // Move active WebView to fullscreen container
-        if (_fullscreenModePage?.FullscreenGrid != null && _tabs.Active != null)
-        {
-            MoveActiveWebViewTo(_fullscreenModePage.FullscreenGrid);
-        }
+        _preFullscreenDecorations = WindowDecorations;
 
         // Remove window padding
         Padding = new Thickness(0);
+        if (_normalModePage?.TabBar != null) _normalModePage.TabBar.IsVisible = false;
+        if (_normalModePage?.NavBarRow != null) _normalModePage.NavBarRow.IsVisible = false;
 
-        // Enter fullscreen mode
+        // Keep the WebView in its existing native host to avoid a first-frame
+        // renderer reset when F11 is pressed over a page.
         WindowState = WindowState.FullScreen;
-        SystemDecorations = WindowDecorations.None;
-        
-        // Реорганізовуємо вкладки - в fullscreen режимі дозволено більше вкладок (9 замість 4)
-        ReorganizeTabsForMode();
-        
-        // Приховуємо всі overflow вікна в fullscreen режимі (вкладки повертаються в основну панель)
-        foreach (var overflowWindow in _tabOverflowWindows)
-        {
-            overflowWindow.Hide();
-        }
+        WindowDecorations = Avalonia.Controls.WindowDecorations.None;
     }
 
     public void ExitFullscreen()
@@ -2721,27 +2803,14 @@ public partial class MainWindow : Window
 
         _isFullscreen = false;
 
-        // Switch back to normal page
-        if (_pageContainer != null && _normalModePage != null)
-        {
-            _pageContainer.Content = _normalModePage;
-        }
-
-        // Move WebView back to normal container
-        if (_normalModePage?.WebViewGrid != null && _tabs.Active != null)
-        {
-            MoveActiveWebViewTo(_normalModePage.WebViewGrid);
-        }
-
         // Restore padding
         Padding = new Thickness(8);
+        if (_normalModePage?.TabBar != null) _normalModePage.TabBar.IsVisible = true;
+        if (_normalModePage?.NavBarRow != null) _normalModePage.NavBarRow.IsVisible = true;
 
         // Exit fullscreen mode
-        SystemDecorations = WindowDecorations.BorderOnly;
         WindowState = _preFullscreenWindowState;
-        
-        // Реорганізовуємо вкладки - в звичайному режимі дозволено менше вкладок (4)
-        // Зайві вкладки переміщуються в overflow вікно
+        WindowDecorations = _preFullscreenDecorations;
         ReorganizeTabsForMode();
 
         // Ask page to exit document fullscreen if any (best-effort)
@@ -2792,7 +2861,7 @@ public partial class MainWindow : Window
         if (_normalModePage?.WebViewGrid == null) return;
         _videoFullscreen = true;
         _preVideoFullscreenWindowState = WindowState;
-        _preVideoFullscreenDecorations = SystemDecorations;
+        _preVideoFullscreenDecorations = WindowDecorations;
 
         try
         {
@@ -2809,10 +2878,9 @@ public partial class MainWindow : Window
 
         try
         {
-            // Як кнопка максимайз
-            _windowManager?.ToggleMaximize();
-            if (WindowState != WindowState.Maximized)
-                WindowState = WindowState.Maximized;
+            // Use a real borderless fullscreen window, like a modern browser.
+            WindowDecorations = Avalonia.Controls.WindowDecorations.None;
+            WindowState = WindowState.FullScreen;
         }
         catch { }
     }
@@ -2837,13 +2905,30 @@ public partial class MainWindow : Window
 
         try
         {
-            // Назад зі стану максимайз
-            if (WindowState == WindowState.Maximized && _preVideoFullscreenWindowState != WindowState.Maximized)
-                _windowManager?.ToggleMaximize();
-            if (WindowState != _preVideoFullscreenWindowState)
-                WindowState = _preVideoFullscreenWindowState;
+            // Restore the exact window state and decorations from before video
+            // fullscreen instead of toggling maximize (which causes a visible
+            // resize/flicker on exit).
+            WindowState = _preVideoFullscreenWindowState;
+            WindowDecorations = _preVideoFullscreenDecorations;
         }
         catch { }
+    }
+
+    /// <summary>
+    /// Opens URL in a NEW browser tab (used by Tools window for local engines/servers)
+    /// </summary>
+    public void OpenUrlInNewTab(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return;
+
+        try
+        {
+            CreateNewTab(url);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainWindow: Failed to open new tab: {ex}");
+        }
     }
 
     public void NavigateUrlInActiveTab(string url, bool openInNewTabIfNone = true)
@@ -2995,6 +3080,56 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnNavBarBackRequested(object? sender, EventArgs e)
+    {
+        try
+        {
+            var w = _tabs.Active;
+            if (w == null) return;
+            w.GoBack();
+            RefreshNavBarFromWorker(w);
+        }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[MainWindow] Back error: {ex.Message}"); }
+    }
+
+    private void OnNavBarForwardRequested(object? sender, EventArgs e)
+    {
+        try
+        {
+            var w = _tabs.Active;
+            if (w == null) return;
+            w.GoForward();
+            RefreshNavBarFromWorker(w);
+        }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[MainWindow] Forward error: {ex.Message}"); }
+    }
+
+    private void OnNavBarReloadRequested(object? sender, EventArgs e)
+    {
+        try { _tabs.Active?.Manager?.Reload(); }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[MainWindow] Reload error: {ex.Message}"); }
+    }
+
+    private async void OnNavBarHomeRequested(object? sender, EventArgs e)
+    {
+        try
+        {
+            var home = await GetSearchHomePageAsync();
+            HandleNavigationUrl(home);
+        }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[MainWindow] Home error: {ex.Message}"); }
+    }
+
+    private void RefreshNavBarFromWorker(VetaleBrowser.Core.Scripts.Models.TabWorker w)
+    {
+        try
+        {
+            var bar = _normalModePage?.NavBar;
+            bar?.SetState(w.Address, w.CanGoBack, w.CanGoForward);
+        }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[MainWindow] RefreshNavBar error: {ex.Message}"); }
+    }
+
     private void OnManagerNavigated(object? sender, string url)
     {
         try
@@ -3127,13 +3262,21 @@ public partial class MainWindow : Window
 
             if (isActive)
             {
+                _normalModePage?.NavBar?.SetState(
+                    worker.Address ?? entry.Url,
+                    worker.CanGoBack,
+                    worker.CanGoForward);
+            }
+
+            if (isActive)
+            {
                 if (entry.IsInternal && entry.InternalPageContent != null)
                 {
                     // Показуємо внутрішню сторінку
                     ActivateWorkerForInternalPage(worker, entry.InternalPageContent, entry.Url);
 
                     // Оновлюємо іконку для внутрішньої сторінки (Vetale Search)
-                    _ = UpdateFaviconAsync(entry.Url);
+                    _ = UpdateFaviconAsync(entry.Url, worker);
 
                     // Іконка Vetale Search ставиться синхронно, щоб була завжди
                     if (IsVetaleSearchPageUrl(entry.Url))
@@ -3164,7 +3307,7 @@ public partial class MainWindow : Window
                     UpdateNavigationBar("vetale://game/hexgl?by=Thibaut%20Despoulain");
 
                     // Примусово оновлюємо іконку гри
-                    _ = UpdateFaviconAsync(url);
+                    _ = UpdateFaviconAsync(url, worker);
                 }
             }
             else
@@ -3216,7 +3359,7 @@ public partial class MainWindow : Window
             
             errorPage.GoBackRequested += (_, _) =>
             {
-                if (worker.History.CanGoBack)
+                if (worker.CanGoBack)
                 {
                     worker.GoBack();
                 }
@@ -3266,14 +3409,41 @@ public partial class MainWindow : Window
                         
                         System.Diagnostics.Debug.WriteLine($"[MainWindow] Navigating to HexGL game via HTTP: {gameUrl}");
                     }
+                    else if (gameServer.GameExists)
+                    {
+                        // Fallback: сервер не стартував — запускаємо гру напряму
+                        // з папки VetaleBrowserOfflineGame через file://
+                        var fileUrl = gameServer.GameFileUrl;
+                        worker.Navigate(fileUrl);
+                        
+                        UpdateTabTitle(worker, "HexGL - by Thibaut Despoulain");
+                        
+                        System.Diagnostics.Debug.WriteLine($"[MainWindow] Game server failed, fallback to offline folder: {fileUrl}");
+                    }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine("[MainWindow] Failed to start game server");
+                        System.Diagnostics.Debug.WriteLine($"[MainWindow] Failed to start game server and offline folder missing: {gameServer.GameRootPath}");
                     }
                 }
                 catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine($"[MainWindow] Error starting game: {ex.Message}");
+                    // Останній шанс: пробуємо відкрити гру з папки напряму
+                    try
+                    {
+                        var fallbackServer = LocalGameServer.Instance;
+                        if (fallbackServer.GameExists)
+                        {
+                            var fileUrl = fallbackServer.GameFileUrl;
+                            worker.Navigate(fileUrl);
+                            UpdateTabTitle(worker, "HexGL - by Thibaut Despoulain");
+                            System.Diagnostics.Debug.WriteLine($"[MainWindow] Exception fallback to offline folder: {fileUrl}");
+                        }
+                    }
+                    catch (Exception fallbackEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[MainWindow] Fallback game launch failed: {fallbackEx.Message}");
+                    }
                 }
             };
             
@@ -3337,8 +3507,8 @@ public partial class MainWindow : Window
             // Оновлюємо стан кнопок назад/вперед
             if (_tabs.Active != null)
             {
-                navBar.CanGoBack = _tabs.Active.History.CanGoBack;
-                navBar.CanGoForward = _tabs.Active.History.CanGoForward;
+                navBar.CanGoBack = _tabs.Active.CanGoBack;
+                navBar.CanGoForward = _tabs.Active.CanGoForward;
             }
         }
     }
@@ -3453,4 +3623,3 @@ public partial class MainWindow : Window
         });
     }
 }
-

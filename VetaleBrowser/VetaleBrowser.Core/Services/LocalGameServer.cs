@@ -45,6 +45,26 @@ namespace VetaleBrowser.VetaleBrowser.Core.Services
         public bool IsRunning => _isRunning;
         
         /// <summary>
+        /// Root folder of the offline game (VetaleBrowserOfflineGame)
+        /// </summary>
+        public string GameRootPath => _gameRootPath;
+        
+        /// <summary>
+        /// Full path to the game's index.html in the offline folder
+        /// </summary>
+        public string GameIndexPath => Path.Combine(_gameRootPath, "index.html");
+        
+        /// <summary>
+        /// Whether the offline game folder with index.html exists
+        /// </summary>
+        public bool GameExists => Directory.Exists(_gameRootPath) && File.Exists(GameIndexPath);
+        
+        /// <summary>
+        /// Direct file:// URL to the offline game (fallback when HTTP server fails)
+        /// </summary>
+        public string GameFileUrl => new Uri(GameIndexPath).AbsoluteUri;
+        
+        /// <summary>
         /// Singleton server instance
         /// </summary>
         public static LocalGameServer Instance
