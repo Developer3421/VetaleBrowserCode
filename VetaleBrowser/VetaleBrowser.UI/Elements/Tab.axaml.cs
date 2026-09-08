@@ -62,6 +62,7 @@ public class Tab : TemplatedControl
         if (_muteButton != null)
         {
             _muteButton.PointerPressed -= OnMuteButtonPointerPressed;
+            _muteButton.Click -= OnMuteButtonClick;
         }
 
         _border = e.NameScope.Find<Border>("PART_Border");
@@ -79,6 +80,7 @@ public class Tab : TemplatedControl
         if (_muteButton != null)
         {
             _muteButton.PointerPressed += OnMuteButtonPointerPressed;
+            _muteButton.Click += OnMuteButtonClick;
         }
     }
 
@@ -130,6 +132,13 @@ public class Tab : TemplatedControl
             MuteToggled?.Invoke(this, System.EventArgs.Empty);
         }
 
+        e.Handled = true;
+    }
+
+    private void OnMuteButtonClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine($"[Tab] Mute button clicked: title={Title}, muted={IsMuted}");
+        MuteToggled?.Invoke(this, System.EventArgs.Empty);
         e.Handled = true;
     }
 

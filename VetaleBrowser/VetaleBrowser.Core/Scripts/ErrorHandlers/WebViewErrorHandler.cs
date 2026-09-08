@@ -655,7 +655,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.ErrorHandlers
             try
             {
                 using var request = new HttpRequestMessage(HttpMethod.Head, url);
-                request.Headers.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0");
+                // Без кастомного User-Agent: дефолтний HttpClient, повні (не спрощені) версії сайтів.
                 
                 var response = await _httpClient.SendAsync(request);
                 

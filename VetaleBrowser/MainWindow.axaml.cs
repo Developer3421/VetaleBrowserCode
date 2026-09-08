@@ -536,7 +536,13 @@ public partial class MainWindow : Window
             container.Children.Add(view);
         }
 
-        if (!string.IsNullOrWhiteSpace(active.Address))
+        // Навігуємо тільки якщо браузер ще порожній — інакше перемикання вкладок
+        // перезавантажувало б сторінку і вбивало стан таба.
+        var currentAddr = active.WebView.Address;
+        if (!string.IsNullOrWhiteSpace(active.Address) &&
+            (string.IsNullOrWhiteSpace(currentAddr) ||
+             currentAddr.StartsWith("about:", StringComparison.OrdinalIgnoreCase)) &&
+            !string.Equals(currentAddr, active.Address, StringComparison.OrdinalIgnoreCase))
             active.WebView.LoadUrl(active.Address);
     }
 

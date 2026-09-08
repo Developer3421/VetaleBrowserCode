@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using CefSharp.Avalonia;
+using CefSharp;
+using CefSharp.Wpf;
 
 namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Browser;
 
@@ -35,21 +36,23 @@ public static class CefBrowserConfig
     {
         var settings = new CefSettings
         {
-            NoSandbox = true,
             CachePath = DiskCacheDir,
             RootCachePath = UserDataDir,
             PersistSessionCookies = true,
-            PersistUserPreferences = true,
-            LogSeverity = CefLogSeverity.Disable,
+            LogSeverity = LogSeverity.Disable,
             LogFile = System.IO.Path.Combine(UserDataDir, "cef.log"),
-            JavascriptFlags = "--max-old-space-size=128 --optimize-for-size",
+            RemoteDebuggingPort = 9223, // потрібен CefDevToolsClient (favicon/title/fullscreen через DevTools)
             WindowlessRenderingEnabled = false,
-            RemoteDebuggingPort = 9223
+            // БЕЗ кастомного UserAgent: дефолтний десктопний Chrome UA від CEF.
+            // Кастомний/мобільний UA змушував сайти віддавати спрощені версії.
+            UserAgent = null,
         };
 
-        settings.CommandLineSwitches.AddRange(CommandLineSwitches);
+        settings.CefCommandLineArgs.Add("disable-background-timer-throttling");
+        settings.CefCommandLineArgs.Add("disable-renderer-backgrounding");
+        settings.CefCommandLineArgs.Add("disable-backgrounding-occluded-windows");
         return settings;
     }
 
-    public static void EnsureInitialized() => EnsureDirectories();
+    public static void EnsureInitialized() => CefWpfBootstrapper.EnsureInitialized();
 }

@@ -198,7 +198,7 @@ public sealed class GpuInfoPage : UserControl
             sb.AppendLine($"UserDataDir: {CefBrowserConfig.UserDataDir}");
             sb.AppendLine($"CacheDir: {CefBrowserConfig.DiskCacheDir}");
             sb.AppendLine($"CEF runtime: {typeof(CefBrowserConfig).Assembly.GetName().Version}");
-            sb.AppendLine($"PersistSessionCookies: {s.PersistSessionCookies}");
+            sb.AppendLine($"PersistSessionCookies: {s.PersistSessionCookies} (UserAgent: default/desktop)");
             foreach (var sw in CefBrowserConfig.CommandLineSwitches)
                 sb.AppendLine($"--{sw}");
             return sb.ToString().TrimEnd();
