@@ -167,15 +167,29 @@ public partial class SearchEngineSettingsPage : UserControl
     private void OnCustomUrlChanged(object? sender, TextChangedEventArgs e)
     {
         if (_isLoading || _customRadio?.IsChecked != true) return;
-        // Жива валідація прямо в інтерфейсі
-        ShowCustomError(VetaleBrowser.UI.Services.SearchUrlBuilder.Validate(_customUrlTextBox?.Text));
+        // Жива валідація прямо в інтерфейсі + підказка про дописування запиту
+        var fatal = VetaleBrowser.UI.Services.SearchUrlBuilder.Validate(_customUrlTextBox?.Text);
+        if (fatal != null)
+        {
+            ShowCustomHint(fatal, isError: true);
+            return;
+        }
+        if (!VetaleBrowser.UI.Services.SearchUrlBuilder.HasPlaceholder(_customUrlTextBox?.Text))
+            ShowCustomHint("Без плейсхолдера запит допишеться в кінець URL (як у https://www.ecosia.org/search?q=).", isError: false);
+        else
+            ShowCustomHint(null, isError: false);
     }
 
-    private void ShowCustomError(string? message)
+    private void ShowCustomError(string? message) => ShowCustomHint(message, isError: true);
+
+    private void ShowCustomHint(string? message, bool isError)
     {
         if (_customErrorText == null) return;
         _customErrorText.Text = message ?? string.Empty;
         _customErrorText.IsVisible = !string.IsNullOrEmpty(message);
+        _customErrorText.Foreground = isError
+            ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#C62828"))
+            : new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#2E7D32"));
     }
 
     private async void OnSaveClick(object? sender, RoutedEventArgs e)

@@ -798,6 +798,7 @@ public partial class MainWindow : Window
         // Підписуємося на події навігації
         worker.NavigationChanged += OnWorkerNavigationChanged;
         worker.FaviconChanged += OnWorkerFaviconChanged;
+        worker.FaviconDataChanged += OnWorkerFaviconDataChanged;
         worker.TitleChanged += OnWorkerTitleChangedForFavicon;
         SubscribeWorkerHistoryUpdates(worker);
         
@@ -854,6 +855,23 @@ public partial class MainWindow : Window
             // Іконка прийшла пізніше коміта — дозбагачуємо запис історії.
             if (!string.IsNullOrWhiteSpace(worker.Address))
                 UpsertHistory(worker, worker.Address);
+        }
+        catch { }
+    }
+
+    /// <summary>
+    /// Байти іконки докачались — перезаписуємо запис історії свіжими байтами.
+    /// Без цього історія показувала байти ПОПЕРЕДНЬОГО сайту/пошуковика
+    /// (запис створювався на commit зі старими FaviconData, а merge не чіпає null).
+    /// </summary>
+    private void OnWorkerFaviconDataChanged(object? sender, byte[] data)
+    {
+        try
+        {
+            if (sender is not TabWorker worker || data == null || data.Length == 0) return;
+            if (string.IsNullOrWhiteSpace(worker.Address)) return;
+            // Перевірка: байти відповідають поточному URL вкладки, а не старій навігації.
+            UpsertHistory(worker, worker.Address);
         }
         catch { }
     }

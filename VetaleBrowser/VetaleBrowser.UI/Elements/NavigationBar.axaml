@@ -24,11 +24,9 @@
                                 Padding="0"
                                 ToolTip.Tip="{DynamicResource Nav.Back}">
                             <Image Source="{DynamicResource BackButtonImage}"
-                                   Width="18"
-                                   Height="18"
-                                   Stretch="Uniform"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"
+                                   Stretch="UniformToFill"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch"
                                    IsHitTestVisible="False" />
                         </Button>
 
@@ -43,11 +41,9 @@
                                 Padding="0"
                                 ToolTip.Tip="{DynamicResource Nav.Forward}">
                             <Image Source="{DynamicResource ForwardButtonImage}"
-                                   Width="18"
-                                   Height="18"
-                                   Stretch="Uniform"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"
+                                   Stretch="UniformToFill"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch"
                                    IsHitTestVisible="False" />
                         </Button>
 

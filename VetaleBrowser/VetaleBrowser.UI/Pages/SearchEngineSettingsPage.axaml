@@ -211,7 +211,7 @@
                                      TextChanged="OnCustomUrlChanged"/>
                             <TextBox x:Name="CustomUrlTextBox" 
                                      Classes="custom-url"
-                                     Watermark="https://example.com/search?q={0}  (або %s замість {0})"
+                                     Watermark="https://www.ecosia.org/search?q=  або https://example.com/search?q={0}"
                                      IsEnabled="False"
                                      TextChanged="OnCustomUrlChanged"/>
                             <TextBlock x:Name="CustomErrorText"

@@ -240,9 +240,18 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         public event EventHandler<string?>? TitleChanged;
         public event EventHandler<string?>? AddressChanged;
         public event EventHandler<string?>? FaviconChanged;
+        /// <summary>Байти іконки докачались — історія має перезаписати запис.</summary>
+        public event EventHandler<byte[]>? FaviconDataChanged;
         public string? FaviconUrl { get; private set; }
         /// <summary>Байти іконки для історії БД (качаються з URL від CEF).</summary>
         public byte[]? FaviconData { get; private set; }
+
+        /// <summary>Скинути іконку при переході на інший хост, щоб не світилась стара.</summary>
+        public void ResetFavicon()
+        {
+            FaviconUrl = null;
+            FaviconData = null;
+        }
         public event EventHandler<bool>? FullscreenChanged;
         public event EventHandler<NavigationEntry>? NavigationChanged;
         
@@ -367,6 +376,18 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                     return;
                 }
                 
+                // Перехід на інший хост — скидаємо іконку, щоб вкладка/історія
+                // не показували іконку попереднього пошуковика/сайту.
+                try
+                {
+                    if (!string.IsNullOrEmpty(newAddr) && !string.IsNullOrEmpty(prev) &&
+                        Uri.TryCreate(newAddr, UriKind.Absolute, out var nu) &&
+                        Uri.TryCreate(prev, UriKind.Absolute, out var pu) &&
+                        !string.Equals(nu.Host, pu.Host, StringComparison.OrdinalIgnoreCase))
+                        ResetFavicon();
+                }
+                catch { }
+
                 // Re-inject JavaScript guards after each navigation
                 InjectNavigationGuards();
 
@@ -790,20 +811,10 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
                     if (!isSuccess)
                     {
-                        _ignoreNextProgrammaticAddressChange = false;
-                        System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] PreCheck failed: {errorCode} - {errorMessage}");
-
-                        // Report the error via ErrorHandler
-                        // This will show the error page faster than WebView
-                        if (errorCode >= 400)
-                        {
-                            ErrorHandler.ReportHttpError(errorCode, url);
-                        }
-                        else
-                        {
-                            ErrorHandler.ReportError(errorCode, url, errorMessage);
-                        }
-                        return; // Do not navigate in WebView
+                        // НЕ блокуємо навігацію: HEAD-пречек бреше на серверах без підтримки HEAD
+                        // (напр. ecosia відповідає 404 на HEAD, хоча GET працює) — як у Chrome,
+                        // завжди вантажимо в рушій, а реальні помилки покаже сам рушій.
+                        System.Diagnostics.Debug.WriteLine($"[TabWorker {Id}] PreCheck failed ({errorCode} - {errorMessage}), navigating anyway: {url}");
                     }
                 }
 
@@ -1106,7 +1117,10 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 if (!response.IsSuccessStatusCode) return;
                 var bytes = await response.Content.ReadAsByteArrayAsync();
                 if (bytes == null || bytes.Length == 0 || bytes.Length > 512 * 1024) return;
+                // Іконка могла змінитись поки качали — пишемо тільки якщо URL той самий.
+                if (!string.Equals(FaviconUrl, iconUrl, StringComparison.OrdinalIgnoreCase)) return;
                 FaviconData = bytes;
+                FaviconDataChanged?.Invoke(this, bytes);
             }
             catch { }
         }
