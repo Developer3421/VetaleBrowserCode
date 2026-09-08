@@ -37,6 +37,9 @@ public interface IBrowserView : IDisposable
     Task<T> EvaluateScriptAsync<T>(string script);
     bool SetAudioMuted(bool muted);
 
+    /// <summary>URL іконок напряму від рушія CEF (OnFaviconUrlChange).</summary>
+    event EventHandler<System.Collections.Generic.IList<string>>? FaviconUrlsChanged;
+
     event EventHandler<AvaloniaPropertyChangedEventArgs> PropertyChanged;
     event EventHandler<KeyEventArgs> KeyDown;
 }

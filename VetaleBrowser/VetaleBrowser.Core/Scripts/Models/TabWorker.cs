@@ -241,6 +241,8 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         public event EventHandler<string?>? AddressChanged;
         public event EventHandler<string?>? FaviconChanged;
         public string? FaviconUrl { get; private set; }
+        /// <summary>Байти іконки для історії БД (качаються з URL від CEF).</summary>
+        public byte[]? FaviconData { get; private set; }
         public event EventHandler<bool>? FullscreenChanged;
         public event EventHandler<NavigationEntry>? NavigationChanged;
         
@@ -303,6 +305,9 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
 
                 // Observe WebView property changes to keep state up-to-date
                 WebView.PropertyChanged += WebViewOnPropertyChanged;
+
+                // Іконки напряму від CEF (OnFaviconUrlChange) — без DevTools-опитування.
+                WebView.FaviconUrlsChanged += OnEngineFaviconUrls;
 
                 // Initialize subprocess title
                 TryUpdateSubprocessTitle();
@@ -1071,13 +1076,54 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
         }
 
         /// <summary>
+        /// Іконка від самого CEF: перший URL зі списку — в таб і в історію.
+        /// </summary>
+        private void OnEngineFaviconUrls(object? sender, IList<string> urls)
+        {
+            try
+            {
+                if (urls == null || urls.Count == 0) return;
+                string? icon = null;
+                foreach (var u in urls)
+                {
+                    if (!string.IsNullOrWhiteSpace(u) && !u.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+                    { icon = u.Trim(); break; }
+                }
+                icon ??= urls[0]?.Trim();
+                if (string.IsNullOrWhiteSpace(icon)) return;
+                if (string.Equals(FaviconUrl, icon, StringComparison.OrdinalIgnoreCase)) return;
+                FaviconUrl = icon;
+                FaviconChanged?.Invoke(this, icon);
+                _ = FetchFaviconDataAsync(icon);
+            }
+            catch { }
+        }
+
+        private static readonly HttpClient _faviconHttp = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
+
+        private async Task FetchFaviconDataAsync(string iconUrl)
+        {
+            try
+            {
+                using var response = await _faviconHttp.GetAsync(iconUrl);
+                if (!response.IsSuccessStatusCode) return;
+                var bytes = await response.Content.ReadAsByteArrayAsync();
+                if (bytes == null || bytes.Length == 0 || bytes.Length > 512 * 1024) return;
+                FaviconData = bytes;
+            }
+            catch { }
+        }
+
+        /// <summary>
         /// PRO-style live favicon: reads &lt;link rel="icon"&gt; from the page via DevTools,
         /// falls back to /favicon.ico convention. Fires FaviconChanged for the UI.
+        /// Фолбек: якщо CEF сам не дав URL (OnFaviconUrlChange).
         /// </summary>
         public async Task RefreshFaviconAsync()
         {
             try
             {
+                if (!string.IsNullOrWhiteSpace(FaviconUrl)) return; // рушій уже дав іконку
                 var addr = Address ?? WebView?.Address;
                 if (string.IsNullOrWhiteSpace(addr)) return;
                 if (addr.StartsWith("vetale://", StringComparison.OrdinalIgnoreCase) ||
@@ -1095,6 +1141,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
                 if (string.Equals(FaviconUrl, icon, StringComparison.OrdinalIgnoreCase)) return;
                 FaviconUrl = icon;
                 FaviconChanged?.Invoke(this, icon);
+                _ = FetchFaviconDataAsync(icon);
             }
             catch { }
         }
@@ -2018,6 +2065,7 @@ namespace VetaleBrowser.VetaleBrowser.Core.Scripts.Models
             try
             {
                 WebView.PropertyChanged -= WebViewOnPropertyChanged;
+                WebView.FaviconUrlsChanged -= OnEngineFaviconUrls;
                 
                 // Dispose error handler
                 if (ErrorHandler != null)

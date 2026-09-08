@@ -37,6 +37,10 @@ public class CefSharpAdapter : AvaloniaObject, IBrowserView
     public event EventHandler<KeyEventArgs>? KeyDown;
     /// <summary>Головний фрейм довантажився — тригер для іконки/титулу вкладки.</summary>
     public event EventHandler<string?>? FrameLoadEnd;
+    public event EventHandler<IList<string>>? FaviconUrlsChanged;
+
+    /// <summary>Останні URL іконок від CEF.</summary>
+    public IList<string>? LatestFaviconUrls { get; private set; }
 
     public CefSharpAdapter(string? initialUrl = null)
     {
@@ -51,6 +55,11 @@ public class CefSharpAdapter : AvaloniaObject, IBrowserView
         _host.BrowserTitleChanged += (_, title) => OnEngineTitle(title);
         _host.BrowserLoadingStateChanged += (_, s) => OnEngineLoadingState(s.CanGoBack, s.CanGoForward);
         _host.BrowserFrameLoadEnd += (_, url) => FrameLoadEnd?.Invoke(this, url);
+        _host.BrowserFaviconUrlsChanged += (_, urls) =>
+        {
+            LatestFaviconUrls = urls;
+            FaviconUrlsChanged?.Invoke(this, urls);
+        };
         if (!string.IsNullOrWhiteSpace(initialUrl))
             LoadUrl(initialUrl);
     }
