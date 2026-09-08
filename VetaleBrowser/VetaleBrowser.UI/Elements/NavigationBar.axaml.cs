@@ -283,12 +283,14 @@ public class NavigationBar : TemplatedControl
             else
             {
                 var tpl = await GetSearchEngineUrlAsync();
-                return string.Format(tpl, Uri.EscapeDataString(raw));
+                return VetaleBrowser.UI.Services.SearchUrlBuilder.Build(tpl, raw)
+                    ?? "https://www.google.com/search?q=" + Uri.EscapeDataString(raw);
             }
         }
         if (TryNormalizeUserUrl(raw, out var n)) return n;
         var tpl2 = await GetSearchEngineUrlAsync();
-        return string.Format(tpl2, Uri.EscapeDataString(raw));
+        return VetaleBrowser.UI.Services.SearchUrlBuilder.Build(tpl2, raw)
+            ?? "https://www.google.com/search?q=" + Uri.EscapeDataString(raw);
     }
 
     private async Task LoadSuggestionsDebouncedAsync()

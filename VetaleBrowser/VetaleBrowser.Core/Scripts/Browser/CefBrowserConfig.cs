@@ -41,7 +41,9 @@ public static class CefBrowserConfig
             PersistSessionCookies = true,
             LogSeverity = LogSeverity.Disable,
             LogFile = System.IO.Path.Combine(UserDataDir, "cef.log"),
-            RemoteDebuggingPort = 9223, // потрібен CefDevToolsClient (favicon/title/fullscreen через DevTools)
+            // БЕЗПЕКА: DevTools-порт закритий (0) — жодного ws://127.0.0.1:9223.
+            // Favicon йде від CEF через OnFaviconUrlChange, JS — через EvaluateScriptAsync рушія.
+            RemoteDebuggingPort = 0,
             WindowlessRenderingEnabled = false,
             // БЕЗ кастомного UserAgent: дефолтний десктопний Chrome UA від CEF.
             // Кастомний/мобільний UA змушував сайти віддавати спрощені версії.

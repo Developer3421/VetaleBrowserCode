@@ -20,7 +20,9 @@ public partial class SearchEngineSettingsPage : UserControl
     private RadioButton? _yahooRadio;
     private RadioButton? _baiduRadio;
     private RadioButton? _customRadio;
+    private TextBox? _customNameTextBox;
     private TextBox? _customUrlTextBox;
+    private TextBlock? _customErrorText;
 
     private readonly ISettingsService? _settingsService;
     private bool _isLoading = true;
@@ -61,7 +63,9 @@ public partial class SearchEngineSettingsPage : UserControl
         _yahooRadio = this.FindControl<RadioButton>("YahooRadio");
         _baiduRadio = this.FindControl<RadioButton>("BaiduRadio");
         _customRadio = this.FindControl<RadioButton>("CustomRadio");
+        _customNameTextBox = this.FindControl<TextBox>("CustomNameTextBox");
         _customUrlTextBox = this.FindControl<TextBox>("CustomUrlTextBox");
+        _customErrorText = this.FindControl<TextBlock>("CustomErrorText");
 
         // Load current settings
         await LoadCurrentSettings();
@@ -122,10 +126,15 @@ public partial class SearchEngineSettingsPage : UserControl
             }
             else
             {
-                // This is a custom search engine
+                // This is a custom search engine — показуємо збережені назву і шаблон
                 if (_customRadio != null)
                 {
                     _customRadio.IsChecked = true;
+                    if (_customNameTextBox != null)
+                    {
+                        _customNameTextBox.Text = currentName;
+                        _customNameTextBox.IsEnabled = true;
+                    }
                     if (_customUrlTextBox != null)
                     {
                         _customUrlTextBox.Text = currentUrl;
@@ -146,15 +155,27 @@ public partial class SearchEngineSettingsPage : UserControl
             return;
 
         // Enable/disable TextBox depending on selection
+        var custom = _customRadio?.IsChecked == true;
         if (_customUrlTextBox != null)
-        {
-            _customUrlTextBox.IsEnabled = _customRadio?.IsChecked == true;
-        }
+            _customUrlTextBox.IsEnabled = custom;
+        if (_customNameTextBox != null)
+            _customNameTextBox.IsEnabled = custom;
+        if (!custom)
+            ShowCustomError(null);
     }
 
     private void OnCustomUrlChanged(object? sender, TextChangedEventArgs e)
     {
-        // URL validation can be added here
+        if (_isLoading || _customRadio?.IsChecked != true) return;
+        // Жива валідація прямо в інтерфейсі
+        ShowCustomError(VetaleBrowser.UI.Services.SearchUrlBuilder.Validate(_customUrlTextBox?.Text));
+    }
+
+    private void ShowCustomError(string? message)
+    {
+        if (_customErrorText == null) return;
+        _customErrorText.Text = message ?? string.Empty;
+        _customErrorText.IsVisible = !string.IsNullOrEmpty(message);
     }
 
     private async void OnSaveClick(object? sender, RoutedEventArgs e)
@@ -212,21 +233,20 @@ public partial class SearchEngineSettingsPage : UserControl
             }
             else if (_customRadio?.IsChecked == true)
             {
-                searchEngineName = "Custom";
-                searchEngineUrl = _customUrlTextBox?.Text?.Trim() ?? "";
-
-                // Custom URL validation
-                if (string.IsNullOrWhiteSpace(searchEngineUrl))
+                var rawUrl = _customUrlTextBox?.Text?.Trim() ?? "";
+                var error = VetaleBrowser.UI.Services.SearchUrlBuilder.Validate(rawUrl);
+                if (error != null)
                 {
-                    System.Diagnostics.Debug.WriteLine("SearchEngineSettingsPage: Custom URL is empty");
+                    ShowCustomError(error);
+                    System.Diagnostics.Debug.WriteLine($"SearchEngineSettingsPage: Custom invalid: {error}");
                     return;
                 }
 
-                if (!searchEngineUrl.Contains("{0}"))
-                {
-                    System.Diagnostics.Debug.WriteLine("SearchEngineSettingsPage: Custom URL must contain {0}");
-                    return;
-                }
+                searchEngineName = _customNameTextBox?.Text?.Trim() ?? "";
+                if (string.IsNullOrWhiteSpace(searchEngineName))
+                    searchEngineName = "Custom";
+                searchEngineUrl = VetaleBrowser.UI.Services.SearchUrlBuilder.Normalize(rawUrl);
+                ShowCustomError(null);
             }
             else
             {

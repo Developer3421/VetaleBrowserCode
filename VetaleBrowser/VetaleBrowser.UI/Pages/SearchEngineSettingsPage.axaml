@@ -195,20 +195,30 @@
                     </RadioButton>
 
                     <RadioButton x:Name="CustomRadio" 
-                                 Classes="search-engine" 
-                                 GroupName="SearchEngine"
-                                 Click="OnSearchEngineChanged">
+                                  Classes="search-engine" 
+                                  GroupName="SearchEngine"
+                                  Click="OnSearchEngineChanged">
                         <StackPanel Orientation="Vertical" Spacing="8">
                             <TextBlock Text="{DynamicResource Search.Custom.Title}" FontSize="15" FontWeight="SemiBold" Foreground="#202020"/>
                             <TextBlock Text="{DynamicResource Search.Custom.Hint}" 
                                        FontSize="11" 
                                        Foreground="#707070" 
                                        TextWrapping="Wrap"/>
-                            <TextBox x:Name="CustomUrlTextBox" 
+                            <TextBox x:Name="CustomNameTextBox"
                                      Classes="custom-url"
-                                     Watermark="https://example.com/search?q={0}"
+                                     Watermark="Назва, наприклад Мій пошук"
                                      IsEnabled="False"
                                      TextChanged="OnCustomUrlChanged"/>
+                            <TextBox x:Name="CustomUrlTextBox" 
+                                     Classes="custom-url"
+                                     Watermark="https://example.com/search?q={0}  (або %s замість {0})"
+                                     IsEnabled="False"
+                                     TextChanged="OnCustomUrlChanged"/>
+                            <TextBlock x:Name="CustomErrorText"
+                                       FontSize="12"
+                                       Foreground="#C62828"
+                                       TextWrapping="Wrap"
+                                       IsVisible="False"/>
                         </StackPanel>
                     </RadioButton>
                 </StackPanel>

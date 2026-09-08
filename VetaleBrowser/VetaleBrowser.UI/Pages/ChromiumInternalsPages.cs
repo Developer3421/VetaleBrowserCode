@@ -243,25 +243,8 @@ public sealed class VersionInfoPage : UserControl
         panel.Children.Add(new TextBlock { Text = "About Version", FontSize = 22, FontWeight = FontWeight.Bold });
         panel.Children.Add(new TextBlock { Text = "chrome://version - Vetale Browser (built-in)", FontSize = 13, Opacity = 0.7 });
         panel.Children.Add(new TextBlock { Text = sb.ToString().TrimEnd(), FontSize = 13, TextWrapping = TextWrapping.Wrap, FontFamily = new FontFamily("Consolas,Menlo,monospace") });
-        var devToolsStatus = new TextBlock { Text = "DevTools 127.0.0.1:9223: probing...", FontSize = 13, FontFamily = new FontFamily("Consolas,Menlo,monospace") };
-        panel.Children.Add(devToolsStatus);
+        // БЕЗПЕКА: DevTools-порт закритий (RemoteDebuggingPort = 0) — проба прибрана.
+        panel.Children.Add(new TextBlock { Text = "DevTools 127.0.0.1:9223: DISABLED (порт закритий з міркувань безпеки)", FontSize = 13, FontFamily = new FontFamily("Consolas,Menlo,monospace") });
         Content = new ScrollViewer { Content = panel };
-
-        // Проба DevTools-порта (від нього залежить детект F-фулскріна)
-        _ = System.Threading.Tasks.Task.Run(async () =>
-        {
-            string status;
-            try
-            {
-                using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(3) };
-                var json = await http.GetStringAsync("http://127.0.0.1:9223/json/version");
-                status = "DevTools 127.0.0.1:9223: OK " + json.Trim().Replace("\n", " ");
-            }
-            catch (Exception ex)
-            {
-                status = "DevTools 127.0.0.1:9223: UNREACHABLE (" + ex.GetType().Name + ": " + ex.Message + ")";
-            }
-            Avalonia.Threading.Dispatcher.UIThread.Post(() => devToolsStatus.Text = status);
-        });
     }
 }

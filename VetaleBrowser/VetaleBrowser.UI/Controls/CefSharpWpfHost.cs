@@ -26,8 +26,8 @@ public class CefSharpWpfHost : NativeControlHost
     private HwndSource? _hwndSource;
     private WpfControls.Grid? _root;
     private ChromiumWebBrowser? _browser;
-    private DispatcherTimer? _pump;
-    private bool _sized;
+    private int _lastW;
+    private int _lastH;
 
     public string StartUrl { get; set; } = "https://example.com";
     public ChromiumWebBrowser? Browser => _browser;
@@ -39,6 +39,8 @@ public class CefSharpWpfHost : NativeControlHost
     public event EventHandler<string?>? BrowserTitleChanged;
     public event EventHandler<(bool CanGoBack, bool CanGoForward)>? BrowserLoadingStateChanged;
     public event EventHandler<string?>? BrowserFrameLoadEnd;
+    /// <summary>URL іконок напряму від CEF (OnFaviconUrlChange).</summary>
+    public event EventHandler<System.Collections.Generic.IList<string>>? BrowserFaviconUrlsChanged;
 
     public CefSharpWpfHost()
     {
@@ -61,6 +63,17 @@ public class CefSharpWpfHost : NativeControlHost
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch,
                 VerticalAlignment = System.Windows.VerticalAlignment.Stretch,
             };
+            try
+            {
+                // Хендлер іконок від самого CEF.
+                var faviconHandler = new global::VetaleBrowser.VetaleBrowser.Core.Scripts.Browser.CefFaviconDisplayHandler();
+                faviconHandler.FaviconUrlsChanged += (_, urls) =>
+                {
+                    try { BrowserFaviconUrlsChanged?.Invoke(this, urls); } catch { }
+                };
+                _browser.DisplayHandler = faviconHandler;
+            }
+            catch { }
             WireBrowserEvents(_browser);
         }
         if (_root == null)
@@ -83,24 +96,15 @@ public class CefSharpWpfHost : NativeControlHost
         };
 
         _hwndSource = new HwndSource(parameters) { RootVisual = _root };
-        _sized = false;
+        _lastW = 0;
+        _lastH = 0;
         SyncChildSize();
-
-        // Прокачка WPF Dispatcher: без цього WPF-композитор стоїть і видно чорне.
-        _pump = new DispatcherTimer(TimeSpan.FromMilliseconds(33), DispatcherPriority.Background, (_, _) =>
-        {
-            try { System.Windows.Threading.Dispatcher.CurrentDispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Background); } catch { }
-            SyncChildSize();
-        });
-        _pump.Start();
 
         return new PlatformHandle(_hwndSource.Handle, "HWND");
     }
 
     protected override void DestroyNativeControlCore(IPlatformHandle control)
     {
-        try { _pump?.Stop(); } catch { }
-        _pump = null;
         // ВАЖЛИВО для вкладок: браузер НЕ вбиваємо — тільки від'єднуємо від старого HwndSource.
         // Інакше кожне перемикання вкладок (detach зі старого контейнера) знищувало б сторінку.
         // CEF-браузер переживає пересадку в новий HwndSource при наступному CreateNativeControlCore.
@@ -119,8 +123,6 @@ public class CefSharpWpfHost : NativeControlHost
     /// <summary>Остаточне знищення вкладки (закриття): вбиває і браузер.</summary>
     public void DestroyBrowser()
     {
-        try { _pump?.Stop(); } catch { }
-        _pump = null;
         try { _browser?.Dispose(); } catch { }
         _browser = null;
         try { _hwndSource?.Dispose(); } catch { }
@@ -194,10 +196,14 @@ public class CefSharpWpfHost : NativeControlHost
             var w = Math.Max(1, (int)Bounds.Width);
             var h = Math.Max(1, (int)Bounds.Height);
             if (w < 10 || h < 10) return;
+            // Тільки при реальній зміні розміру: безперервний SetWindowPos кожен тік
+            // бився з ОС-перетягуванням вікна (скидання фокуса, підвисання).
+            if (w == _lastW && h == _lastH) return;
+            _lastW = w;
+            _lastH = h;
             SyncWpfSize(w, h);
-            // Дочірній HWND на весь хост:
+            // Дочірній HWND на весь хост (без активації/зміни z-порядку):
             SetWindowPos(_hwndSource.Handle, IntPtr.Zero, 0, 0, w, h, 0x0014); // SWP_NOZORDER|SWP_NOACTIVATE
-            _sized = true;
         }
         catch { }
     }

@@ -641,7 +641,7 @@ public partial class MainWindow : Window
                 System.Diagnostics.Debug.WriteLine($"MainWindow: Failed to start poll timer: {ex.Message}");
             }
 
-            // Детект HTML5-фулскріна йде через DevTools (див. CefDevToolsClient).
+            // Детект HTML5-фулскріна йде через рушій (EvaluateScriptAsync), DevTools-порт закритий.
             // Вотчер вікон вимкнено щоб не було подвійної обробки.
             // try
             // {
@@ -851,6 +851,9 @@ public partial class MainWindow : Window
         {
             if (sender is not TabWorker worker || string.IsNullOrWhiteSpace(iconUrl)) return;
             _ = ApplyPageIconAsync(worker, iconUrl);
+            // Іконка прийшла пізніше коміта — дозбагачуємо запис історії.
+            if (!string.IsNullOrWhiteSpace(worker.Address))
+                UpsertHistory(worker, worker.Address);
         }
         catch { }
     }
@@ -957,17 +960,12 @@ public partial class MainWindow : Window
             System.Diagnostics.Debug.WriteLine($"[MainWindow] Internal page added to container: {pageContent.GetType().Name}");
         }
         
-        var tabsHost = _normalModePage?.TabsHostPanel;
-        if (tabsHost != null)
+        // По мапі worker->Tab, а не за індексом (порядок дітей може не збігатися з воркерами).
+        foreach (var w in _tabs.Workers)
         {
-            for (int widx = 0; widx < _tabs.Workers.Count; widx++)
-            {
-                var childIdx = widx + 1;
-                if (childIdx >= 0 && childIdx < tabsHost.Children.Count && tabsHost.Children[childIdx] is Tab t)
-                {
-                    t.IsActive = (_tabs.Workers[widx] == worker);
-                }
-            }
+            var t = FindTabByWorker(w);
+            if (t != null)
+                t.IsActive = (w == worker);
         }
         
         // Оновлюємо NavBar з новим URL
@@ -1530,13 +1528,13 @@ public partial class MainWindow : Window
 
             tab.IsMuted = worker.IsMuted;
 
-            for (int widx = 0; widx < _tabs.Workers.Count; widx++)
+            // Re-sync по мапі worker->Tab: індексна синхронізація ставила мут не на ті вкладки
+            // (звідси "конфлікт іконок" — іконка муту світилась не на своїй вкладці).
+            foreach (var w in _tabs.Workers)
             {
-                var childIdx2 = widx + 1;
-                if (childIdx2 >= 0 && childIdx2 < tabsHost.Children.Count && tabsHost.Children[childIdx2] is Tab t2)
-                {
-                    t2.IsMuted = _tabs.Workers[widx].IsMuted;
-                }
+                var t2 = FindTabByWorker(w);
+                if (t2 != null)
+                    t2.IsMuted = w.IsMuted;
             }
         }
         catch (Exception ex)
@@ -1877,23 +1875,17 @@ public partial class MainWindow : Window
             MoveActiveWebViewTo(targetContainer);
         }
 
-        // Update tabs active state and titles
-        var tabsHost = _normalModePage?.TabsHostPanel;
-        if (tabsHost != null)
+        // Update tabs active state and titles — СТРОГО по мапі worker->Tab,
+        // а не за індексом: порядок дітей в панелі може не збігатися з порядком воркерів
+        // (drag-reorder, overflow-переміщення), інакше ліва вкладка забирає назву/іконку/мут правої.
+        foreach (var w in _tabs.Workers)
         {
-            for (int widx = 0; widx < _tabs.Workers.Count; widx++)
-            {
-                var childIdx = widx + 1; // account for add button
-                if (childIdx >= 0 && childIdx < tabsHost.Children.Count && tabsHost.Children[childIdx] is Tab t)
-                {
-                    var w = _tabs.Workers[widx];
-                    t.IsActive = w == worker;
-                    var interim = ComputeTitle(w.Title, w.Address);
-                    t.Title = interim;
-                    // Sync mute state from worker to tab UI
-                    t.IsMuted = w.IsMuted;
-                }
-            }
+            var t = FindTabByWorker(w);
+            if (t == null) continue;
+            t.IsActive = w == worker;
+            t.Title = ComputeTitle(w.Title, w.Address);
+            // Sync mute state from worker to tab UI
+            t.IsMuted = w.IsMuted;
         }
 
         // Bind navigation bar to active manager
@@ -1999,8 +1991,12 @@ public partial class MainWindow : Window
         foreach (var candidate in _tabs.Workers)
         {
             if (_propertySubscribedWorkers.Add(candidate))
-            { 
+            {
                 candidate.WebView.PropertyChanged += WebView_OnPropertyChanged;
+                // Commit навігації (головний фрейм довантажився) — єдина точка запису історії,
+                // як у професійних браузерів: пишемо факт візиту, а не кожну зміну адреси.
+                if (candidate.WebView is VetaleBrowser.Core.Scripts.Browser.CefSharpAdapter adapter)
+                    adapter.FrameLoadEnd += WebView_OnFrameLoadEnd;
             }
         }
 
@@ -2169,25 +2165,8 @@ public partial class MainWindow : Window
 
                 await UpdateFaviconAsync(url, worker);
                 await UpdateTabTitleAsync(null, url, worker);
-
-                // Збереження в історію БД
-                try
-                {
-                    if (!string.IsNullOrWhiteSpace(url))
-                    {
-                        var title = vw.Title ?? worker.Title ?? url;
-                        DatabaseManager.HistoryInstance.AddOrUpdateHistoryItem(
-                            url: url,
-                            title: title,
-                            faviconUrl: null,
-                            faviconData: null
-                        );
-                    }
-                }
-                catch (Exception historyEx)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Error adding to history: {historyEx.Message}");
-                }
+                // Історію тут НЕ пишемо: AddressChanged — це початок навігації/набір адреси,
+                // а візит фіксується на commit (FrameLoadEnd), як у Chrome/Firefox.
             }
             else if (prop == "CanGoBack" || prop == "CanGoForward")
             {
@@ -2208,11 +2187,60 @@ public partial class MainWindow : Window
                 if (ReferenceEquals(_tabs.Active, worker))
                     _lastPageTitle = pageTitle ?? _lastPageTitle;
                 await UpdateTabTitleAsync(pageTitle, vw.Address, worker);
+                // Титул прийшов пізніше коміта — дозбагачуємо запис історії.
+                if (!string.IsNullOrWhiteSpace(pageTitle) && !string.IsNullOrWhiteSpace(vw.Address))
+                    UpsertHistory(worker, vw.Address, pageTitle);
             }
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[MainWindow] WebView_OnPropertyChanged error: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Commit навігації як у професійних браузерів: головний фрейм довантажився —
+    /// це факт візиту. Тут єдина точка створення запису історії; title/favicon
+    /// дозбагачують його пізніше через upsert (AddOrUpdateHistoryItem зливає по URL).
+    /// Внутрішні vetale://-сторінки сюди не потрапляють — вони не вантажаться в рушій.
+    /// </summary>
+    private void WebView_OnFrameLoadEnd(object? sender, string? url)
+    {
+        try
+        {
+            var worker = _tabs.Workers.FirstOrDefault(w => ReferenceEquals(sender, w.WebView));
+            if (worker == null || string.IsNullOrWhiteSpace(url)) return;
+            if (url.StartsWith("about:", StringComparison.OrdinalIgnoreCase)) return;
+
+            var title = worker.Title;
+            try { title ??= worker.WebView?.Title; } catch { }
+            UpsertHistory(worker, url, title ?? url);
+
+            _ = UpdateFaviconAsync(url, worker);
+            _ = UpdateTabTitleAsync(worker.Title, url, worker);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] WebView_OnFrameLoadEnd error: {ex.Message}");
+        }
+    }
+
+    /// <summary>Upsert запису історії (створення або прогресивне збагачення title/favicon).</summary>
+    private void UpsertHistory(TabWorker worker, string? url, string? title = null)
+    {
+        try
+        {
+            if (worker == null || string.IsNullOrWhiteSpace(url)) return;
+            DatabaseManager.HistoryInstance.AddOrUpdateHistoryItem(
+                url: url,
+                title: title ?? worker.Title ?? worker.WebView?.Title ?? url,
+                faviconUrl: worker.FaviconUrl,
+                faviconData: worker.FaviconData
+            );
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Error adding to history: {ex.Message}");
         }
     }
 
@@ -3292,8 +3320,11 @@ public partial class MainWindow : Window
                 }
                 else
                 {
-                    // Показуємо WebView для зовнішніх URL
-                    ActivateWorker(worker);
+                    // Показуємо WebView для зовнішніх URL ТІЛЬКИ якщо це активна вкладка.
+                    // Інакше фонова навігація (редирект, программного Navigate) крала фокус
+                    // і підміняла в'ю: "одна вкладка перебирає на себе іншу".
+                    if (isActive)
+                        ActivateWorker(worker);
                 }
             }
 
@@ -3488,15 +3519,23 @@ public partial class MainWindow : Window
     /// </summary>
     private void UpdateTabTitle(TabWorker worker, string? title)
     {
-        var tabsHost = _normalModePage?.TabsHostPanel;
-        if (tabsHost == null) return;
-
-        var idx = _tabs.Workers.ToList().IndexOf(worker);
-        var childIdx = idx + 1; // враховуючи кнопку додавання
-        if (idx >= 0 && childIdx < tabsHost.Children.Count && tabsHost.Children[childIdx] is Tab tab)
+        // СТРОГО по мапі worker->Tab, а не за індексом (див. ActivateWorker):
+        // індексна математика ставила назву лівої вкладки на праву і навпаки.
+        var tab = FindTabByWorker(worker);
+        if (tab != null)
         {
             tab.Title = title ?? "New Tab";
             System.Diagnostics.Debug.WriteLine($"[MainWindow] Tab title updated to: {tab.Title}");
+            return;
+        }
+
+        foreach (var overflowWindow in _tabOverflowWindows)
+        {
+            if (overflowWindow.GetTabByWorker(worker) != null)
+            {
+                overflowWindow.UpdateTabTitle(worker, title ?? "New Tab");
+                return;
+            }
         }
     }
 

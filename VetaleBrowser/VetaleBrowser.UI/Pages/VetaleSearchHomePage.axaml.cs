@@ -315,20 +315,22 @@ public partial class VetaleSearchHomePage : UserControl
             return;
         }
 
-        string[] searchUrls = new[]
+        // Пункти dropdown (VetaleSearchHomePage.axaml): 0=Local, 1=Google, 2=Bing, 3=DuckDuckGo, 4=Maps(OSM).
+        // Явний switch замість масиву за індексом — минулий масив мав зайвий Yandex і останній пункт вів не туди.
+        var encoded = Uri.EscapeDataString(query);
+        string? webUrl = selectedEngine switch
         {
-            "",
-            $"https://www.google.com/search?q={Uri.EscapeDataString(query)}",
-            $"https://www.bing.com/search?q={Uri.EscapeDataString(query)}",
-            $"https://duckduckgo.com/?q={Uri.EscapeDataString(query)}",
-            $"https://yandex.com/search/?text={Uri.EscapeDataString(query)}",
-            $"https://www.openstreetmap.org/search?query={Uri.EscapeDataString(query)}"
+            1 => $"https://www.google.com/search?q={encoded}",
+            2 => $"https://www.bing.com/search?q={encoded}",
+            3 => $"https://duckduckgo.com/?q={encoded}",
+            4 => $"https://www.openstreetmap.org/search?query={encoded}",
+            _ => null,
         };
-        
-        if (selectedEngine < searchUrls.Length && !string.IsNullOrEmpty(searchUrls[selectedEngine]))
+
+        if (!string.IsNullOrEmpty(webUrl))
         {
-            System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] Web search URL: {searchUrls[selectedEngine]}");
-            NavigateRequested?.Invoke(this, searchUrls[selectedEngine]);
+            System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] Web search URL: {webUrl}");
+            NavigateRequested?.Invoke(this, webUrl);
             System.Diagnostics.Debug.WriteLine($"[VetaleSearchHomePage] ✓ NavigateRequested invoked for web search");
         }
     }

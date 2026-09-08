@@ -143,6 +143,22 @@ public partial class HistoryPage : UserControl
         {
             try
             {
+                // 1) Спочатку байти, збережені рушієм CEF при відвідуванні (працює офлайн, без DevTools).
+                var stored = vm.Item?.FaviconData;
+                if (stored != null && stored.Length > 0)
+                {
+                    try
+                    {
+                        using var ms = new System.IO.MemoryStream(stored);
+                        var bmp = new Avalonia.Media.Imaging.Bitmap(ms);
+                        var capturedVm = vm;
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() => capturedVm.FaviconImage = bmp);
+                        continue;
+                    }
+                    catch { /* fallback нижче */ }
+                }
+
+                // 2) Фолбек: докачати за URL.
                 if (!string.IsNullOrWhiteSpace(vm.Url) && Uri.TryCreate(vm.Url, UriKind.Absolute, out var uri))
                 {
                     var favicon = await _faviconService.GetFaviconAsync(uri, 20);
